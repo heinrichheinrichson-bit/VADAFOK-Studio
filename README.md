@@ -1,4 +1,5 @@
-# VADAFOK Studio 0.3
+
+# VADAFOK Studio 0.4
 
 ## Start
 
@@ -7,16 +8,24 @@ py -m pip install -r requirements.txt
 py run.py
 ```
 
-## Neu in 0.3
+## Neu in 0.4
 
-- Library-Auswahl per Linksklick
-- große Vorschau rechts
-- Doppelklick führt eine Aktion aus:
-  - Banners: als Banner merken
-  - Live Cards: Text aus Dateiname vorbereiten
-  - Scene Cards: direkt in OBS zeigen
-  - Templates: Hinweis auf kommenden Template-Editor
-- OBS Scene Card Source vorbereitet
+- Asset Manager / Action-Leiste
+- Favoriten-Stern für Assets
+- Tags pro Asset
+- Suche durchsucht Datei, Kategorie und Tags
+- Favorites-Filter
+- Open Folder
+- Copy Path
+- erste Sound-Unterstützung als Asset-Typ
+
+## Doppelklick / SHOW USE
+
+- Banners: als aktives Banner merken
+- Live Cards: Text aus Dateiname vorbereiten
+- Scene Cards: in OBS anzeigen
+- Sounds: Datei öffnen/abspielen
+- Templates: Platzhalter für Template-Editor
 
 ## OBS für Scene Cards
 
@@ -26,4 +35,4 @@ Optional neue Bildquelle in OBS erstellen:
 VADAFOK Scene Card
 ```
 
-Diese Quelle ausblenden. Dann kann Studio Scene Cards per Doppelklick anzeigen.
+Diese Quelle ausblenden.
