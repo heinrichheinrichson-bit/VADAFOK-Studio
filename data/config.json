@@ -1,0 +1,18 @@
+{
+  "project_folder": "F:/Bilder/Vadafok/Stream",
+  "host": "localhost",
+  "port": "4455",
+  "password": "Hopeless88",
+  "scene_name": "",
+  "caption_group": "VADAFOK Caption",
+  "caption_text": "VADAFOK Caption Text",
+  "duration": "5",
+  "style": "Gold Ribbon",
+  "banner_sources": {
+    "Gold Ribbon": "VADAFOK Banner",
+    "Black Gold Plate": "VADAFOK Banner Plate",
+    "Paper Scroll": "VADAFOK Banner Scroll",
+    "Film Strip": "VADAFOK Banner Filmstrip",
+    "Silent Card": "VADAFOK Banner Silent"
+  }
+}

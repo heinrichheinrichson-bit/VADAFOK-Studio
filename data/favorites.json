@@ -1,0 +1,24 @@
+{
+  "Reaction": [
+    "OOPS.",
+    "THAT WAS CLOSE.",
+    "SUCCESS!",
+    "ONE MORE TRY..."
+  ],
+  "Chat Help": [
+    "CHAT WAS RIGHT.",
+    "I NEED YOUR HELP...",
+    "ANY IDEAS?",
+    "WHAT WOULD YOU DO?"
+  ],
+  "Rules": [
+    "PLEASE NO SPOILERS.",
+    "PLEASE NO BACKSEATING.",
+    "HINTS ONLY, PLEASE."
+  ],
+  "Horror": [
+    "I HAVE A BAD FEELING...",
+    "WHY IS IT SO QUIET...?",
+    "I DON'T LIKE THIS..."
+  ]
+}
