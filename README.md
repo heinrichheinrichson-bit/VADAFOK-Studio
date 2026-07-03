@@ -1,5 +1,5 @@
 
-# VADAFOK Studio 0.4
+# VADAFOK Studio 0.5
 
 ## Start
 
@@ -8,31 +8,41 @@ py -m pip install -r requirements.txt
 py run.py
 ```
 
-## Neu in 0.4
+## Neu in 0.5
 
-- Asset Manager / Action-Leiste
-- Favoriten-Stern für Assets
-- Tags pro Asset
-- Suche durchsucht Datei, Kategorie und Tags
-- Favorites-Filter
-- Open Folder
-- Copy Path
-- erste Sound-Unterstützung als Asset-Typ
+- Caption-Banner kann jetzt direkt aus der Library gewechselt werden.
+- Neue OBS-Quelle in den Einstellungen: `Caption Banner Source`
+- Standardname: `VADAFOK Caption Banner`
+- Doppelklick auf Asset in `Banners` setzt dieses Bild als Caption-Banner.
+- Button `USE AS CAPTION BANNER` setzt jedes ausgewählte Bild als Caption-Banner.
+- `SHOW` in Live Card verwendet das zuletzt gewählte Banner automatisch.
 
-## Doppelklick / SHOW USE
+## OBS-Voraussetzung
 
-- Banners: als aktives Banner merken
-- Live Cards: Text aus Dateiname vorbereiten
-- Scene Cards: in OBS anzeigen
-- Sounds: Datei öffnen/abspielen
-- Templates: Platzhalter für Template-Editor
-
-## OBS für Scene Cards
-
-Optional neue Bildquelle in OBS erstellen:
+In der Gruppe:
 
 ```text
-VADAFOK Scene Card
+VADAFOK Caption
+├── VADAFOK Caption Text
+└── VADAFOK Caption Banner
 ```
 
-Diese Quelle ausblenden.
+Die Bildquelle muss exakt so heißen:
+
+```text
+VADAFOK Caption Banner
+```
+
+Oder du passt den Namen im Studio an:
+
+`OBS Connection` → `Caption Banner Source`
+
+## Wichtig
+
+Wenn deine Quellen in OBS richtig ausgerichtet sind, sperre sie mit dem Schloss-Symbol:
+
+- VADAFOK Caption
+- VADAFOK Caption Text
+- VADAFOK Caption Banner
+
+Dann bleibt die Position stabil.

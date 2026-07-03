@@ -16,6 +16,7 @@ DEFAULT_CONFIG = {
     "scene_name": "",
     "caption_group": "VADAFOK Caption",
     "caption_text": "VADAFOK Caption Text",
+    "caption_banner_source": "VADAFOK Caption Banner",
     "scene_card_source": "VADAFOK Scene Card",
     "duration": "5",
     "style": "Gold Ribbon",

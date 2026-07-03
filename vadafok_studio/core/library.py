@@ -83,6 +83,7 @@ def guessed_tags(item: LibraryItem):
         "welcome": ["welcome"],
         "success": ["success"],
         "tip": ["tip", "tips"],
+        "banner": ["banner", "ribbon", "scroll", "band", "banners"],
     }
     for tag, keys in candidates.items():
         if any(k in words for k in keys):
