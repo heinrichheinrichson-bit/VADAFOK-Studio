@@ -1,5 +1,4 @@
-
-# VADAFOK Studio 0.2
+# VADAFOK Studio 0.3
 
 ## Start
 
@@ -8,44 +7,23 @@ py -m pip install -r requirements.txt
 py run.py
 ```
 
-## Projektordner
+## Neu in 0.3
 
-In Settings den Ordner wählen, z.B.:
+- Library-Auswahl per Linksklick
+- große Vorschau rechts
+- Doppelklick führt eine Aktion aus:
+  - Banners: als Banner merken
+  - Live Cards: Text aus Dateiname vorbereiten
+  - Scene Cards: direkt in OBS zeigen
+  - Templates: Hinweis auf kommenden Template-Editor
+- OBS Scene Card Source vorbereitet
 
-```text
-F:\Bilder\Vadafok\Stream
-```
+## OBS für Scene Cards
 
-Studio sucht in:
-
-- Library
-- Live Cards
-- Scene Cards
-- Banners
-- Templates
-- Fonts
-- Sounds
-- Projects
-
-## Neu in 0.2
-
-- Thumbnail-Galerie
-- Suchfeld
-- Filter nach Library-Bereich
-- neue empfohlene Ordnerstruktur
-- OBS-Steuerung bleibt erhalten
-- F8 Quick Caption bleibt erhalten
-
-## Empfohlene Struktur
+Optional neue Bildquelle in OBS erstellen:
 
 ```text
-Stream
-├── Library
-├── Live Cards
-├── Scene Cards
-├── Banners
-├── Templates
-├── Fonts
-├── Sounds
-└── Projects
+VADAFOK Scene Card
 ```
+
+Diese Quelle ausblenden. Dann kann Studio Scene Cards per Doppelklick anzeigen.

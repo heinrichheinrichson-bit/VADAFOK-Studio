@@ -1,72 +1,44 @@
 
 import json
 from pathlib import Path
-
 APP_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = APP_ROOT / "data"
 CONFIG_PATH = DATA_DIR / "config.json"
 FAVORITES_PATH = DATA_DIR / "favorites.json"
-
 DEFAULT_CONFIG = {
-    "project_folder": "",
-    "host": "localhost",
-    "port": "4455",
-    "password": "",
-    "scene_name": "",
-    "caption_group": "VADAFOK Caption",
-    "caption_text": "VADAFOK Caption Text",
-    "duration": "5",
-    "style": "Gold Ribbon",
+    "project_folder": "", "host": "localhost", "port": "4455", "password": "",
+    "scene_name": "", "caption_group": "VADAFOK Caption",
+    "caption_text": "VADAFOK Caption Text", "scene_card_source": "VADAFOK Scene Card",
+    "duration": "5", "style": "Gold Ribbon", "selected_banner_path": "",
     "banner_sources": {
-        "Gold Ribbon": "VADAFOK Banner",
-        "Black Gold Plate": "VADAFOK Banner Plate",
-        "Paper Scroll": "VADAFOK Banner Scroll",
-        "Film Strip": "VADAFOK Banner Filmstrip",
+        "Gold Ribbon": "VADAFOK Banner", "Black Gold Plate": "VADAFOK Banner Plate",
+        "Paper Scroll": "VADAFOK Banner Scroll", "Film Strip": "VADAFOK Banner Filmstrip",
         "Silent Card": "VADAFOK Banner Silent"
     }
 }
-
 DEFAULT_FAVORITES = {
     "Reaction": ["OOPS.", "THAT WAS CLOSE.", "SUCCESS!", "ONE MORE TRY..."],
     "Chat Help": ["CHAT WAS RIGHT.", "I NEED YOUR HELP...", "ANY IDEAS?", "WHAT WOULD YOU DO?"],
     "Rules": ["PLEASE NO SPOILERS.", "PLEASE NO BACKSEATING.", "HINTS ONLY, PLEASE."],
     "Horror": ["I HAVE A BAD FEELING...", "WHY IS IT SO QUIET...?", "I DON'T LIKE THIS..."]
 }
-
-def ensure_data():
-    DATA_DIR.mkdir(exist_ok=True)
-
+def ensure_data(): DATA_DIR.mkdir(exist_ok=True)
 def save_json(path, data):
-    ensure_data()
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
-
+    ensure_data(); path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 def load_json(path, default):
     ensure_data()
-    if not path.exists():
-        save_json(path, default)
-        return default.copy() if isinstance(default, dict) else list(default)
+    if not path.exists(): save_json(path, default); return default.copy() if isinstance(default, dict) else list(default)
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        data=json.loads(path.read_text(encoding="utf-8"))
         if isinstance(default, dict):
-            merged = default.copy()
-            merged.update(data)
+            m=default.copy(); m.update(data)
             if "banner_sources" in default:
-                bs = default["banner_sources"].copy()
-                bs.update(data.get("banner_sources", {}))
-                merged["banner_sources"] = bs
-            return merged
+                bs=default["banner_sources"].copy(); bs.update(data.get("banner_sources",{})); m["banner_sources"]=bs
+            return m
         return data
     except Exception:
         return default.copy() if isinstance(default, dict) else list(default)
-
-def load_config():
-    return load_json(CONFIG_PATH, DEFAULT_CONFIG)
-
-def save_config(config):
-    save_json(CONFIG_PATH, config)
-
-def load_favorites():
-    return load_json(FAVORITES_PATH, DEFAULT_FAVORITES)
-
-def save_favorites(favorites):
-    save_json(FAVORITES_PATH, favorites)
+def load_config(): return load_json(CONFIG_PATH, DEFAULT_CONFIG)
+def save_config(config): save_json(CONFIG_PATH, config)
+def load_favorites(): return load_json(FAVORITES_PATH, DEFAULT_FAVORITES)
+def save_favorites(favorites): save_json(FAVORITES_PATH, favorites)

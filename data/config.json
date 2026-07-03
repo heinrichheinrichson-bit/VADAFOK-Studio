@@ -6,8 +6,10 @@
   "scene_name": "",
   "caption_group": "VADAFOK Caption",
   "caption_text": "VADAFOK Caption Text",
+  "scene_card_source": "VADAFOK Scene Card",
   "duration": "5",
-  "style": "Gold Ribbon",
+  "style": "Paper Scroll",
+  "selected_banner_path": "F:\\Bilder\\Vadafok\\Stream\\Banners\\Antikes Kino-Banner mit Goldrahmen.png",
   "banner_sources": {
     "Gold Ribbon": "VADAFOK Banner",
     "Black Gold Plate": "VADAFOK Banner Plate",
