@@ -1,15 +1,18 @@
 
 import os
 import tkinter as tk
+from tkinter import filedialog
 import threading
 import customtkinter as ctk
 from tkinter import messagebox, filedialog, simpledialog
 from PIL import Image
 
-from .core.config import TEMPLATE_PROFILES_PATH, load_config, save_config, load_favorites, save_favorites, load_asset_meta, save_asset_meta, EXPORT_DIR, load_json, save_json
+from .core.config import TEMPLATE_PROFILES_PATH, load_config, save_config, load_favorites, save_favorites, load_asset_meta, save_asset_meta, EXPORT_DIR, load_json, save_json, CARD_VALUES_PATH
 from .core.library import scan_library, ROOT_FOLDERS, guessed_tags
 from .core.obs_controller import OBSController
 from .core.caption_renderer import render_caption_png
+from .core.template_store import list_templates, load_template, save_template, create_template, set_background_from_file, background_path, import_legacy_templates
+from .core.image_view import load_rgba, fit_image_to_box, pil_to_tk_photo_data, image_status
 from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card
 from .core.banner_profiles import load_banner_profiles, save_banner_profiles, ensure_profile, has_profile, profile_count, reset_profile_style
 
@@ -24,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 1.7.1")
+        self.wm_title("VADAFOK Studio 2.2.1.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -33,11 +36,13 @@ class VadafokStudio(ctk.CTk):
         self.asset_meta = load_asset_meta()
         self.banner_profiles = load_banner_profiles()
         self.template_profiles = load_json(TEMPLATE_PROFILES_PATH, {})
+        self.template_store_migrated = import_legacy_templates(self.template_profiles)
         self.template_selected_name = "Default Stream Plan"
         self.template_selected_field = None
         self.template_drag_mode = None
         self.template_drag_start = None
         self.template_drag_original = None
+        self.template_working_data = None
         self.template_hover_mode = None
         self.template_prop_name = ctk.StringVar(value="")
         self.template_prop_font_family = ctk.StringVar(value="")
@@ -48,6 +53,7 @@ class VadafokStudio(ctk.CTk):
         self.template_prop_uppercase = ctk.BooleanVar(value=True)
         self.card_selected_template = ctk.StringVar(value="")
         self.card_creator_values = {}
+        self.card_saved_values = load_json(CARD_VALUES_PATH, {})
         self.card_creator_preview_image = None
         self.card_creator_last_render = None
         self.obs = OBSController()
@@ -116,7 +122,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 1.7", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.2.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -306,9 +312,39 @@ class VadafokStudio(ctk.CTk):
         item = self.selected_item
         if item.section == "Banners": self.use_selected_as_caption_banner()
         elif item.section == "Live Cards": self.open_selected_live_card()
-        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 1.7.")
+        elif item.section == "Templates": self.assign_selected_template_background()
         elif item.section == "Sounds": self.open_selected_file()
         else: self.show_selected_scene_card()
+
+
+
+
+
+
+    def template_set_background_path(self, path):
+        if not path:
+            return
+        data, dest = set_background_from_file(self.template_selected_name, path)
+        self.template_working_data = data
+        if hasattr(self, "template_canvas"):
+            self.template_draw_canvas()
+        return dest
+
+
+    def assign_selected_template_background(self):
+        item = getattr(self, "selected_item", None)
+        if item is None:
+            messagebox.showwarning("Template Background", "Bitte zuerst in der Library ein Template-Bild auswählen.")
+            return
+        if getattr(item, "kind", "") != "image":
+            messagebox.showwarning("Template Background", "Bitte ein Bild aus der Library auswählen.")
+            return
+        self.template_set_background_path(item.path)
+        messagebox.showinfo(
+            "Template Background",
+            f"Hintergrundbild gespeichert:\n\nTemplate: {self.template_selected_name}\nBild: {Path(item.path).name}"
+        )
+
 
     def use_selected_as_caption_banner(self):
         if not self.selected_item: return
@@ -939,7 +975,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 1.7: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.2.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -984,10 +1020,52 @@ class VadafokStudio(ctk.CTk):
             field["stroke_color"] = self.template_prop_stroke_color.get() or "#000000"
             field["stroke_width"] = int(self.template_prop_stroke_width.get())
             field["uppercase"] = bool(self.template_prop_uppercase.get())
-            save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
+            save_template(self.template_selected_name, template)
             self.template_draw_canvas()
         except Exception:
             pass
+
+
+
+
+    def template_background_status(self):
+        template = self.template_current()
+        bg = template.get("background", "")
+        if not bg:
+            return "kein Hintergrund"
+        return f"{Path(bg).name} ({'OK' if Path(bg).exists() else 'FEHLT'})"
+
+
+
+
+
+    def template_choose_background_file(self):
+        path = filedialog.askopenfilename(
+            title="Template Hintergrund auswählen",
+            filetypes=[
+                ("Image files", "*.png *.jpg *.jpeg *.webp"),
+                ("PNG files", "*.png"),
+                ("All files", "*.*"),
+            ],
+        )
+        if not path:
+            return
+        self.template_set_background_path(path)
+        messagebox.showinfo("Template Background", f"Hintergrund gesetzt:\n{Path(path).name}")
+
+
+
+    def template_set_background_from_selected(self):
+        self.assign_selected_template_background()
+
+
+
+    def template_clear_background(self):
+        template = self.template_current()
+        template["background"] = "background.png"
+        save_template(self.template_selected_name, template)
+        self.template_draw_canvas()
+        messagebox.showinfo("Template Background", "Hintergrund entfernt.")
 
 
     def show_template_editor_page(self):
@@ -995,9 +1073,10 @@ class VadafokStudio(ctk.CTk):
         self.clear_main()
         self.page_title("Template Editor")
 
-        if self.template_selected_name not in self.template_profiles:
-            self.template_profiles[self.template_selected_name] = create_default_template(self.template_selected_name)
-            save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
+        if not list_templates():
+            create_template("Default Stream Plan")
+        if self.template_selected_name not in list_templates():
+            self.template_selected_name = list_templates()[0]
 
         outer = ctk.CTkFrame(self.main, fg_color=DARK)
         outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
@@ -1016,7 +1095,7 @@ class VadafokStudio(ctk.CTk):
         template_list = ctk.CTkScrollableFrame(left, fg_color="#0B0B0B", corner_radius=12)
         template_list.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
 
-        for name in sorted(self.template_profiles.keys()):
+        for name in sorted(list_templates()):
             prefix = "✓ " if name == self.template_selected_name else ""
             ctk.CTkButton(
                 template_list,
@@ -1060,6 +1139,27 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkButton(controls, text="DELETE FIELD", fg_color="#333333", hover_color="#444444", command=self.template_delete_field).grid(row=0, column=1, padx=4, pady=4, sticky="ew")
         ctk.CTkButton(controls, text="SAVE TEMPLATE", fg_color="#333333", hover_color="#444444", command=self.template_save).grid(row=0, column=2, padx=4, pady=4, sticky="ew")
         ctk.CTkButton(controls, text="RESET DEFAULT", fg_color="#333333", hover_color="#444444", command=self.template_reset_default).grid(row=0, column=3, padx=4, pady=4, sticky="ew")
+        ctk.CTkButton(
+            controls,
+            text="SET BACKGROUND FROM LIBRARY",
+            fg_color="#333333",
+            hover_color="#444444",
+            command=self.template_set_background_from_selected
+        ).grid(row=1, column=0, padx=4, pady=4, sticky="ew")
+        ctk.CTkButton(
+            controls,
+            text="BACKGROUND AUS DATEI",
+            fg_color="#333333",
+            hover_color="#444444",
+            command=self.template_choose_background_file
+        ).grid(row=1, column=1, padx=4, pady=4, sticky="ew")
+        ctk.CTkButton(
+            controls,
+            text="CLEAR BACKGROUND",
+            fg_color="#333333",
+            hover_color="#444444",
+            command=self.template_clear_background
+        ).grid(row=1, column=2, columnspan=2, padx=4, pady=4, sticky="ew")
 
 
         props = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
@@ -1129,39 +1229,57 @@ class VadafokStudio(ctk.CTk):
             justify="left"
         ).grid(row=len(fields)+1, column=0, columnspan=2, padx=12, pady=(8, 12), sticky="w")
 
+
+
     def template_current(self):
-        if self.template_selected_name not in self.template_profiles:
-            self.template_profiles[self.template_selected_name] = create_default_template(self.template_selected_name)
-        return self.template_profiles[self.template_selected_name]
+        names = list_templates()
+        if not names:
+            create_template("Default Stream Plan")
+            names = list_templates()
+
+        if self.template_selected_name not in names:
+            self.template_selected_name = names[0]
+
+        if self.template_working_data is None or self.template_working_data.get("name") != self.template_selected_name:
+            self.template_working_data = load_template(self.template_selected_name)
+
+        return self.template_working_data
+
+
 
     def template_create_default(self):
-        base = "New Template"
-        idx = 1
-        name = base
-        while name in self.template_profiles:
-            idx += 1
-            name = f"{base} {idx}"
-        self.template_profiles[name] = create_default_template(name)
-        self.template_selected_name = name
+        data = create_template("New Template")
+        self.template_selected_name = data["name"]
+        self.template_working_data = data
         self.template_selected_field = None
-        save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
         self.show_template_editor_page()
+
 
     def template_select(self, name):
         self.template_selected_name = name
         self.template_selected_field = None
-        self.template_load_selected_properties()
+        self.template_working_data = load_template(name)
         self.show_template_editor_page()
 
+
+
     def template_save(self):
-        save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
+        save_template(self.template_selected_name, self.template_current())
         messagebox.showinfo("Template Editor", f"Template gespeichert:\n{self.template_selected_name}")
 
+
+
     def template_reset_default(self):
-        self.template_profiles[self.template_selected_name] = create_default_template(self.template_selected_name)
+        # Reset fields but keep current template and background if present.
+        current = self.template_current()
+        bg = current.get("background", "background.png")
+        fresh = create_default_template(self.template_selected_name)
+        fresh["background"] = bg
+        self.template_working_data = fresh
+        save_template(self.template_selected_name, fresh)
         self.template_selected_field = None
-        save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
         self.template_draw_canvas()
+
 
     def template_add_field(self):
         template = self.template_current()
@@ -1181,7 +1299,7 @@ class VadafokStudio(ctk.CTk):
         })
         self.template_selected_field = len(template["fields"]) - 1
         self.template_load_selected_properties()
-        save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
+        save_template(self.template_selected_name, template)
         self.template_draw_canvas()
 
     def template_delete_field(self):
@@ -1192,49 +1310,69 @@ class VadafokStudio(ctk.CTk):
             del template["fields"][self.template_selected_field]
             self.template_selected_field = None
             self.template_load_selected_properties()
-            save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
+            save_template(self.template_selected_name, template)
             self.template_draw_canvas()
+
+
 
 
     def template_draw_canvas(self):
         if not hasattr(self, "template_canvas"):
             return
+
+        # Use in-memory working data while editing, otherwise click/drag would reset the fields.
+        template = self.template_current()
+
         canvas = self.template_canvas
         canvas.delete("all")
         canvas.update_idletasks()
 
         cw = max(600, canvas.winfo_width())
         ch = max(360, canvas.winfo_height())
-        template = self.template_current()
-        design_w, design_h = 1280, 720
-        scale = min((cw - 40) / design_w, (ch - 40) / design_h)
-        self.template_canvas_scale = scale
-        self.template_canvas_offset = ((cw - int(design_w * scale)) // 2, (ch - int(design_h * scale)) // 2)
+
+        bg_path = str(background_path(self.template_selected_name, template))
+        bg_info = image_status(bg_path)
+
+        self.template_bg_photo = None
+        self.template_canvas_design_size = (1280, 720)
+
+        if bg_path and bg_info["exists"]:
+            try:
+                original = load_rgba(bg_path)
+                self.template_canvas_design_size = original.size
+                display, scale, offset = fit_image_to_box(original, cw, ch, padding=40)
+                self.template_canvas_scale = scale
+                self.template_canvas_offset = offset
+                self.template_bg_photo = tk.PhotoImage(data=pil_to_tk_photo_data(display))
+                canvas.create_image(offset[0], offset[1], image=self.template_bg_photo, anchor="nw", tags="background")
+                canvas.create_rectangle(offset[0], offset[1], offset[0] + display.size[0], offset[1] + display.size[1], outline="#3A2A0D", width=2)
+            except Exception as e:
+                self.template_canvas_scale = min((cw - 40) / 1280, (ch - 40) / 720)
+                self.template_canvas_offset = ((cw - int(1280 * self.template_canvas_scale)) // 2, (ch - int(720 * self.template_canvas_scale)) // 2)
+                ox, oy = self.template_canvas_offset
+                dw, dh = int(1280 * self.template_canvas_scale), int(720 * self.template_canvas_scale)
+                canvas.create_rectangle(ox, oy, ox + dw, oy + dh, fill="#111111", outline="#3A2A0D", width=2)
+                canvas.create_text(ox + 20, oy + 20, text=f"Background Fehler:\n{e}", anchor="nw", fill="#D86A6A", font=("Arial", 14, "bold"))
+        else:
+            self.template_canvas_scale = min((cw - 40) / 1280, (ch - 40) / 720)
+            self.template_canvas_offset = ((cw - int(1280 * self.template_canvas_scale)) // 2, (ch - int(720 * self.template_canvas_scale)) // 2)
+            ox, oy = self.template_canvas_offset
+            dw, dh = int(1280 * self.template_canvas_scale), int(720 * self.template_canvas_scale)
+            canvas.create_rectangle(ox, oy, ox + dw, oy + dh, fill="#111111", outline="#3A2A0D", width=2)
+
         ox, oy = self.template_canvas_offset
-
-        canvas.create_rectangle(
-            ox, oy,
-            ox + int(design_w * scale),
-            oy + int(design_h * scale),
-            fill="#111111",
-            outline="#3A2A0D",
-            width=2
+        status_text = (
+            f"Background: {bg_info['name']}\n"
+            f"Status: {'✔ Datei gefunden' if bg_info['exists'] else '✖ kein/fehlender Hintergrund'}\n"
+            f"Größe: {bg_info['size'] or '-'}"
         )
-        canvas.create_text(
-            ox + 24,
-            oy + 24,
-            text=template.get("name", "Template"),
-            anchor="nw",
-            fill="#D6A43A",
-            font=("Arial", 18, "bold")
-        )
+        canvas.create_text(ox + 18, oy + 18, text=status_text, anchor="nw", fill="#D6A43A", font=("Arial", 12, "bold"))
 
-        for idx, field in enumerate(template["fields"]):
+        for idx, field in enumerate(template.get("fields", [])):
             x1, y1, x2, y2 = self.template_field_screen_rect(field)
             selected = idx == self.template_selected_field
             outline = GOLD if selected else "#BCA870"
             width = 3 if selected else 2
-
             canvas.create_rectangle(
                 x1, y1, x2, y2,
                 fill="#D6A43A",
@@ -1242,17 +1380,19 @@ class VadafokStudio(ctk.CTk):
                 outline=outline,
                 width=width
             )
+            label_text = field.get("name", f"field_{idx+1}")
+            if field.get("uppercase", True):
+                label_text = label_text.upper()
             canvas.create_text(
-                (x1+x2)//2,
-                (y1+y2)//2,
-                text=(field["name"].upper() if field.get("uppercase", True) else field["name"]),
+                (x1 + x2) // 2,
+                (y1 + y2) // 2,
+                text=label_text,
                 fill=field.get("text_color", "#FFFFFF"),
                 font=("Arial", max(10, min(28, int(field.get("font_size", 90) / 5))), "bold")
             )
             canvas.create_text(
-                x1 + 5,
-                y1 + 5,
-                text=field["name"],
+                x1 + 5, y1 + 5,
+                text=field.get("name", f"field_{idx+1}"),
                 anchor="nw",
                 fill="#111111",
                 font=("Arial", 9, "bold")
@@ -1262,15 +1402,15 @@ class VadafokStudio(ctk.CTk):
                 self.template_draw_handles(canvas, x1, y1, x2, y2)
 
         if hasattr(self, "template_status_label"):
-            if self.template_selected_field is not None and 0 <= self.template_selected_field < len(template["fields"]):
+            if self.template_selected_field is not None and 0 <= self.template_selected_field < len(template.get("fields", [])):
                 f = template["fields"][self.template_selected_field]
                 self.template_status_label.configure(
-                    text=f"{self.template_selected_name} | {f['name']} | {f['width']}×{f['height']} @ {f['x']}/{f['y']}",
+                    text=f"{self.template_selected_name} | {f['name']} | {f['width']}×{f['height']} @ {f['x']}/{f['y']} | BG: {bg_info['name']}",
                     text_color="#8FE6A0"
                 )
             else:
                 self.template_status_label.configure(
-                    text=f"{self.template_selected_name} | Felder: {len(template['fields'])}",
+                    text=f"{self.template_selected_name} | Felder: {len(template.get('fields', []))} | BG: {bg_info['name']}",
                     text_color="#8FE6A0"
                 )
 
@@ -1401,21 +1541,22 @@ class VadafokStudio(ctk.CTk):
             h = abs(h)
 
         min_w, min_h = 40, 30
-        x = max(0, min(1280 - min_w, x))
-        y = max(0, min(720 - min_h, y))
-        w = max(min_w, min(1280 - x, w))
-        h = max(min_h, min(720 - y, h))
+        design_w, design_h = getattr(self, "template_canvas_design_size", (1280, 720))
+        x = max(0, min(design_w - min_w, x))
+        y = max(0, min(design_h - min_h, y))
+        w = max(min_w, min(design_w - x, w))
+        h = max(min_h, min(design_h - y, h))
 
         f["x"], f["y"], f["width"], f["height"] = int(x), int(y), int(w), int(h)
         template["fields"][self.template_selected_field] = f
         self.template_draw_canvas()
 
+
     def template_mouse_up(self, event):
-        save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
+        save_template(self.template_selected_name, self.template_current())
         self.template_drag_mode = None
         self.template_drag_start = None
         self.template_drag_original = None
-
 
 
     def show_card_creator_page(self):
@@ -1424,9 +1565,10 @@ class VadafokStudio(ctk.CTk):
         self.page_title("Card Creator")
 
         self.template_profiles = load_json(TEMPLATE_PROFILES_PATH, {})
+        self.template_store_migrated = import_legacy_templates(self.template_profiles)
         if not self.template_profiles:
             self.template_profiles["Default Stream Plan"] = create_default_template("Default Stream Plan")
-            save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
+            save_template(self.template_selected_name, self.template_current())
 
         if not self.card_selected_template.get() or self.card_selected_template.get() not in self.template_profiles:
             self.card_selected_template.set(sorted(self.template_profiles.keys())[0])
@@ -1445,7 +1587,7 @@ class VadafokStudio(ctk.CTk):
 
         tlist = ctk.CTkScrollableFrame(left, fg_color="#0B0B0B", corner_radius=12)
         tlist.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
-        for name in sorted(self.template_profiles.keys()):
+        for name in sorted(list_templates()):
             prefix = "✓ " if name == self.card_selected_template.get() else ""
             ctk.CTkButton(tlist, text=prefix + name, anchor="w", fg_color="#171717", hover_color="#2C2C2C", command=lambda n=name: self.card_select_template(n)).pack(fill="x", padx=8, pady=4)
 
@@ -1481,8 +1623,15 @@ class VadafokStudio(ctk.CTk):
         self.card_selected_template.set(name)
         self.show_card_creator_page()
 
+
     def card_template(self):
-        return self.template_profiles.get(self.card_selected_template.get(), {})
+        if not self.card_selected_template.get():
+            names = list_templates()
+            if not names:
+                create_template("Default Stream Plan")
+                names = list_templates()
+            self.card_selected_template.set(names[0])
+        return load_template(self.card_selected_template.get())
 
     def card_build_form(self):
         for w in self.card_form_frame.winfo_children():
@@ -1499,28 +1648,30 @@ class VadafokStudio(ctk.CTk):
 
         for row, field in enumerate(fields):
             name = field.get("name", f"field_{row+1}")
+            saved = self.card_saved_values.get(self.card_selected_template.get(), {})
             if name not in values or not hasattr(values.get(name), "get"):
-                values[name] = ctk.StringVar(value="")
+                values[name] = ctk.StringVar(value=str(saved.get(name, "")))
             label = name.replace("_", " ").title()
             ctk.CTkLabel(self.card_form_frame, text=label, text_color="#BCA870").grid(row=row*2, column=0, padx=12, pady=(10, 2), sticky="w")
             entry = ctk.CTkEntry(self.card_form_frame, textvariable=values[name])
             entry.grid(row=row*2+1, column=0, padx=12, pady=(0, 8), sticky="ew")
-            entry.bind("<KeyRelease>", lambda e: self.card_update_preview())
+            entry.bind("<KeyRelease>", lambda e: (self.card_save_values(), self.card_update_preview()))
+
+
+    def card_save_values(self):
+        template_name = self.card_selected_template.get()
+        plain = self.card_values_plain()
+        self.card_saved_values[template_name] = plain
+        save_json(CARD_VALUES_PATH, self.card_saved_values)
+
 
     def card_values_plain(self):
         values = self.card_creator_values.get(self.card_selected_template.get(), {})
         return {k: (v.get() if hasattr(v, "get") else str(v)) for k, v in values.items()}
 
+
     def card_background_path(self):
-        bg = self.card_template().get("background", "")
-        if bg:
-            p = Path(bg)
-            if p.exists():
-                return str(p)
-            p2 = Path(self.project_folder.get()) / bg
-            if p2.exists():
-                return str(p2)
-        return ""
+        return str(background_path(self.card_selected_template.get(), self.card_template()))
 
     def card_render_to_file(self, final=False):
         suffix = "final" if final else "preview"
@@ -1545,6 +1696,7 @@ class VadafokStudio(ctk.CTk):
 
     def card_render_final(self):
         try:
+            self.card_save_values()
             out = self.card_render_to_file(final=True)
             self.card_creator_last_render = out
             self.card_render_status.configure(text=f"Gerendert:\\n{out}", text_color="#8FE6A0")

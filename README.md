@@ -1,33 +1,31 @@
-# VADAFOK Studio 1.7
+# VADAFOK Studio 2.2.1
 
 ## Ziel
 
-Studio 1.7 führt den Card Creator ein.
+Fix für die Interaktion im Template Editor nach Einführung der neuen Template-Ordnerstruktur.
 
-## Neu
+## Repariert
 
-- Neuer Menüpunkt: Card Creator
-- Templates werden automatisch gelesen
-- Eingabefelder entstehen dynamisch aus Template-Feldern
-- Live-Vorschau
-- RENDER CARD
-- Export nach exports/card_<template>_final.png
-
-## Wichtig
-
-Phase A rendert noch ohne echtes Hintergrundbild, wenn das Template noch kein Background gespeichert hat.
-Der nächste Schritt ist: Library-Vorlage mit Template verbinden.
+- Felder werden beim Anklicken nicht mehr aus alten Daten zurückgeladen.
+- Hintergrundbild bleibt beim Anklicken/Verschieben erhalten.
+- Felder lassen sich wieder auswählen.
+- Felder lassen sich verschieben.
+- Felder lassen sich an Kanten/Ecken skalieren.
+- Änderungen werden in `data/templates/<Template>/template.json` gespeichert.
 
 ## Test
 
-1. Studio starten.
-2. Card Creator öffnen.
-3. Template auswählen.
-4. Werte eingeben.
-5. Prüfen, ob Preview aktualisiert.
-6. RENDER CARD drücken.
-7. Prüfen, ob PNG im exports-Ordner entsteht.
+1. Template Editor öffnen.
+2. Hintergrundbild setzen oder vorhandenes Template mit Bild öffnen.
+3. Ein Feld anklicken.
+4. Prüfen: Feld wird markiert.
+5. Feld verschieben.
+6. Feldgröße ändern.
+7. SAVE TEMPLATE.
+8. Studio neu starten.
+9. Prüfen: Bild + Felder sind noch da.
+10. Card Creator öffnen und Render testen.
 
 ## Git
 
-Erst committen, wenn der Card Creator sauber rendert.
+Erst committen, wenn Bild und Feldbearbeitung stabil funktionieren.
