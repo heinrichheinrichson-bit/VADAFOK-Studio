@@ -71,3 +71,112 @@ def load_template_profiles(load_json_func, path):
 
 def save_template_profiles(save_json_func, path, profiles):
     save_json_func(path, profiles)
+
+
+from pathlib import Path
+from PIL import Image, ImageDraw, ImageFont
+
+def _card_find_font(font_family: str):
+    fonts_dir = Path("C:/Windows/Fonts")
+    compact = (font_family or "").replace(" ", "")
+    for p in [
+        fonts_dir / f"{font_family}.ttf",
+        fonts_dir / f"{font_family}.otf",
+        fonts_dir / f"{compact}.ttf",
+        fonts_dir / f"{compact}.otf",
+        fonts_dir / "arialbd.ttf",
+        fonts_dir / "arial.ttf",
+    ]:
+        if p.exists():
+            return p
+    return None
+
+def _card_font(font_family, size):
+    p = _card_find_font(font_family)
+    if p:
+        return ImageFont.truetype(str(p), max(8, int(size)))
+    return ImageFont.load_default()
+
+def _card_wrap(draw, text, font, max_width, stroke_width):
+    lines = []
+    for raw in (text or "").splitlines() or [""]:
+        words = raw.split()
+        if not words:
+            lines.append("")
+            continue
+        line = words[0]
+        for word in words[1:]:
+            test = line + " " + word
+            box = draw.textbbox((0, 0), test, font=font, stroke_width=stroke_width)
+            if box[2] - box[0] <= max_width:
+                line = test
+            else:
+                lines.append(line)
+                line = word
+        lines.append(line)
+    return lines
+
+def _card_fit(draw, text, field):
+    max_w = max(20, int(field.get("width", 100)))
+    max_h = max(20, int(field.get("height", 50)))
+    size = int(field.get("font_size", 90))
+    stroke_width = int(field.get("stroke_width", 3))
+    family = field.get("font_family", "Bebas Neue")
+    while size >= 8:
+        font = _card_font(family, size)
+        lines = _card_wrap(draw, text, font, max_w, stroke_width)
+        boxes = [draw.textbbox((0, 0), line or " ", font=font, stroke_width=stroke_width) for line in lines]
+        spacing = int(size * 0.14)
+        total_h = sum(b[3] - b[1] for b in boxes) + max(0, len(lines)-1) * spacing
+        widest = max((b[2]-b[0] for b in boxes), default=0)
+        if widest <= max_w and total_h <= max_h:
+            return font, lines, total_h, spacing
+        size -= 3
+    font = _card_font(family, 8)
+    return font, _card_wrap(draw, text, font, max_w, stroke_width), 8, 1
+
+def render_template_card(template, values, output_path, background_path="", size=(1280, 720)):
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    bg = None
+    if background_path:
+        p = Path(background_path)
+        if p.exists():
+            bg = Image.open(p).convert("RGBA")
+
+    img = bg.copy() if bg is not None else Image.new("RGBA", size, (10, 10, 10, 255))
+    draw = ImageDraw.Draw(img)
+
+    for field in template.get("fields", []):
+        name = field.get("name", "field")
+        text = values.get(name, "")
+        if field.get("uppercase", True):
+            text = text.upper()
+
+        stroke_width = int(field.get("stroke_width", 3))
+        font, lines, total_h, spacing = _card_fit(draw, text, field)
+
+        x = int(field.get("x", 0))
+        y = int(field.get("y", 0))
+        w = int(field.get("width", 100))
+        h = int(field.get("height", 50))
+        cy = y + (h - total_h) // 2
+
+        for line in lines:
+            box = draw.textbbox((0, 0), line or " ", font=font, stroke_width=stroke_width)
+            line_w = box[2] - box[0]
+            line_h = box[3] - box[1]
+            tx = x + (w - line_w) // 2
+            draw.text(
+                (tx - box[0], cy - box[1]),
+                line,
+                font=font,
+                fill=field.get("text_color", "#FFFFFF"),
+                stroke_width=stroke_width,
+                stroke_fill=field.get("stroke_color", "#000000"),
+            )
+            cy += line_h + spacing
+
+    img.save(output_path)
+    return output_path

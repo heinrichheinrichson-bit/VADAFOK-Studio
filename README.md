@@ -1,41 +1,33 @@
-# VADAFOK Studio 1.6
+# VADAFOK Studio 1.7
 
 ## Ziel
 
-Studio 1.6 erweitert den Template Editor um ein Properties Panel.
+Studio 1.7 führt den Card Creator ein.
 
 ## Neu
 
-Rechte Seitenleiste im Template Editor:
+- Neuer Menüpunkt: Card Creator
+- Templates werden automatisch gelesen
+- Eingabefelder entstehen dynamisch aus Template-Feldern
+- Live-Vorschau
+- RENDER CARD
+- Export nach exports/card_<template>_final.png
 
-- Name
-- Font
-- Size
-- Text Color
-- Stroke Color
-- Stroke Width
-- Uppercase
+## Wichtig
 
-## Verhalten
-
-- Feld anklicken.
-- Eigenschaften erscheinen rechts.
-- Werte ändern.
-- Canvas aktualisiert sich automatisch.
-- Änderungen werden automatisch in `template_profiles.json` gespeichert.
+Phase A rendert noch ohne echtes Hintergrundbild, wenn das Template noch kein Background gespeichert hat.
+Der nächste Schritt ist: Library-Vorlage mit Template verbinden.
 
 ## Test
 
-1. Template Editor öffnen.
-2. Feld anklicken.
-3. Prüfen, ob rechts Properties erscheinen.
-4. Name ändern.
-5. Font Size ändern.
-6. Text Color ändern, z.B. `#FFD36A`.
-7. Uppercase ausschalten/einschalten.
-8. Studio neu starten.
-9. Prüfen, ob Werte erhalten bleiben.
+1. Studio starten.
+2. Card Creator öffnen.
+3. Template auswählen.
+4. Werte eingeben.
+5. Prüfen, ob Preview aktualisiert.
+6. RENDER CARD drücken.
+7. Prüfen, ob PNG im exports-Ordner entsteht.
 
 ## Git
 
-Erst committen, wenn Properties Panel sauber funktioniert.
+Erst committen, wenn der Card Creator sauber rendert.

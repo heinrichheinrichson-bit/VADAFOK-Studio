@@ -10,7 +10,7 @@ from .core.config import TEMPLATE_PROFILES_PATH, load_config, save_config, load_
 from .core.library import scan_library, ROOT_FOLDERS, guessed_tags
 from .core.obs_controller import OBSController
 from .core.caption_renderer import render_caption_png
-from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template
+from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card
 from .core.banner_profiles import load_banner_profiles, save_banner_profiles, ensure_profile, has_profile, profile_count, reset_profile_style
 
 GOLD = "#D6A43A"
@@ -24,7 +24,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 1.6.1")
+        self.wm_title("VADAFOK Studio 1.7.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -46,6 +46,10 @@ class VadafokStudio(ctk.CTk):
         self.template_prop_stroke_color = ctk.StringVar(value="#000000")
         self.template_prop_stroke_width = ctk.IntVar(value=3)
         self.template_prop_uppercase = ctk.BooleanVar(value=True)
+        self.card_selected_template = ctk.StringVar(value="")
+        self.card_creator_values = {}
+        self.card_creator_preview_image = None
+        self.card_creator_last_render = None
         self.obs = OBSController()
         self.hide_timer = None
         self.quick_window = None
@@ -112,12 +116,13 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 1.6", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 1.7", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
             ("Banner Editor", self.show_banner_profiles_page),
             ("Template Editor", self.show_template_editor_page),
+            ("Card Creator", self.show_card_creator_page),
             ("Live Card", self.show_live_card),
             ("Caption Engine", self.show_caption_engine_page),
             ("Quick Cards", self.show_quick_cards),
@@ -301,7 +306,7 @@ class VadafokStudio(ctk.CTk):
         item = self.selected_item
         if item.section == "Banners": self.use_selected_as_caption_banner()
         elif item.section == "Live Cards": self.open_selected_live_card()
-        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 1.6.")
+        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 1.7.")
         elif item.section == "Sounds": self.open_selected_file()
         else: self.show_selected_scene_card()
 
@@ -934,7 +939,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 1.6: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 1.7: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1410,6 +1415,143 @@ class VadafokStudio(ctk.CTk):
         self.template_drag_mode = None
         self.template_drag_start = None
         self.template_drag_original = None
+
+
+
+    def show_card_creator_page(self):
+        self.set_active("Card Creator")
+        self.clear_main()
+        self.page_title("Card Creator")
+
+        self.template_profiles = load_json(TEMPLATE_PROFILES_PATH, {})
+        if not self.template_profiles:
+            self.template_profiles["Default Stream Plan"] = create_default_template("Default Stream Plan")
+            save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
+
+        if not self.card_selected_template.get() or self.card_selected_template.get() not in self.template_profiles:
+            self.card_selected_template.set(sorted(self.template_profiles.keys())[0])
+
+        outer = ctk.CTkFrame(self.main, fg_color=DARK)
+        outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
+        outer.grid_columnconfigure(0, weight=1)
+        outer.grid_columnconfigure(1, weight=3)
+        outer.grid_columnconfigure(2, weight=2)
+        outer.grid_rowconfigure(0, weight=1)
+
+        left = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 12))
+        left.grid_rowconfigure(1, weight=1)
+        ctk.CTkLabel(left, text="Templates", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+
+        tlist = ctk.CTkScrollableFrame(left, fg_color="#0B0B0B", corner_radius=12)
+        tlist.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
+        for name in sorted(self.template_profiles.keys()):
+            prefix = "✓ " if name == self.card_selected_template.get() else ""
+            ctk.CTkButton(tlist, text=prefix + name, anchor="w", fg_color="#171717", hover_color="#2C2C2C", command=lambda n=name: self.card_select_template(n)).pack(fill="x", padx=8, pady=4)
+
+        preview = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        preview.grid(row=0, column=1, sticky="nsew", padx=12)
+        preview.grid_columnconfigure(0, weight=1)
+        preview.grid_rowconfigure(1, weight=1)
+        ctk.CTkLabel(preview, text="Preview", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+        self.card_preview_frame = ctk.CTkFrame(preview, fg_color="#050505", corner_radius=14, border_color="#3A2A0D", border_width=1)
+        self.card_preview_frame.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
+
+        form = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        form.grid(row=0, column=2, sticky="nsew", padx=(12, 0))
+        form.grid_columnconfigure(0, weight=1)
+        form.grid_rowconfigure(1, weight=1)
+        ctk.CTkLabel(form, text="Card Data", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+
+        self.card_form_frame = ctk.CTkScrollableFrame(form, fg_color="#0B0B0B", corner_radius=12)
+        self.card_form_frame.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 12))
+        self.card_form_frame.grid_columnconfigure(0, weight=1)
+
+        buttons = ctk.CTkFrame(form, fg_color="transparent")
+        buttons.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 18))
+        buttons.grid_columnconfigure(0, weight=1)
+        ctk.CTkButton(buttons, text="RENDER CARD", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.card_render_final).grid(row=0, column=0, padx=0, pady=4, sticky="ew")
+        self.card_render_status = ctk.CTkLabel(buttons, text="Noch nicht gerendert.", text_color="#BCA870", wraplength=260, justify="left")
+        self.card_render_status.grid(row=1, column=0, pady=(8, 0), sticky="w")
+
+        self.card_build_form()
+        self.card_update_preview()
+
+    def card_select_template(self, name):
+        self.card_selected_template.set(name)
+        self.show_card_creator_page()
+
+    def card_template(self):
+        return self.template_profiles.get(self.card_selected_template.get(), {})
+
+    def card_build_form(self):
+        for w in self.card_form_frame.winfo_children():
+            w.destroy()
+        template = self.card_template()
+        fields = template.get("fields", [])
+        if self.card_selected_template.get() not in self.card_creator_values:
+            self.card_creator_values[self.card_selected_template.get()] = {}
+        values = self.card_creator_values[self.card_selected_template.get()]
+
+        if not fields:
+            ctk.CTkLabel(self.card_form_frame, text="Dieses Template hat keine Felder.", text_color="#BCA870").grid(row=0, column=0, padx=12, pady=12, sticky="w")
+            return
+
+        for row, field in enumerate(fields):
+            name = field.get("name", f"field_{row+1}")
+            if name not in values or not hasattr(values.get(name), "get"):
+                values[name] = ctk.StringVar(value="")
+            label = name.replace("_", " ").title()
+            ctk.CTkLabel(self.card_form_frame, text=label, text_color="#BCA870").grid(row=row*2, column=0, padx=12, pady=(10, 2), sticky="w")
+            entry = ctk.CTkEntry(self.card_form_frame, textvariable=values[name])
+            entry.grid(row=row*2+1, column=0, padx=12, pady=(0, 8), sticky="ew")
+            entry.bind("<KeyRelease>", lambda e: self.card_update_preview())
+
+    def card_values_plain(self):
+        values = self.card_creator_values.get(self.card_selected_template.get(), {})
+        return {k: (v.get() if hasattr(v, "get") else str(v)) for k, v in values.items()}
+
+    def card_background_path(self):
+        bg = self.card_template().get("background", "")
+        if bg:
+            p = Path(bg)
+            if p.exists():
+                return str(p)
+            p2 = Path(self.project_folder.get()) / bg
+            if p2.exists():
+                return str(p2)
+        return ""
+
+    def card_render_to_file(self, final=False):
+        suffix = "final" if final else "preview"
+        safe_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in self.card_selected_template.get())
+        out = EXPORT_DIR / f"card_{safe_name}_{suffix}.png"
+        render_template_card(self.card_template(), self.card_values_plain(), out, self.card_background_path(), size=(1280, 720))
+        return out
+
+    def card_update_preview(self):
+        if not hasattr(self, "card_preview_frame"):
+            return
+        for w in self.card_preview_frame.winfo_children():
+            w.destroy()
+        try:
+            preview_path = self.card_render_to_file(final=False)
+            img = Image.open(preview_path).convert("RGBA")
+            img.thumbnail((620, 520))
+            self.card_creator_preview_image = ctk.CTkImage(light_image=img, dark_image=img, size=img.size)
+            ctk.CTkLabel(self.card_preview_frame, image=self.card_creator_preview_image, text="").place(relx=0.5, rely=0.5, anchor="center")
+        except Exception as e:
+            ctk.CTkLabel(self.card_preview_frame, text=f"Preview Fehler:\\n{e}", text_color="#D86A6A", wraplength=420, justify="center").place(relx=0.5, rely=0.5, anchor="center")
+
+    def card_render_final(self):
+        try:
+            out = self.card_render_to_file(final=True)
+            self.card_creator_last_render = out
+            self.card_render_status.configure(text=f"Gerendert:\\n{out}", text_color="#8FE6A0")
+            messagebox.showinfo("Card Creator", f"Karte gerendert:\\n{out}")
+            self.card_update_preview()
+        except Exception as e:
+            messagebox.showerror("Card Creator", str(e))
 
 
     def show_quick_cards(self):
