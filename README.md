@@ -1,29 +1,34 @@
-# VADAFOK Studio 1.1.1
+# VADAFOK Studio 1.2
 
 ## Ziel
 
-Anti-Flicker-Patch für den Banner Editor.
+Bannerprofile speichern jetzt auch Darstellungsdetails.
 
-## Geändert
+## Neu
 
-- Bannerbild wird beim Ziehen nicht mehr ständig neu geladen.
-- Beim Ziehen wird nur noch der goldene Overlay-Rahmen aktualisiert.
-- Sample-Text und Anfasser werden ohne Banner-Neuladen aktualisiert.
-- Cursor-Verbesserungen aus 1.1 bleiben erhalten.
-- OBS-Robustheit aus 1.1 bleibt erhalten.
+Pro Banner:
+
+- Font Family
+- Font Size
+- Text Color
+- Stroke Color
+- Stroke Width
+- Uppercase
 
 ## Test
 
 1. Banner Editor öffnen.
 2. Banner auswählen.
-3. Goldenen Rahmen verschieben.
-4. An Ecken/Kanten ziehen.
-5. Prüfen: Das Banner sollte nicht mehr stark wegflackern.
-6. Profil speichern.
-7. Studio neu starten.
-8. Prüfen, ob der Rahmen erhalten bleibt.
-9. Live Card mit `smart_png` testen.
+3. Font Size ändern.
+4. Textfarbe ändern, z.B. `#FFD36A`.
+5. Stroke Width ändern.
+6. SAVE PROFILE.
+7. Live Card öffnen.
+8. Diesen Banner verwenden.
+9. Engine `smart_png`.
+10. SHOW drücken.
+11. Prüfen, ob OBS die Profilwerte nutzt.
 
 ## Git
 
-Erst committen, wenn das Flackern weg oder deutlich besser ist.
+Erst committen, wenn die Werte gespeichert und in OBS genutzt werden.

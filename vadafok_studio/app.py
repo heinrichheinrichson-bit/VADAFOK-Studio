@@ -23,7 +23,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 1.1.1.1")
+        self.wm_title("VADAFOK Studio 1.2.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -48,6 +48,12 @@ class VadafokStudio(ctk.CTk):
         self.editor_drag_start = None
         self.editor_drag_original = None
         self.editor_sample_text = ctk.StringVar(value="HELLO WORLD")
+        self.editor_font_family = ctk.StringVar(value="Bebas Neue")
+        self.editor_font_size = ctk.IntVar(value=160)
+        self.editor_text_color = ctk.StringVar(value="#FFFFFF")
+        self.editor_stroke_color = ctk.StringVar(value="#000000")
+        self.editor_stroke_width = ctk.IntVar(value=3)
+        self.editor_uppercase = ctk.BooleanVar(value=True)
         self.last_render_path = EXPORT_DIR / "caption_render.png"
 
         self.host = ctk.StringVar(value=self.config_data["host"])
@@ -91,7 +97,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 1.1.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 1.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -279,7 +285,7 @@ class VadafokStudio(ctk.CTk):
         item = self.selected_item
         if item.section == "Banners": self.use_selected_as_caption_banner()
         elif item.section == "Live Cards": self.open_selected_live_card()
-        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 1.1.1.")
+        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 1.2.")
         elif item.section == "Sounds": self.open_selected_file()
         else: self.show_selected_scene_card()
 
@@ -425,7 +431,7 @@ class VadafokStudio(ctk.CTk):
         self.editor_canvas.bind("<ButtonRelease-1>", self.editor_mouse_up)
         self.editor_canvas.bind("<Motion>", self.editor_mouse_motion)
 
-        controls = ctk.CTkFrame(right, fg_color="transparent")
+        controls = ctk.CTkScrollableFrame(right, fg_color="#0B0B0B", corner_radius=12, height=190)
         controls.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 18))
         controls.grid_columnconfigure(1, weight=1)
 
@@ -433,9 +439,36 @@ class VadafokStudio(ctk.CTk):
         sample_entry = ctk.CTkEntry(controls, textvariable=self.editor_sample_text)
         sample_entry.grid(row=0, column=1, padx=(0, 8), pady=4, sticky="ew")
         sample_entry.bind("<KeyRelease>", lambda e: self.editor_update_overlay())
+        ctk.CTkLabel(controls, text="Font", text_color="#BCA870").grid(row=1, column=0, padx=(12, 8), pady=4, sticky="w")
+        font_entry = ctk.CTkEntry(controls, textvariable=self.editor_font_family)
+        font_entry.grid(row=1, column=1, padx=(0, 8), pady=4, sticky="ew")
+        font_entry.bind("<KeyRelease>", lambda e: self.editor_apply_profile_values())
 
-        ctk.CTkButton(controls, text="SAVE PROFILE", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.editor_save_profile).grid(row=0, column=2, padx=4, pady=4)
-        ctk.CTkButton(controls, text="RESET AREA", fg_color="#333333", hover_color="#444444", command=self.editor_reset_area).grid(row=0, column=3, padx=4, pady=4)
+        ctk.CTkLabel(controls, text="Size", text_color="#BCA870").grid(row=1, column=2, padx=(12, 8), pady=4, sticky="w")
+        size_entry = ctk.CTkEntry(controls, textvariable=self.editor_font_size)
+        size_entry.grid(row=1, column=3, padx=(0, 8), pady=4, sticky="ew")
+        size_entry.bind("<KeyRelease>", lambda e: self.editor_apply_profile_values())
+
+        ctk.CTkLabel(controls, text="Text", text_color="#BCA870").grid(row=2, column=0, padx=(12, 8), pady=4, sticky="w")
+        tc_entry = ctk.CTkEntry(controls, textvariable=self.editor_text_color)
+        tc_entry.grid(row=2, column=1, padx=(0, 8), pady=4, sticky="ew")
+        tc_entry.bind("<KeyRelease>", lambda e: self.editor_apply_profile_values())
+
+        ctk.CTkLabel(controls, text="Stroke", text_color="#BCA870").grid(row=2, column=2, padx=(12, 8), pady=4, sticky="w")
+        sc_entry = ctk.CTkEntry(controls, textvariable=self.editor_stroke_color)
+        sc_entry.grid(row=2, column=3, padx=(0, 8), pady=4, sticky="ew")
+        sc_entry.bind("<KeyRelease>", lambda e: self.editor_apply_profile_values())
+
+        ctk.CTkLabel(controls, text="Stroke Width", text_color="#BCA870").grid(row=3, column=0, padx=(12, 8), pady=4, sticky="w")
+        sw_entry = ctk.CTkEntry(controls, textvariable=self.editor_stroke_width)
+        sw_entry.grid(row=3, column=1, padx=(0, 8), pady=4, sticky="ew")
+        sw_entry.bind("<KeyRelease>", lambda e: self.editor_apply_profile_values())
+
+        ctk.CTkCheckBox(controls, text="Uppercase", variable=self.editor_uppercase, text_color=TEXT, command=self.editor_apply_profile_values).grid(row=3, column=2, padx=(12, 8), pady=4, sticky="w")
+
+
+        ctk.CTkButton(controls, text="SAVE PROFILE", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.editor_save_profile).grid(row=4, column=0, columnspan=2, padx=4, pady=8, sticky="ew")
+        ctk.CTkButton(controls, text="RESET AREA", fg_color="#333333", hover_color="#444444", command=self.editor_reset_area).grid(row=4, column=2, columnspan=2, padx=4, pady=8, sticky="ew")
 
         ctk.CTkLabel(
             right,
@@ -453,6 +486,7 @@ class VadafokStudio(ctk.CTk):
     def editor_select_banner(self, item):
         self.editor_selected_banner = item
         profile = ensure_profile(self.banner_profiles, item.relative)
+        self.editor_load_profile_values(profile)
         if not profile["text_area"]["width"] or not profile["text_area"]["height"]:
             try:
                 img = Image.open(item.path).convert("RGBA")
@@ -468,10 +502,36 @@ class VadafokStudio(ctk.CTk):
             return None
         return ensure_profile(self.banner_profiles, self.editor_selected_banner.relative)
 
+
+    def editor_load_profile_values(self, profile):
+        self.editor_font_family.set(profile.get("font_family", self.caption_font_family.get()))
+        self.editor_font_size.set(int(profile.get("font_size", self.caption_font_size.get())))
+        self.editor_text_color.set(profile.get("text_color", self.caption_text_color.get()))
+        self.editor_stroke_color.set(profile.get("stroke_color", self.caption_stroke_color.get()))
+        self.editor_stroke_width.set(int(profile.get("stroke_width", self.caption_stroke_width.get())))
+        self.editor_uppercase.set(bool(profile.get("uppercase", self.caption_uppercase.get())))
+
+    def editor_apply_profile_values(self):
+        profile = self.editor_profile()
+        if not profile:
+            return
+        try:
+            profile["font_family"] = self.editor_font_family.get()
+            profile["font_size"] = int(self.editor_font_size.get())
+            profile["text_color"] = self.editor_text_color.get()
+            profile["stroke_color"] = self.editor_stroke_color.get()
+            profile["stroke_width"] = int(self.editor_stroke_width.get())
+            profile["uppercase"] = bool(self.editor_uppercase.get())
+            save_banner_profiles(self.banner_profiles)
+            self.editor_update_overlay()
+        except Exception:
+            pass
+
     def editor_save_profile(self):
         if not self.editor_selected_banner:
             messagebox.showwarning("Banner Editor", "Bitte zuerst ein Banner auswählen.")
             return
+        self.editor_apply_profile_values()
         save_banner_profiles(self.banner_profiles)
         messagebox.showinfo("Banner Editor", f"Profil gespeichert:\n{self.editor_selected_banner.name}")
         self.show_banner_profiles_page()
@@ -575,14 +635,16 @@ class VadafokStudio(ctk.CTk):
             tags="area"
         )
 
-        text = (self.editor_sample_text.get() or "HELLO WORLD").upper()
+        text = (self.editor_sample_text.get() or "HELLO WORLD")
+        if self.editor_uppercase.get():
+            text = text.upper()
         cx = (x1 + x2) // 2
         cy = (y1 + y2) // 2
         self.editor_sample_text_id = canvas.create_text(
             cx, cy,
             text=text,
-            fill="white",
-            font=("Arial", 22, "bold"),
+            fill=self.editor_text_color.get(),
+            font=("Arial", max(10, min(42, int(self.editor_font_size.get() / 5))), "bold"),
             width=max(50, x2 - x1 - 20),
             justify="center",
             tags="sample"
@@ -610,7 +672,9 @@ class VadafokStudio(ctk.CTk):
         return base64.b64encode(buf.getvalue())
 
     def editor_draw_sample_text(self, canvas, x1, y1, x2, y2):
-        text = (self.editor_sample_text.get() or "HELLO WORLD").upper()
+        text = (self.editor_sample_text.get() or "HELLO WORLD")
+        if self.editor_uppercase.get():
+            text = text.upper()
         cx = (x1 + x2) // 2
         cy = (y1 + y2) // 2
         canvas.create_text(cx, cy, text=text, fill="white", font=("Arial", 22, "bold"), width=max(50, x2-x1-20), justify="center", tags="sample")
@@ -837,7 +901,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 1.1.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 1.2: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
     def show_quick_cards(self):
@@ -999,19 +1063,20 @@ class VadafokStudio(ctk.CTk):
 
     def render_smart_caption(self, text):
         self.last_render_path = EXPORT_DIR / "caption_render.png"
+        profile = self.get_current_banner_profile() or {}
         render_caption_png(
             text=text,
             output_path=self.last_render_path,
             width=int(self.caption_render_width.get()),
             height=int(self.caption_render_height.get()),
-            font_family=self.caption_font_family.get(),
-            font_size=int(self.caption_font_size.get()),
-            text_color=self.caption_text_color.get(),
-            stroke_color=self.caption_stroke_color.get(),
-            stroke_width=int(self.caption_stroke_width.get()),
-            uppercase=bool(self.caption_uppercase.get()),
+            font_family=profile.get("font_family", self.caption_font_family.get()),
+            font_size=int(profile.get("font_size", self.caption_font_size.get())),
+            text_color=profile.get("text_color", self.caption_text_color.get()),
+            stroke_color=profile.get("stroke_color", self.caption_stroke_color.get()),
+            stroke_width=int(profile.get("stroke_width", self.caption_stroke_width.get())),
+            uppercase=bool(profile.get("uppercase", self.caption_uppercase.get())),
             banner_path=self.config_data.get("selected_banner_path", ""),
-            text_area=(self.get_current_banner_profile() or {}).get("text_area"),
+            text_area=profile.get("text_area"),
             safe_left=int(self.caption_safe_left.get()),
             safe_right=int(self.caption_safe_right.get()),
             safe_top=int(self.caption_safe_top.get()),
