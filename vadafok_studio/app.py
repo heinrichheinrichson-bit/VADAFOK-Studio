@@ -1,5 +1,6 @@
 
 import os
+import tkinter as tk
 import threading
 import customtkinter as ctk
 from tkinter import messagebox, filedialog, simpledialog
@@ -22,7 +23,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 1.0 Phase A")
+        self.wm_title("VADAFOK Studio 1.0 Phase C")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -37,6 +38,16 @@ class VadafokStudio(ctk.CTk):
         self.preview_refs = []
         self.library_items = []
         self.selected_item = None
+        self.editor_selected_banner = None
+        self.editor_preview_refs = []
+        self.editor_canvas_scale = 1.0
+        self.editor_canvas_image = None
+        self.editor_canvas_photo = None
+        self.editor_canvas_banner_size = (1, 1)
+        self.editor_drag_mode = None
+        self.editor_drag_start = None
+        self.editor_drag_original = None
+        self.editor_sample_text = ctk.StringVar(value="HELLO WORLD")
         self.last_render_path = EXPORT_DIR / "caption_render.png"
 
         self.host = ctk.StringVar(value=self.config_data["host"])
@@ -80,11 +91,11 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 1.0 A", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 1.0 C", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
-            ("Banner Profiles", self.show_banner_profiles_page),
+            ("Banner Editor", self.show_banner_profiles_page),
             ("Live Card", self.show_live_card),
             ("Caption Engine", self.show_caption_engine_page),
             ("Quick Cards", self.show_quick_cards),
@@ -268,7 +279,7 @@ class VadafokStudio(ctk.CTk):
         item = self.selected_item
         if item.section == "Banners": self.use_selected_as_caption_banner()
         elif item.section == "Live Cards": self.open_selected_live_card()
-        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 1.0 A.")
+        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 1.0 C.")
         elif item.section == "Sounds": self.open_selected_file()
         else: self.show_selected_scene_card()
 
@@ -349,61 +360,293 @@ class VadafokStudio(ctk.CTk):
         messagebox.showinfo("Copy Path", "Pfad kopiert.")
 
 
+
+
     def show_banner_profiles_page(self):
-        self.set_active("Banner Profiles")
+        self.set_active("Banner Editor")
         self.clear_main()
-        self.page_title("Banner Profiles")
+        self.page_title("Banner Editor")
 
         self.library_items = scan_library(self.project_folder.get())
-
-        box = ctk.CTkFrame(self.main, fg_color=PANEL, corner_radius=18)
-        box.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
-        box.grid_columnconfigure(0, weight=1)
-        box.grid_rowconfigure(2, weight=1)
-
-        ctk.CTkLabel(
-            box,
-            text="Studio 1.0 Phase A: Banner Profile System",
-            font=ctk.CTkFont(size=18, weight="bold"),
-            text_color=GOLD
-        ).grid(row=0, column=0, padx=24, pady=(24, 8), sticky="w")
-
-        ctk.CTkLabel(
-            box,
-            text="Diese Seite zeigt, ob Banner bereits ein Profil besitzen. In Phase B/C kommt hier der echte Banner Editor mit Mausrahmen.",
-            text_color="#D9C58C",
-            wraplength=900,
-            justify="left"
-        ).grid(row=1, column=0, padx=24, pady=(0, 12), sticky="w")
-
-        table = ctk.CTkScrollableFrame(box, fg_color="#0B0B0B", corner_radius=12)
-        table.grid(row=2, column=0, sticky="nsew", padx=24, pady=(0, 18))
-        table.grid_columnconfigure(1, weight=1)
-
         banners = [i for i in self.library_items if i.section == "Banners" and i.kind == "image"]
+
+        outer = ctk.CTkFrame(self.main, fg_color=DARK)
+        outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
+        outer.grid_columnconfigure(0, weight=1)
+        outer.grid_columnconfigure(1, weight=3)
+        outer.grid_rowconfigure(0, weight=1)
+
+        left = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 12))
+        left.grid_rowconfigure(1, weight=1)
+
+        ctk.CTkLabel(left, text="Banner", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+        banner_list = ctk.CTkScrollableFrame(left, fg_color="#0B0B0B", corner_radius=12)
+        banner_list.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
+
         if not banners:
-            ctk.CTkLabel(table, text="Keine Banner gefunden. Prüfe Library-Pfad und Banners-Ordner.", text_color="#BCA870").grid(row=0, column=0, padx=12, pady=12, sticky="w")
+            ctk.CTkLabel(banner_list, text="Keine Banner gefunden.", text_color="#BCA870").pack(anchor="w", padx=12, pady=12)
+        else:
+            for item in banners:
+                status = "✓ " if has_profile(self.banner_profiles, item.relative) else "⚠ "
+                ctk.CTkButton(
+                    banner_list,
+                    text=status + item.name,
+                    anchor="w",
+                    height=38,
+                    fg_color="#171717",
+                    hover_color="#2C2C2C",
+                    command=lambda it=item: self.editor_select_banner(it)
+                ).pack(fill="x", padx=8, pady=4)
+
+        right = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        right.grid(row=0, column=1, sticky="nsew", padx=(12, 0))
+        right.grid_columnconfigure(0, weight=1)
+        right.grid_rowconfigure(1, weight=1)
+
+        header = ctk.CTkFrame(right, fg_color="transparent")
+        header.grid(row=0, column=0, sticky="ew", padx=18, pady=(18, 8))
+        header.grid_columnconfigure(1, weight=1)
+
+        ctk.CTkLabel(header, text="Textbereich mit der Maus setzen", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, sticky="w")
+        self.editor_status_label = ctk.CTkLabel(header, text="Noch kein Banner ausgewählt", text_color="#BCA870", anchor="e")
+        self.editor_status_label.grid(row=0, column=1, sticky="e")
+
+        self.editor_preview_frame = ctk.CTkFrame(right, fg_color="#050505", corner_radius=14, border_color="#3A2A0D", border_width=1)
+        self.editor_preview_frame.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 12))
+        self.editor_preview_frame.grid_columnconfigure(0, weight=1)
+        self.editor_preview_frame.grid_rowconfigure(0, weight=1)
+
+        self.editor_canvas = tk.Canvas(self.editor_preview_frame, bg="#050505", highlightthickness=0, cursor="crosshair")
+        self.editor_canvas.grid(row=0, column=0, sticky="nsew", padx=12, pady=12)
+        self.editor_canvas.bind("<ButtonPress-1>", self.editor_mouse_down)
+        self.editor_canvas.bind("<B1-Motion>", self.editor_mouse_drag)
+        self.editor_canvas.bind("<ButtonRelease-1>", self.editor_mouse_up)
+
+        controls = ctk.CTkFrame(right, fg_color="transparent")
+        controls.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 18))
+        controls.grid_columnconfigure(1, weight=1)
+
+        ctk.CTkLabel(controls, text="Sample Text", text_color="#BCA870").grid(row=0, column=0, padx=(0, 8), pady=4, sticky="w")
+        sample_entry = ctk.CTkEntry(controls, textvariable=self.editor_sample_text)
+        sample_entry.grid(row=0, column=1, padx=(0, 8), pady=4, sticky="ew")
+        sample_entry.bind("<KeyRelease>", lambda e: self.editor_draw_canvas())
+
+        ctk.CTkButton(controls, text="SAVE PROFILE", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.editor_save_profile).grid(row=0, column=2, padx=4, pady=4)
+        ctk.CTkButton(controls, text="RESET AREA", fg_color="#333333", hover_color="#444444", command=self.editor_reset_area).grid(row=0, column=3, padx=4, pady=4)
+
+        ctk.CTkLabel(
+            right,
+            text="Phase C: Ziehe den goldenen Rahmen direkt im Banner. Ziehen in der Mitte verschiebt, Ziehen an den Ecken/Kanten verändert die Größe.",
+            text_color="#D9C58C",
+            wraplength=820,
+            justify="left"
+        ).grid(row=3, column=0, sticky="w", padx=18, pady=(0, 18))
+
+        if self.editor_selected_banner is None and banners:
+            self.editor_select_banner(banners[0])
+        elif self.editor_selected_banner is not None:
+            self.editor_draw_canvas()
+
+    def editor_select_banner(self, item):
+        self.editor_selected_banner = item
+        profile = ensure_profile(self.banner_profiles, item.relative)
+        if not profile["text_area"]["width"] or not profile["text_area"]["height"]:
+            try:
+                img = Image.open(item.path).convert("RGBA")
+                w, h = img.size
+                profile["text_area"] = {"x": int(w * 0.12), "y": int(h * 0.24), "width": int(w * 0.76), "height": int(h * 0.52)}
+                save_banner_profiles(self.banner_profiles)
+            except Exception:
+                pass
+        self.editor_draw_canvas()
+
+    def editor_profile(self):
+        if not self.editor_selected_banner:
+            return None
+        return ensure_profile(self.banner_profiles, self.editor_selected_banner.relative)
+
+    def editor_save_profile(self):
+        if not self.editor_selected_banner:
+            messagebox.showwarning("Banner Editor", "Bitte zuerst ein Banner auswählen.")
             return
-
-        for row_idx, item in enumerate(banners):
-            key = item.relative
-            exists = has_profile(self.banner_profiles, key)
-            status = "✓ Profil vorhanden" if exists else "⚠ Kein Profil"
-            color = "#8FE6A0" if exists else "#D9C58C"
-
-            ctk.CTkLabel(table, text=status, text_color=color, width=150, anchor="w").grid(row=row_idx, column=0, padx=12, pady=6, sticky="w")
-            ctk.CTkLabel(table, text=item.name, text_color=TEXT, anchor="w").grid(row=row_idx, column=1, padx=12, pady=6, sticky="ew")
-            ctk.CTkButton(table, text="CREATE DEFAULT", width=140, fg_color="#333333", hover_color="#444444", command=lambda it=item: self.create_default_banner_profile(it)).grid(row=row_idx, column=2, padx=12, pady=6, sticky="e")
-
-        ctk.CTkLabel(box, text=f"Profile gespeichert: {profile_count(self.banner_profiles)}", text_color="#BCA870").grid(row=3, column=0, padx=24, pady=(0, 18), sticky="w")
-
-    def create_default_banner_profile(self, item):
-        key = item.relative
-        ensure_profile(self.banner_profiles, key)
         save_banner_profiles(self.banner_profiles)
-        messagebox.showinfo("Banner Profile", f"Standardprofil erstellt:\n{item.name}")
+        messagebox.showinfo("Banner Editor", f"Profil gespeichert:\n{self.editor_selected_banner.name}")
         self.show_banner_profiles_page()
 
+    def editor_reset_area(self):
+        if not self.editor_selected_banner:
+            return
+        profile = self.editor_profile()
+        img = Image.open(self.editor_selected_banner.path).convert("RGBA")
+        w, h = img.size
+        profile["text_area"] = {"x": int(w * 0.12), "y": int(h * 0.24), "width": int(w * 0.76), "height": int(h * 0.52)}
+        save_banner_profiles(self.banner_profiles)
+        self.editor_draw_canvas()
+
+    def editor_draw_canvas(self):
+        if not hasattr(self, "editor_canvas") or not self.editor_selected_banner:
+            return
+        canvas = self.editor_canvas
+        canvas.delete("all")
+        self.editor_canvas.update_idletasks()
+
+        try:
+            banner = Image.open(self.editor_selected_banner.path).convert("RGBA")
+            bw, bh = banner.size
+            self.editor_canvas_banner_size = (bw, bh)
+
+            cw = max(400, canvas.winfo_width())
+            ch = max(260, canvas.winfo_height())
+            scale = min((cw - 30) / bw, (ch - 30) / bh)
+            self.editor_canvas_scale = scale
+
+            display_w = int(bw * scale)
+            display_h = int(bh * scale)
+            offset_x = (cw - display_w) // 2
+            offset_y = (ch - display_h) // 2
+            self.editor_canvas_offset = (offset_x, offset_y)
+
+            display = banner.resize((display_w, display_h))
+            self.editor_canvas_photo = tk.PhotoImage(data=self._pil_to_png_bytes(display))
+            canvas.create_image(offset_x, offset_y, image=self.editor_canvas_photo, anchor="nw", tags="banner")
+
+            profile = self.editor_profile()
+            area = profile["text_area"]
+            x1 = offset_x + int(area["x"] * scale)
+            y1 = offset_y + int(area["y"] * scale)
+            x2 = offset_x + int((area["x"] + area["width"]) * scale)
+            y2 = offset_y + int((area["y"] + area["height"]) * scale)
+
+            canvas.create_rectangle(x1, y1, x2, y2, fill="#D6A43A", stipple="gray25", outline=GOLD, width=3, tags="area")
+            self.editor_draw_sample_text(canvas, x1, y1, x2, y2)
+
+            # handles
+            for hx, hy in self.editor_handle_points(x1, y1, x2, y2):
+                canvas.create_rectangle(hx-5, hy-5, hx+5, hy+5, fill=GOLD, outline="#111111", tags="handle")
+
+            if hasattr(self, "editor_status_label"):
+                self.editor_status_label.configure(text=f"✓ {self.editor_selected_banner.name}", text_color="#8FE6A0")
+        except Exception as e:
+            canvas.create_text(20, 20, text=f"Editor Fehler: {e}", anchor="nw", fill="#D86A6A")
+
+    def _pil_to_png_bytes(self, image):
+        import io, base64
+        buf = io.BytesIO()
+        image.save(buf, format="PNG")
+        return base64.b64encode(buf.getvalue())
+
+    def editor_draw_sample_text(self, canvas, x1, y1, x2, y2):
+        text = (self.editor_sample_text.get() or "HELLO WORLD").upper()
+        cx = (x1 + x2) // 2
+        cy = (y1 + y2) // 2
+        canvas.create_text(cx, cy, text=text, fill="white", font=("Arial", 22, "bold"), width=max(50, x2-x1-20), justify="center", tags="sample")
+
+    def editor_handle_points(self, x1, y1, x2, y2):
+        return [
+            (x1, y1), ((x1+x2)//2, y1), (x2, y1),
+            (x1, (y1+y2)//2), (x2, (y1+y2)//2),
+            (x1, y2), ((x1+x2)//2, y2), (x2, y2)
+        ]
+
+    def editor_hit_test(self, x, y):
+        profile = self.editor_profile()
+        if not profile:
+            return None
+        ox, oy = self.editor_canvas_offset
+        s = self.editor_canvas_scale
+        area = profile["text_area"]
+        x1 = ox + area["x"] * s
+        y1 = oy + area["y"] * s
+        x2 = ox + (area["x"] + area["width"]) * s
+        y2 = oy + (area["y"] + area["height"]) * s
+        tol = 10
+
+        near_left = abs(x - x1) <= tol
+        near_right = abs(x - x2) <= tol
+        near_top = abs(y - y1) <= tol
+        near_bottom = abs(y - y2) <= tol
+
+        if near_left and near_top: return "nw"
+        if near_right and near_top: return "ne"
+        if near_left and near_bottom: return "sw"
+        if near_right and near_bottom: return "se"
+        if near_left and y1 <= y <= y2: return "w"
+        if near_right and y1 <= y <= y2: return "e"
+        if near_top and x1 <= x <= x2: return "n"
+        if near_bottom and x1 <= x <= x2: return "s"
+        if x1 <= x <= x2 and y1 <= y <= y2: return "move"
+        return "new"
+
+    def editor_mouse_down(self, event):
+        if not self.editor_selected_banner:
+            return
+        self.editor_drag_mode = self.editor_hit_test(event.x, event.y)
+        self.editor_drag_start = (event.x, event.y)
+        profile = self.editor_profile()
+        self.editor_drag_original = dict(profile["text_area"])
+
+        if self.editor_drag_mode == "new":
+            ox, oy = self.editor_canvas_offset
+            s = self.editor_canvas_scale
+            bx = int((event.x - ox) / s)
+            by = int((event.y - oy) / s)
+            profile["text_area"] = {"x": bx, "y": by, "width": 1, "height": 1}
+            self.editor_drag_original = dict(profile["text_area"])
+
+    def editor_mouse_drag(self, event):
+        if not self.editor_drag_mode or not self.editor_selected_banner:
+            return
+
+        profile = self.editor_profile()
+        area = dict(self.editor_drag_original)
+        sx, sy = self.editor_drag_start
+        dx = int((event.x - sx) / self.editor_canvas_scale)
+        dy = int((event.y - sy) / self.editor_canvas_scale)
+        bw, bh = self.editor_canvas_banner_size
+        mode = self.editor_drag_mode
+
+        x, y, w, h = area["x"], area["y"], area["width"], area["height"]
+
+        if mode == "move":
+            x += dx
+            y += dy
+        elif mode == "new":
+            w = dx
+            h = dy
+        else:
+            if "w" in mode:
+                x += dx
+                w -= dx
+            if "e" in mode:
+                w += dx
+            if "n" in mode:
+                y += dy
+                h -= dy
+            if "s" in mode:
+                h += dy
+
+        if w < 0:
+            x += w
+            w = abs(w)
+        if h < 0:
+            y += h
+            h = abs(h)
+
+        x = max(0, min(bw - 20, x))
+        y = max(0, min(bh - 20, y))
+        w = max(20, min(bw - x, w))
+        h = max(20, min(bh - y, h))
+
+        profile["text_area"] = {"x": int(x), "y": int(y), "width": int(w), "height": int(h)}
+        self.editor_draw_canvas()
+
+    def editor_mouse_up(self, event):
+        if self.editor_selected_banner:
+            save_banner_profiles(self.banner_profiles)
+        self.editor_drag_mode = None
+        self.editor_drag_start = None
+        self.editor_drag_original = None
 
     def show_live_card(self):
         self.set_active("Live Card")
@@ -503,7 +746,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 1.0 A: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 1.0 C: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
     def show_quick_cards(self):
@@ -634,6 +877,21 @@ class VadafokStudio(ctk.CTk):
     def current_scene(self):
         return self.obs.current_scene(self.scene_name.get().strip())
 
+
+    def get_current_banner_profile(self):
+        selected_banner_path = self.config_data.get("selected_banner_path", "")
+        if not selected_banner_path:
+            return None
+        try:
+            from pathlib import Path
+            selected = Path(selected_banner_path)
+            project = Path(self.project_folder.get())
+            key = str(selected.relative_to(project))
+            return self.banner_profiles.get(key)
+        except Exception:
+            return None
+
+
     def render_smart_caption(self, text):
         self.last_render_path = EXPORT_DIR / "caption_render.png"
         render_caption_png(
@@ -648,6 +906,7 @@ class VadafokStudio(ctk.CTk):
             stroke_width=int(self.caption_stroke_width.get()),
             uppercase=bool(self.caption_uppercase.get()),
             banner_path=self.config_data.get("selected_banner_path", ""),
+            text_area=(self.get_current_banner_profile() or {}).get("text_area"),
             safe_left=int(self.caption_safe_left.get()),
             safe_right=int(self.caption_safe_right.get()),
             safe_top=int(self.caption_safe_top.get()),

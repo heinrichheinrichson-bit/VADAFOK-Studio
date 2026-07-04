@@ -82,6 +82,7 @@ def render_caption_png(
     safe_right=12,
     safe_top=24,
     safe_bottom=24,
+    text_area=None,
 ):
     """
     Studio 0.7:
@@ -113,21 +114,32 @@ def render_caption_png(
 
     draw = ImageDraw.Draw(img)
 
-    # Text-safe area. Percent-based so ornate banners can keep text away from frames.
-    safe_left = max(0, min(45, int(safe_left)))
-    safe_right = max(0, min(45, int(safe_right)))
-    safe_top = max(0, min(45, int(safe_top)))
-    safe_bottom = max(0, min(45, int(safe_bottom)))
+    # Text area. Prefer exact banner profile coordinates. Fallback: percent safe area.
+    if text_area and int(text_area.get("width", 0)) > 0 and int(text_area.get("height", 0)) > 0:
+        safe_x = int(text_area.get("x", 0))
+        safe_y = int(text_area.get("y", 0))
+        safe_w = int(text_area.get("width", width))
+        safe_h = int(text_area.get("height", height))
+    else:
+        safe_left = max(0, min(45, int(safe_left)))
+        safe_right = max(0, min(45, int(safe_right)))
+        safe_top = max(0, min(45, int(safe_top)))
+        safe_bottom = max(0, min(45, int(safe_bottom)))
 
-    pad_left = int(width * (safe_left / 100))
-    pad_right = int(width * (safe_right / 100))
-    pad_top = int(height * (safe_top / 100))
-    pad_bottom = int(height * (safe_bottom / 100))
+        pad_left = int(width * (safe_left / 100))
+        pad_right = int(width * (safe_right / 100))
+        pad_top = int(height * (safe_top / 100))
+        pad_bottom = int(height * (safe_bottom / 100))
 
-    safe_x = pad_left
-    safe_y = pad_top
-    safe_w = max(20, width - pad_left - pad_right)
-    safe_h = max(20, height - pad_top - pad_bottom)
+        safe_x = pad_left
+        safe_y = pad_top
+        safe_w = max(20, width - pad_left - pad_right)
+        safe_h = max(20, height - pad_top - pad_bottom)
+
+    safe_x = max(0, min(width - 20, safe_x))
+    safe_y = max(0, min(height - 20, safe_y))
+    safe_w = max(20, min(width - safe_x, safe_w))
+    safe_h = max(20, min(height - safe_y, safe_h))
 
     stroke_width = int(stroke_width)
     font, lines, actual_size, total_h = fit_font(

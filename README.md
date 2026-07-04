@@ -1,58 +1,38 @@
-# VADAFOK Studio 1.0 Phase A
+# VADAFOK Studio 1.0 Phase C
 
 ## Ziel
 
-Studio 1.0 beginnt mit dem neuen **Banner Profile System**.
+Phase C bringt den ersten echten interaktiven Banner Editor.
 
-Ab jetzt sollen Banner nicht mehr nur als Bilder behandelt werden, sondern als intelligente Objekte mit eigenen Profilen.
+## Neu
 
-## Neu in Phase A
+- Banner wird im Editor auf einer Arbeitsfläche angezeigt.
+- Textbereich wird als goldener, halbtransparenter Rahmen angezeigt.
+- Textbereich kann mit der Maus:
+  - neu aufgezogen werden
+  - verschoben werden
+  - an Kanten/Ecken vergrößert/verkleinert werden
+- Koordinaten werden im Bannerprofil gespeichert.
+- Live Card / smart_png kann Profil-Textbereiche verwenden.
 
-- Neue Datei:
+## Bedienung
 
-```text
-data/banner_profiles.json
-```
-
-- Neues Modul:
-
-```text
-vadafok_studio/core/banner_profiles.py
-```
-
-- Neuer Menüpunkt:
-
-```text
-Banner Profiles
-```
-
-- Banner können ein Standardprofil bekommen.
-- Library zeigt bei Bannern mit Profil ein kleines ✓.
-
-## Was Phase A noch nicht macht
-
-Noch kein Mausrahmen.
-
-Noch kein echter Banner Editor.
-
-Noch keine automatische Nutzung der Profile im Renderer.
-
-Das kommt in den nächsten Phasen:
-
-- Phase B: Banner Editor Oberfläche
-- Phase C: Mausrahmen ziehen
-- Phase D: Live Card nutzt Profile automatisch
+1. Banner Editor öffnen.
+2. Banner links auswählen.
+3. Goldenen Rahmen im Banner verschieben oder an den Ecken ziehen.
+4. Optional Beispieltext ändern.
+5. SAVE PROFILE drücken.
 
 ## Test
 
-1. Studio starten.
-2. Library laden.
-3. Menüpunkt `Banner Profiles` öffnen.
-4. Prüfen, ob Banner angezeigt werden.
-5. Für 1–2 Banner `CREATE DEFAULT` klicken.
-6. Zur Library zurückgehen.
-7. Prüfen, ob bei diesen Bannern ein ✓ erscheint.
+1. Einen Banner öffnen.
+2. Rahmen verschieben.
+3. Studio schließen.
+4. Studio erneut öffnen.
+5. Prüfen, ob der Rahmen an derselben Stelle bleibt.
+6. Live Card mit smart_png testen.
+7. Prüfen, ob Text im gespeicherten Bereich gerendert wird.
 
 ## Git
 
-Erst committen, wenn Phase A funktioniert.
+Erst committen, wenn Phase C stabil funktioniert.

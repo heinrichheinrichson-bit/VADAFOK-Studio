@@ -1,10 +1,10 @@
 {
   "Banners\\Antike Schriftrolle mit goldenen Details.png": {
     "text_area": {
-      "x": 0,
-      "y": 0,
-      "width": 0,
-      "height": 0
+      "x": 507,
+      "y": 322,
+      "width": 671,
+      "height": 253
     },
     "font_family": "Bebas Neue",
     "font_size": 160,
@@ -15,6 +15,36 @@
     "notes": ""
   },
   "Banners\\Antikes Kino-Banner mit Goldrahmen.png": {
+    "text_area": {
+      "x": 514,
+      "y": 370,
+      "width": 877,
+      "height": 196
+    },
+    "font_family": "Bebas Neue",
+    "font_size": 160,
+    "uppercase": true,
+    "text_color": "#FFFFFF",
+    "stroke_color": "#000000",
+    "stroke_width": 3,
+    "notes": ""
+  },
+  "Banners\\ChatGPT Image 3. Juli 2026, 15_21_53.png": {
+    "text_area": {
+      "x": 200,
+      "y": 225,
+      "width": 1270,
+      "height": 489
+    },
+    "font_family": "Bebas Neue",
+    "font_size": 160,
+    "uppercase": true,
+    "text_color": "#FFFFFF",
+    "stroke_color": "#000000",
+    "stroke_width": 3,
+    "notes": ""
+  },
+  "Banners\\Elegante Art Deco Titelkarte.png": {
     "text_area": {
       "x": 0,
       "y": 0,
