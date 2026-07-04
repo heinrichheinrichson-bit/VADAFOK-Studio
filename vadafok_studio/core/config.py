@@ -32,6 +32,11 @@ DEFAULT_CONFIG = {
     "caption_render_width": 1600,
     "caption_render_height": 260,
     "caption_uppercase": True,
+
+    "caption_safe_left": 12,
+    "caption_safe_right": 12,
+    "caption_safe_top": 24,
+    "caption_safe_bottom": 24,
     "banner_sources": {
         "Gold Ribbon": "VADAFOK Banner",
         "Black Gold Plate": "VADAFOK Banner Plate",

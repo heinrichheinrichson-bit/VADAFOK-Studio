@@ -78,6 +78,10 @@ def render_caption_png(
     stroke_width=3,
     uppercase=True,
     banner_path="",
+    safe_left=12,
+    safe_right=12,
+    safe_top=24,
+    safe_bottom=24,
 ):
     """
     Studio 0.7:
@@ -109,25 +113,35 @@ def render_caption_png(
 
     draw = ImageDraw.Draw(img)
 
-    # Text-safe area. For ornate banners, keep away from borders/decorations.
-    pad_x = int(width * 0.12)
-    pad_y = int(height * 0.22)
-    max_w = max(20, width - pad_x * 2)
-    max_h = max(20, height - pad_y * 2)
+    # Text-safe area. Percent-based so ornate banners can keep text away from frames.
+    safe_left = max(0, min(45, int(safe_left)))
+    safe_right = max(0, min(45, int(safe_right)))
+    safe_top = max(0, min(45, int(safe_top)))
+    safe_bottom = max(0, min(45, int(safe_bottom)))
+
+    pad_left = int(width * (safe_left / 100))
+    pad_right = int(width * (safe_right / 100))
+    pad_top = int(height * (safe_top / 100))
+    pad_bottom = int(height * (safe_bottom / 100))
+
+    safe_x = pad_left
+    safe_y = pad_top
+    safe_w = max(20, width - pad_left - pad_right)
+    safe_h = max(20, height - pad_top - pad_bottom)
 
     stroke_width = int(stroke_width)
     font, lines, actual_size, total_h = fit_font(
         draw=draw,
         text=text,
         font_family=font_family,
-        max_width=max_w,
-        max_height=max_h,
+        max_width=safe_w,
+        max_height=safe_h,
         start_size=int(font_size),
         stroke_width=stroke_width,
     )
 
     spacing = int(actual_size * 0.18)
-    y = (height - total_h) // 2
+    y = safe_y + (safe_h - total_h) // 2
 
     fill = normalize_color(text_color, "#FFFFFF")
     stroke = normalize_color(stroke_color, "#000000")
@@ -136,7 +150,7 @@ def render_caption_png(
         bbox = draw.textbbox((0, 0), line or " ", font=font, stroke_width=stroke_width)
         line_w = bbox[2] - bbox[0]
         line_h = bbox[3] - bbox[1]
-        x = (width - line_w) // 2
+        x = safe_x + (safe_w - line_w) // 2
 
         # bbox offset prevents ascender clipping.
         draw.text(

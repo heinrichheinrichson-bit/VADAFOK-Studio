@@ -21,7 +21,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 0.7")
+        self.wm_title("VADAFOK Studio 0.8")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -62,6 +62,10 @@ class VadafokStudio(ctk.CTk):
         self.caption_render_width = ctk.IntVar(value=int(self.config_data.get("caption_render_width", 1600)))
         self.caption_render_height = ctk.IntVar(value=int(self.config_data.get("caption_render_height", 260)))
         self.caption_uppercase = ctk.BooleanVar(value=bool(self.config_data.get("caption_uppercase", True)))
+        self.caption_safe_left = ctk.IntVar(value=int(self.config_data.get("caption_safe_left", 12)))
+        self.caption_safe_right = ctk.IntVar(value=int(self.config_data.get("caption_safe_right", 12)))
+        self.caption_safe_top = ctk.IntVar(value=int(self.config_data.get("caption_safe_top", 24)))
+        self.caption_safe_bottom = ctk.IntVar(value=int(self.config_data.get("caption_safe_bottom", 24)))
 
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -74,7 +78,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 0.7", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 0.8", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -260,7 +264,7 @@ class VadafokStudio(ctk.CTk):
         item = self.selected_item
         if item.section == "Banners": self.use_selected_as_caption_banner()
         elif item.section == "Live Cards": self.open_selected_live_card()
-        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 0.7.")
+        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 0.8.")
         elif item.section == "Sounds": self.open_selected_file()
         else: self.show_selected_scene_card()
 
@@ -404,6 +408,10 @@ class VadafokStudio(ctk.CTk):
             ("Stroke Width", self.caption_stroke_width, None),
             ("Render Width", self.caption_render_width, None),
             ("Render Height", self.caption_render_height, None),
+            ("Safe Left %", self.caption_safe_left, None),
+            ("Safe Right %", self.caption_safe_right, None),
+            ("Safe Top %", self.caption_safe_top, None),
+            ("Safe Bottom %", self.caption_safe_bottom, None),
         ]
         for label, var, values in fields:
             row = ctk.CTkFrame(box, fg_color="transparent")
@@ -414,7 +422,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 0.7: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 0.8: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
     def show_quick_cards(self):
@@ -542,6 +550,10 @@ class VadafokStudio(ctk.CTk):
             "caption_render_width": int(self.caption_render_width.get()),
             "caption_render_height": int(self.caption_render_height.get()),
             "caption_uppercase": bool(self.caption_uppercase.get()),
+            "caption_safe_left": int(self.caption_safe_left.get()),
+            "caption_safe_right": int(self.caption_safe_right.get()),
+            "caption_safe_top": int(self.caption_safe_top.get()),
+            "caption_safe_bottom": int(self.caption_safe_bottom.get()),
         })
         save_config(self.config_data)
 
@@ -562,6 +574,10 @@ class VadafokStudio(ctk.CTk):
             stroke_width=int(self.caption_stroke_width.get()),
             uppercase=bool(self.caption_uppercase.get()),
             banner_path=self.config_data.get("selected_banner_path", ""),
+            safe_left=int(self.caption_safe_left.get()),
+            safe_right=int(self.caption_safe_right.get()),
+            safe_top=int(self.caption_safe_top.get()),
+            safe_bottom=int(self.caption_safe_bottom.get()),
         )
         return self.last_render_path
 

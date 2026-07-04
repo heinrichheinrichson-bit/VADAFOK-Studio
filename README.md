@@ -1,68 +1,71 @@
-# VADAFOK Studio 0.7
+# VADAFOK Studio 0.8
 
 ## Hauptänderung
 
-Studio 0.7 ist die erste echte Smart Caption Engine.
+Studio 0.8 verfeinert die Smart Caption Engine mit einer **Safe Area**.
 
-Nicht mehr:
+Problem aus 0.7:
+Lange Texte wurden zwar automatisch kleiner, konnten aber noch in dekorative Rahmenbereiche des Banners ragen.
+
+Lösung in 0.8:
+Der Text wird nur noch in einem geschützten Innenbereich gerendert.
+
+## Neu
+
+Im Bereich **Caption Engine** gibt es neue Werte:
 
 ```text
-OBS Text + OBS Banner
+Safe Left %
+Safe Right %
+Safe Top %
+Safe Bottom %
 ```
 
-Sondern:
+Diese Werte bestimmen, wie viel Abstand vom Rand des Banners freigehalten wird.
+
+Empfohlener Startwert:
+
+```text
+Left: 12
+Right: 12
+Top: 24
+Bottom: 24
+```
+
+Wenn Text zu sehr in den Rahmen läuft:
+- Left/Right erhöhen
+- Top/Bottom erhöhen
+
+Wenn der Text zu klein wird:
+- Werte etwas verringern
+
+## Architektur
+
+Weiterhin gilt:
 
 ```text
 Banner + Text = fertiges PNG
 ```
 
-OBS zeigt nur noch die Bildquelle:
+OBS zeigt nur:
 
 ```text
 VADAFOK Caption Render
 ```
 
-## Was neu ist
+## Test
 
-- smart_png rendert das aktuell gewählte Banner und den Text in eine fertige PNG.
-- Der Text wird automatisch im Banner zentriert.
-- OBS-Text ist für smart_png nicht mehr nötig.
-- Das alte System `obs_text` bleibt als Fallback erhalten.
-- Bannerwechsel aus der Library bleibt erhalten.
-- Das Ergebnis wird gespeichert als:
+1. Banner wählen.
+2. Engine auf `smart_png`.
+3. Lange Caption testen:
 
 ```text
-exports/caption_render.png
+THE SHOW WILL BEGIN SHORTLY
 ```
 
-## OBS-Struktur
-
-Empfohlen:
-
-```text
-VADAFOK Caption
-├── VADAFOK Caption Render
-├── VADAFOK Caption Text       optional / Fallback
-└── VADAFOK Caption Banner     optional / Fallback
-```
-
-Für die neue Engine ist wichtig:
-
-```text
-VADAFOK Caption Render
-```
-
-Diese Quelle muss eine Bildquelle sein.
-
-## Verwendung
-
-1. In Studio ein Banner aus der Library wählen.
-2. `USE AS CAPTION BANNER` klicken oder Banner doppelklicken.
-3. Zu Live Card gehen.
-4. Engine auf `smart_png` stellen.
-5. Text schreiben.
-6. SHOW klicken.
+4. Safe-Area-Werte anpassen.
+5. SHOW erneut drücken.
 
 ## Git
 
-Erst committen, wenn 0.7 erfolgreich getestet wurde.
+Erst committen, wenn 0.8 erfolgreich getestet wurde.
