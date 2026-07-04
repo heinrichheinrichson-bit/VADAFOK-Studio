@@ -24,7 +24,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 1.4.1")
+        self.wm_title("VADAFOK Studio 1.5.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -38,6 +38,7 @@ class VadafokStudio(ctk.CTk):
         self.template_drag_mode = None
         self.template_drag_start = None
         self.template_drag_original = None
+        self.template_hover_mode = None
         self.obs = OBSController()
         self.hide_timer = None
         self.quick_window = None
@@ -104,7 +105,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 1.4", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 1.5", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -293,7 +294,7 @@ class VadafokStudio(ctk.CTk):
         item = self.selected_item
         if item.section == "Banners": self.use_selected_as_caption_banner()
         elif item.section == "Live Cards": self.open_selected_live_card()
-        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 1.4.")
+        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 1.5.")
         elif item.section == "Sounds": self.open_selected_file()
         else: self.show_selected_scene_card()
 
@@ -925,7 +926,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 1.4: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 1.5: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -988,6 +989,7 @@ class VadafokStudio(ctk.CTk):
         self.template_canvas.bind("<ButtonPress-1>", self.template_mouse_down)
         self.template_canvas.bind("<B1-Motion>", self.template_mouse_drag)
         self.template_canvas.bind("<ButtonRelease-1>", self.template_mouse_up)
+        self.template_canvas.bind("<Motion>", self.template_mouse_motion)
 
         controls = ctk.CTkFrame(right, fg_color="transparent")
         controls.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 18))
@@ -1063,6 +1065,7 @@ class VadafokStudio(ctk.CTk):
             save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
             self.template_draw_canvas()
 
+
     def template_draw_canvas(self):
         if not hasattr(self, "template_canvas"):
             return
@@ -1079,41 +1082,151 @@ class VadafokStudio(ctk.CTk):
         self.template_canvas_offset = ((cw - int(design_w * scale)) // 2, (ch - int(design_h * scale)) // 2)
         ox, oy = self.template_canvas_offset
 
-        canvas.create_rectangle(ox, oy, ox + int(design_w * scale), oy + int(design_h * scale), fill="#111111", outline="#3A2A0D", width=2)
-        canvas.create_text(ox + 24, oy + 24, text=template.get("name", "Template"), anchor="nw", fill="#D6A43A", font=("Arial", 18, "bold"))
+        canvas.create_rectangle(
+            ox, oy,
+            ox + int(design_w * scale),
+            oy + int(design_h * scale),
+            fill="#111111",
+            outline="#3A2A0D",
+            width=2
+        )
+        canvas.create_text(
+            ox + 24,
+            oy + 24,
+            text=template.get("name", "Template"),
+            anchor="nw",
+            fill="#D6A43A",
+            font=("Arial", 18, "bold")
+        )
 
         for idx, field in enumerate(template["fields"]):
-            x1 = ox + int(field["x"] * scale)
-            y1 = oy + int(field["y"] * scale)
-            x2 = ox + int((field["x"] + field["width"]) * scale)
-            y2 = oy + int((field["y"] + field["height"]) * scale)
+            x1, y1, x2, y2 = self.template_field_screen_rect(field)
             selected = idx == self.template_selected_field
             outline = GOLD if selected else "#BCA870"
             width = 3 if selected else 2
-            canvas.create_rectangle(x1, y1, x2, y2, fill="#D6A43A", stipple="gray25", outline=outline, width=width)
-            canvas.create_text((x1+x2)//2, (y1+y2)//2, text=field["name"], fill=field.get("text_color", "#FFFFFF"), font=("Arial", 16, "bold"))
-            canvas.create_text(x1 + 5, y1 + 5, text=field["name"], anchor="nw", fill="#111111", font=("Arial", 9, "bold"))
+
+            canvas.create_rectangle(
+                x1, y1, x2, y2,
+                fill="#D6A43A",
+                stipple="gray25",
+                outline=outline,
+                width=width
+            )
+            canvas.create_text(
+                (x1+x2)//2,
+                (y1+y2)//2,
+                text=field["name"],
+                fill=field.get("text_color", "#FFFFFF"),
+                font=("Arial", 16, "bold")
+            )
+            canvas.create_text(
+                x1 + 5,
+                y1 + 5,
+                text=field["name"],
+                anchor="nw",
+                fill="#111111",
+                font=("Arial", 9, "bold")
+            )
+
+            if selected:
+                self.template_draw_handles(canvas, x1, y1, x2, y2)
 
         if hasattr(self, "template_status_label"):
-            self.template_status_label.configure(text=f"{self.template_selected_name} | Felder: {len(template['fields'])}", text_color="#8FE6A0")
+            if self.template_selected_field is not None and 0 <= self.template_selected_field < len(template["fields"]):
+                f = template["fields"][self.template_selected_field]
+                self.template_status_label.configure(
+                    text=f"{self.template_selected_name} | {f['name']} | {f['width']}×{f['height']} @ {f['x']}/{f['y']}",
+                    text_color="#8FE6A0"
+                )
+            else:
+                self.template_status_label.configure(
+                    text=f"{self.template_selected_name} | Felder: {len(template['fields'])}",
+                    text_color="#8FE6A0"
+                )
+
+    def template_field_screen_rect(self, field):
+        ox, oy = self.template_canvas_offset
+        s = self.template_canvas_scale
+        x1 = ox + int(field["x"] * s)
+        y1 = oy + int(field["y"] * s)
+        x2 = ox + int((field["x"] + field["width"]) * s)
+        y2 = oy + int((field["y"] + field["height"]) * s)
+        return x1, y1, x2, y2
+
+    def template_handle_points(self, x1, y1, x2, y2):
+        return [
+            ("nw", x1, y1),
+            ("n", (x1+x2)//2, y1),
+            ("ne", x2, y1),
+            ("w", x1, (y1+y2)//2),
+            ("e", x2, (y1+y2)//2),
+            ("sw", x1, y2),
+            ("s", (x1+x2)//2, y2),
+            ("se", x2, y2),
+        ]
+
+    def template_draw_handles(self, canvas, x1, y1, x2, y2):
+        for _name, hx, hy in self.template_handle_points(x1, y1, x2, y2):
+            canvas.create_rectangle(
+                hx - 6, hy - 6, hx + 6, hy + 6,
+                fill=GOLD,
+                outline="#111111"
+            )
 
     def template_hit_test(self, x, y):
         template = self.template_current()
-        ox, oy = self.template_canvas_offset
-        s = self.template_canvas_scale
+        tol = 10
+
+        # selected field handles first
+        if self.template_selected_field is not None and 0 <= self.template_selected_field < len(template["fields"]):
+            f = template["fields"][self.template_selected_field]
+            x1, y1, x2, y2 = self.template_field_screen_rect(f)
+            for name, hx, hy in self.template_handle_points(x1, y1, x2, y2):
+                if abs(x - hx) <= tol and abs(y - hy) <= tol:
+                    return self.template_selected_field, name
+
+            near_left = abs(x - x1) <= tol and y1 <= y <= y2
+            near_right = abs(x - x2) <= tol and y1 <= y <= y2
+            near_top = abs(y - y1) <= tol and x1 <= x <= x2
+            near_bottom = abs(y - y2) <= tol and x1 <= x <= x2
+            if near_left:
+                return self.template_selected_field, "w"
+            if near_right:
+                return self.template_selected_field, "e"
+            if near_top:
+                return self.template_selected_field, "n"
+            if near_bottom:
+                return self.template_selected_field, "s"
+
+        # any field body
         for idx in reversed(range(len(template["fields"]))):
             f = template["fields"][idx]
-            x1 = ox + f["x"] * s
-            y1 = oy + f["y"] * s
-            x2 = ox + (f["x"] + f["width"]) * s
-            y2 = oy + (f["y"] + f["height"]) * s
+            x1, y1, x2, y2 = self.template_field_screen_rect(f)
             if x1 <= x <= x2 and y1 <= y <= y2:
-                return idx
-        return None
+                return idx, "move"
+        return None, None
+
+    def template_cursor_for_mode(self, mode):
+        if mode == "move":
+            return "fleur"
+        if mode in ("nw", "se"):
+            return "size_nw_se"
+        if mode in ("ne", "sw"):
+            return "size_ne_sw"
+        if mode in ("n", "s"):
+            return "sb_v_double_arrow"
+        if mode in ("e", "w"):
+            return "sb_h_double_arrow"
+        return "crosshair"
+
+    def template_mouse_motion(self, event):
+        _idx, mode = self.template_hit_test(event.x, event.y)
+        self.template_canvas.configure(cursor=self.template_cursor_for_mode(mode))
 
     def template_mouse_down(self, event):
-        idx = self.template_hit_test(event.x, event.y)
+        idx, mode = self.template_hit_test(event.x, event.y)
         self.template_selected_field = idx
+        self.template_drag_mode = mode
         self.template_drag_start = (event.x, event.y)
         template = self.template_current()
         self.template_drag_original = dict(template["fields"][idx]) if idx is not None else None
@@ -1122,18 +1235,51 @@ class VadafokStudio(ctk.CTk):
     def template_mouse_drag(self, event):
         if self.template_selected_field is None or self.template_drag_original is None:
             return
+
         template = self.template_current()
         sx, sy = self.template_drag_start
         dx = int((event.x - sx) / self.template_canvas_scale)
         dy = int((event.y - sy) / self.template_canvas_scale)
+
         f = dict(self.template_drag_original)
-        f["x"] = max(0, min(1280 - f["width"], f["x"] + dx))
-        f["y"] = max(0, min(720 - f["height"], f["y"] + dy))
+        x, y, w, h = f["x"], f["y"], f["width"], f["height"]
+        mode = self.template_drag_mode or "move"
+
+        if mode == "move":
+            x += dx
+            y += dy
+        else:
+            if "w" in mode:
+                x += dx
+                w -= dx
+            if "e" in mode:
+                w += dx
+            if "n" in mode:
+                y += dy
+                h -= dy
+            if "s" in mode:
+                h += dy
+
+        if w < 0:
+            x += w
+            w = abs(w)
+        if h < 0:
+            y += h
+            h = abs(h)
+
+        min_w, min_h = 40, 30
+        x = max(0, min(1280 - min_w, x))
+        y = max(0, min(720 - min_h, y))
+        w = max(min_w, min(1280 - x, w))
+        h = max(min_h, min(720 - y, h))
+
+        f["x"], f["y"], f["width"], f["height"] = int(x), int(y), int(w), int(h)
         template["fields"][self.template_selected_field] = f
         self.template_draw_canvas()
 
     def template_mouse_up(self, event):
         save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
+        self.template_drag_mode = None
         self.template_drag_start = None
         self.template_drag_original = None
 

@@ -1,48 +1,32 @@
-# VADAFOK Studio 1.4
+# VADAFOK Studio 1.5
 
 ## Ziel
 
-Studio 1.4 startet den Template Editor.
-
-Das ist die erste Version mit mehreren Layout-Feldern.
+Studio 1.5 bringt den Template Editor näher an den Banner Editor.
 
 ## Neu
 
-- Neuer Menüpunkt: `Template Editor`
-- Neue Datei: `data/template_profiles.json`
-- Mehrere Felder pro Template
-- Felder auswählen
-- Felder verschieben
-- Felder hinzufügen
-- Felder löschen
-- Templates speichern
-- Default-Template zurücksetzen
-
-## Wichtig
-
-Das ist Phase A des Template Editors.
-
-Noch nicht enthalten:
-
-- Feldgröße ändern
-- Feld umbenennen
-- eigene Schrift/Farbe pro Feld in der UI
-- echtes Rendering als Streamplan-PNG
-
-Das kommt in späteren Versionen.
+- Template-Felder können jetzt nicht nur verschoben, sondern auch skaliert werden.
+- 8 Anfasser am ausgewählten Feld.
+- Ziehen an Ecken und Kanten.
+- Cursor zeigt Bewegung oder Größenänderung.
+- Mindestgröße für Felder.
+- Felder bleiben innerhalb des Template-Bereichs.
+- Live-Status zeigt Feldname, Position und Größe.
 
 ## Test
 
-1. Studio starten.
-2. Template Editor öffnen.
-3. Felder anklicken.
-4. Felder verschieben.
-5. Feld hinzufügen.
-6. Feld löschen.
-7. Speichern.
-8. Studio neu starten.
-9. Prüfen, ob das Template erhalten bleibt.
+1. Template Editor öffnen.
+2. Feld auswählen.
+3. Feld verschieben.
+4. An Ecke ziehen.
+5. An Kante ziehen.
+6. Feld hinzufügen.
+7. Neues Feld skalieren.
+8. Speichern.
+9. Studio neu starten.
+10. Prüfen, ob Position und Größe erhalten bleiben.
 
 ## Git
 
-Erst committen, wenn der Template Editor stabil funktioniert.
+Erst committen, wenn Verschieben, Skalieren und Speichern sauber funktionieren.
