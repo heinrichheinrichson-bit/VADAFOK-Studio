@@ -1,31 +1,51 @@
-# VADAFOK Studio 2.2.1
+# VADAFOK Studio 2.3.5
+
+## Basis
+
+Direkt aus der stabilen Nutzer-ZIP `Studio 2.2.1`.
 
 ## Ziel
 
-Fix für die Interaktion im Template Editor nach Einführung der neuen Template-Ordnerstruktur.
+Gezielter Fix für das Template-Editor-Flackern beim Klick und Ziehen.
 
-## Repariert
+## Diagnose
 
-- Felder werden beim Anklicken nicht mehr aus alten Daten zurückgeladen.
-- Hintergrundbild bleibt beim Anklicken/Verschieben erhalten.
-- Felder lassen sich wieder auswählen.
-- Felder lassen sich verschieben.
-- Felder lassen sich an Kanten/Ecken skalieren.
-- Änderungen werden in `data/templates/<Template>/template.json` gespeichert.
+Das Bild flackerte bereits bei einfachem Klick ins Multi-Field-Layout.
+Deshalb war nicht nur das Ziehen das Problem, sondern `template_mouse_down`.
+
+## Änderung
+
+- Klick ins leere Canvas zeichnet nichts mehr neu.
+- Klick auf ein Feld aktualisiert nur die Feld-Overlays.
+- Ziehen aktualisiert nur die Feld-Overlays.
+- Der Hintergrund bleibt stehen.
+- Alle Feld-Overlays bekommen den Canvas-Tag `template_overlay`.
+
+## Nicht verändert
+
+- Library
+- SHOW / USE
+- SET BACKGROUND FROM LIBRARY
+- BACKGROUND AUS DATEI
+- Card Creator
+- Template-Ordnerstruktur
 
 ## Test
 
-1. Template Editor öffnen.
-2. Hintergrundbild setzen oder vorhandenes Template mit Bild öffnen.
-3. Ein Feld anklicken.
-4. Prüfen: Feld wird markiert.
-5. Feld verschieben.
+1. Library → Template-Bild auswählen → SHOW / USE.
+2. Template Editor öffnen.
+3. Ins schwarze freie Canvas klicken.
+   - Bild darf nicht wegflackern.
+4. Feld anklicken.
+   - Bild darf nicht wegflackern.
+5. Feld ziehen.
+   - Bild soll stehen bleiben.
+   - keine doppelten Felder.
 6. Feldgröße ändern.
-7. SAVE TEMPLATE.
-8. Studio neu starten.
-9. Prüfen: Bild + Felder sind noch da.
-10. Card Creator öffnen und Render testen.
+   - Bild soll stehen bleiben.
+   - keine doppelten Felder.
+7. Card Creator kurz prüfen.
 
 ## Git
 
-Erst committen, wenn Bild und Feldbearbeitung stabil funktionieren.
+Nur committen, wenn Klick + Ziehen stabil sind und Library/Background weiter funktionieren.

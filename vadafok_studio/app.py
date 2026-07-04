@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.2.1.1.1.1")
+        self.wm_title("VADAFOK Studio 2.3.5")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -122,7 +122,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.2.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.3.5", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -975,7 +975,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.2.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.3.5: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1368,51 +1368,90 @@ class VadafokStudio(ctk.CTk):
         )
         canvas.create_text(ox + 18, oy + 18, text=status_text, anchor="nw", fill="#D6A43A", font=("Arial", 12, "bold"))
 
+        self.template_update_fields_overlay(bg_info)
+
+
+    def template_clear_fields_overlay(self):
+        if not hasattr(self, "template_canvas"):
+            return
+        try:
+            self.template_canvas.delete("template_overlay")
+        except Exception:
+            pass
+
+    def template_update_fields_overlay(self, bg_info=None):
+        if not hasattr(self, "template_canvas"):
+            return
+        canvas = self.template_canvas
+        self.template_clear_fields_overlay()
+        template = self.template_current()
+
+        if bg_info is None:
+            try:
+                bg_path = str(background_path(self.template_selected_name, template))
+                bg_info = image_status(bg_path)
+            except Exception:
+                bg_info = {"name": "?", "exists": False}
+
         for idx, field in enumerate(template.get("fields", [])):
             x1, y1, x2, y2 = self.template_field_screen_rect(field)
             selected = idx == self.template_selected_field
             outline = GOLD if selected else "#BCA870"
             width = 3 if selected else 2
+
             canvas.create_rectangle(
                 x1, y1, x2, y2,
                 fill="#D6A43A",
                 stipple="gray25",
                 outline=outline,
-                width=width
+                width=width,
+                tags=("template_overlay",)
             )
+
             label_text = field.get("name", f"field_{idx+1}")
             if field.get("uppercase", True):
                 label_text = label_text.upper()
+
             canvas.create_text(
                 (x1 + x2) // 2,
                 (y1 + y2) // 2,
                 text=label_text,
                 fill=field.get("text_color", "#FFFFFF"),
-                font=("Arial", max(10, min(28, int(field.get("font_size", 90) / 5))), "bold")
+                font=("Arial", max(10, min(28, int(field.get("font_size", 90) / 5))), "bold"),
+                tags=("template_overlay",)
             )
+
             canvas.create_text(
                 x1 + 5, y1 + 5,
                 text=field.get("name", f"field_{idx+1}"),
                 anchor="nw",
                 fill="#111111",
-                font=("Arial", 9, "bold")
+                font=("Arial", 9, "bold"),
+                tags=("template_overlay",)
             )
 
             if selected:
-                self.template_draw_handles(canvas, x1, y1, x2, y2)
+                for _name, hx, hy in self.template_handle_points(x1, y1, x2, y2):
+                    canvas.create_rectangle(
+                        hx - 6, hy - 6, hx + 6, hy + 6,
+                        fill=GOLD,
+                        outline="#111111",
+                        tags=("template_overlay",)
+                    )
 
         if hasattr(self, "template_status_label"):
             if self.template_selected_field is not None and 0 <= self.template_selected_field < len(template.get("fields", [])):
                 f = template["fields"][self.template_selected_field]
                 self.template_status_label.configure(
-                    text=f"{self.template_selected_name} | {f['name']} | {f['width']}×{f['height']} @ {f['x']}/{f['y']} | BG: {bg_info['name']}",
+                    text=f"{self.template_selected_name} | {f['name']} | {f['width']}×{f['height']} @ {f['x']}/{f['y']} | BG: {bg_info.get('name', '?')}",
                     text_color="#8FE6A0"
                 )
             else:
                 self.template_status_label.configure(
-                    text=f"{self.template_selected_name} | Felder: {len(template.get('fields', []))} | BG: {bg_info['name']}",
+                    text=f"{self.template_selected_name} | Felder: {len(template.get('fields', []))} | BG: {bg_info.get('name', '?')}",
                     text_color="#8FE6A0"
                 )
+
 
     def template_field_screen_rect(self, field):
         ox, oy = self.template_canvas_offset
@@ -1495,15 +1534,36 @@ class VadafokStudio(ctk.CTk):
 
     def template_mouse_down(self, event):
         idx, mode = self.template_hit_test(event.x, event.y)
+
+        # Klick ins leere Canvas:
+        # Wenn nichts ausgewählt war, gar nichts neu zeichnen.
+        # Wenn ein Feld ausgewählt war, nur Overlay aktualisieren, um Handles zu entfernen.
+        if idx is None:
+            had_selection = self.template_selected_field is not None
+            self.template_selected_field = None
+            self.template_drag_mode = None
+            self.template_drag_start = None
+            self.template_drag_original = None
+            self.template_load_selected_properties()
+            if hasattr(self, "template_props_body"):
+                self.template_build_properties_panel()
+            if had_selection:
+                self.template_update_fields_overlay()
+            return
+
         self.template_selected_field = idx
         self.template_load_selected_properties()
         if hasattr(self, "template_props_body"):
             self.template_build_properties_panel()
+
         self.template_drag_mode = mode
         self.template_drag_start = (event.x, event.y)
         template = self.template_current()
-        self.template_drag_original = dict(template["fields"][idx]) if idx is not None else None
-        self.template_draw_canvas()
+        self.template_drag_original = dict(template["fields"][idx])
+
+        # Nur Overlay neu zeichnen. Hintergrund bleibt stehen.
+        self.template_update_fields_overlay()
+
 
     def template_mouse_drag(self, event):
         if self.template_selected_field is None or self.template_drag_original is None:
@@ -1549,7 +1609,7 @@ class VadafokStudio(ctk.CTk):
 
         f["x"], f["y"], f["width"], f["height"] = int(x), int(y), int(w), int(h)
         template["fields"][self.template_selected_field] = f
-        self.template_draw_canvas()
+        self.template_update_fields_overlay()
 
 
     def template_mouse_up(self, event):

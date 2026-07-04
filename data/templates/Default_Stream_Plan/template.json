@@ -4,10 +4,10 @@
   "fields": [
     {
       "name": "date",
-      "x": 260,
+      "x": 203,
       "y": 927,
-      "width": 420,
-      "height": 90,
+      "width": 533,
+      "height": 88,
       "font_family": "Bebas Neue",
       "font_size": 90,
       "text_color": "#FFFFFF",
@@ -17,8 +17,8 @@
     },
     {
       "name": "game",
-      "x": 197,
-      "y": 1390,
+      "x": 201,
+      "y": 1386,
       "width": 547,
       "height": 108,
       "font_family": "Bebas Neue",
@@ -31,9 +31,9 @@
     },
     {
       "name": "time",
-      "x": 349,
+      "x": 276,
       "y": 1149,
-      "width": 224,
+      "width": 390,
       "height": 120,
       "font_family": "Bebas Neue",
       "font_size": 90,

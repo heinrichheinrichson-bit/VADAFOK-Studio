@@ -448,5 +448,155 @@
     "stroke_color": "#000000",
     "stroke_width": 3,
     "notes": ""
+  },
+  "Banners\\Ausschneiden Test.png": {
+    "text_area": {
+      "x": 236,
+      "y": 380,
+      "width": 1200,
+      "height": 229
+    },
+    "font_family": "Bebas Neue",
+    "font_size": 160,
+    "uppercase": true,
+    "text_color": "#FFFFFF",
+    "stroke_color": "#000000",
+    "stroke_width": 3,
+    "notes": ""
+  },
+  "Banners\\Antike Schriftrolle mit goldenen Details ausgeschnitten.png": {
+    "text_area": {
+      "x": 340,
+      "y": 348,
+      "width": 996,
+      "height": 229
+    },
+    "font_family": "Bebas Neue",
+    "font_size": 160,
+    "uppercase": true,
+    "text_color": "#FFFFFF",
+    "stroke_color": "#000000",
+    "stroke_width": 3,
+    "notes": ""
+  },
+  "Banners\\lavish golden scroll against a stark black background ausgeschnitten (IA).png": {
+    "text_area": {
+      "x": 327,
+      "y": 313,
+      "width": 1017,
+      "height": 335
+    },
+    "font_family": "Bebas Neue",
+    "font_size": 160,
+    "uppercase": true,
+    "text_color": "#FFFFFF",
+    "stroke_color": "#000000",
+    "stroke_width": 3,
+    "notes": ""
+  },
+  "Banners\\Luxuriöse goldene Medaille mit Band ausgeschnitten (IA).png": {
+    "text_area": {
+      "x": 200,
+      "y": 225,
+      "width": 1270,
+      "height": 489
+    },
+    "font_family": "Bebas Neue",
+    "font_size": 160,
+    "uppercase": true,
+    "text_color": "#FFFFFF",
+    "stroke_color": "#000000",
+    "stroke_width": 3,
+    "notes": ""
+  },
+  "Banners\\Luxuriöse goldene Namensplakette ausgeschnitten (IA).png": {
+    "text_area": {
+      "x": 225,
+      "y": 285,
+      "width": 1217,
+      "height": 369
+    },
+    "font_family": "Bebas Neue",
+    "font_size": 160,
+    "uppercase": true,
+    "text_color": "#FFFFFF",
+    "stroke_color": "#000000",
+    "stroke_width": 3,
+    "notes": ""
+  },
+  "Banners\\Luxuriöse goldene Ornamentplatte ausgeschnitten (IA).png": {
+    "text_area": {
+      "x": 327,
+      "y": 292,
+      "width": 1015,
+      "height": 364
+    },
+    "font_family": "Bebas Neue",
+    "font_size": 160,
+    "uppercase": true,
+    "text_color": "#FFFFFF",
+    "stroke_color": "#000000",
+    "stroke_width": 3,
+    "notes": ""
+  },
+  "Banners\\Luxuriöse goldene Wappenplakette ausgeschnitten (IA).png": {
+    "text_area": {
+      "x": 321,
+      "y": 333,
+      "width": 1031,
+      "height": 315
+    },
+    "font_family": "Bebas Neue",
+    "font_size": 160,
+    "uppercase": true,
+    "text_color": "#FFFFFF",
+    "stroke_color": "#000000",
+    "stroke_width": 3,
+    "notes": ""
+  },
+  "Banners\\Luxuriöses Art-Deco-Schild ausgeschnitten (IA).png": {
+    "text_area": {
+      "x": 228,
+      "y": 371,
+      "width": 1216,
+      "height": 238
+    },
+    "font_family": "Bebas Neue",
+    "font_size": 160,
+    "uppercase": true,
+    "text_color": "#FFFFFF",
+    "stroke_color": "#000000",
+    "stroke_width": 3,
+    "notes": ""
+  },
+  "Banners\\Ornate gold plaque on black backdrop ausgeschnitten (IA).png": {
+    "text_area": {
+      "x": 294,
+      "y": 299,
+      "width": 1085,
+      "height": 331
+    },
+    "font_family": "Bebas Neue",
+    "font_size": 160,
+    "uppercase": true,
+    "text_color": "#FFFFFF",
+    "stroke_color": "#000000",
+    "stroke_width": 3,
+    "notes": ""
+  },
+  "Banners\\Prunkvolle goldene Siegesrolle ausgeschnitten (IA).png": {
+    "text_area": {
+      "x": 384,
+      "y": 307,
+      "width": 906,
+      "height": 305
+    },
+    "font_family": "Bebas Neue",
+    "font_size": 160,
+    "uppercase": true,
+    "text_color": "#FFFFFF",
+    "stroke_color": "#000000",
+    "stroke_width": 3,
+    "notes": ""
   }
 }
