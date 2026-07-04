@@ -9,6 +9,7 @@ from .core.config import load_config, save_config, load_favorites, save_favorite
 from .core.library import scan_library, ROOT_FOLDERS, guessed_tags
 from .core.obs_controller import OBSController
 from .core.caption_renderer import render_caption_png
+from .core.banner_profiles import load_banner_profiles, save_banner_profiles, ensure_profile, has_profile, profile_count
 
 GOLD = "#D6A43A"
 GOLD_DARK = "#8A641D"
@@ -21,13 +22,14 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 0.8")
+        self.wm_title("VADAFOK Studio 1.0 Phase A")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
         self.config_data = load_config()
         self.favorites = load_favorites()
         self.asset_meta = load_asset_meta()
+        self.banner_profiles = load_banner_profiles()
         self.obs = OBSController()
         self.hide_timer = None
         self.quick_window = None
@@ -78,10 +80,11 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 0.8", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 1.0 A", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
+            ("Banner Profiles", self.show_banner_profiles_page),
             ("Live Card", self.show_live_card),
             ("Caption Engine", self.show_caption_engine_page),
             ("Quick Cards", self.show_quick_cards),
@@ -205,7 +208,8 @@ class VadafokStudio(ctk.CTk):
             card = ctk.CTkFrame(self.library_grid, fg_color="#151515", corner_radius=10, border_color=border, border_width=2)
             card.grid(row=r, column=c, padx=10, pady=10, sticky="nsew")
             star = "⭐ " if self.item_is_favorite(item) else ""
-            ctk.CTkLabel(card, text=star + item.section, text_color=GOLD if star else "#BCA870", font=ctk.CTkFont(size=12)).pack(anchor="w", padx=10, pady=(8, 0))
+            prof = " ✓" if item.section == "Banners" and has_profile(self.banner_profiles, self.item_key(item)) else ""
+            ctk.CTkLabel(card, text=star + item.section + prof, text_color=GOLD if star else "#BCA870", font=ctk.CTkFont(size=12)).pack(anchor="w", padx=10, pady=(8, 0))
             img_label = self.make_thumb_label(card, item.path)
             img_label.pack(padx=10, pady=(6, 6))
             for widget in [card, img_label]:
@@ -264,7 +268,7 @@ class VadafokStudio(ctk.CTk):
         item = self.selected_item
         if item.section == "Banners": self.use_selected_as_caption_banner()
         elif item.section == "Live Cards": self.open_selected_live_card()
-        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 0.8.")
+        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 1.0 A.")
         elif item.section == "Sounds": self.open_selected_file()
         else: self.show_selected_scene_card()
 
@@ -278,10 +282,14 @@ class VadafokStudio(ctk.CTk):
         if self.obs.connected:
             try:
                 self.obs.set_image_file(self.caption_banner_source.get().strip(), self.selected_item.path)
+                if hasattr(self, "message_box"):
+                    self.update_render_preview()
                 messagebox.showinfo("Banner", f"Caption-Banner gewechselt:\n{self.selected_item.name}")
             except Exception:
                 messagebox.showerror("Caption Banner Source nicht gefunden", f"Die OBS-Bildquelle '{self.caption_banner_source.get().strip()}' wurde nicht gefunden.\n\nBitte OBS Connection prüfen.")
         else:
+            if hasattr(self, "message_box"):
+                self.update_render_preview()
             messagebox.showinfo("Banner", f"Als Caption-Banner gemerkt:\n{self.selected_item.name}")
 
     def show_selected_scene_card(self):
@@ -340,6 +348,63 @@ class VadafokStudio(ctk.CTk):
         self.clipboard_append(str(self.selected_item.path))
         messagebox.showinfo("Copy Path", "Pfad kopiert.")
 
+
+    def show_banner_profiles_page(self):
+        self.set_active("Banner Profiles")
+        self.clear_main()
+        self.page_title("Banner Profiles")
+
+        self.library_items = scan_library(self.project_folder.get())
+
+        box = ctk.CTkFrame(self.main, fg_color=PANEL, corner_radius=18)
+        box.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
+        box.grid_columnconfigure(0, weight=1)
+        box.grid_rowconfigure(2, weight=1)
+
+        ctk.CTkLabel(
+            box,
+            text="Studio 1.0 Phase A: Banner Profile System",
+            font=ctk.CTkFont(size=18, weight="bold"),
+            text_color=GOLD
+        ).grid(row=0, column=0, padx=24, pady=(24, 8), sticky="w")
+
+        ctk.CTkLabel(
+            box,
+            text="Diese Seite zeigt, ob Banner bereits ein Profil besitzen. In Phase B/C kommt hier der echte Banner Editor mit Mausrahmen.",
+            text_color="#D9C58C",
+            wraplength=900,
+            justify="left"
+        ).grid(row=1, column=0, padx=24, pady=(0, 12), sticky="w")
+
+        table = ctk.CTkScrollableFrame(box, fg_color="#0B0B0B", corner_radius=12)
+        table.grid(row=2, column=0, sticky="nsew", padx=24, pady=(0, 18))
+        table.grid_columnconfigure(1, weight=1)
+
+        banners = [i for i in self.library_items if i.section == "Banners" and i.kind == "image"]
+        if not banners:
+            ctk.CTkLabel(table, text="Keine Banner gefunden. Prüfe Library-Pfad und Banners-Ordner.", text_color="#BCA870").grid(row=0, column=0, padx=12, pady=12, sticky="w")
+            return
+
+        for row_idx, item in enumerate(banners):
+            key = item.relative
+            exists = has_profile(self.banner_profiles, key)
+            status = "✓ Profil vorhanden" if exists else "⚠ Kein Profil"
+            color = "#8FE6A0" if exists else "#D9C58C"
+
+            ctk.CTkLabel(table, text=status, text_color=color, width=150, anchor="w").grid(row=row_idx, column=0, padx=12, pady=6, sticky="w")
+            ctk.CTkLabel(table, text=item.name, text_color=TEXT, anchor="w").grid(row=row_idx, column=1, padx=12, pady=6, sticky="ew")
+            ctk.CTkButton(table, text="CREATE DEFAULT", width=140, fg_color="#333333", hover_color="#444444", command=lambda it=item: self.create_default_banner_profile(it)).grid(row=row_idx, column=2, padx=12, pady=6, sticky="e")
+
+        ctk.CTkLabel(box, text=f"Profile gespeichert: {profile_count(self.banner_profiles)}", text_color="#BCA870").grid(row=3, column=0, padx=24, pady=(0, 18), sticky="w")
+
+    def create_default_banner_profile(self, item):
+        key = item.relative
+        ensure_profile(self.banner_profiles, key)
+        save_banner_profiles(self.banner_profiles)
+        messagebox.showinfo("Banner Profile", f"Standardprofil erstellt:\n{item.name}")
+        self.show_banner_profiles_page()
+
+
     def show_live_card(self):
         self.set_active("Live Card")
         self.clear_main()
@@ -359,7 +424,7 @@ class VadafokStudio(ctk.CTk):
         self.message_box.grid(row=1, column=0, padx=18, pady=(0, 12), sticky="nsew")
         self.message_box.insert("1.0", "CHAT WAS RIGHT.")
         self.message_box.bind("<Return>", self.enter_to_show)
-        self.message_box.bind("<KeyRelease>", lambda e: self.update_preview())
+        self.message_box.bind("<KeyRelease>", lambda e: self.update_render_preview())
 
         row = ctk.CTkFrame(left, fg_color="transparent")
         row.grid(row=2, column=0, sticky="ew", padx=18, pady=8)
@@ -382,10 +447,26 @@ class VadafokStudio(ctk.CTk):
         right.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(right, text="Live Preview", font=ctk.CTkFont(size=16, weight="bold"), text_color=TEXT).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
         self.preview_frame = ctk.CTkFrame(right, fg_color="#020202", corner_radius=14, border_width=1, border_color="#3A2A0D")
-        self.preview_frame.grid(row=1, column=0, padx=18, pady=(0, 18), sticky="nsew")
-        self.preview_label = ctk.CTkLabel(self.preview_frame, text="CHAT WAS RIGHT.", font=ctk.CTkFont(size=28, weight="bold"), text_color="#111111", fg_color=GOLD, corner_radius=18, width=360, height=82)
-        self.preview_label.place(relx=0.5, rely=0.72, anchor="center")
-        self.update_preview()
+        self.preview_frame.grid(row=1, column=0, padx=18, pady=(0, 8), sticky="nsew")
+
+        self.render_status_label = ctk.CTkLabel(
+            right,
+            text="Preview wartet...",
+            text_color="#BCA870",
+            justify="left",
+            anchor="w"
+        )
+        self.render_status_label.grid(row=2, column=0, padx=18, pady=(0, 8), sticky="ew")
+
+        ctk.CTkButton(
+            right,
+            text="REFRESH PREVIEW",
+            fg_color="#333333",
+            hover_color="#444444",
+            command=self.update_render_preview
+        ).grid(row=3, column=0, padx=18, pady=(0, 18), sticky="ew")
+
+        self.update_render_preview()
 
     def option(self, parent, label, values, var, col):
         frame = ctk.CTkFrame(parent, fg_color="transparent")
@@ -422,7 +503,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 0.8: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 1.0 A: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
     def show_quick_cards(self):
@@ -483,15 +564,8 @@ class VadafokStudio(ctk.CTk):
             self.save_config()
 
     def update_preview(self):
-        if not hasattr(self, "preview_label") or not hasattr(self, "message_box"): return
-        text = self.message_box.get("1.0", "end").strip() or "..."
-        self.preview_label.configure(text=text.upper() if self.caption_uppercase.get() else text)
-        style = self.style.get()
-        if style == "Gold Ribbon": self.preview_label.configure(fg_color=GOLD, text_color="#111111")
-        elif style == "Black Gold Plate": self.preview_label.configure(fg_color="#050505", text_color=GOLD)
-        elif style == "Paper Scroll": self.preview_label.configure(fg_color="#E8C67A", text_color="#1B1000")
-        elif style == "Film Strip": self.preview_label.configure(fg_color="#000000", text_color="#F7D66B")
-        else: self.preview_label.configure(fg_color="#EAD9AA", text_color="#111111")
+        if hasattr(self, "message_box"):
+            self.update_render_preview()
 
     def open_quick_caption(self):
         if self.quick_window and self.quick_window.winfo_exists():
@@ -580,6 +654,42 @@ class VadafokStudio(ctk.CTk):
             safe_bottom=int(self.caption_safe_bottom.get()),
         )
         return self.last_render_path
+
+
+    def update_render_preview(self):
+        if not hasattr(self, "preview_frame") or not hasattr(self, "message_box"):
+            return
+
+        for w in self.preview_frame.winfo_children():
+            w.destroy()
+
+        text = self.message_box.get("1.0", "end").strip() or "..."
+        try:
+            preview_path = self.render_smart_caption(text)
+
+            from PIL import Image
+            img = Image.open(preview_path).convert("RGBA")
+            img.thumbnail((520, 300))
+
+            self.live_preview_image = ctk.CTkImage(light_image=img, dark_image=img, size=img.size)
+            ctk.CTkLabel(self.preview_frame, image=self.live_preview_image, text="").place(relx=0.5, rely=0.5, anchor="center")
+
+            if hasattr(self, "render_status_label"):
+                self.render_status_label.configure(
+                    text=f"🟢 Preview ready\nEngine: {self.caption_engine.get()}\nBanner: {'selected' if self.config_data.get('selected_banner_path') else 'none'}",
+                    text_color="#8FE6A0"
+                )
+        except Exception as e:
+            ctk.CTkLabel(
+                self.preview_frame,
+                text=f"Preview konnte nicht gerendert werden:\n{e}",
+                text_color="#D86A6A",
+                wraplength=360,
+                justify="center"
+            ).place(relx=0.5, rely=0.5, anchor="center")
+            if hasattr(self, "render_status_label"):
+                self.render_status_label.configure(text="🔴 Preview error", text_color="#D86A6A")
+
 
     def show_card(self):
         if not self.obs.connected:

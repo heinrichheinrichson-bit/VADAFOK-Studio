@@ -1,71 +1,58 @@
-# VADAFOK Studio 0.8
+# VADAFOK Studio 1.0 Phase A
 
-## Hauptänderung
+## Ziel
 
-Studio 0.8 verfeinert die Smart Caption Engine mit einer **Safe Area**.
+Studio 1.0 beginnt mit dem neuen **Banner Profile System**.
 
-Problem aus 0.7:
-Lange Texte wurden zwar automatisch kleiner, konnten aber noch in dekorative Rahmenbereiche des Banners ragen.
+Ab jetzt sollen Banner nicht mehr nur als Bilder behandelt werden, sondern als intelligente Objekte mit eigenen Profilen.
 
-Lösung in 0.8:
-Der Text wird nur noch in einem geschützten Innenbereich gerendert.
+## Neu in Phase A
 
-## Neu
-
-Im Bereich **Caption Engine** gibt es neue Werte:
+- Neue Datei:
 
 ```text
-Safe Left %
-Safe Right %
-Safe Top %
-Safe Bottom %
+data/banner_profiles.json
 ```
 
-Diese Werte bestimmen, wie viel Abstand vom Rand des Banners freigehalten wird.
-
-Empfohlener Startwert:
+- Neues Modul:
 
 ```text
-Left: 12
-Right: 12
-Top: 24
-Bottom: 24
+vadafok_studio/core/banner_profiles.py
 ```
 
-Wenn Text zu sehr in den Rahmen läuft:
-- Left/Right erhöhen
-- Top/Bottom erhöhen
-
-Wenn der Text zu klein wird:
-- Werte etwas verringern
-
-## Architektur
-
-Weiterhin gilt:
+- Neuer Menüpunkt:
 
 ```text
-Banner + Text = fertiges PNG
+Banner Profiles
 ```
 
-OBS zeigt nur:
+- Banner können ein Standardprofil bekommen.
+- Library zeigt bei Bannern mit Profil ein kleines ✓.
 
-```text
-VADAFOK Caption Render
-```
+## Was Phase A noch nicht macht
+
+Noch kein Mausrahmen.
+
+Noch kein echter Banner Editor.
+
+Noch keine automatische Nutzung der Profile im Renderer.
+
+Das kommt in den nächsten Phasen:
+
+- Phase B: Banner Editor Oberfläche
+- Phase C: Mausrahmen ziehen
+- Phase D: Live Card nutzt Profile automatisch
 
 ## Test
 
-1. Banner wählen.
-2. Engine auf `smart_png`.
-3. Lange Caption testen:
-
-```text
-THE SHOW WILL BEGIN SHORTLY
-```
-
-4. Safe-Area-Werte anpassen.
-5. SHOW erneut drücken.
+1. Studio starten.
+2. Library laden.
+3. Menüpunkt `Banner Profiles` öffnen.
+4. Prüfen, ob Banner angezeigt werden.
+5. Für 1–2 Banner `CREATE DEFAULT` klicken.
+6. Zur Library zurückgehen.
+7. Prüfen, ob bei diesen Bannern ein ✓ erscheint.
 
 ## Git
 
-Erst committen, wenn 0.8 erfolgreich getestet wurde.
+Erst committen, wenn Phase A funktioniert.
