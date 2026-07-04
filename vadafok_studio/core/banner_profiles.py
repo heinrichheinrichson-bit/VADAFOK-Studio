@@ -48,3 +48,13 @@ def delete_profile(profiles, key):
 
 def profile_count(profiles):
     return len(profiles)
+
+
+def reset_profile_style(profile):
+    profile["font_family"] = DEFAULT_BANNER_PROFILE["font_family"]
+    profile["font_size"] = DEFAULT_BANNER_PROFILE["font_size"]
+    profile["uppercase"] = DEFAULT_BANNER_PROFILE["uppercase"]
+    profile["text_color"] = DEFAULT_BANNER_PROFILE["text_color"]
+    profile["stroke_color"] = DEFAULT_BANNER_PROFILE["stroke_color"]
+    profile["stroke_width"] = DEFAULT_BANNER_PROFILE["stroke_width"]
+    return profile

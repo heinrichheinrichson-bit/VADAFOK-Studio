@@ -1,34 +1,61 @@
-# VADAFOK Studio 1.2
+# VADAFOK Studio 1.3
 
 ## Ziel
 
-Bannerprofile speichern jetzt auch Darstellungsdetails.
+Studio 1.3 beginnt mit der Layout-Engine.
+
+Der Banner Editor bleibt wie bisher nutzbar, aber intern wird vorbereitet, dass später auch Templates mit mehreren Textfeldern möglich werden.
 
 ## Neu
 
-Pro Banner:
+- Neues Modul:
 
-- Font Family
+```text
+vadafok_studio/core/layout_engine.py
+```
+
+- Erste LayoutField-Struktur als Grundlage für spätere Multi-Field-Templates.
+- Bannerprofile können intern als Layout-Feld behandelt werden.
+- Neuer Button im Banner Editor:
+
+```text
+RESET STYLE
+```
+
+## Reset-Logik
+
+```text
+RESET AREA
+```
+
+setzt nur den Textbereich/Rahmen zurück.
+
+```text
+RESET STYLE
+```
+
+setzt nur die Profilwerte zurück:
+
+- Font
 - Font Size
 - Text Color
 - Stroke Color
 - Stroke Width
 - Uppercase
 
+Der Textbereich bleibt dabei erhalten.
+
 ## Test
 
 1. Banner Editor öffnen.
 2. Banner auswählen.
-3. Font Size ändern.
-4. Textfarbe ändern, z.B. `#FFD36A`.
-5. Stroke Width ändern.
-6. SAVE PROFILE.
-7. Live Card öffnen.
-8. Diesen Banner verwenden.
-9. Engine `smart_png`.
-10. SHOW drücken.
-11. Prüfen, ob OBS die Profilwerte nutzt.
+3. Schriftgröße/Farbe/Stroke ändern.
+4. RESET STYLE drücken.
+5. Prüfen, ob die Werte auf Standard zurückgehen.
+6. Prüfen, ob der Rahmen/Textbereich unverändert bleibt.
+7. Live Card mit `smart_png` testen.
+8. Prüfen, ob alles weiterhin in OBS korrekt angezeigt wird.
 
 ## Git
 
-Erst committen, wenn die Werte gespeichert und in OBS genutzt werden.
+Erst committen, wenn RESET STYLE und Live Card stabil funktionieren.

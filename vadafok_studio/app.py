@@ -10,7 +10,8 @@ from .core.config import load_config, save_config, load_favorites, save_favorite
 from .core.library import scan_library, ROOT_FOLDERS, guessed_tags
 from .core.obs_controller import OBSController
 from .core.caption_renderer import render_caption_png
-from .core.banner_profiles import load_banner_profiles, save_banner_profiles, ensure_profile, has_profile, profile_count
+from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile
+from .core.banner_profiles import load_banner_profiles, save_banner_profiles, ensure_profile, has_profile, profile_count, reset_profile_style
 
 GOLD = "#D6A43A"
 GOLD_DARK = "#8A641D"
@@ -23,7 +24,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 1.2.1")
+        self.wm_title("VADAFOK Studio 1.3.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -97,7 +98,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 1.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 1.3", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -285,7 +286,7 @@ class VadafokStudio(ctk.CTk):
         item = self.selected_item
         if item.section == "Banners": self.use_selected_as_caption_banner()
         elif item.section == "Live Cards": self.open_selected_live_card()
-        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 1.2.")
+        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 1.3.")
         elif item.section == "Sounds": self.open_selected_file()
         else: self.show_selected_scene_card()
 
@@ -468,7 +469,8 @@ class VadafokStudio(ctk.CTk):
 
 
         ctk.CTkButton(controls, text="SAVE PROFILE", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.editor_save_profile).grid(row=4, column=0, columnspan=2, padx=4, pady=8, sticky="ew")
-        ctk.CTkButton(controls, text="RESET AREA", fg_color="#333333", hover_color="#444444", command=self.editor_reset_area).grid(row=4, column=2, columnspan=2, padx=4, pady=8, sticky="ew")
+        ctk.CTkButton(controls, text="RESET AREA", fg_color="#333333", hover_color="#444444", command=self.editor_reset_area).grid(row=4, column=2, padx=4, pady=8, sticky="ew")
+        ctk.CTkButton(controls, text="RESET STYLE", fg_color="#333333", hover_color="#444444", command=self.editor_reset_style).grid(row=4, column=3, padx=4, pady=8, sticky="ew")
 
         ctk.CTkLabel(
             right,
@@ -532,9 +534,24 @@ class VadafokStudio(ctk.CTk):
             messagebox.showwarning("Banner Editor", "Bitte zuerst ein Banner auswählen.")
             return
         self.editor_apply_profile_values()
+        profile = self.editor_profile()
+        if profile:
+            field = banner_profile_to_layout_field(profile)
+            apply_layout_field_to_banner_profile(profile, field)
         save_banner_profiles(self.banner_profiles)
         messagebox.showinfo("Banner Editor", f"Profil gespeichert:\n{self.editor_selected_banner.name}")
         self.show_banner_profiles_page()
+
+
+    def editor_reset_style(self):
+        if not self.editor_selected_banner:
+            return
+        profile = self.editor_profile()
+        reset_profile_style(profile)
+        self.editor_load_profile_values(profile)
+        save_banner_profiles(self.banner_profiles)
+        self.editor_update_overlay()
+        messagebox.showinfo("Banner Editor", "Profilwerte wurden auf Standard zurückgesetzt.")
 
     def editor_reset_area(self):
         if not self.editor_selected_banner:
@@ -901,7 +918,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 1.2: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 1.3: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
     def show_quick_cards(self):
