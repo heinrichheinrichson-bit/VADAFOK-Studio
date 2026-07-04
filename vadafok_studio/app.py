@@ -24,7 +24,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 1.5.1")
+        self.wm_title("VADAFOK Studio 1.6.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -39,6 +39,13 @@ class VadafokStudio(ctk.CTk):
         self.template_drag_start = None
         self.template_drag_original = None
         self.template_hover_mode = None
+        self.template_prop_name = ctk.StringVar(value="")
+        self.template_prop_font_family = ctk.StringVar(value="")
+        self.template_prop_font_size = ctk.IntVar(value=90)
+        self.template_prop_text_color = ctk.StringVar(value="#FFFFFF")
+        self.template_prop_stroke_color = ctk.StringVar(value="#000000")
+        self.template_prop_stroke_width = ctk.IntVar(value=3)
+        self.template_prop_uppercase = ctk.BooleanVar(value=True)
         self.obs = OBSController()
         self.hide_timer = None
         self.quick_window = None
@@ -105,7 +112,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 1.5", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 1.6", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -294,7 +301,7 @@ class VadafokStudio(ctk.CTk):
         item = self.selected_item
         if item.section == "Banners": self.use_selected_as_caption_banner()
         elif item.section == "Live Cards": self.open_selected_live_card()
-        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 1.5.")
+        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 1.6.")
         elif item.section == "Sounds": self.open_selected_file()
         else: self.show_selected_scene_card()
 
@@ -390,6 +397,7 @@ class VadafokStudio(ctk.CTk):
         outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
         outer.grid_columnconfigure(0, weight=1)
         outer.grid_columnconfigure(1, weight=3)
+        outer.grid_columnconfigure(2, weight=1)
         outer.grid_rowconfigure(0, weight=1)
 
         left = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
@@ -926,8 +934,55 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 1.5: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 1.6: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
+
+
+
+    def template_selected_field_data(self):
+        template = self.template_current()
+        if self.template_selected_field is None:
+            return None
+        if 0 <= self.template_selected_field < len(template["fields"]):
+            return template["fields"][self.template_selected_field]
+        return None
+
+    def template_load_selected_properties(self):
+        field = self.template_selected_field_data()
+        if not field:
+            self.template_prop_name.set("")
+            self.template_prop_font_family.set("")
+            self.template_prop_font_size.set(90)
+            self.template_prop_text_color.set("#FFFFFF")
+            self.template_prop_stroke_color.set("#000000")
+            self.template_prop_stroke_width.set(3)
+            self.template_prop_uppercase.set(True)
+            return
+
+        self.template_prop_name.set(field.get("name", "field"))
+        self.template_prop_font_family.set(field.get("font_family", "Bebas Neue"))
+        self.template_prop_font_size.set(int(field.get("font_size", 90)))
+        self.template_prop_text_color.set(field.get("text_color", "#FFFFFF"))
+        self.template_prop_stroke_color.set(field.get("stroke_color", "#000000"))
+        self.template_prop_stroke_width.set(int(field.get("stroke_width", 3)))
+        self.template_prop_uppercase.set(bool(field.get("uppercase", True)))
+
+    def template_apply_selected_properties(self):
+        field = self.template_selected_field_data()
+        if not field:
+            return
+        try:
+            field["name"] = self.template_prop_name.get() or "field"
+            field["font_family"] = self.template_prop_font_family.get() or "Bebas Neue"
+            field["font_size"] = int(self.template_prop_font_size.get())
+            field["text_color"] = self.template_prop_text_color.get() or "#FFFFFF"
+            field["stroke_color"] = self.template_prop_stroke_color.get() or "#000000"
+            field["stroke_width"] = int(self.template_prop_stroke_width.get())
+            field["uppercase"] = bool(self.template_prop_uppercase.get())
+            save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
+            self.template_draw_canvas()
+        except Exception:
+            pass
 
 
     def show_template_editor_page(self):
@@ -943,6 +998,7 @@ class VadafokStudio(ctk.CTk):
         outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
         outer.grid_columnconfigure(0, weight=1)
         outer.grid_columnconfigure(1, weight=3)
+        outer.grid_columnconfigure(2, weight=1)
         outer.grid_rowconfigure(0, weight=1)
 
         left = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
@@ -1000,7 +1056,73 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkButton(controls, text="SAVE TEMPLATE", fg_color="#333333", hover_color="#444444", command=self.template_save).grid(row=0, column=2, padx=4, pady=4, sticky="ew")
         ctk.CTkButton(controls, text="RESET DEFAULT", fg_color="#333333", hover_color="#444444", command=self.template_reset_default).grid(row=0, column=3, padx=4, pady=4, sticky="ew")
 
+
+        props = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        props.grid(row=0, column=2, sticky="nsew", padx=(12, 0))
+        props.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkLabel(
+            props,
+            text="Properties",
+            text_color=GOLD,
+            font=ctk.CTkFont(size=18, weight="bold")
+        ).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+
+        self.template_props_body = ctk.CTkFrame(props, fg_color="#0B0B0B", corner_radius=12)
+        self.template_props_body.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
+        self.template_props_body.grid_columnconfigure(1, weight=1)
+
+        self.template_build_properties_panel()
+
         self.template_draw_canvas()
+
+    def template_build_properties_panel(self):
+        if not hasattr(self, "template_props_body"):
+            return
+        body = self.template_props_body
+        for w in body.winfo_children():
+            w.destroy()
+
+        if self.template_selected_field is None:
+            ctk.CTkLabel(
+                body,
+                text="Kein Feld ausgewählt.",
+                text_color="#BCA870",
+                wraplength=220,
+                justify="left"
+            ).grid(row=0, column=0, columnspan=2, padx=12, pady=12, sticky="w")
+            return
+
+        fields = [
+            ("Name", self.template_prop_name),
+            ("Font", self.template_prop_font_family),
+            ("Size", self.template_prop_font_size),
+            ("Text Color", self.template_prop_text_color),
+            ("Stroke Color", self.template_prop_stroke_color),
+            ("Stroke Width", self.template_prop_stroke_width),
+        ]
+
+        for row, (label, var) in enumerate(fields):
+            ctk.CTkLabel(body, text=label, text_color="#BCA870").grid(row=row, column=0, padx=(12, 8), pady=6, sticky="w")
+            entry = ctk.CTkEntry(body, textvariable=var)
+            entry.grid(row=row, column=1, padx=(0, 12), pady=6, sticky="ew")
+            entry.bind("<KeyRelease>", lambda e: self.template_apply_selected_properties())
+
+        ctk.CTkCheckBox(
+            body,
+            text="Uppercase",
+            variable=self.template_prop_uppercase,
+            text_color=TEXT,
+            command=self.template_apply_selected_properties
+        ).grid(row=len(fields), column=0, columnspan=2, padx=12, pady=8, sticky="w")
+
+        ctk.CTkLabel(
+            body,
+            text="Änderungen werden automatisch gespeichert.",
+            text_color="#D9C58C",
+            wraplength=220,
+            justify="left"
+        ).grid(row=len(fields)+1, column=0, columnspan=2, padx=12, pady=(8, 12), sticky="w")
 
     def template_current(self):
         if self.template_selected_name not in self.template_profiles:
@@ -1023,6 +1145,7 @@ class VadafokStudio(ctk.CTk):
     def template_select(self, name):
         self.template_selected_name = name
         self.template_selected_field = None
+        self.template_load_selected_properties()
         self.show_template_editor_page()
 
     def template_save(self):
@@ -1052,6 +1175,7 @@ class VadafokStudio(ctk.CTk):
             "uppercase": True
         })
         self.template_selected_field = len(template["fields"]) - 1
+        self.template_load_selected_properties()
         save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
         self.template_draw_canvas()
 
@@ -1062,6 +1186,7 @@ class VadafokStudio(ctk.CTk):
         if 0 <= self.template_selected_field < len(template["fields"]):
             del template["fields"][self.template_selected_field]
             self.template_selected_field = None
+            self.template_load_selected_properties()
             save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
             self.template_draw_canvas()
 
@@ -1115,9 +1240,9 @@ class VadafokStudio(ctk.CTk):
             canvas.create_text(
                 (x1+x2)//2,
                 (y1+y2)//2,
-                text=field["name"],
+                text=(field["name"].upper() if field.get("uppercase", True) else field["name"]),
                 fill=field.get("text_color", "#FFFFFF"),
-                font=("Arial", 16, "bold")
+                font=("Arial", max(10, min(28, int(field.get("font_size", 90) / 5))), "bold")
             )
             canvas.create_text(
                 x1 + 5,
@@ -1226,6 +1351,9 @@ class VadafokStudio(ctk.CTk):
     def template_mouse_down(self, event):
         idx, mode = self.template_hit_test(event.x, event.y)
         self.template_selected_field = idx
+        self.template_load_selected_properties()
+        if hasattr(self, "template_props_body"):
+            self.template_build_properties_panel()
         self.template_drag_mode = mode
         self.template_drag_start = (event.x, event.y)
         template = self.template_current()
