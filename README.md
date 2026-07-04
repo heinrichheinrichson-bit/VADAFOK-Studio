@@ -1,48 +1,68 @@
+# VADAFOK Studio 0.7
 
-# VADAFOK Studio 0.5
+## Hauptänderung
 
-## Start
+Studio 0.7 ist die erste echte Smart Caption Engine.
 
-```bat
-py -m pip install -r requirements.txt
-py run.py
+Nicht mehr:
+
+```text
+OBS Text + OBS Banner
 ```
 
-## Neu in 0.5
+Sondern:
 
-- Caption-Banner kann jetzt direkt aus der Library gewechselt werden.
-- Neue OBS-Quelle in den Einstellungen: `Caption Banner Source`
-- Standardname: `VADAFOK Caption Banner`
-- Doppelklick auf Asset in `Banners` setzt dieses Bild als Caption-Banner.
-- Button `USE AS CAPTION BANNER` setzt jedes ausgewählte Bild als Caption-Banner.
-- `SHOW` in Live Card verwendet das zuletzt gewählte Banner automatisch.
+```text
+Banner + Text = fertiges PNG
+```
 
-## OBS-Voraussetzung
+OBS zeigt nur noch die Bildquelle:
 
-In der Gruppe:
+```text
+VADAFOK Caption Render
+```
+
+## Was neu ist
+
+- smart_png rendert das aktuell gewählte Banner und den Text in eine fertige PNG.
+- Der Text wird automatisch im Banner zentriert.
+- OBS-Text ist für smart_png nicht mehr nötig.
+- Das alte System `obs_text` bleibt als Fallback erhalten.
+- Bannerwechsel aus der Library bleibt erhalten.
+- Das Ergebnis wird gespeichert als:
+
+```text
+exports/caption_render.png
+```
+
+## OBS-Struktur
+
+Empfohlen:
 
 ```text
 VADAFOK Caption
-├── VADAFOK Caption Text
-└── VADAFOK Caption Banner
+├── VADAFOK Caption Render
+├── VADAFOK Caption Text       optional / Fallback
+└── VADAFOK Caption Banner     optional / Fallback
 ```
 
-Die Bildquelle muss exakt so heißen:
+Für die neue Engine ist wichtig:
 
 ```text
-VADAFOK Caption Banner
+VADAFOK Caption Render
 ```
 
-Oder du passt den Namen im Studio an:
+Diese Quelle muss eine Bildquelle sein.
 
-`OBS Connection` → `Caption Banner Source`
+## Verwendung
 
-## Wichtig
+1. In Studio ein Banner aus der Library wählen.
+2. `USE AS CAPTION BANNER` klicken oder Banner doppelklicken.
+3. Zu Live Card gehen.
+4. Engine auf `smart_png` stellen.
+5. Text schreiben.
+6. SHOW klicken.
 
-Wenn deine Quellen in OBS richtig ausgerichtet sind, sperre sie mit dem Schloss-Symbol:
+## Git
 
-- VADAFOK Caption
-- VADAFOK Caption Text
-- VADAFOK Caption Banner
-
-Dann bleibt die Position stabil.
+Erst committen, wenn 0.7 erfolgreich getestet wurde.

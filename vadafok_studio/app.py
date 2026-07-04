@@ -1,17 +1,14 @@
 
 import os
 import threading
-from pathlib import Path
 import customtkinter as ctk
 from tkinter import messagebox, filedialog, simpledialog
 from PIL import Image
 
-from .core.config import (
-    load_config, save_config, load_favorites, save_favorites,
-    load_asset_meta, save_asset_meta
-)
+from .core.config import load_config, save_config, load_favorites, save_favorites, load_asset_meta, save_asset_meta, EXPORT_DIR
 from .core.library import scan_library, ROOT_FOLDERS, guessed_tags
 from .core.obs_controller import OBSController
+from .core.caption_renderer import render_caption_png
 
 GOLD = "#D6A43A"
 GOLD_DARK = "#8A641D"
@@ -24,8 +21,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-
-        self.wm_title("VADAFOK Studio 0.5")
+        self.wm_title("VADAFOK Studio 0.7")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -39,6 +35,7 @@ class VadafokStudio(ctk.CTk):
         self.preview_refs = []
         self.library_items = []
         self.selected_item = None
+        self.last_render_path = EXPORT_DIR / "caption_render.png"
 
         self.host = ctk.StringVar(value=self.config_data["host"])
         self.port = ctk.StringVar(value=self.config_data["port"])
@@ -47,6 +44,7 @@ class VadafokStudio(ctk.CTk):
         self.caption_group = ctk.StringVar(value=self.config_data["caption_group"])
         self.caption_text = ctk.StringVar(value=self.config_data["caption_text"])
         self.caption_banner_source = ctk.StringVar(value=self.config_data.get("caption_banner_source", "VADAFOK Caption Banner"))
+        self.caption_render_source = ctk.StringVar(value=self.config_data.get("caption_render_source", "VADAFOK Caption Render"))
         self.scene_card_source = ctk.StringVar(value=self.config_data.get("scene_card_source", "VADAFOK Scene Card"))
         self.duration = ctk.StringVar(value=self.config_data["duration"])
         self.style = ctk.StringVar(value=self.config_data["style"])
@@ -54,6 +52,16 @@ class VadafokStudio(ctk.CTk):
         self.library_section = ctk.StringVar(value="All")
         self.search_text = ctk.StringVar(value="")
         self.favorite_filter = ctk.BooleanVar(value=False)
+
+        self.caption_engine = ctk.StringVar(value=self.config_data.get("caption_engine", "obs_text"))
+        self.caption_font_family = ctk.StringVar(value=self.config_data.get("caption_font_family", "Bebas Neue"))
+        self.caption_font_size = ctk.IntVar(value=int(self.config_data.get("caption_font_size", 160)))
+        self.caption_text_color = ctk.StringVar(value=self.config_data.get("caption_text_color", "#FFFFFF"))
+        self.caption_stroke_color = ctk.StringVar(value=self.config_data.get("caption_stroke_color", "#000000"))
+        self.caption_stroke_width = ctk.IntVar(value=int(self.config_data.get("caption_stroke_width", 3)))
+        self.caption_render_width = ctk.IntVar(value=int(self.config_data.get("caption_render_width", 1600)))
+        self.caption_render_height = ctk.IntVar(value=int(self.config_data.get("caption_render_height", 260)))
+        self.caption_uppercase = ctk.BooleanVar(value=bool(self.config_data.get("caption_uppercase", True)))
 
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -65,24 +73,21 @@ class VadafokStudio(ctk.CTk):
         self.sidebar = ctk.CTkFrame(self, width=240, corner_radius=0, fg_color="#050505")
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
-
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 0.5", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
-
+        ctk.CTkLabel(self.sidebar, text="Studio 0.7", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
             ("Live Card", self.show_live_card),
+            ("Caption Engine", self.show_caption_engine_page),
             ("Quick Cards", self.show_quick_cards),
             ("OBS Connection", self.show_obs_page),
             ("Settings", self.show_settings_page),
         ]
         for name, cmd in pages:
-            btn = ctk.CTkButton(self.sidebar, text=name, height=42, corner_radius=10, anchor="w",
-                                fg_color="transparent", hover_color=GOLD_DARK, text_color=TEXT, command=cmd)
+            btn = ctk.CTkButton(self.sidebar, text=name, height=42, corner_radius=10, anchor="w", fg_color="transparent", hover_color=GOLD_DARK, text_color=TEXT, command=cmd)
             btn.pack(fill="x", padx=14, pady=5)
             self.nav_buttons[name] = btn
-
         ctk.CTkFrame(self.sidebar, fg_color="transparent").pack(fill="both", expand=True)
         box = ctk.CTkFrame(self.sidebar, fg_color="#0D0D0D", corner_radius=12)
         box.pack(fill="x", padx=14, pady=16)
@@ -111,7 +116,6 @@ class VadafokStudio(ctk.CTk):
         self.set_active("Library")
         self.clear_main()
         self.page_title("Library")
-
         outer = ctk.CTkFrame(self.main, fg_color=DARK)
         outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
         outer.grid_columnconfigure(0, weight=3)
@@ -126,22 +130,16 @@ class VadafokStudio(ctk.CTk):
         top = ctk.CTkFrame(left, fg_color="transparent")
         top.grid(row=0, column=0, sticky="ew", padx=18, pady=(18, 8))
         top.grid_columnconfigure(3, weight=1)
-
         ctk.CTkLabel(top, text="Section", text_color="#BCA870").grid(row=0, column=0, padx=(0, 8))
-        sections = ["All"] + ROOT_FOLDERS
-        ctk.CTkOptionMenu(top, values=sections, variable=self.library_section, fg_color="#1A1A1A", button_color=GOLD_DARK, command=lambda _: self.render_library_grid()).grid(row=0, column=1, sticky="w")
-
+        ctk.CTkOptionMenu(top, values=["All"] + ROOT_FOLDERS, variable=self.library_section, fg_color="#1A1A1A", button_color=GOLD_DARK, command=lambda _: self.render_library_grid()).grid(row=0, column=1, sticky="w")
         ctk.CTkCheckBox(top, text="Favorites", variable=self.favorite_filter, text_color="#BCA870", command=self.render_library_grid).grid(row=0, column=2, padx=(18, 8))
-
         entry = ctk.CTkEntry(top, textvariable=self.search_text, placeholder_text="Suche nach Datei, Kategorie oder Tag...")
         entry.grid(row=0, column=3, sticky="ew")
         entry.bind("<KeyRelease>", lambda e: self.render_library_grid())
-
         ctk.CTkButton(top, text="REFRESH", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.reload_library).grid(row=0, column=4, padx=(12, 0))
 
         self.library_info = ctk.CTkLabel(left, text="", text_color="#D9C58C", anchor="w", justify="left")
         self.library_info.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 8))
-
         self.library_grid = ctk.CTkScrollableFrame(left, fg_color="#0B0B0B", corner_radius=12)
         self.library_grid.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
 
@@ -149,7 +147,6 @@ class VadafokStudio(ctk.CTk):
         right.grid(row=0, column=1, sticky="nsew", padx=(12, 0))
         right.grid_columnconfigure(0, weight=1)
         right.grid_rowconfigure(1, weight=1)
-
         ctk.CTkLabel(right, text="Selection", font=ctk.CTkFont(size=18, weight="bold"), text_color=GOLD).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
         self.selection_preview = ctk.CTkFrame(right, fg_color="#050505", corner_radius=12, border_color="#3A2A0D", border_width=1)
         self.selection_preview.grid(row=1, column=0, padx=18, pady=8, sticky="nsew")
@@ -157,16 +154,18 @@ class VadafokStudio(ctk.CTk):
         self.selection_name.grid(row=2, column=0, padx=18, pady=(8, 4), sticky="w")
         self.selection_meta = ctk.CTkLabel(right, text="", text_color="#BCA870", wraplength=300, justify="left")
         self.selection_meta.grid(row=3, column=0, padx=18, pady=(0, 12), sticky="w")
-
         ctk.CTkLabel(right, text="Actions", font=ctk.CTkFont(size=16, weight="bold"), text_color=GOLD).grid(row=4, column=0, padx=18, pady=(6, 4), sticky="w")
-
-        ctk.CTkButton(right, text="SHOW / USE", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.default_selected_action).grid(row=5, column=0, padx=18, pady=4, sticky="ew")
-        ctk.CTkButton(right, text="USE AS CAPTION BANNER", fg_color="#4A3913", hover_color=GOLD_DARK, command=self.use_selected_as_caption_banner).grid(row=6, column=0, padx=18, pady=4, sticky="ew")
-        ctk.CTkButton(right, text="SHOW AS SCENE CARD", fg_color="#333333", hover_color="#444444", command=self.show_selected_scene_card).grid(row=7, column=0, padx=18, pady=4, sticky="ew")
-        ctk.CTkButton(right, text="TOGGLE FAVORITE ⭐", fg_color="#333333", hover_color="#444444", command=self.toggle_selected_favorite).grid(row=8, column=0, padx=18, pady=4, sticky="ew")
-        ctk.CTkButton(right, text="EDIT TAGS", fg_color="#333333", hover_color="#444444", command=self.edit_selected_tags).grid(row=9, column=0, padx=18, pady=4, sticky="ew")
-        ctk.CTkButton(right, text="OPEN FOLDER", fg_color="#222222", hover_color="#333333", command=self.open_selected_folder).grid(row=10, column=0, padx=18, pady=4, sticky="ew")
-        ctk.CTkButton(right, text="COPY PATH", fg_color="#222222", hover_color="#333333", command=self.copy_selected_path).grid(row=11, column=0, padx=18, pady=(4, 18), sticky="ew")
+        actions = [
+            ("SHOW / USE", self.default_selected_action, GOLD),
+            ("USE AS CAPTION BANNER", self.use_selected_as_caption_banner, "#4A3913"),
+            ("SHOW AS SCENE CARD", self.show_selected_scene_card, "#333333"),
+            ("TOGGLE FAVORITE ⭐", self.toggle_selected_favorite, "#333333"),
+            ("EDIT TAGS", self.edit_selected_tags, "#333333"),
+            ("OPEN FOLDER", self.open_selected_folder, "#222222"),
+            ("COPY PATH", self.copy_selected_path, "#222222"),
+        ]
+        for i, (text, cmd, color) in enumerate(actions, start=5):
+            ctk.CTkButton(right, text=text, fg_color=color, text_color="#111111" if color == GOLD else TEXT, hover_color=GOLD_DARK if color in [GOLD, "#4A3913"] else "#444444", command=cmd).grid(row=i, column=0, padx=18, pady=4, sticky="ew")
 
         self.reload_library()
 
@@ -174,72 +173,47 @@ class VadafokStudio(ctk.CTk):
         self.library_items = scan_library(self.project_folder.get())
         self.render_library_grid()
 
-    def item_key(self, item):
-        return item.relative
-
-    def item_is_favorite(self, item):
-        return self.item_key(item) in self.asset_meta.get("favorites", [])
-
+    def item_key(self, item): return item.relative
+    def item_is_favorite(self, item): return self.item_key(item) in self.asset_meta.get("favorites", [])
     def item_tags(self, item):
         stored = self.asset_meta.get("tags", {}).get(self.item_key(item), [])
-        combined = list(dict.fromkeys(stored + guessed_tags(item)))
-        return combined
+        return list(dict.fromkeys(stored + guessed_tags(item)))
 
     def render_library_grid(self):
-        if not hasattr(self, "library_grid"):
-            return
-        for w in self.library_grid.winfo_children():
-            w.destroy()
+        if not hasattr(self, "library_grid"): return
+        for w in self.library_grid.winfo_children(): w.destroy()
         self.thumbnail_refs = []
-
         section = self.library_section.get()
         query = self.search_text.get().strip().lower()
         items = self.library_items
-        if section != "All":
-            items = [i for i in items if i.section == section]
-        if self.favorite_filter.get():
-            items = [i for i in items if self.item_is_favorite(i)]
+        if section != "All": items = [i for i in items if i.section == section]
+        if self.favorite_filter.get(): items = [i for i in items if self.item_is_favorite(i)]
         if query:
-            items = [
-                i for i in items
-                if query in i.name.lower()
-                or query in i.category.lower()
-                or query in i.relative.lower()
-                or any(query in t.lower() for t in self.item_tags(i))
-            ]
-
+            items = [i for i in items if query in i.name.lower() or query in i.category.lower() or query in i.relative.lower() or any(query in t.lower() for t in self.item_tags(i))]
         self.library_info.configure(text=f"Projektordner: {self.project_folder.get() or '(nicht gesetzt)'}    Treffer: {len(items)}    Gesamt: {len(self.library_items)}")
-
         if not items:
             ctk.CTkLabel(self.library_grid, text="Keine Treffer. Prüfe Projektordner, Filter oder Suche.", text_color="#BCA870").grid(row=0, column=0, padx=18, pady=18, sticky="w")
             return
-
         cols = 4
         for idx, item in enumerate(items):
             r, c = divmod(idx, cols)
             border = GOLD if self.selected_item and self.item_key(self.selected_item) == self.item_key(item) else "#151515"
             card = ctk.CTkFrame(self.library_grid, fg_color="#151515", corner_radius=10, border_color=border, border_width=2)
             card.grid(row=r, column=c, padx=10, pady=10, sticky="nsew")
-
             star = "⭐ " if self.item_is_favorite(item) else ""
             ctk.CTkLabel(card, text=star + item.section, text_color=GOLD if star else "#BCA870", font=ctk.CTkFont(size=12)).pack(anchor="w", padx=10, pady=(8, 0))
-
             img_label = self.make_thumb_label(card, item.path)
             img_label.pack(padx=10, pady=(6, 6))
             for widget in [card, img_label]:
                 widget.bind("<Button-1>", lambda e, it=item: self.select_library_item(it))
                 widget.bind("<Double-Button-1>", lambda e, it=item: self.library_item_double_click(it))
-
             name_label = ctk.CTkLabel(card, text=item.name, text_color=TEXT, wraplength=210, justify="center")
             name_label.pack(padx=10, pady=(0, 2))
             for widget in [name_label]:
                 widget.bind("<Button-1>", lambda e, it=item: self.select_library_item(it))
                 widget.bind("<Double-Button-1>", lambda e, it=item: self.library_item_double_click(it))
-
-            meta_label = ctk.CTkLabel(card, text=f"{item.category}", text_color="#BCA870", wraplength=210, justify="center", font=ctk.CTkFont(size=12))
-            meta_label.pack(padx=10, pady=(0, 4))
-            tag_text = ", ".join(self.item_tags(item)[:4])
-            ctk.CTkLabel(card, text=tag_text, text_color="#8F8058", wraplength=210, justify="center", font=ctk.CTkFont(size=11)).pack(padx=10, pady=(0, 10))
+            ctk.CTkLabel(card, text=item.category, text_color="#BCA870", wraplength=210, justify="center", font=ctk.CTkFont(size=12)).pack(padx=10, pady=(0, 4))
+            ctk.CTkLabel(card, text=", ".join(self.item_tags(item)[:4]), text_color="#8F8058", wraplength=210, justify="center", font=ctk.CTkFont(size=11)).pack(padx=10, pady=(0, 10))
 
     def make_thumb_label(self, parent, path):
         try:
@@ -257,8 +231,7 @@ class VadafokStudio(ctk.CTk):
         self.selected_item = item
         self.preview_refs = []
         if hasattr(self, "selection_preview"):
-            for w in self.selection_preview.winfo_children():
-                w.destroy()
+            for w in self.selection_preview.winfo_children(): w.destroy()
         try:
             if item.kind == "image":
                 img = Image.open(item.path).convert("RGBA")
@@ -270,7 +243,6 @@ class VadafokStudio(ctk.CTk):
                 ctk.CTkLabel(self.selection_preview, text="♪ SOUND", text_color=GOLD, font=ctk.CTkFont(size=28, weight="bold")).place(relx=0.5, rely=0.5, anchor="center")
         except Exception:
             ctk.CTkLabel(self.selection_preview, text="Asset kann nicht geladen werden", text_color="#D86A6A").place(relx=0.5, rely=0.5, anchor="center")
-
         fav = "⭐ " if self.item_is_favorite(item) else ""
         self.selection_name.configure(text=fav + item.name)
         tags = ", ".join(self.item_tags(item)) or "keine"
@@ -286,45 +258,30 @@ class VadafokStudio(ctk.CTk):
             messagebox.showwarning("Library", "Bitte zuerst ein Asset auswählen.")
             return
         item = self.selected_item
-        if item.section == "Banners":
-            self.use_selected_as_caption_banner()
-        elif item.section == "Live Cards":
-            self.open_selected_live_card()
-        elif item.section == "Templates":
-            messagebox.showinfo("Templates", "Template-Editor kommt in Studio 0.6.")
-        elif item.section == "Sounds":
-            self.open_selected_file()
-        else:
-            self.show_selected_scene_card()
+        if item.section == "Banners": self.use_selected_as_caption_banner()
+        elif item.section == "Live Cards": self.open_selected_live_card()
+        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 0.7.")
+        elif item.section == "Sounds": self.open_selected_file()
+        else: self.show_selected_scene_card()
 
     def use_selected_as_caption_banner(self):
-        if not self.selected_item:
-            messagebox.showwarning("Library", "Bitte zuerst ein Asset auswählen.")
-            return
+        if not self.selected_item: return
         if self.selected_item.kind != "image":
             messagebox.showwarning("Banner", "Nur Bilder können als Caption-Banner verwendet werden.")
             return
-
         self.config_data["selected_banner_path"] = str(self.selected_item.path)
         save_config(self.config_data)
-
         if self.obs.connected:
             try:
                 self.obs.set_image_file(self.caption_banner_source.get().strip(), self.selected_item.path)
                 messagebox.showinfo("Banner", f"Caption-Banner gewechselt:\n{self.selected_item.name}")
-            except Exception as e:
-                messagebox.showerror("Bannerwechsel fehlgeschlagen", str(e))
+            except Exception:
+                messagebox.showerror("Caption Banner Source nicht gefunden", f"Die OBS-Bildquelle '{self.caption_banner_source.get().strip()}' wurde nicht gefunden.\n\nBitte OBS Connection prüfen.")
         else:
-            messagebox.showinfo("Banner", f"Als Caption-Banner gemerkt:\n{self.selected_item.name}\n\nOBS ist nicht verbunden. Beim nächsten Verbinden kannst du es erneut anwenden.")
-
-    # Backwards-compatible alias used by older wording/buttons
-    def use_selected_as_banner(self):
-        self.use_selected_as_caption_banner()
+            messagebox.showinfo("Banner", f"Als Caption-Banner gemerkt:\n{self.selected_item.name}")
 
     def show_selected_scene_card(self):
-        if not self.selected_item:
-            messagebox.showwarning("Library", "Bitte zuerst ein Asset auswählen.")
-            return
+        if not self.selected_item: return
         if self.selected_item.kind != "image":
             messagebox.showwarning("Scene Card", "Nur Bilder können als Scene Card angezeigt werden.")
             return
@@ -340,8 +297,7 @@ class VadafokStudio(ctk.CTk):
             messagebox.showerror("Scene Card fehlgeschlagen", str(e))
 
     def open_selected_live_card(self):
-        if not self.selected_item:
-            return
+        if not self.selected_item: return
         self.show_live_card()
         self.set_message(self.selected_item.path.stem.replace("_", " ").replace("-", " ").upper())
 
@@ -351,10 +307,8 @@ class VadafokStudio(ctk.CTk):
             return
         key = self.item_key(self.selected_item)
         favs = self.asset_meta.setdefault("favorites", [])
-        if key in favs:
-            favs.remove(key)
-        else:
-            favs.append(key)
+        if key in favs: favs.remove(key)
+        else: favs.append(key)
         save_asset_meta(self.asset_meta)
         self.select_library_item(self.selected_item)
 
@@ -365,32 +319,19 @@ class VadafokStudio(ctk.CTk):
         key = self.item_key(self.selected_item)
         current = ", ".join(self.asset_meta.setdefault("tags", {}).get(key, []))
         result = simpledialog.askstring("Tags", "Tags mit Komma trennen:", initialvalue=current)
-        if result is None:
-            return
-        tags = [t.strip() for t in result.split(",") if t.strip()]
-        self.asset_meta.setdefault("tags", {})[key] = tags
+        if result is None: return
+        self.asset_meta.setdefault("tags", {})[key] = [t.strip() for t in result.split(",") if t.strip()]
         save_asset_meta(self.asset_meta)
         self.select_library_item(self.selected_item)
 
     def open_selected_folder(self):
-        if not self.selected_item:
-            return
-        try:
-            os.startfile(self.selected_item.path.parent)
-        except Exception as e:
-            messagebox.showerror("Open Folder", str(e))
+        if self.selected_item: os.startfile(self.selected_item.path.parent)
 
     def open_selected_file(self):
-        if not self.selected_item:
-            return
-        try:
-            os.startfile(self.selected_item.path)
-        except Exception as e:
-            messagebox.showerror("Open File", str(e))
+        if self.selected_item: os.startfile(self.selected_item.path)
 
     def copy_selected_path(self):
-        if not self.selected_item:
-            return
+        if not self.selected_item: return
         self.clipboard_clear()
         self.clipboard_append(str(self.selected_item.path))
         messagebox.showinfo("Copy Path", "Pfad kopiert.")
@@ -399,7 +340,6 @@ class VadafokStudio(ctk.CTk):
         self.set_active("Live Card")
         self.clear_main()
         self.page_title("Live Card")
-
         content = ctk.CTkFrame(self.main, fg_color=DARK)
         content.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
         content.grid_columnconfigure(0, weight=2)
@@ -410,7 +350,6 @@ class VadafokStudio(ctk.CTk):
         left.grid(row=0, column=0, sticky="nsew", padx=(0, 12))
         left.grid_columnconfigure(0, weight=1)
         left.grid_rowconfigure(1, weight=1)
-
         ctk.CTkLabel(left, text="Message", font=ctk.CTkFont(size=16, weight="bold"), text_color=TEXT).grid(row=0, column=0, padx=18, pady=(18, 6), sticky="w")
         self.message_box = ctk.CTkTextbox(left, height=180, font=ctk.CTkFont(size=18), fg_color="#050505", border_color=GOLD_DARK, border_width=1)
         self.message_box.grid(row=1, column=0, padx=18, pady=(0, 12), sticky="nsew")
@@ -420,9 +359,10 @@ class VadafokStudio(ctk.CTk):
 
         row = ctk.CTkFrame(left, fg_color="transparent")
         row.grid(row=2, column=0, sticky="ew", padx=18, pady=8)
-        row.grid_columnconfigure((0, 1), weight=1)
-        self.option(row, "Style", list(self.config_data["banner_sources"].keys()), self.style, 0)
-        self.option(row, "Duration", ["3", "5", "7", "10", "15"], self.duration, 1)
+        row.grid_columnconfigure((0, 1, 2), weight=1)
+        self.option(row, "Engine", ["obs_text", "smart_png"], self.caption_engine, 0)
+        self.option(row, "Style", list(self.config_data["banner_sources"].keys()), self.style, 1)
+        self.option(row, "Duration", ["3", "5", "7", "10", "15"], self.duration, 2)
 
         btns = ctk.CTkFrame(left, fg_color="transparent")
         btns.grid(row=3, column=0, sticky="ew", padx=18, pady=(14, 18))
@@ -449,6 +389,34 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkLabel(frame, text=label, text_color="#BCA870").pack(anchor="w")
         ctk.CTkOptionMenu(frame, values=values, variable=var, fg_color="#1A1A1A", button_color=GOLD_DARK, command=lambda _: self.update_preview()).pack(fill="x", pady=(6, 0))
 
+    def show_caption_engine_page(self):
+        self.set_active("Caption Engine")
+        self.clear_main()
+        self.page_title("Caption Engine")
+        box = ctk.CTkFrame(self.main, fg_color=PANEL, corner_radius=18)
+        box.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
+        fields = [
+            ("Engine", self.caption_engine, ["obs_text", "smart_png"]),
+            ("Font Family", self.caption_font_family, None),
+            ("Font Size", self.caption_font_size, None),
+            ("Text Color", self.caption_text_color, None),
+            ("Stroke Color", self.caption_stroke_color, None),
+            ("Stroke Width", self.caption_stroke_width, None),
+            ("Render Width", self.caption_render_width, None),
+            ("Render Height", self.caption_render_height, None),
+        ]
+        for label, var, values in fields:
+            row = ctk.CTkFrame(box, fg_color="transparent")
+            row.pack(fill="x", padx=24, pady=7)
+            ctk.CTkLabel(row, text=label, width=150, anchor="w", text_color="#BCA870").pack(side="left")
+            if values:
+                ctk.CTkOptionMenu(row, values=values, variable=var).pack(side="left", fill="x", expand=True)
+            else:
+                ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
+        ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
+        ctk.CTkLabel(box, text="Studio 0.7: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
+
     def show_quick_cards(self):
         self.set_active("Quick Cards")
         self.clear_main()
@@ -466,15 +434,21 @@ class VadafokStudio(ctk.CTk):
         self.page_title("OBS Connection")
         box = ctk.CTkFrame(self.main, fg_color=PANEL, corner_radius=18)
         box.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
-        for label, var, hidden in [
-            ("Host", self.host, False), ("Port", self.port, False), ("Password", self.password, True),
-            ("Scene optional", self.scene_name, False), ("Caption Group", self.caption_group, False),
-            ("Text Source", self.caption_text, False), ("Caption Banner Source", self.caption_banner_source, False),
-            ("Scene Card Source", self.scene_card_source, False)
-        ]:
+        rows = [
+            ("Host", self.host, False),
+            ("Port", self.port, False),
+            ("Password", self.password, True),
+            ("Scene optional", self.scene_name, False),
+            ("Caption Group", self.caption_group, False),
+            ("Text Source", self.caption_text, False),
+            ("Caption Banner Source", self.caption_banner_source, False),
+            ("Caption Render Source", self.caption_render_source, False),
+            ("Scene Card Source", self.scene_card_source, False),
+        ]
+        for label, var, hidden in rows:
             row = ctk.CTkFrame(box, fg_color="transparent")
             row.pack(fill="x", padx=24, pady=8)
-            ctk.CTkLabel(row, text=label, width=180, anchor="w", text_color="#BCA870").pack(side="left")
+            ctk.CTkLabel(row, text=label, width=190, anchor="w", text_color="#BCA870").pack(side="left")
             ctk.CTkEntry(row, textvariable=var, show="*" if hidden else None).pack(side="left", fill="x", expand=True)
         btnrow = ctk.CTkFrame(box, fg_color="transparent")
         btnrow.pack(fill="x", padx=24, pady=18)
@@ -493,7 +467,6 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkEntry(row, textvariable=self.project_folder).pack(side="left", fill="x", expand=True)
         ctk.CTkButton(row, text="Durchsuchen...", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.browse_project_folder).pack(side="left", padx=8)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=18)
-        ctk.CTkLabel(box, text="Empfohlen: F:\\Bilder\\Vadafok\\Stream. Studio sucht dann in Library, Live Cards, Scene Cards, Banners, Templates, Fonts, Sounds und Projects.", wraplength=760, justify="left", text_color="#D9C58C").pack(anchor="w", padx=24, pady=8)
 
     def browse_project_folder(self):
         folder = filedialog.askdirectory(title="VADAFOK Projektordner wählen")
@@ -502,21 +475,15 @@ class VadafokStudio(ctk.CTk):
             self.save_config()
 
     def update_preview(self):
-        if not hasattr(self, "preview_label") or not hasattr(self, "message_box"):
-            return
+        if not hasattr(self, "preview_label") or not hasattr(self, "message_box"): return
         text = self.message_box.get("1.0", "end").strip() or "..."
-        self.preview_label.configure(text=text.upper())
+        self.preview_label.configure(text=text.upper() if self.caption_uppercase.get() else text)
         style = self.style.get()
-        if style == "Gold Ribbon":
-            self.preview_label.configure(fg_color=GOLD, text_color="#111111")
-        elif style == "Black Gold Plate":
-            self.preview_label.configure(fg_color="#050505", text_color=GOLD)
-        elif style == "Paper Scroll":
-            self.preview_label.configure(fg_color="#E8C67A", text_color="#1B1000")
-        elif style == "Film Strip":
-            self.preview_label.configure(fg_color="#000000", text_color="#F7D66B")
-        else:
-            self.preview_label.configure(fg_color="#EAD9AA", text_color="#111111")
+        if style == "Gold Ribbon": self.preview_label.configure(fg_color=GOLD, text_color="#111111")
+        elif style == "Black Gold Plate": self.preview_label.configure(fg_color="#050505", text_color=GOLD)
+        elif style == "Paper Scroll": self.preview_label.configure(fg_color="#E8C67A", text_color="#1B1000")
+        elif style == "Film Strip": self.preview_label.configure(fg_color="#000000", text_color="#F7D66B")
+        else: self.preview_label.configure(fg_color="#EAD9AA", text_color="#111111")
 
     def open_quick_caption(self):
         if self.quick_window and self.quick_window.winfo_exists():
@@ -553,46 +520,94 @@ class VadafokStudio(ctk.CTk):
             messagebox.showerror("OBS Verbindung fehlgeschlagen", str(e))
 
     def save_config(self):
-        self.config_data["host"] = self.host.get()
-        self.config_data["port"] = self.port.get()
-        self.config_data["password"] = self.password.get()
-        self.config_data["scene_name"] = self.scene_name.get()
-        self.config_data["caption_group"] = self.caption_group.get()
-        self.config_data["caption_text"] = self.caption_text.get()
-        self.config_data["caption_banner_source"] = self.caption_banner_source.get()
-        self.config_data["scene_card_source"] = self.scene_card_source.get()
-        self.config_data["duration"] = self.duration.get()
-        self.config_data["style"] = self.style.get()
-        self.config_data["project_folder"] = self.project_folder.get()
+        self.config_data.update({
+            "host": self.host.get(),
+            "port": self.port.get(),
+            "password": self.password.get(),
+            "scene_name": self.scene_name.get(),
+            "caption_group": self.caption_group.get(),
+            "caption_text": self.caption_text.get(),
+            "caption_banner_source": self.caption_banner_source.get(),
+            "caption_render_source": self.caption_render_source.get(),
+            "scene_card_source": self.scene_card_source.get(),
+            "duration": self.duration.get(),
+            "style": self.style.get(),
+            "project_folder": self.project_folder.get(),
+            "caption_engine": self.caption_engine.get(),
+            "caption_font_family": self.caption_font_family.get(),
+            "caption_font_size": int(self.caption_font_size.get()),
+            "caption_text_color": self.caption_text_color.get(),
+            "caption_stroke_color": self.caption_stroke_color.get(),
+            "caption_stroke_width": int(self.caption_stroke_width.get()),
+            "caption_render_width": int(self.caption_render_width.get()),
+            "caption_render_height": int(self.caption_render_height.get()),
+            "caption_uppercase": bool(self.caption_uppercase.get()),
+        })
         save_config(self.config_data)
 
     def current_scene(self):
         return self.obs.current_scene(self.scene_name.get().strip())
+
+    def render_smart_caption(self, text):
+        self.last_render_path = EXPORT_DIR / "caption_render.png"
+        render_caption_png(
+            text=text,
+            output_path=self.last_render_path,
+            width=int(self.caption_render_width.get()),
+            height=int(self.caption_render_height.get()),
+            font_family=self.caption_font_family.get(),
+            font_size=int(self.caption_font_size.get()),
+            text_color=self.caption_text_color.get(),
+            stroke_color=self.caption_stroke_color.get(),
+            stroke_width=int(self.caption_stroke_width.get()),
+            uppercase=bool(self.caption_uppercase.get()),
+            banner_path=self.config_data.get("selected_banner_path", ""),
+        )
+        return self.last_render_path
 
     def show_card(self):
         if not self.obs.connected:
             messagebox.showwarning("Nicht verbunden", "Bitte zuerst OBS verbinden.")
             return
         text = self.message_box.get("1.0", "end").strip() if hasattr(self, "message_box") else ""
-        if not text:
-            text = "..."
+        if not text: text = "..."
         try:
             scene = self.current_scene()
-            self.obs.set_text(self.caption_text.get().strip(), text)
+
             selected_banner_path = self.config_data.get("selected_banner_path", "")
-            if selected_banner_path:
+
+            if self.caption_engine.get() == "smart_png":
                 try:
-                    self.obs.set_image_file(self.caption_banner_source.get().strip(), selected_banner_path)
+                    png = self.render_smart_caption(text)
+                    self.obs.set_image_file(self.caption_render_source.get().strip(), png)
                 except Exception:
-                    pass
+                    messagebox.showerror("Caption Render Source nicht gefunden", f"Die OBS-Bildquelle '{self.caption_render_source.get().strip()}' wurde nicht gefunden.\n\nBitte OBS Connection prüfen.")
+                    return
+
+                try: self.obs.enable_source(scene, self.caption_text.get().strip(), False)
+                except Exception: pass
+                try: self.obs.enable_source(scene, self.caption_render_source.get().strip(), True)
+                except Exception: pass
             else:
-                selected = self.config_data["banner_sources"].get(self.style.get())
-                for banner in self.config_data["banner_sources"].values():
+                if selected_banner_path:
                     try:
-                        self.obs.enable_source(scene, banner, banner == selected)
+                        self.obs.set_image_file(self.caption_banner_source.get().strip(), selected_banner_path)
                     except Exception:
-                        pass
+                        messagebox.showerror("Caption Banner Source nicht gefunden", f"Die OBS-Bildquelle '{self.caption_banner_source.get().strip()}' wurde nicht gefunden.\n\nBitte OBS Connection prüfen.")
+                        return
+                try:
+                    self.obs.set_text(self.caption_text.get().strip(), text)
+                except Exception:
+                    messagebox.showerror("Text Source nicht gefunden", f"Die OBS-Textquelle '{self.caption_text.get().strip()}' wurde nicht gefunden.\n\nBitte OBS Connection prüfen.")
+                    return
+
+                try: self.obs.enable_source(scene, self.caption_render_source.get().strip(), False)
+                except Exception: pass
+                try: self.obs.enable_source(scene, self.caption_text.get().strip(), True)
+                except Exception: pass
+
             self.obs.enable_source(scene, self.caption_group.get().strip(), True)
+
             if self.hide_timer:
                 self.hide_timer.cancel()
             seconds = max(1, int(self.duration.get()))
@@ -604,12 +619,9 @@ class VadafokStudio(ctk.CTk):
             messagebox.showerror("SHOW fehlgeschlagen", str(e))
 
     def hide_card(self):
-        if not self.obs.connected:
-            return
-        try:
-            self.obs.enable_source(self.current_scene(), self.caption_group.get().strip(), False)
-        except Exception:
-            pass
+        if not self.obs.connected: return
+        try: self.obs.enable_source(self.current_scene(), self.caption_group.get().strip(), False)
+        except Exception: pass
 
     def enter_to_show(self, event):
         if event.state & 0x0001:
@@ -624,11 +636,9 @@ class VadafokStudio(ctk.CTk):
             self.update_preview()
 
     def save_current_quick(self):
-        if not hasattr(self, "message_box"):
-            return
+        if not hasattr(self, "message_box"): return
         text = self.message_box.get("1.0", "end").strip()
-        if not text:
-            return
+        if not text: return
         self.favorites.setdefault("Custom", [])
         if text not in self.favorites["Custom"]:
             self.favorites["Custom"].append(text)
@@ -636,8 +646,7 @@ class VadafokStudio(ctk.CTk):
         messagebox.showinfo("Quick Card", "Gespeichert.")
 
     def set_message(self, text):
-        if not hasattr(self, "message_box"):
-            return
+        if not hasattr(self, "message_box"): return
         self.message_box.delete("1.0", "end")
         self.message_box.insert("1.0", text)
         self.update_preview()

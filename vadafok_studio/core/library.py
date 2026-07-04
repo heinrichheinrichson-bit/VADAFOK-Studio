@@ -4,17 +4,7 @@ from pathlib import Path
 
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp"}
 SOUND_EXTS = {".wav", ".mp3", ".ogg", ".flac"}
-
-ROOT_FOLDERS = [
-    "Library",
-    "Live Cards",
-    "Scene Cards",
-    "Banners",
-    "Templates",
-    "Fonts",
-    "Sounds",
-    "Projects",
-]
+ROOT_FOLDERS = ["Library", "Live Cards", "Scene Cards", "Banners", "Templates", "Fonts", "Sounds", "Projects"]
 
 @dataclass
 class LibraryItem:
@@ -26,10 +16,9 @@ class LibraryItem:
     kind: str
 
 def file_kind(path: Path):
-    ext = path.suffix.lower()
-    if ext in IMAGE_EXTS:
+    if path.suffix.lower() in IMAGE_EXTS:
         return "image"
-    if ext in SOUND_EXTS:
+    if path.suffix.lower() in SOUND_EXTS:
         return "sound"
     return "file"
 
@@ -48,23 +37,16 @@ def scan_library(project_folder: str):
                 rel_parts = p.relative_to(root).parts
                 category = rel_parts[0] if len(rel_parts) > 1 else "(Root)"
                 items.append(LibraryItem(
-                    path=p,
-                    name=p.name,
-                    section=root_name,
-                    category=category,
-                    relative=str(p.relative_to(base)),
-                    kind=file_kind(p)
+                    path=p, name=p.name, section=root_name, category=category,
+                    relative=str(p.relative_to(base)), kind=file_kind(p)
                 ))
 
     for p in base.glob("*"):
         if p.is_file() and (p.suffix.lower() in IMAGE_EXTS or p.suffix.lower() in SOUND_EXTS):
             items.append(LibraryItem(
-                path=p,
-                name=p.name,
+                path=p, name=p.name,
                 section="Scene Cards" if p.suffix.lower() in IMAGE_EXTS else "Sounds",
-                category="(Root)",
-                relative=str(p.relative_to(base)),
-                kind=file_kind(p)
+                category="(Root)", relative=str(p.relative_to(base)), kind=file_kind(p)
             ))
 
     return sorted(items, key=lambda i: (i.section.lower(), i.category.lower(), i.name.lower()))
