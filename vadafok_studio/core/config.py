@@ -9,6 +9,7 @@ CONFIG_PATH = DATA_DIR / "config.json"
 FAVORITES_PATH = DATA_DIR / "favorites.json"
 ASSET_META_PATH = DATA_DIR / "asset_meta.json"
 BANNER_PROFILES_PATH = DATA_DIR / "banner_profiles.json"
+TEMPLATE_PROFILES_PATH = DATA_DIR / "template_profiles.json"
 
 DEFAULT_CONFIG = {
     "project_folder": "",

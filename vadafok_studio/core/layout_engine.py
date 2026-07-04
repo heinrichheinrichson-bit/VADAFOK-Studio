@@ -51,3 +51,23 @@ def apply_layout_field_to_banner_profile(profile: Dict[str, Any], field: LayoutF
     profile["stroke_width"] = int(field.stroke_width)
     profile["uppercase"] = bool(field.uppercase)
     return profile
+
+
+def create_default_template(name="New Template"):
+    return {
+        "name": name,
+        "background": "",
+        "fields": [
+            LayoutField(name="date", x=120, y=80, width=420, height=90, font_size=90).to_dict(),
+            LayoutField(name="game", x=120, y=190, width=900, height=120, font_size=110).to_dict(),
+            LayoutField(name="time", x=120, y=340, width=360, height=90, font_size=90).to_dict(),
+        ]
+    }
+
+
+def load_template_profiles(load_json_func, path):
+    return load_json_func(path, {})
+
+
+def save_template_profiles(save_json_func, path, profiles):
+    save_json_func(path, profiles)

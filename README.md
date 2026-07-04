@@ -1,61 +1,48 @@
-# VADAFOK Studio 1.3
+# VADAFOK Studio 1.4
 
 ## Ziel
 
-Studio 1.3 beginnt mit der Layout-Engine.
+Studio 1.4 startet den Template Editor.
 
-Der Banner Editor bleibt wie bisher nutzbar, aber intern wird vorbereitet, dass später auch Templates mit mehreren Textfeldern möglich werden.
+Das ist die erste Version mit mehreren Layout-Feldern.
 
 ## Neu
 
-- Neues Modul:
+- Neuer Menüpunkt: `Template Editor`
+- Neue Datei: `data/template_profiles.json`
+- Mehrere Felder pro Template
+- Felder auswählen
+- Felder verschieben
+- Felder hinzufügen
+- Felder löschen
+- Templates speichern
+- Default-Template zurücksetzen
 
-```text
-vadafok_studio/core/layout_engine.py
-```
+## Wichtig
 
-- Erste LayoutField-Struktur als Grundlage für spätere Multi-Field-Templates.
-- Bannerprofile können intern als Layout-Feld behandelt werden.
-- Neuer Button im Banner Editor:
+Das ist Phase A des Template Editors.
 
-```text
-RESET STYLE
-```
+Noch nicht enthalten:
 
-## Reset-Logik
+- Feldgröße ändern
+- Feld umbenennen
+- eigene Schrift/Farbe pro Feld in der UI
+- echtes Rendering als Streamplan-PNG
 
-```text
-RESET AREA
-```
-
-setzt nur den Textbereich/Rahmen zurück.
-
-```text
-RESET STYLE
-```
-
-setzt nur die Profilwerte zurück:
-
-- Font
-- Font Size
-- Text Color
-- Stroke Color
-- Stroke Width
-- Uppercase
-
-Der Textbereich bleibt dabei erhalten.
+Das kommt in späteren Versionen.
 
 ## Test
 
-1. Banner Editor öffnen.
-2. Banner auswählen.
-3. Schriftgröße/Farbe/Stroke ändern.
-4. RESET STYLE drücken.
-5. Prüfen, ob die Werte auf Standard zurückgehen.
-6. Prüfen, ob der Rahmen/Textbereich unverändert bleibt.
-7. Live Card mit `smart_png` testen.
-8. Prüfen, ob alles weiterhin in OBS korrekt angezeigt wird.
+1. Studio starten.
+2. Template Editor öffnen.
+3. Felder anklicken.
+4. Felder verschieben.
+5. Feld hinzufügen.
+6. Feld löschen.
+7. Speichern.
+8. Studio neu starten.
+9. Prüfen, ob das Template erhalten bleibt.
 
 ## Git
 
-Erst committen, wenn RESET STYLE und Live Card stabil funktionieren.
+Erst committen, wenn der Template Editor stabil funktioniert.

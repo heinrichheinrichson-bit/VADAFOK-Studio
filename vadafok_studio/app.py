@@ -6,11 +6,11 @@ import customtkinter as ctk
 from tkinter import messagebox, filedialog, simpledialog
 from PIL import Image
 
-from .core.config import load_config, save_config, load_favorites, save_favorites, load_asset_meta, save_asset_meta, EXPORT_DIR
+from .core.config import TEMPLATE_PROFILES_PATH, load_config, save_config, load_favorites, save_favorites, load_asset_meta, save_asset_meta, EXPORT_DIR, load_json, save_json
 from .core.library import scan_library, ROOT_FOLDERS, guessed_tags
 from .core.obs_controller import OBSController
 from .core.caption_renderer import render_caption_png
-from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile
+from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template
 from .core.banner_profiles import load_banner_profiles, save_banner_profiles, ensure_profile, has_profile, profile_count, reset_profile_style
 
 GOLD = "#D6A43A"
@@ -24,7 +24,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 1.3.1")
+        self.wm_title("VADAFOK Studio 1.4.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -32,6 +32,12 @@ class VadafokStudio(ctk.CTk):
         self.favorites = load_favorites()
         self.asset_meta = load_asset_meta()
         self.banner_profiles = load_banner_profiles()
+        self.template_profiles = load_json(TEMPLATE_PROFILES_PATH, {})
+        self.template_selected_name = "Default Stream Plan"
+        self.template_selected_field = None
+        self.template_drag_mode = None
+        self.template_drag_start = None
+        self.template_drag_original = None
         self.obs = OBSController()
         self.hide_timer = None
         self.quick_window = None
@@ -98,11 +104,12 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 1.3", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 1.4", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
             ("Banner Editor", self.show_banner_profiles_page),
+            ("Template Editor", self.show_template_editor_page),
             ("Live Card", self.show_live_card),
             ("Caption Engine", self.show_caption_engine_page),
             ("Quick Cards", self.show_quick_cards),
@@ -286,7 +293,7 @@ class VadafokStudio(ctk.CTk):
         item = self.selected_item
         if item.section == "Banners": self.use_selected_as_caption_banner()
         elif item.section == "Live Cards": self.open_selected_live_card()
-        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 1.3.")
+        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 1.4.")
         elif item.section == "Sounds": self.open_selected_file()
         else: self.show_selected_scene_card()
 
@@ -918,8 +925,218 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 1.3: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 1.4: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
+
+
+    def show_template_editor_page(self):
+        self.set_active("Template Editor")
+        self.clear_main()
+        self.page_title("Template Editor")
+
+        if self.template_selected_name not in self.template_profiles:
+            self.template_profiles[self.template_selected_name] = create_default_template(self.template_selected_name)
+            save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
+
+        outer = ctk.CTkFrame(self.main, fg_color=DARK)
+        outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
+        outer.grid_columnconfigure(0, weight=1)
+        outer.grid_columnconfigure(1, weight=3)
+        outer.grid_rowconfigure(0, weight=1)
+
+        left = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 12))
+        left.grid_rowconfigure(2, weight=1)
+
+        ctk.CTkLabel(left, text="Templates", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+        ctk.CTkButton(left, text="+ NEW DEFAULT", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.template_create_default).grid(row=1, column=0, padx=18, pady=(0, 8), sticky="ew")
+
+        template_list = ctk.CTkScrollableFrame(left, fg_color="#0B0B0B", corner_radius=12)
+        template_list.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
+
+        for name in sorted(self.template_profiles.keys()):
+            prefix = "✓ " if name == self.template_selected_name else ""
+            ctk.CTkButton(
+                template_list,
+                text=prefix + name,
+                anchor="w",
+                fg_color="#171717",
+                hover_color="#2C2C2C",
+                command=lambda n=name: self.template_select(n)
+            ).pack(fill="x", padx=8, pady=4)
+
+        right = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        right.grid(row=0, column=1, sticky="nsew", padx=(12, 0))
+        right.grid_columnconfigure(0, weight=1)
+        right.grid_rowconfigure(1, weight=1)
+
+        header = ctk.CTkFrame(right, fg_color="transparent")
+        header.grid(row=0, column=0, sticky="ew", padx=18, pady=(18, 8))
+        header.grid_columnconfigure(1, weight=1)
+
+        ctk.CTkLabel(header, text="Multi-Field Layout", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, sticky="w")
+        self.template_status_label = ctk.CTkLabel(header, text=self.template_selected_name, text_color="#BCA870", anchor="e")
+        self.template_status_label.grid(row=0, column=1, sticky="e")
+
+        self.template_canvas_frame = ctk.CTkFrame(right, fg_color="#050505", corner_radius=14, border_color="#3A2A0D", border_width=1)
+        self.template_canvas_frame.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 12))
+        self.template_canvas_frame.grid_columnconfigure(0, weight=1)
+        self.template_canvas_frame.grid_rowconfigure(0, weight=1)
+
+        self.template_canvas = tk.Canvas(self.template_canvas_frame, bg="#050505", highlightthickness=0, cursor="crosshair")
+        self.template_canvas.grid(row=0, column=0, sticky="nsew", padx=12, pady=12)
+        self.template_canvas.bind("<ButtonPress-1>", self.template_mouse_down)
+        self.template_canvas.bind("<B1-Motion>", self.template_mouse_drag)
+        self.template_canvas.bind("<ButtonRelease-1>", self.template_mouse_up)
+
+        controls = ctk.CTkFrame(right, fg_color="transparent")
+        controls.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 18))
+        controls.grid_columnconfigure((0,1,2,3), weight=1)
+
+        ctk.CTkButton(controls, text="+ ADD FIELD", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.template_add_field).grid(row=0, column=0, padx=4, pady=4, sticky="ew")
+        ctk.CTkButton(controls, text="DELETE FIELD", fg_color="#333333", hover_color="#444444", command=self.template_delete_field).grid(row=0, column=1, padx=4, pady=4, sticky="ew")
+        ctk.CTkButton(controls, text="SAVE TEMPLATE", fg_color="#333333", hover_color="#444444", command=self.template_save).grid(row=0, column=2, padx=4, pady=4, sticky="ew")
+        ctk.CTkButton(controls, text="RESET DEFAULT", fg_color="#333333", hover_color="#444444", command=self.template_reset_default).grid(row=0, column=3, padx=4, pady=4, sticky="ew")
+
+        self.template_draw_canvas()
+
+    def template_current(self):
+        if self.template_selected_name not in self.template_profiles:
+            self.template_profiles[self.template_selected_name] = create_default_template(self.template_selected_name)
+        return self.template_profiles[self.template_selected_name]
+
+    def template_create_default(self):
+        base = "New Template"
+        idx = 1
+        name = base
+        while name in self.template_profiles:
+            idx += 1
+            name = f"{base} {idx}"
+        self.template_profiles[name] = create_default_template(name)
+        self.template_selected_name = name
+        self.template_selected_field = None
+        save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
+        self.show_template_editor_page()
+
+    def template_select(self, name):
+        self.template_selected_name = name
+        self.template_selected_field = None
+        self.show_template_editor_page()
+
+    def template_save(self):
+        save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
+        messagebox.showinfo("Template Editor", f"Template gespeichert:\n{self.template_selected_name}")
+
+    def template_reset_default(self):
+        self.template_profiles[self.template_selected_name] = create_default_template(self.template_selected_name)
+        self.template_selected_field = None
+        save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
+        self.template_draw_canvas()
+
+    def template_add_field(self):
+        template = self.template_current()
+        name = f"field_{len(template['fields']) + 1}"
+        template["fields"].append({
+            "name": name,
+            "x": 160,
+            "y": 120 + len(template["fields"]) * 70,
+            "width": 500,
+            "height": 90,
+            "font_family": "Bebas Neue",
+            "font_size": 90,
+            "text_color": "#FFFFFF",
+            "stroke_color": "#000000",
+            "stroke_width": 3,
+            "uppercase": True
+        })
+        self.template_selected_field = len(template["fields"]) - 1
+        save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
+        self.template_draw_canvas()
+
+    def template_delete_field(self):
+        template = self.template_current()
+        if self.template_selected_field is None:
+            return
+        if 0 <= self.template_selected_field < len(template["fields"]):
+            del template["fields"][self.template_selected_field]
+            self.template_selected_field = None
+            save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
+            self.template_draw_canvas()
+
+    def template_draw_canvas(self):
+        if not hasattr(self, "template_canvas"):
+            return
+        canvas = self.template_canvas
+        canvas.delete("all")
+        canvas.update_idletasks()
+
+        cw = max(600, canvas.winfo_width())
+        ch = max(360, canvas.winfo_height())
+        template = self.template_current()
+        design_w, design_h = 1280, 720
+        scale = min((cw - 40) / design_w, (ch - 40) / design_h)
+        self.template_canvas_scale = scale
+        self.template_canvas_offset = ((cw - int(design_w * scale)) // 2, (ch - int(design_h * scale)) // 2)
+        ox, oy = self.template_canvas_offset
+
+        canvas.create_rectangle(ox, oy, ox + int(design_w * scale), oy + int(design_h * scale), fill="#111111", outline="#3A2A0D", width=2)
+        canvas.create_text(ox + 24, oy + 24, text=template.get("name", "Template"), anchor="nw", fill="#D6A43A", font=("Arial", 18, "bold"))
+
+        for idx, field in enumerate(template["fields"]):
+            x1 = ox + int(field["x"] * scale)
+            y1 = oy + int(field["y"] * scale)
+            x2 = ox + int((field["x"] + field["width"]) * scale)
+            y2 = oy + int((field["y"] + field["height"]) * scale)
+            selected = idx == self.template_selected_field
+            outline = GOLD if selected else "#BCA870"
+            width = 3 if selected else 2
+            canvas.create_rectangle(x1, y1, x2, y2, fill="#D6A43A", stipple="gray25", outline=outline, width=width)
+            canvas.create_text((x1+x2)//2, (y1+y2)//2, text=field["name"], fill=field.get("text_color", "#FFFFFF"), font=("Arial", 16, "bold"))
+            canvas.create_text(x1 + 5, y1 + 5, text=field["name"], anchor="nw", fill="#111111", font=("Arial", 9, "bold"))
+
+        if hasattr(self, "template_status_label"):
+            self.template_status_label.configure(text=f"{self.template_selected_name} | Felder: {len(template['fields'])}", text_color="#8FE6A0")
+
+    def template_hit_test(self, x, y):
+        template = self.template_current()
+        ox, oy = self.template_canvas_offset
+        s = self.template_canvas_scale
+        for idx in reversed(range(len(template["fields"]))):
+            f = template["fields"][idx]
+            x1 = ox + f["x"] * s
+            y1 = oy + f["y"] * s
+            x2 = ox + (f["x"] + f["width"]) * s
+            y2 = oy + (f["y"] + f["height"]) * s
+            if x1 <= x <= x2 and y1 <= y <= y2:
+                return idx
+        return None
+
+    def template_mouse_down(self, event):
+        idx = self.template_hit_test(event.x, event.y)
+        self.template_selected_field = idx
+        self.template_drag_start = (event.x, event.y)
+        template = self.template_current()
+        self.template_drag_original = dict(template["fields"][idx]) if idx is not None else None
+        self.template_draw_canvas()
+
+    def template_mouse_drag(self, event):
+        if self.template_selected_field is None or self.template_drag_original is None:
+            return
+        template = self.template_current()
+        sx, sy = self.template_drag_start
+        dx = int((event.x - sx) / self.template_canvas_scale)
+        dy = int((event.y - sy) / self.template_canvas_scale)
+        f = dict(self.template_drag_original)
+        f["x"] = max(0, min(1280 - f["width"], f["x"] + dx))
+        f["y"] = max(0, min(720 - f["height"], f["y"] + dy))
+        template["fields"][self.template_selected_field] = f
+        self.template_draw_canvas()
+
+    def template_mouse_up(self, event):
+        save_json(TEMPLATE_PROFILES_PATH, self.template_profiles)
+        self.template_drag_start = None
+        self.template_drag_original = None
+
 
     def show_quick_cards(self):
         self.set_active("Quick Cards")
