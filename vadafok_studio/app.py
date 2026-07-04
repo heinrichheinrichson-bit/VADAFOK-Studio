@@ -23,7 +23,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 1.0 Phase C")
+        self.wm_title("VADAFOK Studio 1.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -91,7 +91,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 1.0 C", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 1.1.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -279,7 +279,7 @@ class VadafokStudio(ctk.CTk):
         item = self.selected_item
         if item.section == "Banners": self.use_selected_as_caption_banner()
         elif item.section == "Live Cards": self.open_selected_live_card()
-        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 1.0 C.")
+        elif item.section == "Templates": messagebox.showinfo("Templates", "Template-Editor kommt in Studio 1.1.1.")
         elif item.section == "Sounds": self.open_selected_file()
         else: self.show_selected_scene_card()
 
@@ -290,18 +290,19 @@ class VadafokStudio(ctk.CTk):
             return
         self.config_data["selected_banner_path"] = str(self.selected_item.path)
         save_config(self.config_data)
-        if self.obs.connected:
+        if self.ensure_obs_ready():
             try:
                 self.obs.set_image_file(self.caption_banner_source.get().strip(), self.selected_item.path)
                 if hasattr(self, "message_box"):
                     self.update_render_preview()
                 messagebox.showinfo("Banner", f"Caption-Banner gewechselt:\n{self.selected_item.name}")
             except Exception:
-                messagebox.showerror("Caption Banner Source nicht gefunden", f"Die OBS-Bildquelle '{self.caption_banner_source.get().strip()}' wurde nicht gefunden.\n\nBitte OBS Connection prüfen.")
-        else:
-            if hasattr(self, "message_box"):
-                self.update_render_preview()
-            messagebox.showinfo("Banner", f"Als Caption-Banner gemerkt:\n{self.selected_item.name}")
+                if hasattr(self, "message_box"):
+                    self.update_render_preview()
+                messagebox.showwarning(
+                    "Caption Banner Source nicht gefunden",
+                    f"Banner wurde im Studio gespeichert, aber die OBS-Bildquelle '{self.caption_banner_source.get().strip()}' wurde nicht gefunden.\n\nFür smart_png ist vor allem 'VADAFOK Caption Render' wichtig."
+                )
 
     def show_selected_scene_card(self):
         if not self.selected_item: return
@@ -422,6 +423,7 @@ class VadafokStudio(ctk.CTk):
         self.editor_canvas.bind("<ButtonPress-1>", self.editor_mouse_down)
         self.editor_canvas.bind("<B1-Motion>", self.editor_mouse_drag)
         self.editor_canvas.bind("<ButtonRelease-1>", self.editor_mouse_up)
+        self.editor_canvas.bind("<Motion>", self.editor_mouse_motion)
 
         controls = ctk.CTkFrame(right, fg_color="transparent")
         controls.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 18))
@@ -430,7 +432,7 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkLabel(controls, text="Sample Text", text_color="#BCA870").grid(row=0, column=0, padx=(0, 8), pady=4, sticky="w")
         sample_entry = ctk.CTkEntry(controls, textvariable=self.editor_sample_text)
         sample_entry.grid(row=0, column=1, padx=(0, 8), pady=4, sticky="ew")
-        sample_entry.bind("<KeyRelease>", lambda e: self.editor_draw_canvas())
+        sample_entry.bind("<KeyRelease>", lambda e: self.editor_update_overlay())
 
         ctk.CTkButton(controls, text="SAVE PROFILE", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.editor_save_profile).grid(row=0, column=2, padx=4, pady=4)
         ctk.CTkButton(controls, text="RESET AREA", fg_color="#333333", hover_color="#444444", command=self.editor_reset_area).grid(row=0, column=3, padx=4, pady=4)
@@ -484,51 +486,122 @@ class VadafokStudio(ctk.CTk):
         save_banner_profiles(self.banner_profiles)
         self.editor_draw_canvas()
 
-    def editor_draw_canvas(self):
+
+    def editor_draw_canvas(self, full_redraw=True):
+        """
+        Anti-flicker drawing:
+        - full_redraw=True loads/scales the banner once.
+        - full_redraw=False updates only overlay rectangle, handles, and sample text.
+        """
         if not hasattr(self, "editor_canvas") or not self.editor_selected_banner:
             return
+
+        if full_redraw or self.editor_banner_image_id is None:
+            self.editor_redraw_banner()
+        self.editor_update_overlay()
+
+    def editor_redraw_banner(self):
         canvas = self.editor_canvas
         canvas.delete("all")
-        self.editor_canvas.update_idletasks()
+        self.editor_handle_ids = []
+        self.editor_area_rect_id = None
+        self.editor_sample_text_id = None
 
-        try:
-            banner = Image.open(self.editor_selected_banner.path).convert("RGBA")
-            bw, bh = banner.size
-            self.editor_canvas_banner_size = (bw, bh)
+        banner = Image.open(self.editor_selected_banner.path).convert("RGBA")
+        bw, bh = banner.size
+        self.editor_canvas_banner_size = (bw, bh)
 
-            cw = max(400, canvas.winfo_width())
-            ch = max(260, canvas.winfo_height())
-            scale = min((cw - 30) / bw, (ch - 30) / bh)
-            self.editor_canvas_scale = scale
+        canvas.update_idletasks()
+        cw = max(400, canvas.winfo_width())
+        ch = max(260, canvas.winfo_height())
+        scale = min((cw - 30) / bw, (ch - 30) / bh)
+        self.editor_canvas_scale = scale
 
-            display_w = int(bw * scale)
-            display_h = int(bh * scale)
-            offset_x = (cw - display_w) // 2
-            offset_y = (ch - display_h) // 2
-            self.editor_canvas_offset = (offset_x, offset_y)
+        display_w = int(bw * scale)
+        display_h = int(bh * scale)
+        offset_x = (cw - display_w) // 2
+        offset_y = (ch - display_h) // 2
+        self.editor_canvas_offset = (offset_x, offset_y)
 
-            display = banner.resize((display_w, display_h))
-            self.editor_canvas_photo = tk.PhotoImage(data=self._pil_to_png_bytes(display))
-            canvas.create_image(offset_x, offset_y, image=self.editor_canvas_photo, anchor="nw", tags="banner")
+        display = banner.resize((display_w, display_h))
+        self.editor_canvas_photo = tk.PhotoImage(data=self._pil_to_png_bytes(display))
+        self.editor_banner_image_id = canvas.create_image(
+            offset_x,
+            offset_y,
+            image=self.editor_canvas_photo,
+            anchor="nw",
+            tags="banner"
+        )
 
-            profile = self.editor_profile()
-            area = profile["text_area"]
-            x1 = offset_x + int(area["x"] * scale)
-            y1 = offset_y + int(area["y"] * scale)
-            x2 = offset_x + int((area["x"] + area["width"]) * scale)
-            y2 = offset_y + int((area["y"] + area["height"]) * scale)
+    def editor_update_overlay(self):
+        canvas = self.editor_canvas
+        if not self.editor_selected_banner:
+            return
 
-            canvas.create_rectangle(x1, y1, x2, y2, fill="#D6A43A", stipple="gray25", outline=GOLD, width=3, tags="area")
-            self.editor_draw_sample_text(canvas, x1, y1, x2, y2)
+        profile = self.editor_profile()
+        if not profile:
+            return
 
-            # handles
-            for hx, hy in self.editor_handle_points(x1, y1, x2, y2):
-                canvas.create_rectangle(hx-5, hy-5, hx+5, hy+5, fill=GOLD, outline="#111111", tags="handle")
+        # Delete overlay only. Do NOT delete banner image. This prevents flicker.
+        for item_id in [self.editor_area_rect_id, self.editor_sample_text_id]:
+            if item_id:
+                try:
+                    canvas.delete(item_id)
+                except Exception:
+                    pass
 
-            if hasattr(self, "editor_status_label"):
-                self.editor_status_label.configure(text=f"✓ {self.editor_selected_banner.name}", text_color="#8FE6A0")
-        except Exception as e:
-            canvas.create_text(20, 20, text=f"Editor Fehler: {e}", anchor="nw", fill="#D86A6A")
+        for item_id in self.editor_handle_ids:
+            try:
+                canvas.delete(item_id)
+            except Exception:
+                pass
+        self.editor_handle_ids = []
+
+        ox, oy = self.editor_canvas_offset
+        s = self.editor_canvas_scale
+        area = profile["text_area"]
+
+        x1 = ox + int(area["x"] * s)
+        y1 = oy + int(area["y"] * s)
+        x2 = ox + int((area["x"] + area["width"]) * s)
+        y2 = oy + int((area["y"] + area["height"]) * s)
+
+        self.editor_area_rect_id = canvas.create_rectangle(
+            x1, y1, x2, y2,
+            fill="#D6A43A",
+            stipple="gray25",
+            outline=GOLD,
+            width=3,
+            tags="area"
+        )
+
+        text = (self.editor_sample_text.get() or "HELLO WORLD").upper()
+        cx = (x1 + x2) // 2
+        cy = (y1 + y2) // 2
+        self.editor_sample_text_id = canvas.create_text(
+            cx, cy,
+            text=text,
+            fill="white",
+            font=("Arial", 22, "bold"),
+            width=max(50, x2 - x1 - 20),
+            justify="center",
+            tags="sample"
+        )
+
+        for hx, hy in self.editor_handle_points(x1, y1, x2, y2):
+            hid = canvas.create_rectangle(
+                hx - 6, hy - 6, hx + 6, hy + 6,
+                fill=GOLD,
+                outline="#111111",
+                tags="handle"
+            )
+            self.editor_handle_ids.append(hid)
+
+        if hasattr(self, "editor_status_label"):
+            self.editor_status_label.configure(
+                text=f"✓ {self.editor_selected_banner.name} | Bereich {area['width']}×{area['height']}",
+                text_color="#8FE6A0"
+            )
 
     def _pil_to_png_bytes(self, image):
         import io, base64
@@ -577,6 +650,24 @@ class VadafokStudio(ctk.CTk):
         if near_bottom and x1 <= x <= x2: return "s"
         if x1 <= x <= x2 and y1 <= y <= y2: return "move"
         return "new"
+
+
+    def editor_mouse_motion(self, event):
+        if not self.editor_selected_banner:
+            return
+        mode = self.editor_hit_test(event.x, event.y)
+        cursor = "crosshair"
+        if mode == "move":
+            cursor = "fleur"
+        elif mode in ("nw", "se"):
+            cursor = "size_nw_se"
+        elif mode in ("ne", "sw"):
+            cursor = "size_ne_sw"
+        elif mode in ("n", "s"):
+            cursor = "sb_v_double_arrow"
+        elif mode in ("e", "w"):
+            cursor = "sb_h_double_arrow"
+        self.editor_canvas.configure(cursor=cursor)
 
     def editor_mouse_down(self, event):
         if not self.editor_selected_banner:
@@ -639,7 +730,7 @@ class VadafokStudio(ctk.CTk):
         h = max(20, min(bh - y, h))
 
         profile["text_area"] = {"x": int(x), "y": int(y), "width": int(w), "height": int(h)}
-        self.editor_draw_canvas()
+        self.editor_update_overlay()
 
     def editor_mouse_up(self, event):
         if self.editor_selected_banner:
@@ -746,7 +837,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 1.0 C: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 1.1.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
     def show_quick_cards(self):
@@ -833,6 +924,20 @@ class VadafokStudio(ctk.CTk):
             return "break"
         entry.bind("<Return>", send)
         ctk.CTkButton(self.quick_window, text="SHOW", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=send).pack(fill="x", padx=16, pady=(0, 14))
+
+
+    def ensure_obs_ready(self):
+        if self.obs.connected:
+            return True
+        try:
+            self.obs.connect(self.host.get().strip(), self.port.get().strip(), self.password.get())
+            self.status_label.configure(text="● Connected", text_color="#6EE08C")
+            self.save_config()
+            return True
+        except Exception as e:
+            messagebox.showerror("OBS Verbindung fehlgeschlagen", str(e))
+            self.status_label.configure(text="● Not connected", text_color="#D86A6A")
+            return False
 
     def connect_obs(self):
         try:
@@ -951,8 +1056,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def show_card(self):
-        if not self.obs.connected:
-            messagebox.showwarning("Nicht verbunden", "Bitte zuerst OBS verbinden.")
+        if not self.ensure_obs_ready():
             return
         text = self.message_box.get("1.0", "end").strip() if hasattr(self, "message_box") else ""
         if not text: text = "..."

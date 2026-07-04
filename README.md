@@ -1,38 +1,29 @@
-# VADAFOK Studio 1.0 Phase C
+# VADAFOK Studio 1.1.1
 
 ## Ziel
 
-Phase C bringt den ersten echten interaktiven Banner Editor.
+Anti-Flicker-Patch für den Banner Editor.
 
-## Neu
+## Geändert
 
-- Banner wird im Editor auf einer Arbeitsfläche angezeigt.
-- Textbereich wird als goldener, halbtransparenter Rahmen angezeigt.
-- Textbereich kann mit der Maus:
-  - neu aufgezogen werden
-  - verschoben werden
-  - an Kanten/Ecken vergrößert/verkleinert werden
-- Koordinaten werden im Bannerprofil gespeichert.
-- Live Card / smart_png kann Profil-Textbereiche verwenden.
-
-## Bedienung
-
-1. Banner Editor öffnen.
-2. Banner links auswählen.
-3. Goldenen Rahmen im Banner verschieben oder an den Ecken ziehen.
-4. Optional Beispieltext ändern.
-5. SAVE PROFILE drücken.
+- Bannerbild wird beim Ziehen nicht mehr ständig neu geladen.
+- Beim Ziehen wird nur noch der goldene Overlay-Rahmen aktualisiert.
+- Sample-Text und Anfasser werden ohne Banner-Neuladen aktualisiert.
+- Cursor-Verbesserungen aus 1.1 bleiben erhalten.
+- OBS-Robustheit aus 1.1 bleibt erhalten.
 
 ## Test
 
-1. Einen Banner öffnen.
-2. Rahmen verschieben.
-3. Studio schließen.
-4. Studio erneut öffnen.
-5. Prüfen, ob der Rahmen an derselben Stelle bleibt.
-6. Live Card mit smart_png testen.
-7. Prüfen, ob Text im gespeicherten Bereich gerendert wird.
+1. Banner Editor öffnen.
+2. Banner auswählen.
+3. Goldenen Rahmen verschieben.
+4. An Ecken/Kanten ziehen.
+5. Prüfen: Das Banner sollte nicht mehr stark wegflackern.
+6. Profil speichern.
+7. Studio neu starten.
+8. Prüfen, ob der Rahmen erhalten bleibt.
+9. Live Card mit `smart_png` testen.
 
 ## Git
 
-Erst committen, wenn Phase C stabil funktioniert.
+Erst committen, wenn das Flackern weg oder deutlich besser ist.
