@@ -11,7 +11,7 @@ from .core.config import TEMPLATE_PROFILES_PATH, load_config, save_config, load_
 from .core.library import scan_library, ROOT_FOLDERS, guessed_tags
 from .core.obs_controller import OBSController
 from .core.caption_renderer import render_caption_png
-from .core.template_store import list_templates, load_template, save_template, create_template, set_background_from_file, background_path, import_legacy_templates
+from .core.template_store import list_templates, load_template, save_template, create_template, set_background_from_file, background_path, import_legacy_templates, delete_template, duplicate_template, rename_template, set_default_template, get_default_template, ensure_background_file, template_dir
 from .core.image_view import load_rgba, fit_image_to_box, pil_to_tk_photo_data, image_status
 from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card
 from .core.banner_profiles import load_banner_profiles, save_banner_profiles, ensure_profile, has_profile, profile_count, reset_profile_style
@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.3.5")
+        self.wm_title("VADAFOK Studio 2.5.3.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -122,7 +122,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.3.5", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.5.3", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -321,11 +321,13 @@ class VadafokStudio(ctk.CTk):
 
 
 
+
     def template_set_background_path(self, path):
         if not path:
             return
         data, dest = set_background_from_file(self.template_selected_name, path)
         self.template_working_data = data
+
         if hasattr(self, "template_canvas"):
             self.template_draw_canvas()
         return dest
@@ -489,8 +491,8 @@ class VadafokStudio(ctk.CTk):
         self.editor_canvas.bind("<ButtonRelease-1>", self.editor_mouse_up)
         self.editor_canvas.bind("<Motion>", self.editor_mouse_motion)
 
-        controls = ctk.CTkScrollableFrame(right, fg_color="#0B0B0B", corner_radius=12, height=190)
-        controls.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 18))
+        controls = ctk.CTkScrollableFrame(right, fg_color="#0B0B0B", corner_radius=12)
+        controls.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
         controls.grid_columnconfigure(1, weight=1)
 
         ctk.CTkLabel(controls, text="Sample Text", text_color="#BCA870").grid(row=0, column=0, padx=(0, 8), pady=4, sticky="w")
@@ -975,7 +977,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.3.5: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.5.3: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1068,6 +1070,148 @@ class VadafokStudio(ctk.CTk):
         messagebox.showinfo("Template Background", "Hintergrund entfernt.")
 
 
+
+    def template_delete_current(self):
+        names = list_templates()
+        if not names:
+            return
+        name = self.template_selected_name
+        if not messagebox.askyesno("Template löschen", f"Template wirklich löschen?\n\n{name}"):
+            return
+        try:
+            delete_template(name)
+            if hasattr(self, 'card_selected_template') and self.card_selected_template.get() == name:
+                self.card_selected_template.set('')
+        except Exception as e:
+            messagebox.showerror("Template löschen", str(e))
+            return
+
+        names = list_templates()
+        if names:
+            default_name = get_default_template()
+            self.template_selected_name = default_name if default_name in names else names[0]
+            self.template_working_data = load_template(self.template_selected_name)
+        else:
+            data = create_template("Default Stream Plan")
+            self.template_selected_name = data["name"]
+            self.template_working_data = data
+
+        self.template_selected_field = None
+        self.show_template_editor_page()
+
+    def template_duplicate_current(self):
+        try:
+            data = duplicate_template(self.template_selected_name)
+            self.template_selected_name = data["name"]
+            self.template_working_data = data
+            self.template_selected_field = None
+            self.show_template_editor_page()
+        except Exception as e:
+            messagebox.showerror("Template duplizieren", str(e))
+
+
+    def ask_template_name_dialog(self, title, initial_value):
+        result = {"value": None}
+
+        dialog = ctk.CTkToplevel(self)
+        dialog.title(title)
+        dialog.geometry("520x210")
+        dialog.resizable(False, False)
+        dialog.transient(self)
+        dialog.grab_set()
+
+        dialog.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkLabel(
+            dialog,
+            text=title,
+            text_color=GOLD,
+            font=ctk.CTkFont(size=22, weight="bold")
+        ).grid(row=0, column=0, padx=24, pady=(24, 8), sticky="w")
+
+        ctk.CTkLabel(
+            dialog,
+            text="Neuer Name",
+            text_color="#BCA870",
+            font=ctk.CTkFont(size=14)
+        ).grid(row=1, column=0, padx=24, pady=(0, 4), sticky="w")
+
+        entry = ctk.CTkEntry(dialog, height=42, font=ctk.CTkFont(size=18))
+        entry.grid(row=2, column=0, padx=24, pady=(0, 18), sticky="ew")
+        entry.insert(0, initial_value or "")
+        entry.focus_set()
+        entry.select_range(0, "end")
+
+        buttons = ctk.CTkFrame(dialog, fg_color="transparent")
+        buttons.grid(row=3, column=0, padx=24, pady=(0, 24), sticky="ew")
+        buttons.grid_columnconfigure(0, weight=1)
+        buttons.grid_columnconfigure(1, weight=1)
+
+        def save():
+            value = entry.get().strip()
+            if value:
+                result["value"] = value
+                dialog.destroy()
+
+        def cancel():
+            result["value"] = None
+            dialog.destroy()
+
+        ctk.CTkButton(
+            buttons,
+            text="Speichern",
+            height=38,
+            fg_color=GOLD,
+            text_color="#111111",
+            hover_color=GOLD_DARK,
+            command=save
+        ).grid(row=0, column=0, padx=(0, 8), sticky="ew")
+
+        ctk.CTkButton(
+            buttons,
+            text="Abbrechen",
+            height=38,
+            fg_color="#333333",
+            hover_color="#444444",
+            command=cancel
+        ).grid(row=0, column=1, padx=(8, 0), sticky="ew")
+
+        dialog.bind("<Return>", lambda _e: save())
+        dialog.bind("<Escape>", lambda _e: cancel())
+
+        self.wait_window(dialog)
+        return result["value"]
+
+
+    def template_rename_current(self):
+        new_name = self.ask_template_name_dialog(
+            "Template umbenennen",
+            self.template_selected_name
+        )
+        if not new_name:
+            return
+        new_name = new_name.strip()
+        if not new_name:
+            return
+        try:
+            was_default = get_default_template() == self.template_selected_name
+            data = rename_template(self.template_selected_name, new_name)
+            self.template_selected_name = data["name"]
+            self.template_working_data = data
+            if was_default:
+                set_default_template(self.template_selected_name)
+            self.show_template_editor_page()
+        except Exception as e:
+            messagebox.showerror("Template umbenennen", str(e))
+
+    def template_set_current_default(self):
+        if not self.template_selected_name:
+            return
+        set_default_template(self.template_selected_name)
+        messagebox.showinfo("Default Template", f"Als Default gesetzt:\n{self.template_selected_name}")
+        self.show_template_editor_page()
+
+
     def show_template_editor_page(self):
         self.set_active("Template Editor")
         self.clear_main()
@@ -1076,7 +1220,8 @@ class VadafokStudio(ctk.CTk):
         if not list_templates():
             create_template("Default Stream Plan")
         if self.template_selected_name not in list_templates():
-            self.template_selected_name = list_templates()[0]
+            default_name = get_default_template()
+            self.template_selected_name = default_name if default_name in list_templates() else list_templates()[0]
 
         outer = ctk.CTkFrame(self.main, fg_color=DARK)
         outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
@@ -1090,13 +1235,25 @@ class VadafokStudio(ctk.CTk):
         left.grid_rowconfigure(2, weight=1)
 
         ctk.CTkLabel(left, text="Templates", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
-        ctk.CTkButton(left, text="+ NEW DEFAULT", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.template_create_default).grid(row=1, column=0, padx=18, pady=(0, 8), sticky="ew")
+        template_actions = ctk.CTkFrame(left, fg_color="transparent")
+        template_actions.grid(row=1, column=0, padx=18, pady=(0, 8), sticky="ew")
+        template_actions.grid_columnconfigure(0, weight=1)
+        template_actions.grid_columnconfigure(1, weight=1)
+
+        ctk.CTkButton(template_actions, text="+ NEW", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.template_create_default).grid(row=0, column=0, padx=(0, 4), pady=3, sticky="ew")
+        ctk.CTkButton(template_actions, text="RENAME", fg_color="#333333", hover_color="#444444", command=self.template_rename_current).grid(row=0, column=1, padx=(4, 0), pady=3, sticky="ew")
+        ctk.CTkButton(template_actions, text="DUPLICATE", fg_color="#333333", hover_color="#444444", command=self.template_duplicate_current).grid(row=1, column=0, padx=(0, 4), pady=3, sticky="ew")
+        ctk.CTkButton(template_actions, text="DEFAULT", fg_color="#333333", hover_color="#444444", command=self.template_set_current_default).grid(row=1, column=1, padx=(4, 0), pady=3, sticky="ew")
+        ctk.CTkButton(template_actions, text="DELETE", fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.template_delete_current).grid(row=2, column=0, columnspan=2, padx=0, pady=3, sticky="ew")
 
         template_list = ctk.CTkScrollableFrame(left, fg_color="#0B0B0B", corner_radius=12)
         template_list.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
 
+        default_template_name = get_default_template()
         for name in sorted(list_templates()):
             prefix = "✓ " if name == self.template_selected_name else ""
+            if name == default_template_name:
+                prefix += "★ "
             ctk.CTkButton(
                 template_list,
                 text=prefix + name,
@@ -1132,7 +1289,7 @@ class VadafokStudio(ctk.CTk):
         self.template_canvas.bind("<Motion>", self.template_mouse_motion)
 
         controls = ctk.CTkFrame(right, fg_color="transparent")
-        controls.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 18))
+        controls.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
         controls.grid_columnconfigure((0,1,2,3), weight=1)
 
         ctk.CTkButton(controls, text="+ ADD FIELD", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.template_add_field).grid(row=0, column=0, padx=4, pady=4, sticky="ew")
@@ -1263,10 +1420,25 @@ class VadafokStudio(ctk.CTk):
 
 
 
-    def template_save(self):
-        save_template(self.template_selected_name, self.template_current())
-        messagebox.showinfo("Template Editor", f"Template gespeichert:\n{self.template_selected_name}")
 
+    def template_save(self):
+        template = self.template_current()
+        save_template(self.template_selected_name, template)
+
+        bg_ok, bg_msg = ensure_background_file(self.template_selected_name, template)
+
+        if bg_ok:
+            messagebox.showinfo(
+                "Template Editor",
+                f"Template gespeichert:\n{self.template_selected_name}\n\n✓ template.json gespeichert\n✓ {bg_msg}"
+            )
+        else:
+            messagebox.showwarning(
+                "Template Editor",
+                f"Template gespeichert:\n{self.template_selected_name}\n\n✓ template.json gespeichert\n✗ {bg_msg}"
+            )
+
+        self.template_draw_canvas()
 
 
     def template_reset_default(self):
@@ -1624,14 +1796,14 @@ class VadafokStudio(ctk.CTk):
         self.clear_main()
         self.page_title("Card Creator")
 
-        self.template_profiles = load_json(TEMPLATE_PROFILES_PATH, {})
-        self.template_store_migrated = import_legacy_templates(self.template_profiles)
-        if not self.template_profiles:
-            self.template_profiles["Default Stream Plan"] = create_default_template("Default Stream Plan")
-            save_template(self.template_selected_name, self.template_current())
+        names = list_templates()
+        if not names:
+            create_template("Default Stream Plan")
+            names = list_templates()
 
-        if not self.card_selected_template.get() or self.card_selected_template.get() not in self.template_profiles:
-            self.card_selected_template.set(sorted(self.template_profiles.keys())[0])
+        if not self.card_selected_template.get() or self.card_selected_template.get() not in names:
+            default_name = get_default_template()
+            self.card_selected_template.set(default_name if default_name in names else sorted(names)[0])
 
         outer = ctk.CTkFrame(self.main, fg_color=DARK)
         outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
@@ -1670,7 +1842,7 @@ class VadafokStudio(ctk.CTk):
         self.card_form_frame.grid_columnconfigure(0, weight=1)
 
         buttons = ctk.CTkFrame(form, fg_color="transparent")
-        buttons.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 18))
+        buttons.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
         buttons.grid_columnconfigure(0, weight=1)
         ctk.CTkButton(buttons, text="RENDER CARD", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.card_render_final).grid(row=0, column=0, padx=0, pady=4, sticky="ew")
         self.card_render_status = ctk.CTkLabel(buttons, text="Noch nicht gerendert.", text_color="#BCA870", wraplength=260, justify="left")
@@ -1679,19 +1851,30 @@ class VadafokStudio(ctk.CTk):
         self.card_build_form()
         self.card_update_preview()
 
+
+
     def card_select_template(self, name):
         self.card_selected_template.set(name)
+        self.card_creator_preview_image = None
+        self.card_creator_last_render = None
         self.show_card_creator_page()
 
 
+
     def card_template(self):
-        if not self.card_selected_template.get():
+        names = list_templates()
+        if not names:
+            create_template("Default Stream Plan")
             names = list_templates()
-            if not names:
-                create_template("Default Stream Plan")
-                names = list_templates()
-            self.card_selected_template.set(names[0])
-        return load_template(self.card_selected_template.get())
+
+        selected = self.card_selected_template.get()
+        if selected not in names:
+            default_name = get_default_template()
+            selected = default_name if default_name in names else sorted(names)[0]
+            self.card_selected_template.set(selected)
+
+        return load_template(selected)
+
 
     def card_build_form(self):
         for w in self.card_form_frame.winfo_children():
@@ -1730,22 +1913,57 @@ class VadafokStudio(ctk.CTk):
         return {k: (v.get() if hasattr(v, "get") else str(v)) for k, v in values.items()}
 
 
+
+
+
     def card_background_path(self):
-        return str(background_path(self.card_selected_template.get(), self.card_template()))
+        template_name = self.card_selected_template.get()
+        if not template_name:
+            return ""
+
+        template = load_template(template_name)
+
+        bg = background_path(template_name, template)
+        if bg.exists():
+            return str(bg)
+
+        folder = template_dir(template_name)
+        for candidate in [
+            folder / "background.png",
+            folder / "background.jpg",
+            folder / "background.jpeg",
+            folder / "background.webp",
+        ]:
+            if candidate.exists():
+                return str(candidate)
+
+        for ext in ("*.png", "*.jpg", "*.jpeg", "*.webp"):
+            matches = list(folder.glob(ext))
+            if matches:
+                return str(matches[0])
+
+        return ""
+
 
     def card_render_to_file(self, final=False):
         suffix = "final" if final else "preview"
         safe_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in self.card_selected_template.get())
         out = EXPORT_DIR / f"card_{safe_name}_{suffix}.png"
-        render_template_card(self.card_template(), self.card_values_plain(), out, self.card_background_path(), size=(1280, 720))
+        render_template_card(self.card_template(), self.card_values_plain(), out, self.card_background_path(), size=None)
         return out
+
 
     def card_update_preview(self):
         if not hasattr(self, "card_preview_frame"):
             return
         for w in self.card_preview_frame.winfo_children():
             w.destroy()
+        self.card_creator_preview_image = None
         try:
+            if not self.card_background_path():
+                raise FileNotFoundError(f"Kein Background gefunden für Template: {self.card_selected_template.get()}")
+            if not self.card_background_path():
+                raise FileNotFoundError(f"Kein Background gefunden für Template: {self.card_selected_template.get()}")
             preview_path = self.card_render_to_file(final=False)
             img = Image.open(preview_path).convert("RGBA")
             img.thumbnail((620, 520))

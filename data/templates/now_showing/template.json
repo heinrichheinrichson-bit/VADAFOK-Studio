@@ -1,11 +1,11 @@
 {
-  "name": "New Template 6",
-  "background": "",
+  "name": "now showing",
+  "background": "background.png",
   "fields": [
     {
       "name": "date",
-      "x": 120,
-      "y": 80,
+      "x": 314,
+      "y": 1261,
       "width": 420,
       "height": 90,
       "font_family": "Bebas Neue",
@@ -17,8 +17,8 @@
     },
     {
       "name": "game",
-      "x": 259,
-      "y": 513,
+      "x": 63,
+      "y": 758,
       "width": 900,
       "height": 120,
       "font_family": "Bebas Neue",
@@ -30,8 +30,8 @@
     },
     {
       "name": "time",
-      "x": 304,
-      "y": 243,
+      "x": 342,
+      "y": 1134,
       "width": 360,
       "height": 90,
       "font_family": "Bebas Neue",

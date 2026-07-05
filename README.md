@@ -1,51 +1,45 @@
-# VADAFOK Studio 2.3.5
-
-## Basis
-
-Direkt aus der stabilen Nutzer-ZIP `Studio 2.2.1`.
+# VADAFOK Studio 2.5.3
 
 ## Ziel
 
-Gezielter Fix für das Template-Editor-Flackern beim Klick und Ziehen.
+Fix für Card-Creator-Template-Auswahl.
 
-## Diagnose
+## Ursache
 
-Das Bild flackerte bereits bei einfachem Klick ins Multi-Field-Layout.
-Deshalb war nicht nur das Ziehen das Problem, sondern `template_mouse_down`.
+Der Card Creator hat intern noch die alte Legacy-Liste `template_profiles.json` verwendet.
+Dadurch wurde die Auswahl nach einem Klick sofort wieder auf `Default Stream Plan` zurückgesetzt.
 
-## Änderung
+Beobachtet im Debug:
 
-- Klick ins leere Canvas zeichnet nichts mehr neu.
-- Klick auf ein Feld aktualisiert nur die Feld-Overlays.
-- Ziehen aktualisiert nur die Feld-Overlays.
-- Der Hintergrund bleibt stehen.
-- Alle Feld-Overlays bekommen den Canvas-Tag `template_overlay`.
+```text
+Clicked Template: Test
+card_selected_template: Default Stream Plan
+```
 
-## Nicht verändert
+## Repariert
 
-- Library
-- SHOW / USE
-- SET BACKGROUND FROM LIBRARY
-- BACKGROUND AUS DATEI
-- Card Creator
-- Template-Ordnerstruktur
+- Card Creator nutzt jetzt nur noch die neue Template-Ordnerstruktur.
+- Template-Klick setzt `card_selected_template` korrekt.
+- `card_template()` lädt das wirklich ausgewählte Template.
+- Kein Rückfall auf `Default Stream Plan`, solange die Auswahl gültig ist.
+- Background-Suche bleibt robust.
+- Hochformat-Templates werden mit echter Background-Größe gerendert.
 
 ## Test
 
-1. Library → Template-Bild auswählen → SHOW / USE.
-2. Template Editor öffnen.
-3. Ins schwarze freie Canvas klicken.
-   - Bild darf nicht wegflackern.
-4. Feld anklicken.
-   - Bild darf nicht wegflackern.
-5. Feld ziehen.
-   - Bild soll stehen bleiben.
-   - keine doppelten Felder.
-6. Feldgröße ändern.
-   - Bild soll stehen bleiben.
-   - keine doppelten Felder.
-7. Card Creator kurz prüfen.
+1. Card Creator öffnen.
+2. Template `Test` anklicken.
+3. Prüfen: Button-Haken wechselt auf `Test`.
+4. Preview zeigt das Bild von `Test`.
+5. anderes Template anklicken.
+6. Preview muss wechseln.
+7. zwei Templates rendern und Export-PNGs prüfen.
+8. Template Editor kurz prüfen:
+   - Löschen bleibt bestehen
+   - Umbenennen funktioniert
+   - Duplizieren funktioniert
+   - Felder ziehen flackerfrei
 
 ## Git
 
-Nur committen, wenn Klick + Ziehen stabil sind und Library/Background weiter funktionieren.
+Erst committen, wenn Card Creator beim Template-Wechsel korrekt lädt.

@@ -4,6 +4,8 @@ import shutil
 import re
 
 from .config import TEMPLATE_LIBRARY_DIR
+MIGRATION_MARKER = TEMPLATE_LIBRARY_DIR / ".legacy_import_done"
+DELETED_TEMPLATES_PATH = TEMPLATE_LIBRARY_DIR / ".deleted_templates"
 
 
 def _safe_slug(name: str) -> str:
@@ -98,6 +100,7 @@ def create_template(name="New Template"):
     d.mkdir(parents=True, exist_ok=True)
     data = default_template(final_name)
     save_template(final_name, data)
+    _unmark_template_deleted(final_name)
     return data
 
 
@@ -151,8 +154,12 @@ def import_legacy_templates(legacy_profiles: dict):
     Does not delete old data.
     """
     ensure_template_root()
+    if MIGRATION_MARKER.exists():
+        return []
     imported = []
     for name, data in (legacy_profiles or {}).items():
+        if name in _deleted_templates():
+            continue
         if not isinstance(data, dict):
             continue
         if template_json_path(name).exists():
@@ -170,4 +177,136 @@ def import_legacy_templates(legacy_profiles: dict):
         else:
             save_template(name, new_data)
         imported.append(name)
+    try:
+        MIGRATION_MARKER.write_text("done", encoding="utf-8")
+    except Exception:
+        pass
     return imported
+
+
+def delete_template(name: str):
+    d = template_dir(name)
+    _mark_template_deleted(name)
+    if d.exists():
+        shutil.rmtree(d)
+        return True
+    return False
+
+
+def duplicate_template(name: str):
+    src = template_dir(name)
+    if not src.exists():
+        raise FileNotFoundError(str(src))
+
+    base = f"{name} Copy"
+    final = base
+    i = 1
+    while template_dir(final).exists():
+        i += 1
+        final = f"{base} {i}"
+
+    dest = template_dir(final)
+    shutil.copytree(src, dest)
+    data = load_template(final)
+    data["name"] = final
+    save_template(final, data)
+    _unmark_template_deleted(final)
+    return data
+
+
+def rename_template(old_name: str, new_name: str):
+    old = template_dir(old_name)
+    new = template_dir(new_name)
+    if not old.exists():
+        raise FileNotFoundError(str(old))
+    if new.exists():
+        raise FileExistsError(str(new))
+    old.rename(new)
+    data = load_template(new_name)
+    data["name"] = new_name
+    save_template(new_name, data)
+    _unmark_template_deleted(new_name)
+    return data
+
+
+def default_marker_path():
+    ensure_template_root()
+    return TEMPLATE_LIBRARY_DIR / ".default_template"
+
+
+def set_default_template(name: str):
+    ensure_template_root()
+    default_marker_path().write_text(name, encoding="utf-8")
+
+
+def get_default_template():
+    p = default_marker_path()
+    if not p.exists():
+        return ""
+    return p.read_text(encoding="utf-8").strip()
+
+
+def _deleted_templates():
+    ensure_template_root()
+    if not DELETED_TEMPLATES_PATH.exists():
+        return set()
+    return {line.strip() for line in DELETED_TEMPLATES_PATH.read_text(encoding="utf-8").splitlines() if line.strip()}
+
+
+def _mark_template_deleted(name: str):
+    deleted = _deleted_templates()
+    deleted.add(name)
+    DELETED_TEMPLATES_PATH.write_text("\n".join(sorted(deleted)), encoding="utf-8")
+
+
+def _unmark_template_deleted(name: str):
+    deleted = _deleted_templates()
+    if name in deleted:
+        deleted.remove(name)
+        DELETED_TEMPLATES_PATH.write_text("\n".join(sorted(deleted)), encoding="utf-8")
+
+
+def ensure_background_file(name: str, data: dict):
+    """
+    Ensures the template folder contains the background file referenced by template.json.
+
+    Returns:
+        (ok: bool, message: str)
+    """
+    d = template_dir(name)
+    d.mkdir(parents=True, exist_ok=True)
+
+    bg = data.get("background", "background.png")
+    bg_path = Path(bg)
+
+    # Case 1: background is absolute source path.
+    if bg_path.is_absolute() and bg_path.exists():
+        suffix = bg_path.suffix.lower() or ".png"
+        dest = d / f"background{suffix}"
+        try:
+            shutil.copy2(bg_path, dest)
+            data["background"] = dest.name
+            save_template(name, data)
+            return dest.exists(), f"{dest.name} kopiert"
+        except Exception as e:
+            return False, str(e)
+
+    # Case 2: background is relative to template folder and exists.
+    resolved = d / bg
+    if resolved.exists():
+        return True, f"{resolved.name} vorhanden"
+
+    # Case 3: background is relative/absolute but source exists elsewhere.
+    if bg and Path(bg).exists():
+        src = Path(bg)
+        suffix = src.suffix.lower() or ".png"
+        dest = d / f"background{suffix}"
+        try:
+            shutil.copy2(src, dest)
+            data["background"] = dest.name
+            save_template(name, data)
+            return dest.exists(), f"{dest.name} kopiert"
+        except Exception as e:
+            return False, str(e)
+
+    return False, f"Hintergrunddatei fehlt: {resolved}"
