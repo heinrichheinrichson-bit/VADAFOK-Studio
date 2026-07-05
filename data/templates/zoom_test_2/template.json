@@ -1,0 +1,45 @@
+{
+  "name": "zoom test 2",
+  "background": "background.png",
+  "fields": [
+    {
+      "name": "game",
+      "x": 158,
+      "y": 1367,
+      "width": 623,
+      "height": 120,
+      "font_family": "Bebas Neue",
+      "font_size": 110,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true
+    },
+    {
+      "name": "date",
+      "x": 164,
+      "y": 817,
+      "width": 623,
+      "height": 120,
+      "font_family": "Bebas Neue",
+      "font_size": 110,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true
+    },
+    {
+      "name": "time",
+      "x": 156,
+      "y": 1093,
+      "width": 623,
+      "height": 120,
+      "font_family": "Bebas Neue",
+      "font_size": 110,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true
+    }
+  ]
+}

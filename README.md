@@ -1,35 +1,68 @@
-# VADAFOK Studio 2.5.5
+# VADAFOK Studio 2.5.7
 
 ## Ziel
 
-Zoom im Template Editor.
+Pan Anti-Flicker im Template Editor.
 
-## Neu
+## Problem in 2.5.6
 
-- `ZOOM -`
-- Anzeige z. B. `100%`
-- `ZOOM +`
-- `100%`
-- `STRG + Mausrad`
+Pan funktionierte, aber beim Verschieben des gezoomten Bildes wurde das komplette Canvas neu gezeichnet.
+Dadurch wurde das Hintergrundbild kurz ausgeblendet bzw. neu geladen.
 
-Zoom-Bereich: 25% bis 400%.
+## Repariert
+
+Beim Pan wird jetzt nicht mehr neu gerendert.
+
+Stattdessen:
+
+```text
+canvas.move("all", dx, dy)
+```
+
+Das bedeutet:
+
+- Hintergrundbild bleibt sichtbar
+- Feldrahmen bleiben sichtbar
+- Handles bleiben sichtbar
+- kein erneutes Laden der PNG
+- kein Flackern beim Pan
+
+## Verhalten
+
+- Zoom ändern → zeichnet einmal neu
+- Pan bewegen → verschiebt vorhandene Canvas-Objekte
+- PAN RESET → zeichnet einmal neu
+- 100% → setzt Zoom und Pan zurück
 
 ## Test
 
 1. Template Editor öffnen.
-2. `ZOOM +` drücken.
-3. Feld anklicken, verschieben und skalieren.
-4. `ZOOM -` testen.
-5. `100%` testen.
-6. STRG + Mausrad testen.
-7. COPY FIELD kurz testen.
+2. Stark hineinzoomen.
+3. Mittlere Maustaste ziehen.
+4. Prüfen: Kein Wegflackern.
+5. Shift + linke Maustaste ziehen.
+6. Prüfen: Kein Wegflackern.
+7. Nach dem Pan ein Feld anklicken.
+8. Feld verschieben/skalieren.
+9. COPY FIELD testen.
+10. Card Creator kurz prüfen.
 
-## Git
-
-Wenn alles passt:
+## Git nach erfolgreichem Test
 
 ```bash
 git add .
-git commit -m "v2.5.5 - Add Template Editor zoom"
+git commit -m "v2.5.7 - Smooth pan without canvas redraw"
 git push
+```
+
+## Commit-Beschreibung
+
+```text
+v2.5.7 - Smooth pan without canvas redraw
+
+- Pan now moves existing canvas items instead of redrawing
+- Background no longer reloads during pan
+- Removed pan flicker in Template Editor
+- Keeps hit testing coordinates synchronized after pan
+- Zoom, Copy Field and Card Creator remain unchanged
 ```
