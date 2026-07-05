@@ -1,20 +1,21 @@
 # CHANGELOG
 
-## v2.7.2 - Add inline rename for Layer Panel
+## v2.7.3 - Add Equal Spacing layout tools
 
 ### Added
-- Inline rename for groups directly inside the Layer Panel.
-- Double-click rename for group rows.
-- Inline rename for field rows.
-- Double-click rename for fields in Layer Panel.
+- Equal Space Horizontal.
+- Equal Space Vertical.
+- Equal Spacing calculates real gaps between selected objects, not just equal X/Y positions.
+- Works with multi-selection.
+- Respects hidden and locked fields.
+- Supports Undo / Redo.
 
 ### Changed
-- Group rename no longer uses the small system dialog.
-- Layer Panel feels more like a professional editor panel.
+- Template Editor now has both basic Distribute and professional Equal Spacing tools.
 
 ### Testing
 - To be verified before Git release.
 
-## v2.7.1 - Add professional group management
-- Group Rename / Lock / Hide.
-- Group controls in Layer Panel.
+## v2.7.2 - Add inline rename to Layer Panel
+- Added inline group rename via edit button.
+- Removed small dialog for group rename.

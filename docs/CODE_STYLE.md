@@ -1,3 +1,3 @@
 # Code Style
 
-Layer Panel edits should use inline editing where possible.
+Layout tools must respect locked and hidden fields.

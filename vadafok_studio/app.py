@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.7.2.1.1.1")
+        self.wm_title("VADAFOK Studio 2.7.3.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -143,7 +143,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.7.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.7.3", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -1003,7 +1003,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.7.2: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.7.3: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -2229,6 +2229,63 @@ class VadafokStudio(ctk.CTk):
             self.template_build_properties_panel()
 
 
+
+    def template_equal_spacing_selected(self, axis):
+        template = self.template_current()
+        fields = template.get("fields", [])
+
+        selected = (
+            self.template_selected_unlocked_indices()
+            if hasattr(self, "template_selected_unlocked_indices")
+            else (self.template_selected_indices() if hasattr(self, "template_selected_indices") else [])
+        )
+
+        selected = [
+            idx for idx in selected
+            if 0 <= idx < len(fields) and not fields[idx].get("hidden", False)
+        ]
+
+        if len(selected) < 3:
+            messagebox.showwarning("Template Editor", "Equal Spacing braucht mindestens drei ungesperrte, sichtbare Felder.")
+            return
+
+        if hasattr(self, "template_push_history"):
+            self.template_push_history("equal spacing")
+
+        selected_fields = [fields[i] for i in selected]
+
+        if axis == "horizontal":
+            selected_fields.sort(key=lambda f: int(f.get("x", 0)))
+            left = min(int(f.get("x", 0)) for f in selected_fields)
+            right = max(int(f.get("x", 0)) + int(f.get("width", 0)) for f in selected_fields)
+            total_width = sum(int(f.get("width", 0)) for f in selected_fields)
+            gaps = len(selected_fields) - 1
+            gap = (right - left - total_width) / gaps if gaps else 0
+
+            cursor = left
+            for f in selected_fields:
+                f["x"] = int(round(cursor))
+                cursor += int(f.get("width", 0)) + gap
+
+        elif axis == "vertical":
+            selected_fields.sort(key=lambda f: int(f.get("y", 0)))
+            top = min(int(f.get("y", 0)) for f in selected_fields)
+            bottom = max(int(f.get("y", 0)) + int(f.get("height", 0)) for f in selected_fields)
+            total_height = sum(int(f.get("height", 0)) for f in selected_fields)
+            gaps = len(selected_fields) - 1
+            gap = (bottom - top - total_height) / gaps if gaps else 0
+
+            cursor = top
+            for f in selected_fields:
+                f["y"] = int(round(cursor))
+                cursor += int(f.get("height", 0)) + gap
+
+        save_template(self.template_selected_name, template)
+        self.template_draw_canvas()
+        if hasattr(self, "template_layers_body"):
+            self.template_build_layers_panel()
+
+
     def show_template_editor_page(self):
         self.set_active("Template Editor")
         self.clear_main()
@@ -2437,14 +2494,20 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkButton(distribute_bar, text="DISTRIBUTE H", fg_color="#333333", hover_color="#444444", command=lambda: self.template_distribute_selected("horizontal")).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
         ctk.CTkButton(distribute_bar, text="DISTRIBUTE V", fg_color="#333333", hover_color="#444444", command=lambda: self.template_distribute_selected("vertical")).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
 
+        equal_bar = ctk.CTkFrame(controls, fg_color="transparent")
+        equal_bar.grid(row=6, column=0, columnspan=5, padx=4, pady=(2, 0), sticky="ew")
+        equal_bar.grid_columnconfigure((0,1), weight=1)
+        ctk.CTkButton(equal_bar, text="EQUAL SPACE H", fg_color="#333333", hover_color="#444444", command=lambda: self.template_equal_spacing_selected("horizontal")).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
+        ctk.CTkButton(equal_bar, text="EQUAL SPACE V", fg_color="#333333", hover_color="#444444", command=lambda: self.template_equal_spacing_selected("vertical")).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
+
         history_bar = ctk.CTkFrame(controls, fg_color="transparent")
-        history_bar.grid(row=6, column=0, columnspan=5, padx=4, pady=(2, 0), sticky="ew")
+        history_bar.grid(row=7, column=0, columnspan=5, padx=4, pady=(2, 0), sticky="ew")
         history_bar.grid_columnconfigure((0,1), weight=1)
         ctk.CTkButton(history_bar, text="UNDO", fg_color="#333333", hover_color="#444444", command=self.template_undo).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
         ctk.CTkButton(history_bar, text="REDO", fg_color="#333333", hover_color="#444444", command=self.template_redo).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
 
         group_bar = ctk.CTkFrame(controls, fg_color="transparent")
-        group_bar.grid(row=7, column=0, columnspan=5, padx=4, pady=(2, 0), sticky="ew")
+        group_bar.grid(row=8, column=0, columnspan=5, padx=4, pady=(2, 0), sticky="ew")
         group_bar.grid_columnconfigure((0,1), weight=1)
         ctk.CTkButton(group_bar, text="GROUP SELECTED", fg_color="#333333", hover_color="#444444", command=self.template_create_group).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
         ctk.CTkButton(group_bar, text="UNGROUP", fg_color="#333333", hover_color="#444444", command=self.template_ungroup_selected).grid(row=0, column=1, padx=2, pady=2, sticky="ew")

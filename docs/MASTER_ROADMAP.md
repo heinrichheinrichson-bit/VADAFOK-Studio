@@ -1,6 +1,6 @@
 # VADAFOK Studio – MASTER ROADMAP
 
-Stand: v2.7.2 Testbuild
+Stand: v2.7.3 Testbuild
 
 ## Template Editor Skilltree
 
@@ -10,11 +10,19 @@ Layers:
 - ✅ Hide / Show
 - ✅ Group / Ungroup
 - ✅ Group Rename / Lock / Hide
-- 🚧 Inline Rename
+- ✅ Inline Group Rename
+- ⬜ Double-click rename polish
 - ⬜ Collapsible Groups
-- ⬜ Drag & Drop Layer Reordering
 
-Next:
-- Collapsible Groups
-- Equal Spacing
-- Selection Rectangle
+Layout:
+- ✅ Align
+- ✅ Basic Distribute
+- 🚧 Equal Spacing
+- ⬜ Selection Rectangle
+- ⬜ Style Presets
+
+Future Text Engine:
+- ⬜ Curved Text / text along an arc
+- ⬜ Text on path
+- ⬜ Letter spacing
+- ⬜ Advanced stroke / shadow / glow

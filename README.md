@@ -1,13 +1,19 @@
-# VADAFOK Studio 2.7.2
+# VADAFOK Studio 2.7.3
 
 ## Neu
 
-Layer Panel 2.0 – Inline Rename.
+Equal Spacing Layout Tools:
 
-- Gruppe per `✎` direkt im Layer Panel umbenennen
-- Gruppe per Doppelklick umbenennen
-- Feld per Doppelklick im Layer Panel umbenennen
-- Kein kleines `simpledialog` Fenster mehr für Gruppen
+- `EQUAL SPACE H`
+- `EQUAL SPACE V`
+
+Diese Funktion verteilt die **echten sichtbaren Abstände** zwischen Feldern gleichmäßig.
+
+## Unterschied zu Distribute
+
+`DISTRIBUTE H/V` verteilt Positionen.
+
+`EQUAL SPACE H/V` verteilt die Lücken zwischen den Objekten.
 
 ## Test
 
@@ -17,6 +23,6 @@ Siehe `docs/RELEASE_CHECKLIST.md`.
 
 ```bash
 git add .
-git commit -m "v2.7.2 - Add inline rename to Layer Panel"
+git commit -m "v2.7.3 - Add equal spacing layout tools"
 git push
 ```

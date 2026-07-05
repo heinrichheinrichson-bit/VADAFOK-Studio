@@ -1,11 +1,18 @@
 # Architecture
 
-## v2.7.2 Notes
+## v2.7.3 Equal Spacing
 
-Layer Panel now supports inline editing for fields and groups.
+Equal Spacing differs from basic Distribute:
 
-Rename flow:
-- start inline entry
-- commit on Enter or FocusOut
-- cancel on Escape
-- push undo history before changing the template data
+- Basic Distribute equalizes X/Y positions.
+- Equal Spacing equalizes the visible gap between object edges.
+
+Horizontal:
+- left boundary = min(x)
+- right boundary = max(x + width)
+- gap = (right - left - sum(widths)) / (n - 1)
+
+Vertical:
+- top boundary = min(y)
+- bottom boundary = max(y + height)
+- gap = (bottom - top - sum(heights)) / (n - 1)

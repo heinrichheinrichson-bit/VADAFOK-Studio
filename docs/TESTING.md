@@ -1,3 +1,3 @@
 # Testing
 
-Test inline rename for fields and groups.
+Test Equal Space H/V with same-size and different-size fields.

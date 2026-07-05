@@ -4,9 +4,9 @@
   "fields": [
     {
       "name": "hallo",
-      "x": 169,
-      "y": 1128,
-      "width": 339,
+      "x": 137,
+      "y": 744,
+      "width": 106,
       "height": 99,
       "font_family": "Bebas Neue",
       "font_size": 90,
@@ -15,13 +15,14 @@
       "stroke_width": 3,
       "uppercase": true,
       "locked": false,
-      "hidden": false
+      "hidden": false,
+      "id": "0e7edbcf-bac5-401a-aff2-ea7d0439a09d"
     },
     {
       "name": "time",
-      "x": 233,
-      "y": 495,
-      "width": 680,
+      "x": 134,
+      "y": 1157,
+      "width": 673,
       "height": 99,
       "font_family": "Bebas Neue",
       "font_size": 90,
@@ -29,13 +30,14 @@
       "stroke_color": "#000000",
       "stroke_width": 3,
       "uppercase": true,
-      "locked": false
+      "locked": true,
+      "id": "f4a7655a-1d8f-45e2-aee0-7674cf93ec76"
     },
     {
       "name": "hallo",
-      "x": 185,
-      "y": 836,
-      "width": 680,
+      "x": 681,
+      "y": 744,
+      "width": 201,
       "height": 99,
       "font_family": "Bebas Neue",
       "font_size": 90,
@@ -43,7 +45,38 @@
       "stroke_color": "#000000",
       "stroke_width": 3,
       "uppercase": true,
-      "locked": false
+      "locked": false,
+      "id": "acebee4f-7f95-488c-a75f-007dd548e966"
+    },
+    {
+      "name": "date",
+      "x": 134,
+      "y": 918,
+      "width": 673,
+      "height": 99,
+      "font_family": "Bebas Neue",
+      "font_size": 90,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true,
+      "locked": true,
+      "id": "d9e7a289-4d5a-49d3-927e-7f3bb2ca4e50"
+    },
+    {
+      "name": "game",
+      "x": 134,
+      "y": 1394,
+      "width": 673,
+      "height": 99,
+      "font_family": "Bebas Neue",
+      "font_size": 90,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true,
+      "locked": true,
+      "id": "e4d424af-f395-4416-8c99-28d843866e2e"
     }
   ],
   "groups": []
