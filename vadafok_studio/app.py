@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.5.9.1.1.1")
+        self.wm_title("VADAFOK Studio 2.6.0.1.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -45,6 +45,7 @@ class VadafokStudio(ctk.CTk):
         self.template_drag_mode = None
         self.template_drag_start = None
         self.template_drag_original = None
+        self.template_group_drag_originals = None
         self.template_working_data = None
         self.template_zoom_factor = 1.0
         self.template_zoom_label_var = ctk.StringVar(value="100%")
@@ -135,7 +136,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.5.9.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.6.0.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -994,7 +995,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.5.9.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.6.0.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1680,34 +1681,45 @@ class VadafokStudio(ctk.CTk):
         self.template_draw_canvas()
 
 
+
     def template_copy_field(self):
         template = self.template_current()
-        if self.template_selected_field is None:
+        fields = template.get("fields", [])
+
+        selected = set(getattr(self, "template_selected_fields", set()))
+        if self.template_selected_field is not None:
+            selected.add(self.template_selected_field)
+        selected = sorted(idx for idx in selected if 0 <= idx < len(fields))
+
+        if not selected:
             messagebox.showwarning("Template Editor", "Bitte zuerst ein Feld auswählen.")
             return
-        if not (0 <= self.template_selected_field < len(template.get("fields", []))):
-            messagebox.showwarning("Template Editor", "Ausgewähltes Feld wurde nicht gefunden.")
-            return
 
-        source = dict(template["fields"][self.template_selected_field])
-        base_name = source.get("name", "field")
-        existing = {f.get("name", "") for f in template.get("fields", [])}
-
-        candidate = f"{base_name}_copy"
-        index = 2
-        while candidate in existing:
-            candidate = f"{base_name}_copy{index}"
-            index += 1
-
-        copied = dict(source)
-        copied["name"] = candidate
-
+        existing = {f.get("name", "") for f in fields}
         design_w, design_h = getattr(self, "template_canvas_design_size", (1280, 720))
-        copied["x"] = min(max(0, int(copied.get("x", 0)) + 15), max(0, int(design_w) - int(copied.get("width", 100))))
-        copied["y"] = min(max(0, int(copied.get("y", 0)) + 15), max(0, int(design_h) - int(copied.get("height", 50))))
 
-        template.setdefault("fields", []).append(copied)
-        self.template_selected_field = len(template["fields"]) - 1
+        copied_indices = []
+        for src_idx in selected:
+            source = dict(fields[src_idx])
+            base_name = source.get("name", "field")
+
+            candidate = f"{base_name}_copy"
+            index = 2
+            while candidate in existing:
+                candidate = f"{base_name}_copy{index}"
+                index += 1
+            existing.add(candidate)
+
+            copied = dict(source)
+            copied["name"] = candidate
+            copied["x"] = min(max(0, int(copied.get("x", 0)) + 15), max(0, int(design_w) - int(copied.get("width", 100))))
+            copied["y"] = min(max(0, int(copied.get("y", 0)) + 15), max(0, int(design_h) - int(copied.get("height", 50))))
+
+            template.setdefault("fields", []).append(copied)
+            copied_indices.append(len(template["fields"]) - 1)
+
+        self.template_selected_fields = set(copied_indices)
+        self.template_selected_field = copied_indices[-1] if copied_indices else None
 
         save_template(self.template_selected_name, template)
         self.template_load_selected_properties()
@@ -1717,7 +1729,7 @@ class VadafokStudio(ctk.CTk):
             self.template_build_properties_panel()
 
         try:
-            if hasattr(self, "template_prop_name_entry"):
+            if len(copied_indices) == 1 and hasattr(self, "template_prop_name_entry"):
                 self.template_prop_name_entry.focus_set()
                 self.template_prop_name_entry.select_range(0, "end")
         except Exception:
@@ -2202,7 +2214,7 @@ class VadafokStudio(ctk.CTk):
 
     def template_mouse_down(self, event):
         idx, mode = self.template_hit_test(event.x, event.y)
-        shift_pressed = self.template_multi_select_modifier(event)
+        multi_pressed = self.template_multi_select_modifier(event)
 
         if idx is None:
             had_selection = bool(getattr(self, "template_selected_fields", set())) or self.template_selected_field is not None
@@ -2210,6 +2222,7 @@ class VadafokStudio(ctk.CTk):
             self.template_drag_mode = None
             self.template_drag_start = None
             self.template_drag_original = None
+            self.template_group_drag_originals = None
             self.template_load_selected_properties()
             if hasattr(self, "template_props_body"):
                 self.template_build_properties_panel()
@@ -2217,10 +2230,19 @@ class VadafokStudio(ctk.CTk):
                 self.template_update_fields_overlay()
             return
 
-        if shift_pressed:
+        selected = set(getattr(self, "template_selected_fields", set()))
+
+        if multi_pressed:
+            # Ctrl/Shift + click toggles membership.
             self.template_toggle_selection(idx)
         else:
-            self.template_set_single_selection(idx)
+            # Important group-drag behavior:
+            # If multiple fields are already selected and the user clicks one of them,
+            # keep the whole selection. This allows dragging the group.
+            if idx in selected and len(selected) > 1:
+                self.template_selected_field = idx
+            else:
+                self.template_set_single_selection(idx)
 
         self.template_load_selected_properties()
         if hasattr(self, "template_props_body"):
@@ -2230,6 +2252,16 @@ class VadafokStudio(ctk.CTk):
         self.template_drag_start = (event.x, event.y)
         template = self.template_current()
         self.template_drag_original = dict(template["fields"][idx])
+
+        selected = set(getattr(self, "template_selected_fields", set()))
+        if idx in selected and len(selected) > 1 and mode == "move":
+            self.template_group_drag_originals = {
+                i: dict(template["fields"][i])
+                for i in selected
+                if 0 <= i < len(template.get("fields", []))
+            }
+        else:
+            self.template_group_drag_originals = None
 
         self.template_update_fields_overlay()
 
@@ -2242,6 +2274,30 @@ class VadafokStudio(ctk.CTk):
         sx, sy = self.template_drag_start
         dx = int((event.x - sx) / self.template_canvas_scale)
         dy = int((event.y - sy) / self.template_canvas_scale)
+
+        # Group move: if multiple fields are selected and one selected field is dragged,
+        # move all selected fields together. Resizing remains single-field for now.
+        group_originals = getattr(self, "template_group_drag_originals", None)
+        if group_originals and (self.template_drag_mode or "move") == "move":
+            design_w, design_h = getattr(self, "template_canvas_design_size", (1280, 720))
+
+            # Keep the entire group inside the template bounds.
+            min_dx = max(-int(f.get("x", 0)) for f in group_originals.values())
+            min_dy = max(-int(f.get("y", 0)) for f in group_originals.values())
+            max_dx = min(design_w - (int(f.get("x", 0)) + int(f.get("width", 0))) for f in group_originals.values())
+            max_dy = min(design_h - (int(f.get("y", 0)) + int(f.get("height", 0))) for f in group_originals.values())
+            dx = max(min_dx, min(max_dx, dx))
+            dy = max(min_dy, min(max_dy, dy))
+
+            template = self.template_current()
+            for idx, original in group_originals.items():
+                f = dict(original)
+                f["x"] = int(f.get("x", 0)) + dx
+                f["y"] = int(f.get("y", 0)) + dy
+                template["fields"][idx] = f
+
+            self.template_update_fields_overlay()
+            return
 
         f = dict(self.template_drag_original)
         x, y, w, h = f["x"], f["y"], f["width"], f["height"]
@@ -2298,6 +2354,7 @@ class VadafokStudio(ctk.CTk):
         self.template_drag_mode = None
         self.template_drag_start = None
         self.template_drag_original = None
+        self.template_group_drag_originals = None
 
 
     def show_card_creator_page(self):
