@@ -1,0 +1,58 @@
+{
+  "name": "test zoom etc",
+  "background": "background.png",
+  "fields": [
+    {
+      "name": "game",
+      "x": 152,
+      "y": 914,
+      "width": 641,
+      "height": 110,
+      "font_family": "Bebas Neue",
+      "font_size": 110,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true
+    },
+    {
+      "name": "game_copy",
+      "x": 156,
+      "y": 1155,
+      "width": 641,
+      "height": 110,
+      "font_family": "Bebas Neue",
+      "font_size": 110,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true
+    },
+    {
+      "name": "game_copy_copy",
+      "x": 142,
+      "y": 1389,
+      "width": 641,
+      "height": 110,
+      "font_family": "Bebas Neue",
+      "font_size": 110,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true
+    },
+    {
+      "name": "field_4",
+      "x": 160,
+      "y": 330,
+      "width": 500,
+      "height": 90,
+      "font_family": "Bebas Neue",
+      "font_size": 90,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true
+    }
+  ]
+}

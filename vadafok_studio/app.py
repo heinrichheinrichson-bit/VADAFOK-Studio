@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.5.4.1")
+        self.wm_title("VADAFOK Studio 2.5.5.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -43,6 +43,8 @@ class VadafokStudio(ctk.CTk):
         self.template_drag_start = None
         self.template_drag_original = None
         self.template_working_data = None
+        self.template_zoom_factor = 1.0
+        self.template_zoom_label_var = ctk.StringVar(value="100%")
         self.template_hover_mode = None
         self.template_prop_name = ctk.StringVar(value="")
         self.template_prop_font_family = ctk.StringVar(value="")
@@ -122,7 +124,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.5.4", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.5.5", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -977,7 +979,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.5.4: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.5.5: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1212,6 +1214,39 @@ class VadafokStudio(ctk.CTk):
         self.show_template_editor_page()
 
 
+
+    def template_set_zoom(self, value):
+        try:
+            value = float(value)
+        except Exception:
+            value = 1.0
+        self.template_zoom_factor = max(0.25, min(4.0, value))
+        if hasattr(self, "template_zoom_label_var"):
+            self.template_zoom_label_var.set(f"{int(self.template_zoom_factor * 100)}%")
+        if hasattr(self, "template_canvas"):
+            self.template_draw_canvas()
+
+    def template_zoom_in(self):
+        self.template_set_zoom(getattr(self, "template_zoom_factor", 1.0) * 1.25)
+
+    def template_zoom_out(self):
+        self.template_set_zoom(getattr(self, "template_zoom_factor", 1.0) / 1.25)
+
+    def template_zoom_reset(self):
+        self.template_set_zoom(1.0)
+
+    def template_mouse_wheel_zoom(self, event):
+        ctrl_pressed = bool(getattr(event, "state", 0) & 0x0004)
+        if not ctrl_pressed:
+            return
+        delta = getattr(event, "delta", 0)
+        if delta > 0 or getattr(event, "num", None) == 4:
+            self.template_zoom_in()
+        elif delta < 0 or getattr(event, "num", None) == 5:
+            self.template_zoom_out()
+        return "break"
+
+
     def show_template_editor_page(self):
         self.set_active("Template Editor")
         self.clear_main()
@@ -1287,6 +1322,9 @@ class VadafokStudio(ctk.CTk):
         self.template_canvas.bind("<B1-Motion>", self.template_mouse_drag)
         self.template_canvas.bind("<ButtonRelease-1>", self.template_mouse_up)
         self.template_canvas.bind("<Motion>", self.template_mouse_motion)
+        self.template_canvas.bind("<Control-MouseWheel>", self.template_mouse_wheel_zoom)
+        self.template_canvas.bind("<Control-Button-4>", self.template_mouse_wheel_zoom)
+        self.template_canvas.bind("<Control-Button-5>", self.template_mouse_wheel_zoom)
 
         controls = ctk.CTkFrame(right, fg_color="transparent")
         controls.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
@@ -1336,6 +1374,15 @@ class VadafokStudio(ctk.CTk):
         self.template_props_body.grid_columnconfigure(1, weight=1)
 
         self.template_build_properties_panel()
+
+
+        zoom_bar = ctk.CTkFrame(controls, fg_color="transparent")
+        zoom_bar.grid(row=2, column=0, columnspan=5, padx=4, pady=(8, 0), sticky="ew")
+        zoom_bar.grid_columnconfigure(1, weight=1)
+        ctk.CTkButton(zoom_bar, text="ZOOM -", fg_color="#333333", hover_color="#444444", command=self.template_zoom_out).grid(row=0, column=0, padx=(0, 4), sticky="ew")
+        ctk.CTkLabel(zoom_bar, textvariable=self.template_zoom_label_var, text_color=GOLD, font=ctk.CTkFont(size=14, weight="bold")).grid(row=0, column=1, padx=4, sticky="ew")
+        ctk.CTkButton(zoom_bar, text="ZOOM +", fg_color="#333333", hover_color="#444444", command=self.template_zoom_in).grid(row=0, column=2, padx=4, sticky="ew")
+        ctk.CTkButton(zoom_bar, text="100%", fg_color="#333333", hover_color="#444444", command=self.template_zoom_reset).grid(row=0, column=3, padx=(4, 0), sticky="ew")
 
         self.template_draw_canvas()
 
@@ -1560,21 +1607,24 @@ class VadafokStudio(ctk.CTk):
             try:
                 original = load_rgba(bg_path)
                 self.template_canvas_design_size = original.size
-                display, scale, offset = fit_image_to_box(original, cw, ch, padding=40)
+                _display, base_scale, _offset = fit_image_to_box(original, cw, ch, padding=40)
+                scale = base_scale * float(getattr(self, "template_zoom_factor", 1.0))
+                display = original.resize((max(1, int(original.size[0] * scale)), max(1, int(original.size[1] * scale))))
+                offset = ((cw - display.size[0]) // 2, (ch - display.size[1]) // 2)
                 self.template_canvas_scale = scale
                 self.template_canvas_offset = offset
                 self.template_bg_photo = tk.PhotoImage(data=pil_to_tk_photo_data(display))
                 canvas.create_image(offset[0], offset[1], image=self.template_bg_photo, anchor="nw", tags="background")
                 canvas.create_rectangle(offset[0], offset[1], offset[0] + display.size[0], offset[1] + display.size[1], outline="#3A2A0D", width=2)
             except Exception as e:
-                self.template_canvas_scale = min((cw - 40) / 1280, (ch - 40) / 720)
+                self.template_canvas_scale = min((cw - 40) / 1280, (ch - 40) / 720) * float(getattr(self, 'template_zoom_factor', 1.0))
                 self.template_canvas_offset = ((cw - int(1280 * self.template_canvas_scale)) // 2, (ch - int(720 * self.template_canvas_scale)) // 2)
                 ox, oy = self.template_canvas_offset
                 dw, dh = int(1280 * self.template_canvas_scale), int(720 * self.template_canvas_scale)
                 canvas.create_rectangle(ox, oy, ox + dw, oy + dh, fill="#111111", outline="#3A2A0D", width=2)
                 canvas.create_text(ox + 20, oy + 20, text=f"Background Fehler:\n{e}", anchor="nw", fill="#D86A6A", font=("Arial", 14, "bold"))
         else:
-            self.template_canvas_scale = min((cw - 40) / 1280, (ch - 40) / 720)
+            self.template_canvas_scale = min((cw - 40) / 1280, (ch - 40) / 720) * float(getattr(self, 'template_zoom_factor', 1.0))
             self.template_canvas_offset = ((cw - int(1280 * self.template_canvas_scale)) // 2, (ch - int(720 * self.template_canvas_scale)) // 2)
             ox, oy = self.template_canvas_offset
             dw, dh = int(1280 * self.template_canvas_scale), int(720 * self.template_canvas_scale)
