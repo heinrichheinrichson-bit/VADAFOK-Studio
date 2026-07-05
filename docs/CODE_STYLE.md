@@ -1,3 +1,3 @@
 # Code Style
 
-Group operations should use stable field IDs.
+Layer Panel edits should use inline editing where possible.

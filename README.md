@@ -1,19 +1,13 @@
-# VADAFOK Studio 2.7.1
+# VADAFOK Studio 2.7.2
 
 ## Neu
 
-Professional Group Management:
+Layer Panel 2.0 – Inline Rename.
 
-- `✎` Group Rename
-- `👁 / 🚫` Group Hide / Show
-- `○ / 🔒` Group Lock / Unlock
-
-## Verhalten
-
-- Group Lock sperrt alle Felder der Gruppe.
-- Group Hide versteckt alle Felder der Gruppe.
-- Gruppenname bleibt gespeichert.
-- Undo / Redo unterstützt die Gruppenaktionen.
+- Gruppe per `✎` direkt im Layer Panel umbenennen
+- Gruppe per Doppelklick umbenennen
+- Feld per Doppelklick im Layer Panel umbenennen
+- Kein kleines `simpledialog` Fenster mehr für Gruppen
 
 ## Test
 
@@ -23,6 +17,6 @@ Siehe `docs/RELEASE_CHECKLIST.md`.
 
 ```bash
 git add .
-git commit -m "v2.7.1 - Add professional group management"
+git commit -m "v2.7.2 - Add inline rename to Layer Panel"
 git push
 ```

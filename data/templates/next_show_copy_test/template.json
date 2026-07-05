@@ -4,8 +4,8 @@
   "fields": [
     {
       "name": "field_2",
-      "x": 108,
-      "y": 776,
+      "x": 136,
+      "y": 820,
       "width": 307,
       "height": 90,
       "font_family": "Bebas Neue",
@@ -20,8 +20,8 @@
     },
     {
       "name": "field_1",
-      "x": 435,
-      "y": 1299,
+      "x": 493,
+      "y": 1394,
       "width": 345,
       "height": 190,
       "font_family": "Bebas Neue",
@@ -47,6 +47,22 @@
       "stroke_width": 3,
       "uppercase": true,
       "id": "158967f6-fd09-44dd-9562-c8d20c27b95b",
+      "hidden": true,
+      "locked": true
+    },
+    {
+      "name": "field_1_copy2",
+      "x": 204,
+      "y": 521,
+      "width": 345,
+      "height": 190,
+      "font_family": "Bebas Neue",
+      "font_size": 90,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true,
+      "id": "e57e860e-52e2-408e-a567-e1aeff97783a",
       "hidden": false,
       "locked": false
     },
@@ -62,25 +78,9 @@
       "stroke_color": "#000000",
       "stroke_width": 3,
       "uppercase": true,
-      "locked": false,
+      "locked": true,
       "id": "772553e8-55cf-4ab0-87de-58592cdc5f0d",
       "hidden": false
-    },
-    {
-      "name": "field_1_copy2",
-      "x": 326,
-      "y": 387,
-      "width": 345,
-      "height": 190,
-      "font_family": "Bebas Neue",
-      "font_size": 90,
-      "text_color": "#FFFFFF",
-      "stroke_color": "#000000",
-      "stroke_width": 3,
-      "uppercase": true,
-      "id": "e57e860e-52e2-408e-a567-e1aeff97783a",
-      "hidden": false,
-      "locked": false
     },
     {
       "name": "field_1_copy_copy",
@@ -101,7 +101,7 @@
   "groups": [
     {
       "id": "cba8af2d-cad0-4e32-b795-50130379fef4",
-      "name": "test group 1",
+      "name": "123",
       "field_ids": [
         "e57e860e-52e2-408e-a567-e1aeff97783a",
         "d98fa1ec-b1c0-4117-a4ca-21d4d266435a"
@@ -111,7 +111,7 @@
     },
     {
       "id": "e199ca95-ceb8-49dc-9370-24c39d780f69",
-      "name": "test group 2",
+      "name": "456",
       "field_ids": [
         "6d9ff6c4-fc69-4d02-bcb2-d08cab542b47",
         "67ff9f68-c026-43c4-a794-3065f9998ad0",

@@ -1,22 +1,11 @@
 # Architecture
 
-## v2.7.1 Group Management
+## v2.7.2 Notes
 
-Groups are first-class layer objects:
+Layer Panel now supports inline editing for fields and groups.
 
-```json
-{
-  "id": "uuid",
-  "name": "Intro Card",
-  "field_ids": ["field-id-1", "field-id-2"],
-  "locked": false,
-  "hidden": false
-}
-```
-
-Group lock/hide currently propagates to all member fields.
-
-Future:
-- collapsible group tree
-- nested groups
-- group colors
+Rename flow:
+- start inline entry
+- commit on Enter or FocusOut
+- cancel on Escape
+- push undo history before changing the template data

@@ -1,24 +1,20 @@
 # CHANGELOG
 
-## v2.7.1 - Add professional group management
+## v2.7.2 - Add inline rename for Layer Panel
 
 ### Added
-- Group Rename from the Layer Panel.
-- Group Lock button.
-- Group Hide button.
-- Group state is applied to all fields inside the group.
-- Group rows now include controls for rename, visibility and lock.
+- Inline rename for groups directly inside the Layer Panel.
+- Double-click rename for group rows.
+- Inline rename for field rows.
+- Double-click rename for fields in Layer Panel.
 
 ### Changed
-- Groups now behave more like first-class layer objects.
-- Locking a group locks all group fields.
-- Hiding a group hides all group fields.
-- Undo / Redo supports group rename, lock and hide.
+- Group rename no longer uses the small system dialog.
+- Layer Panel feels more like a professional editor panel.
 
 ### Testing
 - To be verified before Git release.
 
-## v2.7.0 - Add stable Group / Ungroup foundation
-- Added stable field IDs.
-- Added Group / Ungroup.
-- Groups appear with `📦` in the Layer Panel.
+## v2.7.1 - Add professional group management
+- Group Rename / Lock / Hide.
+- Group controls in Layer Panel.

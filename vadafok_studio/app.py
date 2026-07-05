@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.7.1.1.1.1")
+        self.wm_title("VADAFOK Studio 2.7.2.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -50,6 +50,9 @@ class VadafokStudio(ctk.CTk):
         self.template_redo_stack = []
         self.template_history_limit = 80
         self.template_drag_history_snapshot = None
+        self.template_rename_entry = None
+        self.template_renaming_kind = None
+        self.template_renaming_target = None
         self.template_working_data = None
         self.template_zoom_factor = 1.0
         self.template_zoom_label_var = ctk.StringVar(value="100%")
@@ -140,7 +143,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.7.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.7.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -1000,7 +1003,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.7.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.7.2: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1768,6 +1771,107 @@ class VadafokStudio(ctk.CTk):
         return ids
 
 
+
+    def template_cancel_inline_rename(self, event=None):
+        try:
+            if self.template_rename_entry is not None:
+                self.template_rename_entry.destroy()
+        except Exception:
+            pass
+        self.template_rename_entry = None
+        self.template_renaming_kind = None
+        self.template_renaming_target = None
+        self.template_build_layers_panel()
+        return "break"
+
+    def template_commit_inline_rename(self, event=None):
+        if self.template_rename_entry is None:
+            return "break"
+
+        value = self.template_rename_entry.get().strip()
+        kind = self.template_renaming_kind
+        target = self.template_renaming_target
+
+        try:
+            self.template_rename_entry.destroy()
+        except Exception:
+            pass
+
+        self.template_rename_entry = None
+        self.template_renaming_kind = None
+        self.template_renaming_target = None
+
+        if not value:
+            self.template_build_layers_panel()
+            return "break"
+
+        template = self.template_current()
+
+        if kind == "group":
+            group = self.template_find_group(target)
+            if group and group.get("name") != value:
+                if hasattr(self, "template_push_history"):
+                    self.template_push_history("rename group")
+                group["name"] = value
+                save_template(self.template_selected_name, template)
+
+        elif kind == "field":
+            idx = target
+            fields = template.get("fields", [])
+            if idx is not None and 0 <= idx < len(fields) and fields[idx].get("name") != value:
+                if hasattr(self, "template_push_history"):
+                    self.template_push_history("rename field")
+                fields[idx]["name"] = value
+                save_template(self.template_selected_name, template)
+                if idx == self.template_selected_field:
+                    self.template_load_selected_properties()
+                    if hasattr(self, "template_props_body"):
+                        self.template_build_properties_panel()
+
+        self.template_draw_canvas()
+        self.template_build_layers_panel()
+        return "break"
+
+    def template_start_inline_rename_group(self, group_id):
+        group = self.template_find_group(group_id)
+        if not group or not hasattr(self, "template_layers_body"):
+            return
+
+        self.template_cancel_inline_rename()
+        self.template_renaming_kind = "group"
+        self.template_renaming_target = group_id
+
+        entry = ctk.CTkEntry(self.template_layers_body)
+        entry.insert(0, group.get("name", "Group"))
+        entry.grid(row=getattr(self, "_template_layer_row_for_group", {}).get(group_id, 0), column=0, padx=(8, 4), pady=(6, 3), sticky="ew")
+        entry.focus_set()
+        entry.select_range(0, "end")
+        entry.bind("<Return>", self.template_commit_inline_rename)
+        entry.bind("<Escape>", self.template_cancel_inline_rename)
+        entry.bind("<FocusOut>", self.template_commit_inline_rename)
+        self.template_rename_entry = entry
+
+    def template_start_inline_rename_field(self, idx):
+        template = self.template_current()
+        fields = template.get("fields", [])
+        if not (0 <= idx < len(fields)) or not hasattr(self, "template_layers_body"):
+            return
+
+        self.template_cancel_inline_rename()
+        self.template_renaming_kind = "field"
+        self.template_renaming_target = idx
+
+        entry = ctk.CTkEntry(self.template_layers_body)
+        entry.insert(0, fields[idx].get("name", f"field_{idx+1}"))
+        entry.grid(row=getattr(self, "_template_layer_row_for_field", {}).get(idx, 0), column=0, padx=(8, 4), pady=3, sticky="ew")
+        entry.focus_set()
+        entry.select_range(0, "end")
+        entry.bind("<Return>", self.template_commit_inline_rename)
+        entry.bind("<Escape>", self.template_cancel_inline_rename)
+        entry.bind("<FocusOut>", self.template_commit_inline_rename)
+        self.template_rename_entry = entry
+
+
     def template_find_group(self, group_id):
         for group in self.template_groups():
             if group.get("id") == group_id:
@@ -1775,26 +1879,8 @@ class VadafokStudio(ctk.CTk):
         return None
 
     def template_rename_group(self, group_id):
-        group = self.template_find_group(group_id)
-        if not group:
-            return
+        self.template_start_inline_rename_group(group_id)
 
-        current = group.get("name", "Group")
-        new_name = simpledialog.askstring("Rename Group", "Neuer Gruppenname:", initialvalue=current)
-        if not new_name:
-            return
-
-        new_name = new_name.strip()
-        if not new_name:
-            return
-
-        if hasattr(self, "template_push_history"):
-            self.template_push_history("rename group")
-
-        group["name"] = new_name
-        save_template(self.template_selected_name, self.template_current())
-        self.template_update_fields_overlay()
-        self.template_build_layers_panel()
 
     def template_group_field_indices(self, group):
         indices = []
@@ -1962,6 +2048,8 @@ class VadafokStudio(ctk.CTk):
             w.destroy()
 
         template = self.template_current()
+        self._template_layer_row_for_group = {}
+        self._template_layer_row_for_field = {}
         self.template_clean_groups()
         fields = template.get("fields", [])
         selected = set(getattr(self, "template_selected_fields", set()))
@@ -1984,11 +2072,12 @@ class VadafokStudio(ctk.CTk):
 
         for group in groups:
             active_group = group.get("id") in selected_group_ids
+            self._template_layer_row_for_group[group.get("id")] = row
             group_hidden = bool(group.get("hidden", False))
             group_locked = bool(group.get("locked", False))
             label = ("✓ " if active_group else "") + "📦 " + group.get("name", "Group")
 
-            ctk.CTkButton(
+            group_btn = ctk.CTkButton(
                 self.template_layers_body,
                 text=label,
                 fg_color=GOLD if active_group else "#202020",
@@ -1996,7 +2085,9 @@ class VadafokStudio(ctk.CTk):
                 hover_color=GOLD_DARK if active_group else "#303030",
                 anchor="w",
                 command=lambda gid=group.get("id"): self.template_select_group(gid)
-            ).grid(row=row, column=0, padx=(8, 4), pady=(6, 3), sticky="ew")
+            )
+            group_btn.grid(row=row, column=0, padx=(8, 4), pady=(6, 3), sticky="ew")
+            group_btn.bind("<Double-Button-1>", lambda _e, gid=group.get("id"): self.template_start_inline_rename_group(gid))
 
             ctk.CTkButton(
                 self.template_layers_body,
@@ -2031,6 +2122,7 @@ class VadafokStudio(ctk.CTk):
         # Show front/top layers first.
         for idx in reversed(range(len(fields))):
             field = fields[idx]
+            self._template_layer_row_for_field[idx] = row
             active = idx in selected
             locked = bool(field.get("locked", False))
             hidden = bool(field.get("hidden", False))
@@ -2049,6 +2141,7 @@ class VadafokStudio(ctk.CTk):
                 command=lambda i=idx: self.template_select_layer(i)
             )
             btn.grid(row=row, column=0, padx=(8, 4), pady=3, sticky="ew")
+            btn.bind("<Double-Button-1>", lambda _e, i=idx: self.template_start_inline_rename_field(i))
 
             ctk.CTkButton(
                 self.template_layers_body,

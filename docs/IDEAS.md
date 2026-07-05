@@ -1,12 +1,11 @@
 # Ideas
 
-## Group System
-- Collapsible groups in Layer Panel
-- Drag & Drop group ordering
-- Group colors
-- Nested groups
-- Group opacity
-- Group duplicate button
+## Layer Panel
+- Collapsible groups
+- Drag & Drop group/layer order
+- Layer colors
+- Context menu
+- Field icons by type
 
 ## Editor
 - Equal Spacing

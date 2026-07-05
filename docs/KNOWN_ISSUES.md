@@ -1,9 +1,11 @@
 # Known Issues
 
 ## Aktuell zu prüfen
-- v2.7.1 Group Rename / Lock / Hide
-- Group Hide muss Editor und Card Creator korrekt beeinflussen.
-- Group Lock muss Move / Resize / Keyboard / Align korrekt blockieren.
+- v2.7.2 Inline Rename:
+  - Group Rename via ✎
+  - Group Rename via double-click
+  - Field Rename via double-click
+  - Enter / Escape / FocusOut behavior
 
 ## Beobachten
 - Equal Spacing aktuell nur einfache Verteilung.
