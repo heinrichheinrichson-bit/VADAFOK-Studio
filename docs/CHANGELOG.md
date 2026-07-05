@@ -1,23 +1,24 @@
 # CHANGELOG
 
-## v2.7.0 - Add stable Group / Ungroup foundation
+## v2.7.1 - Add professional group management
 
 ### Added
-- Stable field IDs for template fields.
-- Group / Ungroup controls in Template Editor.
-- Groups are stored with stable field IDs instead of field indices.
-- Groups appear in the Layer Panel with `📦`.
-- Clicking a group selects its visible fields.
-- Copying a complete group creates a copied group.
+- Group Rename from the Layer Panel.
+- Group Lock button.
+- Group Hide button.
+- Group state is applied to all fields inside the group.
+- Group rows now include controls for rename, visibility and lock.
 
 ### Changed
-- Layer Panel shows group membership next to grouped fields.
-- Group data is more robust against layer reordering.
-- Hidden fields are ignored when selecting a group from the Layer Panel.
+- Groups now behave more like first-class layer objects.
+- Locking a group locks all group fields.
+- Hiding a group hides all group fields.
+- Undo / Redo supports group rename, lock and hide.
 
 ### Testing
 - To be verified before Git release.
 
-## v2.6.6 - Add hide and show fields
-- Added visibility toggle in Layers panel.
-- Hidden fields are skipped in editor and rendering.
+## v2.7.0 - Add stable Group / Ungroup foundation
+- Added stable field IDs.
+- Added Group / Ungroup.
+- Groups appear with `📦` in the Layer Panel.

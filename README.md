@@ -1,14 +1,19 @@
-# VADAFOK Studio 2.7.0
+# VADAFOK Studio 2.7.1
 
 ## Neu
 
-Group / Ungroup mit stabiler Field-ID Grundlage.
+Professional Group Management:
 
-- `GROUP SELECTED`
-- `UNGROUP`
-- Gruppen erscheinen im Layer Panel mit `📦`
-- Gruppierte Felder zeigen den Gruppennamen
-- Klick auf Gruppe wählt alle sichtbaren Gruppenfelder aus
+- `✎` Group Rename
+- `👁 / 🚫` Group Hide / Show
+- `○ / 🔒` Group Lock / Unlock
+
+## Verhalten
+
+- Group Lock sperrt alle Felder der Gruppe.
+- Group Hide versteckt alle Felder der Gruppe.
+- Gruppenname bleibt gespeichert.
+- Undo / Redo unterstützt die Gruppenaktionen.
 
 ## Test
 
@@ -18,6 +23,6 @@ Siehe `docs/RELEASE_CHECKLIST.md`.
 
 ```bash
 git add .
-git commit -m "v2.7.0 - Add group and ungroup foundation"
+git commit -m "v2.7.1 - Add professional group management"
 git push
 ```

@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import filedialog
 import threading
 import customtkinter as ctk
-from tkinter import messagebox, filedialog, simpledialog
+from tkinter import messagebox, simpledialog, filedialog, simpledialog
 from PIL import Image
 
 from .core.config import TEMPLATE_PROFILES_PATH, load_config, save_config, load_favorites, save_favorites, load_asset_meta, save_asset_meta, EXPORT_DIR, load_json, save_json, CARD_VALUES_PATH
@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.7.0.1.1.1")
+        self.wm_title("VADAFOK Studio 2.7.1.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -140,7 +140,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.7.0", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.7.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -1000,7 +1000,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.7.0: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.7.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1767,6 +1767,98 @@ class VadafokStudio(ctk.CTk):
                 ids.add(group.get("id"))
         return ids
 
+
+    def template_find_group(self, group_id):
+        for group in self.template_groups():
+            if group.get("id") == group_id:
+                return group
+        return None
+
+    def template_rename_group(self, group_id):
+        group = self.template_find_group(group_id)
+        if not group:
+            return
+
+        current = group.get("name", "Group")
+        new_name = simpledialog.askstring("Rename Group", "Neuer Gruppenname:", initialvalue=current)
+        if not new_name:
+            return
+
+        new_name = new_name.strip()
+        if not new_name:
+            return
+
+        if hasattr(self, "template_push_history"):
+            self.template_push_history("rename group")
+
+        group["name"] = new_name
+        save_template(self.template_selected_name, self.template_current())
+        self.template_update_fields_overlay()
+        self.template_build_layers_panel()
+
+    def template_group_field_indices(self, group):
+        indices = []
+        template = self.template_current()
+        fields = template.get("fields", [])
+        for fid in group.get("field_ids", []):
+            idx = self.template_index_by_field_id(fid)
+            if idx is not None and 0 <= idx < len(fields):
+                indices.append(idx)
+        return indices
+
+    def template_toggle_group_lock(self, group_id):
+        group = self.template_find_group(group_id)
+        if not group:
+            return
+
+        if hasattr(self, "template_push_history"):
+            self.template_push_history("toggle group lock")
+
+        new_state = not bool(group.get("locked", False))
+        group["locked"] = new_state
+
+        template = self.template_current()
+        fields = template.get("fields", [])
+        for idx in self.template_group_field_indices(group):
+            fields[idx]["locked"] = new_state
+
+        save_template(self.template_selected_name, template)
+        self.template_update_fields_overlay()
+        self.template_build_layers_panel()
+        if hasattr(self, "template_props_body"):
+            self.template_build_properties_panel()
+
+    def template_toggle_group_hidden(self, group_id):
+        group = self.template_find_group(group_id)
+        if not group:
+            return
+
+        if hasattr(self, "template_push_history"):
+            self.template_push_history("toggle group visibility")
+
+        new_state = not bool(group.get("hidden", False))
+        group["hidden"] = new_state
+
+        template = self.template_current()
+        fields = template.get("fields", [])
+        for idx in self.template_group_field_indices(group):
+            fields[idx]["hidden"] = new_state
+            if new_state:
+                if hasattr(self, "template_selected_fields"):
+                    self.template_selected_fields.discard(idx)
+                if self.template_selected_field == idx:
+                    self.template_selected_field = None
+
+        if self.template_selected_field is None and getattr(self, "template_selected_fields", set()):
+            self.template_selected_field = next(iter(self.template_selected_fields), None)
+
+        save_template(self.template_selected_name, template)
+        self.template_draw_canvas()
+        self.template_build_layers_panel()
+        if hasattr(self, "template_props_body"):
+            self.template_build_properties_panel()
+
+
     def template_select_group(self, group_id):
         self.template_clean_groups()
         template = self.template_current()
@@ -1892,7 +1984,10 @@ class VadafokStudio(ctk.CTk):
 
         for group in groups:
             active_group = group.get("id") in selected_group_ids
+            group_hidden = bool(group.get("hidden", False))
+            group_locked = bool(group.get("locked", False))
             label = ("✓ " if active_group else "") + "📦 " + group.get("name", "Group")
+
             ctk.CTkButton(
                 self.template_layers_body,
                 text=label,
@@ -1901,7 +1996,35 @@ class VadafokStudio(ctk.CTk):
                 hover_color=GOLD_DARK if active_group else "#303030",
                 anchor="w",
                 command=lambda gid=group.get("id"): self.template_select_group(gid)
-            ).grid(row=row, column=0, columnspan=5, padx=8, pady=(6, 3), sticky="ew")
+            ).grid(row=row, column=0, padx=(8, 4), pady=(6, 3), sticky="ew")
+
+            ctk.CTkButton(
+                self.template_layers_body,
+                text="✎",
+                width=32,
+                fg_color="#333333",
+                hover_color="#444444",
+                command=lambda gid=group.get("id"): self.template_rename_group(gid)
+            ).grid(row=row, column=1, padx=2, pady=(6, 3), sticky="ew")
+
+            ctk.CTkButton(
+                self.template_layers_body,
+                text="👁" if not group_hidden else "🚫",
+                width=34,
+                fg_color="#333333" if not group_hidden else "#5A1F1F",
+                hover_color="#444444" if not group_hidden else "#7A2A2A",
+                command=lambda gid=group.get("id"): self.template_toggle_group_hidden(gid)
+            ).grid(row=row, column=2, padx=2, pady=(6, 3), sticky="ew")
+
+            ctk.CTkButton(
+                self.template_layers_body,
+                text="🔒" if group_locked else "○",
+                width=34,
+                fg_color="#5A1F1F" if group_locked else "#333333",
+                hover_color="#7A2A2A" if group_locked else "#444444",
+                command=lambda gid=group.get("id"): self.template_toggle_group_lock(gid)
+            ).grid(row=row, column=3, padx=2, pady=(6, 3), sticky="ew")
+
             row += 1
 
         # Higher index is drawn later = visually in front.

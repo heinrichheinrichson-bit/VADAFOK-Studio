@@ -1,12 +1,12 @@
 # Ideas
 
 ## Group System
-- Group Rename
-- Group Lock
-- Group Hide
-- Group Color
-- Nested Groups
-- Drag & Drop Groups in Layer Panel
+- Collapsible groups in Layer Panel
+- Drag & Drop group ordering
+- Group colors
+- Nested groups
+- Group opacity
+- Group duplicate button
 
 ## Editor
 - Equal Spacing

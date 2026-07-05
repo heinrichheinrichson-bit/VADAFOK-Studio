@@ -15,7 +15,8 @@
       "stroke_width": 3,
       "uppercase": true,
       "id": "6d9ff6c4-fc69-4d02-bcb2-d08cab542b47",
-      "locked": true
+      "locked": false,
+      "hidden": false
     },
     {
       "name": "field_1",
@@ -29,7 +30,9 @@
       "stroke_color": "#000000",
       "stroke_width": 3,
       "uppercase": true,
-      "id": "67ff9f68-c026-43c4-a794-3065f9998ad0"
+      "id": "67ff9f68-c026-43c4-a794-3065f9998ad0",
+      "hidden": false,
+      "locked": false
     },
     {
       "name": "field_2_copy",
@@ -43,7 +46,9 @@
       "stroke_color": "#000000",
       "stroke_width": 3,
       "uppercase": true,
-      "id": "158967f6-fd09-44dd-9562-c8d20c27b95b"
+      "id": "158967f6-fd09-44dd-9562-c8d20c27b95b",
+      "hidden": false,
+      "locked": false
     },
     {
       "name": "field_1_copy",
@@ -74,7 +79,8 @@
       "stroke_width": 3,
       "uppercase": true,
       "id": "e57e860e-52e2-408e-a567-e1aeff97783a",
-      "hidden": false
+      "hidden": false,
+      "locked": false
     },
     {
       "name": "field_1_copy_copy",
@@ -95,12 +101,22 @@
   "groups": [
     {
       "id": "cba8af2d-cad0-4e32-b795-50130379fef4",
-      "name": "Group",
+      "name": "test group 1",
       "field_ids": [
-        "6d9ff6c4-fc69-4d02-bcb2-d08cab542b47",
-        "158967f6-fd09-44dd-9562-c8d20c27b95b",
         "e57e860e-52e2-408e-a567-e1aeff97783a",
         "d98fa1ec-b1c0-4117-a4ca-21d4d266435a"
+      ],
+      "locked": false,
+      "hidden": false
+    },
+    {
+      "id": "e199ca95-ceb8-49dc-9370-24c39d780f69",
+      "name": "test group 2",
+      "field_ids": [
+        "6d9ff6c4-fc69-4d02-bcb2-d08cab542b47",
+        "67ff9f68-c026-43c4-a794-3065f9998ad0",
+        "158967f6-fd09-44dd-9562-c8d20c27b95b",
+        "772553e8-55cf-4ab0-87de-58592cdc5f0d"
       ],
       "locked": false,
       "hidden": false

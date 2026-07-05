@@ -1,3 +1,3 @@
 # Testing
 
-Test Group / Ungroup thoroughly before Git release.
+Test Group Rename, Group Lock, Group Hide, Undo/Redo and Card Creator rendering.

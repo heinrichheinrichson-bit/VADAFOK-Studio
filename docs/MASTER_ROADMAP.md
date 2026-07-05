@@ -1,6 +1,6 @@
 # VADAFOK Studio – MASTER ROADMAP
 
-Stand: v2.7.0 Testbuild
+Stand: v2.7.1 Testbuild
 
 ## Template Editor Skilltree
 
@@ -16,15 +16,16 @@ Layers:
 - ✅ Layer Panel
 - ✅ Lock / Unlock
 - ✅ Hide / Show
-- 🚧 Group / Ungroup
-- ⬜ Group Rename
-- ⬜ Group Lock / Hide
+- ✅ Group / Ungroup
+- 🚧 Group Rename / Lock / Hide
+- ⬜ Collapsible Groups
+- ⬜ Drag & Drop Layer Reordering
 
-Navigation:
-- ✅ Zoom / Pan
-- ✅ Smart Guides / Smart Snap
+Layout:
+- ✅ Align
+- ✅ Distribute
+- ⬜ Equal Spacing
+- ⬜ Selection Rectangle
 
-Next:
-- Equal Spacing
-- Selection Rectangle
-- Style Presets
+Next Recommended:
+- Equal Spacing or Selection Rectangle
