@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.5.7.1")
+        self.wm_title("VADAFOK Studio 2.5.8.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -50,6 +50,9 @@ class VadafokStudio(ctk.CTk):
         self.template_pan_active = False
         self.template_pan_start = None
         self.template_pan_origin = None
+        self.template_smart_guides_enabled = ctk.BooleanVar(value=True)
+        self.template_smart_snap_enabled = ctk.BooleanVar(value=True)
+        self.template_smart_guide_tolerance = 8
         self.template_hover_mode = None
         self.template_prop_name = ctk.StringVar(value="")
         self.template_prop_font_family = ctk.StringVar(value="")
@@ -129,7 +132,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.5.7", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.5.8", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -984,7 +987,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.5.7: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.5.8: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1256,6 +1259,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_pan_start_drag(self, event):
+        self.template_clear_smart_guides()
         self.template_pan_active = True
         self.template_pan_start = (event.x, event.y)
         self.template_pan_origin = (
@@ -1305,6 +1309,9 @@ class VadafokStudio(ctk.CTk):
         self.template_pan_active = False
         self.template_pan_start = None
         self.template_pan_origin = None
+        self.template_smart_guides_enabled = ctk.BooleanVar(value=True)
+        self.template_smart_snap_enabled = ctk.BooleanVar(value=True)
+        self.template_smart_guide_tolerance = 8
         try:
             self.template_canvas.configure(cursor="")
         except Exception:
@@ -1462,6 +1469,30 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkButton(zoom_bar, text="ZOOM +", fg_color="#333333", hover_color="#444444", command=self.template_zoom_in).grid(row=0, column=2, padx=4, sticky="ew")
         ctk.CTkButton(zoom_bar, text="100%", fg_color="#333333", hover_color="#444444", command=self.template_zoom_reset).grid(row=0, column=3, padx=4, sticky="ew")
         ctk.CTkButton(zoom_bar, text="PAN RESET", fg_color="#333333", hover_color="#444444", command=self.template_pan_reset).grid(row=0, column=4, padx=(4, 0), sticky="ew")
+
+        smart_bar = ctk.CTkFrame(controls, fg_color="transparent")
+        smart_bar.grid(row=3, column=0, columnspan=5, padx=4, pady=(6, 0), sticky="ew")
+        smart_bar.grid_columnconfigure(2, weight=1)
+
+        ctk.CTkCheckBox(
+            smart_bar,
+            text="SMART GUIDES",
+            variable=self.template_smart_guides_enabled,
+            command=self.template_smart_guides_changed,
+            text_color="#BCA870",
+            fg_color=GOLD,
+            hover_color=GOLD_DARK
+        ).grid(row=0, column=0, padx=(0, 12), sticky="w")
+
+        ctk.CTkCheckBox(
+            smart_bar,
+            text="SMART SNAP",
+            variable=self.template_smart_snap_enabled,
+            command=self.template_smart_guides_changed,
+            text_color="#BCA870",
+            fg_color=GOLD,
+            hover_color=GOLD_DARK
+        ).grid(row=0, column=1, padx=(0, 12), sticky="w")
 
         self.template_draw_canvas()
 
@@ -1732,11 +1763,198 @@ class VadafokStudio(ctk.CTk):
         except Exception:
             pass
 
+
+    def template_clear_smart_guides(self):
+        if hasattr(self, "template_canvas"):
+            try:
+                self.template_canvas.delete("template_smart_guide")
+            except Exception:
+                pass
+
+    def template_screen_line_x(self, x):
+        ox, _oy = getattr(self, "template_canvas_offset", (0, 0))
+        scale = getattr(self, "template_canvas_scale", 1.0)
+        return ox + int(x * scale)
+
+    def template_screen_line_y(self, y):
+        _ox, oy = getattr(self, "template_canvas_offset", (0, 0))
+        scale = getattr(self, "template_canvas_scale", 1.0)
+        return oy + int(y * scale)
+
+    def template_field_edges(self, field):
+        x = int(field.get("x", 0))
+        y = int(field.get("y", 0))
+        w = int(field.get("width", 0))
+        h = int(field.get("height", 0))
+        return {
+            "left": x,
+            "center_x": x + w // 2,
+            "right": x + w,
+            "top": y,
+            "center_y": y + h // 2,
+            "bottom": y + h,
+        }
+
+    def template_smart_targets(self):
+        template = self.template_current()
+        design_w, design_h = getattr(self, "template_canvas_design_size", (1280, 720))
+
+        targets_x = [
+            ("template_left", 0),
+            ("template_center_x", design_w // 2),
+            ("template_right", design_w),
+        ]
+        targets_y = [
+            ("template_top", 0),
+            ("template_center_y", design_h // 2),
+            ("template_bottom", design_h),
+        ]
+
+        for idx, field in enumerate(template.get("fields", [])):
+            if idx == self.template_selected_field:
+                continue
+            edges = self.template_field_edges(field)
+            targets_x.extend([
+                (f"field{idx}_left", edges["left"]),
+                (f"field{idx}_center_x", edges["center_x"]),
+                (f"field{idx}_right", edges["right"]),
+            ])
+            targets_y.extend([
+                (f"field{idx}_top", edges["top"]),
+                (f"field{idx}_center_y", edges["center_y"]),
+                (f"field{idx}_bottom", edges["bottom"]),
+            ])
+
+        return targets_x, targets_y
+
+    def template_draw_smart_guides(self, guides_x=None, guides_y=None):
+        if not hasattr(self, "template_canvas"):
+            return
+        canvas = self.template_canvas
+        canvas.delete("template_smart_guide")
+
+        if not (getattr(self, "template_smart_guides_enabled", None) and self.template_smart_guides_enabled.get()):
+            return
+
+        guides_x = guides_x or []
+        guides_y = guides_y or []
+
+        design_w, design_h = getattr(self, "template_canvas_design_size", (1280, 720))
+        ox, oy = getattr(self, "template_canvas_offset", (0, 0))
+        scale = getattr(self, "template_canvas_scale", 1.0)
+        x_min = ox
+        x_max = ox + int(design_w * scale)
+        y_min = oy
+        y_max = oy + int(design_h * scale)
+
+        for x in guides_x:
+            sx = self.template_screen_line_x(x)
+            canvas.create_line(
+                sx, y_min, sx, y_max,
+                fill=GOLD,
+                width=2,
+                dash=(6, 4),
+                tags=("template_smart_guide",)
+            )
+
+        for y in guides_y:
+            sy = self.template_screen_line_y(y)
+            canvas.create_line(
+                x_min, sy, x_max, sy,
+                fill=GOLD,
+                width=2,
+                dash=(6, 4),
+                tags=("template_smart_guide",)
+            )
+
+        try:
+            canvas.tag_raise("template_smart_guide")
+        except Exception:
+            pass
+
+    def template_apply_smart_snap(self, x, y, w, h, mode):
+        """
+        Returns x, y, w, h and active guide lines.
+        Smart snap uses design coordinates, so it works correctly with zoom and pan.
+        """
+        if not (getattr(self, "template_smart_snap_enabled", None) and self.template_smart_snap_enabled.get()):
+            return x, y, w, h, [], []
+
+        tolerance = int(getattr(self, "template_smart_guide_tolerance", 8))
+        targets_x, targets_y = self.template_smart_targets()
+
+        moving = (mode or "move") == "move"
+        guides_x = []
+        guides_y = []
+
+        def nearest_delta(values, targets):
+            best = None
+            for _name, target in targets:
+                for value in values:
+                    delta = target - value
+                    if abs(delta) <= tolerance and (best is None or abs(delta) < abs(best[0])):
+                        best = (delta, target)
+            return best
+
+        if moving:
+            edges = {
+                "left": x,
+                "center_x": x + w // 2,
+                "right": x + w,
+                "top": y,
+                "center_y": y + h // 2,
+                "bottom": y + h,
+            }
+
+            snap_x = nearest_delta([edges["left"], edges["center_x"], edges["right"]], targets_x)
+            if snap_x:
+                x += snap_x[0]
+                guides_x.append(snap_x[1])
+
+            snap_y = nearest_delta([edges["top"], edges["center_y"], edges["bottom"]], targets_y)
+            if snap_y:
+                y += snap_y[0]
+                guides_y.append(snap_y[1])
+
+        else:
+            # Resize snapping: snap only the actively moved edge(s).
+            if "w" in mode:
+                snap = nearest_delta([x], targets_x)
+                if snap:
+                    old_right = x + w
+                    x = snap[1]
+                    w = old_right - x
+                    guides_x.append(snap[1])
+            if "e" in mode:
+                snap = nearest_delta([x + w], targets_x)
+                if snap:
+                    w = snap[1] - x
+                    guides_x.append(snap[1])
+            if "n" in mode:
+                snap = nearest_delta([y], targets_y)
+                if snap:
+                    old_bottom = y + h
+                    y = snap[1]
+                    h = old_bottom - y
+                    guides_y.append(snap[1])
+            if "s" in mode:
+                snap = nearest_delta([y + h], targets_y)
+                if snap:
+                    h = snap[1] - y
+                    guides_y.append(snap[1])
+
+        return x, y, w, h, guides_x, guides_y
+
+    def template_smart_guides_changed(self):
+        self.template_clear_smart_guides()
+
+
     def template_update_fields_overlay(self, bg_info=None):
         if not hasattr(self, "template_canvas"):
             return
         canvas = self.template_canvas
         self.template_clear_fields_overlay()
+        self.template_clear_smart_guides()
         template = self.template_current()
 
         if bg_info is None:
@@ -1960,12 +2178,24 @@ class VadafokStudio(ctk.CTk):
         w = max(min_w, min(design_w - x, w))
         h = max(min_h, min(design_h - y, h))
 
+        # Smart Guides / Smart Snap before final constraints.
+        x, y, w, h, guides_x, guides_y = self.template_apply_smart_snap(x, y, w, h, mode)
+
+        min_w, min_h = 40, 30
+        design_w, design_h = getattr(self, "template_canvas_design_size", (1280, 720))
+        x = max(0, min(design_w - min_w, x))
+        y = max(0, min(design_h - min_h, y))
+        w = max(min_w, min(design_w - x, w))
+        h = max(min_h, min(design_h - y, h))
+
         f["x"], f["y"], f["width"], f["height"] = int(x), int(y), int(w), int(h)
         template["fields"][self.template_selected_field] = f
         self.template_update_fields_overlay()
+        self.template_draw_smart_guides(guides_x, guides_y)
 
 
     def template_mouse_up(self, event):
+        self.template_clear_smart_guides()
         save_template(self.template_selected_name, self.template_current())
         self.template_drag_mode = None
         self.template_drag_start = None

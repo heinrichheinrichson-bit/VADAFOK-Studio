@@ -1,68 +1,79 @@
-# VADAFOK Studio 2.5.7
+# VADAFOK Studio 2.5.8
 
 ## Ziel
 
-Pan Anti-Flicker im Template Editor.
+Smart Guides + Smart Snap im Template Editor.
 
-## Problem in 2.5.6
+## Neu
 
-Pan funktionierte, aber beim Verschieben des gezoomten Bildes wurde das komplette Canvas neu gezeichnet.
-Dadurch wurde das Hintergrundbild kurz ausgeblendet bzw. neu geladen.
+Im Template Editor gibt es jetzt:
 
-## Repariert
+- `SMART GUIDES`
+- `SMART SNAP`
 
-Beim Pan wird jetzt nicht mehr neu gerendert.
+## SMART GUIDES
 
-Stattdessen:
+Beim Verschieben oder Skalieren eines Feldes erscheinen goldene Hilfslinien, wenn das Feld nahe an wichtigen Positionen ist:
 
-```text
-canvas.move("all", dx, dy)
-```
+- linke/rechte Kante anderer Felder
+- horizontale/vertikale Mitte anderer Felder
+- Template-Mitte
+- Template-Kanten
 
-Das bedeutet:
+## SMART SNAP
 
-- Hintergrundbild bleibt sichtbar
-- Feldrahmen bleiben sichtbar
-- Handles bleiben sichtbar
-- kein erneutes Laden der PNG
-- kein Flackern beim Pan
+Wenn aktiviert, rastet das Feld automatisch an diese Hilfslinien ein.
 
-## Verhalten
+## Bedienung
 
-- Zoom ändern → zeichnet einmal neu
-- Pan bewegen → verschiebt vorhandene Canvas-Objekte
-- PAN RESET → zeichnet einmal neu
-- 100% → setzt Zoom und Pan zurück
+1. Feld anklicken.
+2. Feld ziehen oder skalieren.
+3. Goldene Hilfslinien erscheinen automatisch.
+4. Bei aktivem `SMART SNAP` springt das Feld exakt auf die Linie.
+
+## Weiterhin vorhanden
+
+- Zoom
+- Pan ohne Flackern
+- COPY FIELD
+- Card Creator
+- Template-Verwaltung
 
 ## Test
 
-1. Template Editor öffnen.
-2. Stark hineinzoomen.
-3. Mittlere Maustaste ziehen.
-4. Prüfen: Kein Wegflackern.
-5. Shift + linke Maustaste ziehen.
-6. Prüfen: Kein Wegflackern.
-7. Nach dem Pan ein Feld anklicken.
-8. Feld verschieben/skalieren.
-9. COPY FIELD testen.
-10. Card Creator kurz prüfen.
+1. Zwei Felder im Template haben.
+2. `SMART GUIDES` aktiv lassen.
+3. Ein Feld nahe an die Kante/Mitte des anderen Feldes ziehen.
+4. Goldene Hilfslinie muss erscheinen.
+5. `SMART SNAP` aktivieren.
+6. Feld muss beim Ziehen leicht einrasten.
+7. Template-Mitte testen.
+8. Resize an Kanten testen.
+9. Zoom + Pan testen.
+10. COPY FIELD kurz prüfen.
+
+## Installation
+
+1. ZIP entpacken.
+2. Den entpackten Ordner wie gewohnt starten.
+3. Diese Version nicht über Git speichern, bevor die Tests bestanden sind.
 
 ## Git nach erfolgreichem Test
 
 ```bash
 git add .
-git commit -m "v2.5.7 - Smooth pan without canvas redraw"
+git commit -m "v2.5.8 - Add Smart Guides and Smart Snap"
 git push
 ```
 
 ## Commit-Beschreibung
 
 ```text
-v2.5.7 - Smooth pan without canvas redraw
+v2.5.8 - Add Smart Guides and Smart Snap
 
-- Pan now moves existing canvas items instead of redrawing
-- Background no longer reloads during pan
-- Removed pan flicker in Template Editor
-- Keeps hit testing coordinates synchronized after pan
-- Zoom, Copy Field and Card Creator remain unchanged
+- Added smart guide lines in Template Editor
+- Added smart snapping for field move and resize
+- Supports snapping to template center, template edges and other fields
+- Smart guides work with zoom and pan
+- Existing zoom, pan, copy field and Card Creator behavior preserved
 ```
