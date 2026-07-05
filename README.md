@@ -1,45 +1,73 @@
-# VADAFOK Studio 2.5.3
+# VADAFOK Studio 2.5.4
 
 ## Ziel
 
-Fix für Card-Creator-Template-Auswahl.
-
-## Ursache
-
-Der Card Creator hat intern noch die alte Legacy-Liste `template_profiles.json` verwendet.
-Dadurch wurde die Auswahl nach einem Klick sofort wieder auf `Default Stream Plan` zurückgesetzt.
-
-Beobachtet im Debug:
+Komfortfunktion im Template Editor:
 
 ```text
-Clicked Template: Test
-card_selected_template: Default Stream Plan
+COPY FIELD
 ```
 
-## Repariert
+## Neu
 
-- Card Creator nutzt jetzt nur noch die neue Template-Ordnerstruktur.
-- Template-Klick setzt `card_selected_template` korrekt.
-- `card_template()` lädt das wirklich ausgewählte Template.
-- Kein Rückfall auf `Default Stream Plan`, solange die Auswahl gültig ist.
-- Background-Suche bleibt robust.
-- Hochformat-Templates werden mit echter Background-Größe gerendert.
+Neben `DELETE FIELD` gibt es jetzt `COPY FIELD`.
+
+## Verhalten
+
+1. Feld auswählen.
+2. `COPY FIELD` drücken.
+3. Das Feld wird komplett dupliziert.
+
+Die Kopie übernimmt:
+
+- Position, leicht versetzt
+- Breite
+- Höhe
+- Schrift
+- Schriftgröße
+- Textfarbe
+- Outline-Farbe
+- Outline-Stärke
+- Uppercase
+- alle gespeicherten Feldeigenschaften
+
+Der Name wird automatisch eindeutig:
+
+```text
+game
+game_copy
+game_copy2
+game_copy3
+```
+
+Nach dem Kopieren:
+
+- die Kopie ist sofort ausgewählt
+- das Name-Feld im Properties Panel wird fokussiert und markiert
+- du kannst direkt einen neuen Namen tippen
 
 ## Test
 
-1. Card Creator öffnen.
-2. Template `Test` anklicken.
-3. Prüfen: Button-Haken wechselt auf `Test`.
-4. Preview zeigt das Bild von `Test`.
-5. anderes Template anklicken.
-6. Preview muss wechseln.
-7. zwei Templates rendern und Export-PNGs prüfen.
-8. Template Editor kurz prüfen:
-   - Löschen bleibt bestehen
-   - Umbenennen funktioniert
-   - Duplizieren funktioniert
-   - Felder ziehen flackerfrei
+1. Template Editor öffnen.
+2. Feld auswählen.
+3. `COPY FIELD`.
+4. Prüfen:
+   - neues Feld erscheint leicht versetzt
+   - Größe und Styling identisch
+   - Kopie ist ausgewählt
+   - Name kann direkt geändert werden
+5. Speichern.
+6. Studio neu starten.
+7. Prüfen: kopiertes Feld bleibt vorhanden.
+8. Card Creator öffnen.
+9. Prüfen: neues Eingabefeld erscheint.
 
 ## Git
 
-Erst committen, wenn Card Creator beim Template-Wechsel korrekt lädt.
+Wenn alles passt:
+
+```bash
+git add .
+git commit -m "v2.5.4 - Add Copy Field to Template Editor"
+git push
+```

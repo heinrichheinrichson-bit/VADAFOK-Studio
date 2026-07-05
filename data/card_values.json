@@ -33,5 +33,21 @@
     "date": "20.20.20",
     "game": "",
     "time": ""
+  },
+  "this week": {
+    "date": "06.07.2026",
+    "game": "Resident Evil 2 (Remake)",
+    "time": "20.00",
+    "date 2": "08.07.2026.",
+    "time 2": "16:00",
+    "game 2": "Super Mario 64",
+    "date 3": "10.07.2026",
+    "Time 3": "16:00"
+  },
+  "next show copy test": {
+    "date": "",
+    "game": "resident evil 2",
+    "time": "22:00",
+    "Date": "06.07.2026"
   }
 }

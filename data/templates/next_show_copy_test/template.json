@@ -1,0 +1,45 @@
+{
+  "name": "next show copy test",
+  "background": "background.png",
+  "fields": [
+    {
+      "name": "game",
+      "x": 135,
+      "y": 1389,
+      "width": 668,
+      "height": 110,
+      "font_family": "Bebas Neue",
+      "font_size": 110,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true
+    },
+    {
+      "name": "time",
+      "x": 135,
+      "y": 1149,
+      "width": 668,
+      "height": 110,
+      "font_family": "Bebas Neue",
+      "font_size": 110,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true
+    },
+    {
+      "name": "Date",
+      "x": 141,
+      "y": 913,
+      "width": 668,
+      "height": 110,
+      "font_family": "Bebas Neue",
+      "font_size": 110,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true
+    }
+  ]
+}

@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.5.3.1")
+        self.wm_title("VADAFOK Studio 2.5.4.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -122,7 +122,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.5.3", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.5.4", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -977,7 +977,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.5.3: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.5.4: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1290,12 +1290,13 @@ class VadafokStudio(ctk.CTk):
 
         controls = ctk.CTkFrame(right, fg_color="transparent")
         controls.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
-        controls.grid_columnconfigure((0,1,2,3), weight=1)
+        controls.grid_columnconfigure((0,1,2,3,4), weight=1)
 
         ctk.CTkButton(controls, text="+ ADD FIELD", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.template_add_field).grid(row=0, column=0, padx=4, pady=4, sticky="ew")
-        ctk.CTkButton(controls, text="DELETE FIELD", fg_color="#333333", hover_color="#444444", command=self.template_delete_field).grid(row=0, column=1, padx=4, pady=4, sticky="ew")
-        ctk.CTkButton(controls, text="SAVE TEMPLATE", fg_color="#333333", hover_color="#444444", command=self.template_save).grid(row=0, column=2, padx=4, pady=4, sticky="ew")
-        ctk.CTkButton(controls, text="RESET DEFAULT", fg_color="#333333", hover_color="#444444", command=self.template_reset_default).grid(row=0, column=3, padx=4, pady=4, sticky="ew")
+        ctk.CTkButton(controls, text="COPY FIELD", fg_color="#333333", hover_color="#444444", command=self.template_copy_field).grid(row=0, column=1, padx=4, pady=4, sticky="ew")
+        ctk.CTkButton(controls, text="DELETE FIELD", fg_color="#333333", hover_color="#444444", command=self.template_delete_field).grid(row=0, column=2, padx=4, pady=4, sticky="ew")
+        ctk.CTkButton(controls, text="SAVE TEMPLATE", fg_color="#333333", hover_color="#444444", command=self.template_save).grid(row=0, column=3, padx=4, pady=4, sticky="ew")
+        ctk.CTkButton(controls, text="RESET DEFAULT", fg_color="#333333", hover_color="#444444", command=self.template_reset_default).grid(row=0, column=4, padx=4, pady=4, sticky="ew")
         ctk.CTkButton(
             controls,
             text="SET BACKGROUND FROM LIBRARY",
@@ -1368,6 +1369,8 @@ class VadafokStudio(ctk.CTk):
             ctk.CTkLabel(body, text=label, text_color="#BCA870").grid(row=row, column=0, padx=(12, 8), pady=6, sticky="w")
             entry = ctk.CTkEntry(body, textvariable=var)
             entry.grid(row=row, column=1, padx=(0, 12), pady=6, sticky="ew")
+            if label == "Name":
+                self.template_prop_name_entry = entry
             entry.bind("<KeyRelease>", lambda e: self.template_apply_selected_properties())
 
         ctk.CTkCheckBox(
@@ -1473,6 +1476,51 @@ class VadafokStudio(ctk.CTk):
         self.template_load_selected_properties()
         save_template(self.template_selected_name, template)
         self.template_draw_canvas()
+
+
+    def template_copy_field(self):
+        template = self.template_current()
+        if self.template_selected_field is None:
+            messagebox.showwarning("Template Editor", "Bitte zuerst ein Feld auswählen.")
+            return
+        if not (0 <= self.template_selected_field < len(template.get("fields", []))):
+            messagebox.showwarning("Template Editor", "Ausgewähltes Feld wurde nicht gefunden.")
+            return
+
+        source = dict(template["fields"][self.template_selected_field])
+        base_name = source.get("name", "field")
+        existing = {f.get("name", "") for f in template.get("fields", [])}
+
+        candidate = f"{base_name}_copy"
+        index = 2
+        while candidate in existing:
+            candidate = f"{base_name}_copy{index}"
+            index += 1
+
+        copied = dict(source)
+        copied["name"] = candidate
+
+        design_w, design_h = getattr(self, "template_canvas_design_size", (1280, 720))
+        copied["x"] = min(max(0, int(copied.get("x", 0)) + 15), max(0, int(design_w) - int(copied.get("width", 100))))
+        copied["y"] = min(max(0, int(copied.get("y", 0)) + 15), max(0, int(design_h) - int(copied.get("height", 50))))
+
+        template.setdefault("fields", []).append(copied)
+        self.template_selected_field = len(template["fields"]) - 1
+
+        save_template(self.template_selected_name, template)
+        self.template_load_selected_properties()
+        self.template_draw_canvas()
+
+        if hasattr(self, "template_props_body"):
+            self.template_build_properties_panel()
+
+        try:
+            if hasattr(self, "template_prop_name_entry"):
+                self.template_prop_name_entry.focus_set()
+                self.template_prop_name_entry.select_range(0, "end")
+        except Exception:
+            pass
+
 
     def template_delete_field(self):
         template = self.template_current()
