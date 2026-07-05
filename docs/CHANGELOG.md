@@ -1,25 +1,23 @@
 # CHANGELOG
 
-## v2.6.6 - Add hide and show fields
+## v2.7.0 - Add stable Group / Ungroup foundation
 
 ### Added
-- Visibility toggle per field in the Layers panel.
-- Hidden fields are marked with `🚫`.
-- Visible fields are marked with `👁`.
+- Stable field IDs for template fields.
+- Group / Ungroup controls in Template Editor.
+- Groups are stored with stable field IDs instead of field indices.
+- Groups appear in the Layer Panel with `📦`.
+- Clicking a group selects its visible fields.
+- Copying a complete group creates a copied group.
 
 ### Changed
-- Hidden fields are not shown in the Template Editor canvas.
-- Hidden fields are not selectable through the canvas.
-- Hidden fields are ignored by Smart Guides.
-- Hidden fields are ignored by Card Creator rendering.
-- Hidden fields are ignored by selection-based operations.
+- Layer Panel shows group membership next to grouped fields.
+- Group data is more robust against layer reordering.
+- Hidden fields are ignored when selecting a group from the Layer Panel.
 
-### Verified
-- To be tested before Git release.
+### Testing
+- To be verified before Git release.
 
-## v2.6.5 - Add lock and unlock fields
-
-### Added
-- Lock / Unlock Button per field in the Layers panel.
-- Locked fields are marked with `🔒`.
-- Lock state is saved in templates.
+## v2.6.6 - Add hide and show fields
+- Added visibility toggle in Layers panel.
+- Hidden fields are skipped in editor and rendering.

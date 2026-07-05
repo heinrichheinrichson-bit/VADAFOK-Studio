@@ -1,21 +1,14 @@
-# VADAFOK Studio 2.6.6
+# VADAFOK Studio 2.7.0
 
 ## Neu
 
-Hide / Show Fields im Layer Panel.
+Group / Ungroup mit stabiler Field-ID Grundlage.
 
-- `👁` = sichtbar
-- `🚫` = versteckt
-
-## Verhalten
-
-Versteckte Felder:
-- erscheinen nicht im Template Editor Canvas
-- können im Canvas nicht angeklickt werden
-- werden von Smart Guides ignoriert
-- werden vom Card Creator nicht gerendert
-- bleiben im Template gespeichert
-- können im Layer Panel wieder eingeblendet werden
+- `GROUP SELECTED`
+- `UNGROUP`
+- Gruppen erscheinen im Layer Panel mit `📦`
+- Gruppierte Felder zeigen den Gruppennamen
+- Klick auf Gruppe wählt alle sichtbaren Gruppenfelder aus
 
 ## Test
 
@@ -25,6 +18,6 @@ Siehe `docs/RELEASE_CHECKLIST.md`.
 
 ```bash
 git add .
-git commit -m "v2.6.6 - Add hide and show fields"
+git commit -m "v2.7.0 - Add group and ungroup foundation"
 git push
 ```

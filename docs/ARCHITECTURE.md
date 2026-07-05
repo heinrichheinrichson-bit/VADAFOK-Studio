@@ -1,22 +1,24 @@
 # Architecture
 
-## v2.6.6 Notes
+## v2.7.0 Group Foundation
 
-Field data can now contain:
+Fields now receive stable IDs:
 
 ```json
 {
-  "locked": true,
-  "hidden": false
+  "id": "uuid",
+  "name": "title"
 }
 ```
 
-## Rendering Rule
-Hidden fields are skipped during card rendering.
+Groups reference fields by stable ID:
 
-## Editor Rule
-Hidden fields are skipped by:
-- overlay drawing
-- canvas hit testing
-- smart guide targets
-- selection-based operations
+```json
+{
+  "id": "uuid",
+  "name": "Group",
+  "field_ids": ["field-uuid-1", "field-uuid-2"]
+}
+```
+
+This is more robust than index-based grouping.

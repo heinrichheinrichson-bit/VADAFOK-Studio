@@ -1,19 +1,18 @@
 # Release Checklist
 
-## v2.6.6 Testliste
+## v2.7.0 Testliste
 
 - [ ] Programm startet
 - [ ] Template Editor öffnet
-- [ ] Layers Panel sichtbar
-- [ ] 👁 blendet Feld aus
-- [ ] 🚫 blendet Feld wieder ein
-- [ ] Verstecktes Feld ist im Canvas nicht sichtbar
-- [ ] Verstecktes Feld ist im Canvas nicht auswählbar
-- [ ] Smart Guides ignorieren versteckte Felder
-- [ ] Card Creator rendert versteckte Felder nicht
-- [ ] Save + Neustart erhält Sichtbarkeit
-- [ ] Undo / Redo funktioniert für Hide / Show
-- [ ] Lock / Unlock funktioniert weiterhin
-- [ ] Group Move funktioniert weiterhin
-- [ ] Keyboard Editing funktioniert weiterhin
+- [ ] Mehrere Felder auswählen
+- [ ] GROUP SELECTED erstellt Gruppe
+- [ ] Gruppe erscheint im Layer Panel mit 📦
+- [ ] Gruppierte Felder zeigen Gruppennamen
+- [ ] Klick auf 📦 Gruppe wählt Gruppenfelder
+- [ ] Gruppenfelder gemeinsam verschieben
+- [ ] COPY FIELD bei kompletter Gruppe erstellt neue Gruppe
+- [ ] UNGROUP löst Gruppe auf
+- [ ] Save + Neustart erhält Gruppe
+- [ ] Hide / Lock funktionieren weiterhin
+- [ ] Undo / Redo testen
 - [ ] Card Creator kurz prüfen

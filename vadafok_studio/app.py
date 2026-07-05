@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.6.6.1.1.1")
+        self.wm_title("VADAFOK Studio 2.7.0.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -140,7 +140,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.6.6", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.7.0", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -1000,7 +1000,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.6.6: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.7.0: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1674,6 +1674,194 @@ class VadafokStudio(ctk.CTk):
         return [idx for idx in selected if not self.template_is_field_locked(idx)]
 
 
+
+    def template_new_id(self):
+        import uuid
+        return str(uuid.uuid4())
+
+    def template_ensure_field_ids(self):
+        template = self.template_current()
+        changed = False
+        seen = set()
+
+        for field in template.get("fields", []):
+            fid = field.get("id")
+            if not fid or fid in seen:
+                field["id"] = self.template_new_id()
+                changed = True
+            seen.add(field["id"])
+
+        template.setdefault("groups", [])
+
+        if changed:
+            save_template(self.template_selected_name, template)
+
+    def template_field_id(self, idx):
+        self.template_ensure_field_ids()
+        template = self.template_current()
+        fields = template.get("fields", [])
+        if not (0 <= idx < len(fields)):
+            return None
+        return fields[idx].get("id")
+
+    def template_index_by_field_id(self, field_id):
+        self.template_ensure_field_ids()
+        template = self.template_current()
+        for idx, field in enumerate(template.get("fields", [])):
+            if field.get("id") == field_id:
+                return idx
+        return None
+
+    def template_groups(self):
+        self.template_ensure_field_ids()
+        template = self.template_current()
+        return template.setdefault("groups", [])
+
+    def template_clean_groups(self):
+        self.template_ensure_field_ids()
+        template = self.template_current()
+        valid_ids = {field.get("id") for field in template.get("fields", []) if field.get("id")}
+        clean = []
+
+        for group in template.get("groups", []):
+            field_ids = []
+            for fid in group.get("field_ids", []):
+                if fid in valid_ids and fid not in field_ids:
+                    field_ids.append(fid)
+
+            # Migrate old index-based groups if found.
+            if not field_ids and group.get("fields"):
+                for idx in group.get("fields", []):
+                    fid = self.template_field_id(idx)
+                    if fid and fid not in field_ids:
+                        field_ids.append(fid)
+
+            if field_ids:
+                group["field_ids"] = field_ids
+                group.pop("fields", None)
+                group.setdefault("id", self.template_new_id())
+                group.setdefault("name", "Group")
+                clean.append(group)
+
+        template["groups"] = clean
+
+    def template_group_for_field(self, idx):
+        self.template_clean_groups()
+        fid = self.template_field_id(idx)
+        if not fid:
+            return None
+        for group in self.template_groups():
+            if fid in group.get("field_ids", []):
+                return group
+        return None
+
+    def template_group_name_for_field(self, idx):
+        group = self.template_group_for_field(idx)
+        return group.get("name", "") if group else ""
+
+    def template_selected_group_ids(self):
+        ids = set()
+        for idx in self.template_selected_indices() if hasattr(self, "template_selected_indices") else []:
+            group = self.template_group_for_field(idx)
+            if group:
+                ids.add(group.get("id"))
+        return ids
+
+    def template_select_group(self, group_id):
+        self.template_clean_groups()
+        template = self.template_current()
+        group = next((g for g in template.get("groups", []) if g.get("id") == group_id), None)
+        if not group:
+            return
+
+        selected = set()
+        fields = template.get("fields", [])
+        for fid in group.get("field_ids", []):
+            idx = self.template_index_by_field_id(fid)
+            if idx is not None and 0 <= idx < len(fields) and not fields[idx].get("hidden", False):
+                selected.add(idx)
+
+        self.template_selected_fields = selected
+        self.template_selected_field = next(iter(selected), None) if selected else None
+        self.template_load_selected_properties()
+        if hasattr(self, "template_props_body"):
+            self.template_build_properties_panel()
+        self.template_update_fields_overlay()
+        self.template_build_layers_panel()
+
+    def template_create_group(self):
+        self.template_ensure_field_ids()
+        selected = self.template_selected_indices() if hasattr(self, "template_selected_indices") else []
+
+        if len(selected) < 2:
+            messagebox.showwarning("Template Editor", "Bitte mindestens zwei Felder auswählen.")
+            return
+
+        template = self.template_current()
+        groups = template.setdefault("groups", [])
+
+        selected_ids = [self.template_field_id(idx) for idx in selected]
+        selected_ids = [fid for fid in selected_ids if fid]
+
+        if len(selected_ids) < 2:
+            messagebox.showwarning("Template Editor", "Für eine Gruppe sind mindestens zwei gültige Felder nötig.")
+            return
+
+        if hasattr(self, "template_push_history"):
+            self.template_push_history("group fields")
+
+        # Remove selected fields from existing groups so a field belongs to only one group.
+        for group in groups:
+            group["field_ids"] = [fid for fid in group.get("field_ids", []) if fid not in selected_ids]
+            group.pop("fields", None)
+        groups[:] = [g for g in groups if g.get("field_ids")]
+
+        base = "Group"
+        existing = {g.get("name", "") for g in groups}
+        name = base
+        n = 2
+        while name in existing:
+            name = f"{base} {n}"
+            n += 1
+
+        groups.append({
+            "id": self.template_new_id(),
+            "name": name,
+            "field_ids": selected_ids,
+            "locked": False,
+            "hidden": False,
+        })
+
+        save_template(self.template_selected_name, template)
+        self.template_update_fields_overlay()
+        self.template_build_layers_panel()
+
+    def template_ungroup_selected(self):
+        self.template_clean_groups()
+        selected = self.template_selected_indices() if hasattr(self, "template_selected_indices") else []
+        selected_ids = {self.template_field_id(idx) for idx in selected}
+        selected_ids.discard(None)
+
+        group_ids = set()
+        for group in self.template_groups():
+            if selected_ids.intersection(set(group.get("field_ids", []))):
+                group_ids.add(group.get("id"))
+
+        if not group_ids:
+            messagebox.showwarning("Template Editor", "Keine Gruppe ausgewählt.")
+            return
+
+        if hasattr(self, "template_push_history"):
+            self.template_push_history("ungroup fields")
+
+        template = self.template_current()
+        template["groups"] = [g for g in template.get("groups", []) if g.get("id") not in group_ids]
+
+        save_template(self.template_selected_name, template)
+        self.template_update_fields_overlay()
+        self.template_build_layers_panel()
+
+
     def template_build_layers_panel(self):
         if not hasattr(self, "template_layers_body"):
             return
@@ -1682,6 +1870,7 @@ class VadafokStudio(ctk.CTk):
             w.destroy()
 
         template = self.template_current()
+        self.template_clean_groups()
         fields = template.get("fields", [])
         selected = set(getattr(self, "template_selected_fields", set()))
         if self.template_selected_field is not None:
@@ -1697,14 +1886,35 @@ class VadafokStudio(ctk.CTk):
             ).grid(row=0, column=0, columnspan=5, padx=8, pady=8, sticky="w")
             return
 
+        row = 0
+        groups = template.get("groups", [])
+        selected_group_ids = self.template_selected_group_ids() if hasattr(self, "template_selected_group_ids") else set()
+
+        for group in groups:
+            active_group = group.get("id") in selected_group_ids
+            label = ("✓ " if active_group else "") + "📦 " + group.get("name", "Group")
+            ctk.CTkButton(
+                self.template_layers_body,
+                text=label,
+                fg_color=GOLD if active_group else "#202020",
+                text_color="#111111" if active_group else "#D9C58C",
+                hover_color=GOLD_DARK if active_group else "#303030",
+                anchor="w",
+                command=lambda gid=group.get("id"): self.template_select_group(gid)
+            ).grid(row=row, column=0, columnspan=5, padx=8, pady=(6, 3), sticky="ew")
+            row += 1
+
         # Higher index is drawn later = visually in front.
         # Show front/top layers first.
-        for row, idx in enumerate(reversed(range(len(fields)))):
+        for idx in reversed(range(len(fields))):
             field = fields[idx]
             active = idx in selected
             locked = bool(field.get("locked", False))
             hidden = bool(field.get("hidden", False))
             name = field.get("name", f"field_{idx+1}")
+            group_name = self.template_group_name_for_field(idx)
+            if group_name:
+                name = f"{name} · {group_name}"
 
             btn = ctk.CTkButton(
                 self.template_layers_body,
@@ -1752,6 +1962,8 @@ class VadafokStudio(ctk.CTk):
                 hover_color="#7A2A2A" if locked else "#444444",
                 command=lambda i=idx: self.template_toggle_field_lock(i)
             ).grid(row=row, column=4, padx=(2, 8), pady=3, sticky="ew")
+
+            row += 1
 
         self.template_layers_body.grid_columnconfigure(0, weight=1)
 
@@ -1956,6 +2168,7 @@ class VadafokStudio(ctk.CTk):
         self.template_props_body.grid_columnconfigure(1, weight=1)
 
         self.template_build_properties_panel()
+        self.template_ensure_field_ids()
 
 
         zoom_bar = ctk.CTkFrame(controls, fg_color="transparent")
@@ -2013,6 +2226,12 @@ class VadafokStudio(ctk.CTk):
         history_bar.grid_columnconfigure((0,1), weight=1)
         ctk.CTkButton(history_bar, text="UNDO", fg_color="#333333", hover_color="#444444", command=self.template_undo).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
         ctk.CTkButton(history_bar, text="REDO", fg_color="#333333", hover_color="#444444", command=self.template_redo).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
+
+        group_bar = ctk.CTkFrame(controls, fg_color="transparent")
+        group_bar.grid(row=7, column=0, columnspan=5, padx=4, pady=(2, 0), sticky="ew")
+        group_bar.grid_columnconfigure((0,1), weight=1)
+        ctk.CTkButton(group_bar, text="GROUP SELECTED", fg_color="#333333", hover_color="#444444", command=self.template_create_group).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
+        ctk.CTkButton(group_bar, text="UNGROUP", fg_color="#333333", hover_color="#444444", command=self.template_ungroup_selected).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
 
         self.template_draw_canvas()
         self.template_build_layers_panel()
@@ -2178,6 +2397,7 @@ class VadafokStudio(ctk.CTk):
         design_w, design_h = getattr(self, "template_canvas_design_size", (1280, 720))
 
         copied_indices = []
+        src_to_copy_id = {}
         for src_idx in selected:
             source = dict(fields[src_idx])
             base_name = source.get("name", "field")
@@ -2190,12 +2410,35 @@ class VadafokStudio(ctk.CTk):
             existing.add(candidate)
 
             copied = dict(source)
+            copied["id"] = self.template_new_id()
             copied["name"] = candidate
             copied["x"] = min(max(0, int(copied.get("x", 0)) + 15), max(0, int(design_w) - int(copied.get("width", 100))))
             copied["y"] = min(max(0, int(copied.get("y", 0)) + 15), max(0, int(design_h) - int(copied.get("height", 50))))
 
             template.setdefault("fields", []).append(copied)
-            copied_indices.append(len(template["fields"]) - 1)
+            new_idx = len(template["fields"]) - 1
+            copied_indices.append(new_idx)
+            src_to_copy_id[source.get("id")] = copied.get("id")
+
+        # If a complete group was copied, recreate it for the copied fields.
+        copied_source_ids = {fid for fid in src_to_copy_id.keys() if fid}
+        for group in list(template.get("groups", [])):
+            group_ids = set(group.get("field_ids", []))
+            if group_ids and group_ids.issubset(copied_source_ids):
+                base_name = group.get("name", "Group") + "_copy"
+                existing_names = {g.get("name", "") for g in template.setdefault("groups", [])}
+                name = base_name
+                n = 2
+                while name in existing_names:
+                    name = f"{base_name}{n}"
+                    n += 1
+                template["groups"].append({
+                    "id": self.template_new_id(),
+                    "name": name,
+                    "field_ids": [src_to_copy_id[fid] for fid in group.get("field_ids", []) if fid in src_to_copy_id],
+                    "locked": bool(group.get("locked", False)),
+                    "hidden": bool(group.get("hidden", False)),
+                })
 
         self.template_selected_fields = set(copied_indices)
         self.template_selected_field = copied_indices[-1] if copied_indices else None
@@ -2241,6 +2484,7 @@ class VadafokStudio(ctk.CTk):
                 return
 
         template["fields"] = [field for idx, field in enumerate(fields) if idx not in selected]
+        self.template_clean_groups()
         self.template_clear_selection()
         save_template(self.template_selected_name, template)
         self.template_draw_canvas()

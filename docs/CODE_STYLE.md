@@ -1,5 +1,3 @@
 # Code Style
 
-- Keep Template Editor actions small and testable.
-- Push undo history before destructive/editing operations.
-- Preserve existing behavior when adding layer features.
+Group data should use stable field IDs, not list indices.

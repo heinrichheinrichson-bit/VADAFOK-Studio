@@ -3,10 +3,10 @@
   "background": "background.png",
   "fields": [
     {
-      "name": "game",
-      "x": 133,
-      "y": 1393,
-      "width": 680,
+      "name": "hallo",
+      "x": 169,
+      "y": 1128,
+      "width": 339,
       "height": 99,
       "font_family": "Bebas Neue",
       "font_size": 90,
@@ -14,13 +14,13 @@
       "stroke_color": "#000000",
       "stroke_width": 3,
       "uppercase": true,
-      "locked": true,
-      "hidden": true
+      "locked": false,
+      "hidden": false
     },
     {
       "name": "time",
-      "x": 139,
-      "y": 1155,
+      "x": 233,
+      "y": 495,
       "width": 680,
       "height": 99,
       "font_family": "Bebas Neue",
@@ -29,12 +29,12 @@
       "stroke_color": "#000000",
       "stroke_width": 3,
       "uppercase": true,
-      "locked": true
+      "locked": false
     },
     {
-      "name": "date",
-      "x": 131,
-      "y": 918,
+      "name": "hallo",
+      "x": 185,
+      "y": 836,
       "width": 680,
       "height": 99,
       "font_family": "Bebas Neue",
@@ -43,7 +43,8 @@
       "stroke_color": "#000000",
       "stroke_width": 3,
       "uppercase": true,
-      "locked": true
+      "locked": false
     }
-  ]
+  ],
+  "groups": []
 }

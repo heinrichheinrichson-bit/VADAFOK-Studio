@@ -1,10 +1,14 @@
 # Ideas
 
-## Next Editor Ideas
-- Group / Ungroup
+## Group System
+- Group Rename
+- Group Lock
+- Group Hide
+- Group Color
+- Nested Groups
+- Drag & Drop Groups in Layer Panel
+
+## Editor
 - Equal Spacing
 - Selection Rectangle
 - Style Presets
-- Drag & Drop Layer Reordering
-- Layer colors
-- Field opacity
