@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.7.4.1.1.1.1.1")
+        self.wm_title("VADAFOK Studio 2.7.5.1.1.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -57,6 +57,7 @@ class VadafokStudio(ctk.CTk):
         self.template_marquee_start = None
         self.template_marquee_item = None
         self.template_marquee_add_mode = False
+        self.template_collapsed_groups = set()
         self.template_working_data = None
         self.template_zoom_factor = 1.0
         self.template_zoom_label_var = ctk.StringVar(value="100%")
@@ -147,7 +148,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.7.4.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.7.5.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -1008,7 +1009,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.7.4.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.7.5.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1919,6 +1920,31 @@ class VadafokStudio(ctk.CTk):
         self.template_rename_entry = entry
 
 
+
+    def template_group_is_collapsed(self, group_id):
+        if not hasattr(self, "template_collapsed_groups"):
+            self.template_collapsed_groups = set()
+        return group_id in self.template_collapsed_groups
+
+    def template_toggle_group_collapsed(self, group_id):
+        if not hasattr(self, "template_collapsed_groups"):
+            self.template_collapsed_groups = set()
+        if group_id in self.template_collapsed_groups:
+            self.template_collapsed_groups.remove(group_id)
+        else:
+            self.template_collapsed_groups.add(group_id)
+        self.template_build_layers_panel()
+
+    def template_field_is_in_collapsed_group(self, idx):
+        try:
+            group = self.template_group_for_field(idx)
+            if not group:
+                return False
+            return self.template_group_is_collapsed(group.get("id"))
+        except Exception:
+            return False
+
+
     def template_find_group(self, group_id):
         for group in self.template_groups():
             if group.get("id") == group_id:
@@ -2095,13 +2121,20 @@ class VadafokStudio(ctk.CTk):
             w.destroy()
 
         template = self.template_current()
+        try:
+            self.template_clean_groups()
+        except Exception:
+            pass
+
         self._template_layer_row_for_group = {}
         self._template_layer_row_for_field = {}
-        self.template_clean_groups()
+
         fields = template.get("fields", [])
         selected = set(getattr(self, "template_selected_fields", set()))
         if self.template_selected_field is not None:
             selected.add(self.template_selected_field)
+
+        row = 0
 
         if not fields:
             ctk.CTkLabel(
@@ -2113,16 +2146,28 @@ class VadafokStudio(ctk.CTk):
             ).grid(row=0, column=0, columnspan=5, padx=8, pady=8, sticky="w")
             return
 
-        row = 0
+        # Group headers first.
         groups = template.get("groups", [])
         selected_group_ids = self.template_selected_group_ids() if hasattr(self, "template_selected_group_ids") else set()
 
         for group in groups:
-            active_group = group.get("id") in selected_group_ids
-            self._template_layer_row_for_group[group.get("id")] = row
+            group_id = group.get("id")
+            self._template_layer_row_for_group[group_id] = row
+
+            active_group = group_id in selected_group_ids
             group_hidden = bool(group.get("hidden", False))
             group_locked = bool(group.get("locked", False))
+            collapsed = self.template_group_is_collapsed(group_id)
             label = ("✓ " if active_group else "") + "📦 " + group.get("name", "Group")
+
+            ctk.CTkButton(
+                self.template_layers_body,
+                text="▶" if collapsed else "▼",
+                width=30,
+                fg_color="#333333",
+                hover_color="#444444",
+                command=lambda gid=group_id: self.template_toggle_group_collapsed(gid)
+            ).grid(row=row, column=0, padx=(8, 2), pady=(6, 3), sticky="ew")
 
             group_btn = ctk.CTkButton(
                 self.template_layers_body,
@@ -2131,10 +2176,9 @@ class VadafokStudio(ctk.CTk):
                 text_color="#111111" if active_group else "#D9C58C",
                 hover_color=GOLD_DARK if active_group else "#303030",
                 anchor="w",
-                command=lambda gid=group.get("id"): self.template_select_group(gid)
+                command=lambda gid=group_id: self.template_select_group(gid)
             )
-            group_btn.grid(row=row, column=0, padx=(8, 4), pady=(6, 3), sticky="ew")
-            group_btn.bind("<Double-Button-1>", lambda _e, gid=group.get("id"): self.template_start_inline_rename_group(gid))
+            group_btn.grid(row=row, column=1, padx=(2, 4), pady=(6, 3), sticky="ew")
 
             ctk.CTkButton(
                 self.template_layers_body,
@@ -2142,8 +2186,8 @@ class VadafokStudio(ctk.CTk):
                 width=32,
                 fg_color="#333333",
                 hover_color="#444444",
-                command=lambda gid=group.get("id"): self.template_rename_group(gid)
-            ).grid(row=row, column=1, padx=2, pady=(6, 3), sticky="ew")
+                command=lambda gid=group_id: self.template_rename_group(gid)
+            ).grid(row=row, column=2, padx=2, pady=(6, 3), sticky="ew")
 
             ctk.CTkButton(
                 self.template_layers_body,
@@ -2151,8 +2195,8 @@ class VadafokStudio(ctk.CTk):
                 width=34,
                 fg_color="#333333" if not group_hidden else "#5A1F1F",
                 hover_color="#444444" if not group_hidden else "#7A2A2A",
-                command=lambda gid=group.get("id"): self.template_toggle_group_hidden(gid)
-            ).grid(row=row, column=2, padx=2, pady=(6, 3), sticky="ew")
+                command=lambda gid=group_id: self.template_toggle_group_hidden(gid)
+            ).grid(row=row, column=3, padx=2, pady=(6, 3), sticky="ew")
 
             ctk.CTkButton(
                 self.template_layers_body,
@@ -2160,21 +2204,25 @@ class VadafokStudio(ctk.CTk):
                 width=34,
                 fg_color="#5A1F1F" if group_locked else "#333333",
                 hover_color="#7A2A2A" if group_locked else "#444444",
-                command=lambda gid=group.get("id"): self.template_toggle_group_lock(gid)
-            ).grid(row=row, column=3, padx=2, pady=(6, 3), sticky="ew")
+                command=lambda gid=group_id: self.template_toggle_group_lock(gid)
+            ).grid(row=row, column=4, padx=(2, 8), pady=(6, 3), sticky="ew")
 
             row += 1
 
-        # Higher index is drawn later = visually in front.
-        # Show front/top layers first.
+        # Fields. Hide fields from layer list only when their group is collapsed.
         for idx in reversed(range(len(fields))):
             field = fields[idx]
+            if self.template_field_is_in_collapsed_group(idx):
+                continue
+
             self._template_layer_row_for_field[idx] = row
+
             active = idx in selected
             locked = bool(field.get("locked", False))
             hidden = bool(field.get("hidden", False))
+            group_name = self.template_group_name_for_field(idx) if hasattr(self, "template_group_name_for_field") else ""
+
             name = field.get("name", f"field_{idx+1}")
-            group_name = self.template_group_name_for_field(idx)
             if group_name:
                 name = f"{name} · {group_name}"
 
@@ -2187,8 +2235,12 @@ class VadafokStudio(ctk.CTk):
                 anchor="w",
                 command=lambda i=idx: self.template_select_layer(i)
             )
-            btn.grid(row=row, column=0, padx=(8, 4), pady=3, sticky="ew")
-            btn.bind("<Double-Button-1>", lambda _e, i=idx: self.template_start_inline_rename_field(i))
+            pad_left = 24 if group_name else 8
+            btn.grid(row=row, column=0, padx=(pad_left, 4), pady=3, sticky="ew")
+            try:
+                btn.bind("<Double-Button-1>", lambda _e, i=idx: self.template_start_inline_rename_field(i))
+            except Exception:
+                pass
 
             ctk.CTkButton(
                 self.template_layers_body,
@@ -2229,6 +2281,8 @@ class VadafokStudio(ctk.CTk):
             row += 1
 
         self.template_layers_body.grid_columnconfigure(0, weight=1)
+        self.template_layers_body.grid_columnconfigure(1, weight=1)
+
 
     def template_select_layer(self, idx):
         self.template_set_single_selection(idx)
@@ -2640,6 +2694,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_select(self, name):
+        self.template_collapsed_groups = set()
         self.template_selected_name = name
         self.template_selected_field = None
         self.template_selected_fields = set()

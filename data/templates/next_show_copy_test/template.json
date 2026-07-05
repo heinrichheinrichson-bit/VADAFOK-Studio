@@ -3,22 +3,6 @@
   "background": "background.png",
   "fields": [
     {
-      "name": "field_2",
-      "x": 136,
-      "y": 820,
-      "width": 307,
-      "height": 90,
-      "font_family": "Bebas Neue",
-      "font_size": 90,
-      "text_color": "#FFFFFF",
-      "stroke_color": "#000000",
-      "stroke_width": 3,
-      "uppercase": true,
-      "id": "6d9ff6c4-fc69-4d02-bcb2-d08cab542b47",
-      "locked": false,
-      "hidden": false
-    },
-    {
       "name": "field_1",
       "x": 493,
       "y": 1394,
@@ -52,8 +36,8 @@
     },
     {
       "name": "field_1_copy2",
-      "x": 204,
-      "y": 521,
+      "x": 251,
+      "y": 598,
       "width": 345,
       "height": 190,
       "font_family": "Bebas Neue",
@@ -63,7 +47,7 @@
       "stroke_width": 3,
       "uppercase": true,
       "id": "e57e860e-52e2-408e-a567-e1aeff97783a",
-      "hidden": false,
+      "hidden": true,
       "locked": false
     },
     {
@@ -84,8 +68,8 @@
     },
     {
       "name": "field_1_copy_copy",
-      "x": 326,
-      "y": 302,
+      "x": 375,
+      "y": 378,
       "width": 330,
       "height": 53,
       "font_family": "Bebas Neue",
@@ -95,31 +79,31 @@
       "stroke_width": 3,
       "uppercase": true,
       "locked": false,
-      "id": "d98fa1ec-b1c0-4117-a4ca-21d4d266435a"
+      "id": "d98fa1ec-b1c0-4117-a4ca-21d4d266435a",
+      "hidden": true
     }
   ],
   "groups": [
     {
-      "id": "cba8af2d-cad0-4e32-b795-50130379fef4",
-      "name": "123",
-      "field_ids": [
-        "e57e860e-52e2-408e-a567-e1aeff97783a",
-        "d98fa1ec-b1c0-4117-a4ca-21d4d266435a"
-      ],
-      "locked": false,
-      "hidden": false
-    },
-    {
       "id": "e199ca95-ceb8-49dc-9370-24c39d780f69",
       "name": "456",
       "field_ids": [
-        "6d9ff6c4-fc69-4d02-bcb2-d08cab542b47",
         "67ff9f68-c026-43c4-a794-3065f9998ad0",
         "158967f6-fd09-44dd-9562-c8d20c27b95b",
         "772553e8-55cf-4ab0-87de-58592cdc5f0d"
       ],
       "locked": false,
       "hidden": false
+    },
+    {
+      "id": "c4f806d4-17a5-4696-9e31-0b01725bf379",
+      "name": "Group 2",
+      "field_ids": [
+        "e57e860e-52e2-408e-a567-e1aeff97783a",
+        "d98fa1ec-b1c0-4117-a4ca-21d4d266435a"
+      ],
+      "locked": false,
+      "hidden": true
     }
   ]
 }

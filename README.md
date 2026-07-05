@@ -1,24 +1,23 @@
-# VADAFOK Studio 2.7.4.1
+# VADAFOK Studio 2.7.5.1
 
 ## Hotfix
 
-Template Editor Keyboard Shortcuts wurden bisher global ausgelöst.
+Layer Panel wurde in 2.7.5 leer angezeigt.
 
 Repariert:
+- Layer Panel bleibt sichtbar
+- Felder werden wieder angezeigt
+- Gruppen können ein-/ausgeklappt werden
 
-- Delete / Backspace öffnen keine Template-Editor-Meldung mehr in anderen Bereichen.
-- Texteingaben in Live Card und anderen Bereichen funktionieren wieder normal.
-- Template Editor Shortcuts funktionieren nur noch im Template Editor.
-- Shortcuts greifen nicht mehr in Textfeldern / Eingabefeldern.
+## Neu
 
-## Test
-
-Siehe `docs/RELEASE_CHECKLIST.md`.
+- `▼` = Gruppe ausgeklappt
+- `▶` = Gruppe eingeklappt
 
 ## Git nach erfolgreichem Test
 
 ```bash
 git add .
-git commit -m "v2.7.4.1 - Fix Template Editor shortcut scope"
+git commit -m "v2.7.5.1 - Fix Layer Panel collapsible groups"
 git push
 ```
