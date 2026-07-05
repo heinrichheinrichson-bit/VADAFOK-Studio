@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.6.1.1.1.1")
+        self.wm_title("VADAFOK Studio 2.6.2.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -136,7 +136,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.6.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.6.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -995,7 +995,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.6.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.6.2: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1450,6 +1450,90 @@ class VadafokStudio(ctk.CTk):
         self.template_draw_canvas()
 
 
+
+    def template_keyboard_move_selected(self, dx, dy):
+        template = self.template_current()
+        fields = template.get("fields", [])
+        selected = self.template_selected_indices() if hasattr(self, "template_selected_indices") else []
+
+        if not selected:
+            return "break"
+
+        design_w, design_h = getattr(self, "template_canvas_design_size", (1280, 720))
+
+        # Keep whole selected group within bounds.
+        originals = [fields[i] for i in selected]
+        min_dx = max(-int(f.get("x", 0)) for f in originals)
+        min_dy = max(-int(f.get("y", 0)) for f in originals)
+        max_dx = min(design_w - (int(f.get("x", 0)) + int(f.get("width", 0))) for f in originals)
+        max_dy = min(design_h - (int(f.get("y", 0)) + int(f.get("height", 0))) for f in originals)
+
+        dx = max(min_dx, min(max_dx, int(dx)))
+        dy = max(min_dy, min(max_dy, int(dy)))
+
+        for idx in selected:
+            fields[idx]["x"] = int(fields[idx].get("x", 0)) + dx
+            fields[idx]["y"] = int(fields[idx].get("y", 0)) + dy
+
+        save_template(self.template_selected_name, template)
+        self.template_update_fields_overlay()
+        return "break"
+
+    def template_keyboard_select_all(self):
+        template = self.template_current()
+        self.template_selected_fields = set(range(len(template.get("fields", []))))
+        self.template_selected_field = next(iter(self.template_selected_fields), None) if self.template_selected_fields else None
+        self.template_update_fields_overlay()
+        return "break"
+
+    def template_keyboard_clear_selection(self):
+        self.template_clear_selection()
+        self.template_load_selected_properties()
+        if hasattr(self, "template_props_body"):
+            self.template_build_properties_panel()
+        self.template_update_fields_overlay()
+        return "break"
+
+    def template_keyboard_delete_selected(self):
+        self.template_delete_field()
+        return "break"
+
+    def template_keyboard_duplicate_selected(self):
+        self.template_copy_field()
+        return "break"
+
+    def template_keyboard_handler(self, event):
+        key = getattr(event, "keysym", "")
+        state = int(getattr(event, "state", 0) or 0)
+        ctrl = bool(state & 0x0004) or bool(getattr(self, "template_ctrl_down", False))
+        shift = bool(state & 0x0001) or bool(getattr(self, "template_shift_down", False))
+
+        if ctrl and key.lower() == "a":
+            return self.template_keyboard_select_all()
+
+        if ctrl and key.lower() == "d":
+            return self.template_keyboard_duplicate_selected()
+
+        if key in ("Delete", "BackSpace"):
+            return self.template_keyboard_delete_selected()
+
+        if key == "Escape":
+            return self.template_keyboard_clear_selection()
+
+        step = 10 if shift else 1
+
+        if key == "Left":
+            return self.template_keyboard_move_selected(-step, 0)
+        if key == "Right":
+            return self.template_keyboard_move_selected(step, 0)
+        if key == "Up":
+            return self.template_keyboard_move_selected(0, -step)
+        if key == "Down":
+            return self.template_keyboard_move_selected(0, step)
+
+        return None
+
+
     def show_template_editor_page(self):
         self.set_active("Template Editor")
         self.clear_main()
@@ -1529,8 +1613,10 @@ class VadafokStudio(ctk.CTk):
         self.template_canvas.bind("<Control-Button-4>", self.template_mouse_wheel_zoom)
         self.template_canvas.bind("<Control-Button-5>", self.template_mouse_wheel_zoom)
         self.template_canvas.bind("<KeyPress>", self.template_key_down)
+        self.template_canvas.bind("<KeyPress>", self.template_keyboard_handler, add="+")
         self.template_canvas.bind("<KeyRelease>", self.template_key_up)
         self.bind("<KeyPress>", self.template_key_down)
+        self.bind("<KeyPress>", self.template_keyboard_handler, add="+")
         self.bind("<KeyRelease>", self.template_key_up)
         self.template_canvas.bind("<ButtonPress-2>", self.template_pan_start_drag)
         self.template_canvas.bind("<B2-Motion>", self.template_pan_drag)
@@ -2314,6 +2400,10 @@ class VadafokStudio(ctk.CTk):
         self.template_canvas.configure(cursor=self.template_cursor_for_mode(mode))
 
     def template_mouse_down(self, event):
+        try:
+            self.template_canvas.focus_set()
+        except Exception:
+            pass
         idx, mode = self.template_hit_test(event.x, event.y)
         multi_pressed = self.template_multi_select_modifier(event)
 

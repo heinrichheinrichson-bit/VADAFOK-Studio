@@ -1,62 +1,59 @@
-# VADAFOK Studio 2.6.1
+# VADAFOK Studio 2.6.2
 
 ## Ziel
 
-Alignment Tools für Multi Selection im Template Editor.
+Keyboard Editing im Template Editor.
 
 ## Neu
 
-Wenn mehrere Felder ausgewählt sind:
+- Pfeiltasten bewegen ausgewählte Felder um 1 px
+- Shift + Pfeiltaste bewegt ausgewählte Felder um 10 px
+- Delete / Backspace löscht Auswahl
+- Ctrl + D dupliziert Auswahl
+- Ctrl + A wählt alle Felder
+- Esc hebt Auswahl auf
 
-- `ALIGN LEFT`
-- `CENTER`
-- `ALIGN RIGHT`
-- `ALIGN TOP`
-- `MIDDLE`
-- `ALIGN BOTTOM`
-- `DISTRIBUTE H`
-- `DISTRIBUTE V`
+## Funktioniert mit
 
-## Verhalten
-
-### Align
-
-Richtet alle ausgewählten Felder an der gemeinsamen Auswahlbox aus.
-
-### Distribute
-
-Verteilt mindestens drei ausgewählte Felder gleichmäßig:
-
-- horizontal nach X-Position
-- vertikal nach Y-Position
+- Einzelauswahl
+- Multi Selection
+- Group Move
+- Multi Copy
+- Smart Guides
+- Zoom / Pan
+- Alignment Tools
 
 ## Test
 
-1. Mit Ctrl + Klick mehrere Felder auswählen.
-2. `ALIGN LEFT` testen.
-3. `CENTER` testen.
-4. `ALIGN RIGHT` testen.
-5. `ALIGN TOP`, `MIDDLE`, `ALIGN BOTTOM` testen.
-6. Drei oder mehr Felder auswählen.
-7. `DISTRIBUTE H` und `DISTRIBUTE V` testen.
-8. Group Move, Multi-Copy, Smart Guides, Zoom/Pan kurz prüfen.
+1. Ein Feld auswählen.
+2. Pfeiltasten testen.
+3. Shift + Pfeiltasten testen.
+4. Mehrere Felder mit Ctrl + Klick auswählen.
+5. Pfeiltasten testen: alle ausgewählten Felder müssen sich bewegen.
+6. Ctrl + D testen.
+7. Ctrl + A testen.
+8. Delete / Backspace testen.
+9. Esc testen.
+10. Smart Guides / Align / Card Creator kurz prüfen.
 
 ## Git nach erfolgreichem Test
 
 ```bash
 git add .
-git commit -m "v2.6.1 - Add alignment tools for multi selection"
+git commit -m "v2.6.2 - Add keyboard editing to Template Editor"
 git push
 ```
 
 ## Commit-Beschreibung
 
 ```text
-v2.6.1 - Add alignment tools for multi selection
+v2.6.2 - Add keyboard editing to Template Editor
 
-- Added alignment buttons for selected template fields
-- Supports left, center, right, top, middle and bottom alignment
-- Added horizontal and vertical distribution for 3+ fields
-- Works with existing multi-selection and group move
-- Existing Smart Guides, Zoom, Pan and Copy Field behavior preserved
+- Added arrow-key movement for selected template fields
+- Shift+Arrow moves selected fields by 10 px
+- Delete/Backspace deletes selected fields
+- Ctrl+D duplicates selected fields
+- Ctrl+A selects all fields
+- Esc clears selection
+- Works with multi-selection, group move, Smart Guides, Zoom, Pan and Alignment Tools
 ```
