@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.5.8.1")
+        self.wm_title("VADAFOK Studio 2.5.9.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -39,6 +39,9 @@ class VadafokStudio(ctk.CTk):
         self.template_store_migrated = import_legacy_templates(self.template_profiles)
         self.template_selected_name = "Default Stream Plan"
         self.template_selected_field = None
+        self.template_selected_fields = set()
+        self.template_shift_down = False
+        self.template_ctrl_down = False
         self.template_drag_mode = None
         self.template_drag_start = None
         self.template_drag_original = None
@@ -132,7 +135,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.5.8", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.5.9.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -340,6 +343,10 @@ class VadafokStudio(ctk.CTk):
 
         if hasattr(self, "template_canvas"):
             self.template_draw_canvas()
+        try:
+            self.template_canvas.focus_set()
+        except Exception:
+            pass
         return dest
 
 
@@ -987,7 +994,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.5.8: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.5.9.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1107,6 +1114,7 @@ class VadafokStudio(ctk.CTk):
             self.template_working_data = data
 
         self.template_selected_field = None
+        self.template_selected_fields = set()
         self.show_template_editor_page()
 
     def template_duplicate_current(self):
@@ -1326,6 +1334,37 @@ class VadafokStudio(ctk.CTk):
             self.template_draw_canvas()
 
 
+
+    def template_key_down(self, event):
+        key = getattr(event, "keysym", "")
+        if key in ("Shift_L", "Shift_R"):
+            self.template_shift_down = True
+        if key in ("Control_L", "Control_R"):
+            self.template_ctrl_down = True
+
+    def template_key_up(self, event):
+        key = getattr(event, "keysym", "")
+        if key in ("Shift_L", "Shift_R"):
+            self.template_shift_down = False
+        if key in ("Control_L", "Control_R"):
+            self.template_ctrl_down = False
+
+    def template_multi_select_modifier(self, event):
+        state = int(getattr(event, "state", 0) or 0)
+
+        # Tk modifier masks differ a bit by platform/theme.
+        # Common masks:
+        # Shift = 0x0001
+        # Ctrl  = 0x0004
+        # Also use our explicit key state fallback.
+        return (
+            bool(state & 0x0001)
+            or bool(state & 0x0004)
+            or bool(getattr(self, "template_shift_down", False))
+            or bool(getattr(self, "template_ctrl_down", False))
+        )
+
+
     def show_template_editor_page(self):
         self.set_active("Template Editor")
         self.clear_main()
@@ -1404,6 +1443,10 @@ class VadafokStudio(ctk.CTk):
         self.template_canvas.bind("<Control-MouseWheel>", self.template_mouse_wheel_zoom)
         self.template_canvas.bind("<Control-Button-4>", self.template_mouse_wheel_zoom)
         self.template_canvas.bind("<Control-Button-5>", self.template_mouse_wheel_zoom)
+        self.template_canvas.bind("<KeyPress>", self.template_key_down)
+        self.template_canvas.bind("<KeyRelease>", self.template_key_up)
+        self.bind("<KeyPress>", self.template_key_down)
+        self.bind("<KeyRelease>", self.template_key_up)
         self.template_canvas.bind("<ButtonPress-2>", self.template_pan_start_drag)
         self.template_canvas.bind("<B2-Motion>", self.template_pan_drag)
         self.template_canvas.bind("<ButtonRelease-2>", self.template_pan_end_drag)
@@ -1569,12 +1612,14 @@ class VadafokStudio(ctk.CTk):
         self.template_selected_name = data["name"]
         self.template_working_data = data
         self.template_selected_field = None
+        self.template_selected_fields = set()
         self.show_template_editor_page()
 
 
     def template_select(self, name):
         self.template_selected_name = name
         self.template_selected_field = None
+        self.template_selected_fields = set()
         self.template_working_data = load_template(name)
         self.show_template_editor_page()
 
@@ -1681,16 +1726,27 @@ class VadafokStudio(ctk.CTk):
 
     def template_delete_field(self):
         template = self.template_current()
-        if self.template_selected_field is None:
+        fields = template.get("fields", [])
+
+        selected = set(getattr(self, "template_selected_fields", set()))
+        if self.template_selected_field is not None:
+            selected.add(self.template_selected_field)
+
+        selected = {idx for idx in selected if 0 <= idx < len(fields)}
+        if not selected:
+            messagebox.showwarning("Template Editor", "Bitte zuerst ein Feld auswählen.")
             return
-        if 0 <= self.template_selected_field < len(template["fields"]):
-            del template["fields"][self.template_selected_field]
-            self.template_selected_field = None
-            self.template_load_selected_properties()
-            save_template(self.template_selected_name, template)
-            self.template_draw_canvas()
 
+        if len(selected) > 1:
+            if not messagebox.askyesno("Template Editor", f"{len(selected)} Felder wirklich löschen?"):
+                return
 
+        template["fields"] = [field for idx, field in enumerate(fields) if idx not in selected]
+        self.template_clear_selection()
+        save_template(self.template_selected_name, template)
+        self.template_draw_canvas()
+        if hasattr(self, "template_props_body"):
+            self.template_build_properties_panel()
 
 
     def template_draw_canvas(self):
@@ -1949,6 +2005,41 @@ class VadafokStudio(ctk.CTk):
         self.template_clear_smart_guides()
 
 
+
+    def template_sync_selection_set(self):
+        if not hasattr(self, "template_selected_fields"):
+            self.template_selected_fields = set()
+        if self.template_selected_field is None:
+            if len(self.template_selected_fields) == 1:
+                self.template_selected_field = next(iter(self.template_selected_fields))
+            return
+        self.template_selected_fields.add(self.template_selected_field)
+
+    def template_selection_count(self):
+        if not hasattr(self, "template_selected_fields"):
+            self.template_selected_fields = set()
+        return len(self.template_selected_fields)
+
+    def template_clear_selection(self):
+        self.template_selected_field = None
+        self.template_selected_fields = set()
+
+    def template_set_single_selection(self, idx):
+        self.template_selected_field = idx
+        self.template_selected_fields = {idx} if idx is not None else set()
+
+    def template_toggle_selection(self, idx):
+        if not hasattr(self, "template_selected_fields"):
+            self.template_selected_fields = set()
+        if idx in self.template_selected_fields:
+            self.template_selected_fields.remove(idx)
+            if self.template_selected_field == idx:
+                self.template_selected_field = next(iter(self.template_selected_fields), None)
+        else:
+            self.template_selected_fields.add(idx)
+            self.template_selected_field = idx
+
+
     def template_update_fields_overlay(self, bg_info=None):
         if not hasattr(self, "template_canvas"):
             return
@@ -1966,7 +2057,7 @@ class VadafokStudio(ctk.CTk):
 
         for idx, field in enumerate(template.get("fields", [])):
             x1, y1, x2, y2 = self.template_field_screen_rect(field)
-            selected = idx == self.template_selected_field
+            selected = idx == self.template_selected_field or idx in getattr(self, 'template_selected_fields', set())
             outline = GOLD if selected else "#BCA870"
             width = 3 if selected else 2
 
@@ -2011,7 +2102,13 @@ class VadafokStudio(ctk.CTk):
                     )
 
         if hasattr(self, "template_status_label"):
-            if self.template_selected_field is not None and 0 <= self.template_selected_field < len(template.get("fields", [])):
+            selected_count = len(getattr(self, "template_selected_fields", set()))
+            if selected_count > 1:
+                self.template_status_label.configure(
+                    text=f"{self.template_selected_name} | {selected_count} Felder ausgewählt | BG: {bg_info.get('name', '?')}",
+                    text_color="#8FE6A0"
+                )
+            elif self.template_selected_field is not None and 0 <= self.template_selected_field < len(template.get("fields", [])):
                 f = template["fields"][self.template_selected_field]
                 self.template_status_label.configure(
                     text=f"{self.template_selected_name} | {f['name']} | {f['width']}×{f['height']} @ {f['x']}/{f['y']} | BG: {bg_info.get('name', '?')}",
@@ -2105,13 +2202,11 @@ class VadafokStudio(ctk.CTk):
 
     def template_mouse_down(self, event):
         idx, mode = self.template_hit_test(event.x, event.y)
+        shift_pressed = self.template_multi_select_modifier(event)
 
-        # Klick ins leere Canvas:
-        # Wenn nichts ausgewählt war, gar nichts neu zeichnen.
-        # Wenn ein Feld ausgewählt war, nur Overlay aktualisieren, um Handles zu entfernen.
         if idx is None:
-            had_selection = self.template_selected_field is not None
-            self.template_selected_field = None
+            had_selection = bool(getattr(self, "template_selected_fields", set())) or self.template_selected_field is not None
+            self.template_clear_selection()
             self.template_drag_mode = None
             self.template_drag_start = None
             self.template_drag_original = None
@@ -2122,7 +2217,11 @@ class VadafokStudio(ctk.CTk):
                 self.template_update_fields_overlay()
             return
 
-        self.template_selected_field = idx
+        if shift_pressed:
+            self.template_toggle_selection(idx)
+        else:
+            self.template_set_single_selection(idx)
+
         self.template_load_selected_properties()
         if hasattr(self, "template_props_body"):
             self.template_build_properties_panel()
@@ -2132,7 +2231,6 @@ class VadafokStudio(ctk.CTk):
         template = self.template_current()
         self.template_drag_original = dict(template["fields"][idx])
 
-        # Nur Overlay neu zeichnen. Hintergrund bleibt stehen.
         self.template_update_fields_overlay()
 
 

@@ -1,79 +1,48 @@
-# VADAFOK Studio 2.5.8
+# VADAFOK Studio 2.5.9.1
 
 ## Ziel
 
-Smart Guides + Smart Snap im Template Editor.
+Fix für Multi Selection.
 
-## Neu
+## Problem in 2.5.9
 
-Im Template Editor gibt es jetzt:
+`Shift + Linksklick` wurde auf deinem System nicht zuverlässig erkannt.
 
-- `SMART GUIDES`
-- `SMART SNAP`
+## Repariert
 
-## SMART GUIDES
-
-Beim Verschieben oder Skalieren eines Feldes erscheinen goldene Hilfslinien, wenn das Feld nahe an wichtigen Positionen ist:
-
-- linke/rechte Kante anderer Felder
-- horizontale/vertikale Mitte anderer Felder
-- Template-Mitte
-- Template-Kanten
-
-## SMART SNAP
-
-Wenn aktiviert, rastet das Feld automatisch an diese Hilfslinien ein.
-
-## Bedienung
-
-1. Feld anklicken.
-2. Feld ziehen oder skalieren.
-3. Goldene Hilfslinien erscheinen automatisch.
-4. Bei aktivem `SMART SNAP` springt das Feld exakt auf die Linie.
-
-## Weiterhin vorhanden
-
-- Zoom
-- Pan ohne Flackern
-- COPY FIELD
-- Card Creator
-- Template-Verwaltung
+- Shift wird jetzt zusätzlich über KeyDown/KeyUp gemerkt.
+- Ctrl wird ebenfalls unterstützt.
+- Multi Selection funktioniert jetzt mit:
+  - `Shift + Klick`
+  - `Ctrl + Klick`
 
 ## Test
 
-1. Zwei Felder im Template haben.
-2. `SMART GUIDES` aktiv lassen.
-3. Ein Feld nahe an die Kante/Mitte des anderen Feldes ziehen.
-4. Goldene Hilfslinie muss erscheinen.
-5. `SMART SNAP` aktivieren.
-6. Feld muss beim Ziehen leicht einrasten.
-7. Template-Mitte testen.
-8. Resize an Kanten testen.
-9. Zoom + Pan testen.
-10. COPY FIELD kurz prüfen.
-
-## Installation
-
-1. ZIP entpacken.
-2. Den entpackten Ordner wie gewohnt starten.
-3. Diese Version nicht über Git speichern, bevor die Tests bestanden sind.
+1. Template Editor öffnen.
+2. Ein Feld normal anklicken.
+3. `Shift + Klick` auf zweites Feld.
+4. Prüfen: beide Felder markiert.
+5. `Shift + Klick` auf markiertes Feld.
+6. Prüfen: Feld wird abgewählt.
+7. Dasselbe mit `Ctrl + Klick` testen.
+8. Delete Field bei mehreren Feldern testen.
+9. Smart Guides, Copy Field und Einzelauswahl kurz prüfen.
 
 ## Git nach erfolgreichem Test
 
 ```bash
 git add .
-git commit -m "v2.5.8 - Add Smart Guides and Smart Snap"
+git commit -m "v2.5.9.1 - Fix multi selection modifier handling"
 git push
 ```
 
 ## Commit-Beschreibung
 
 ```text
-v2.5.8 - Add Smart Guides and Smart Snap
+v2.5.9.1 - Fix multi selection modifier handling
 
-- Added smart guide lines in Template Editor
-- Added smart snapping for field move and resize
-- Supports snapping to template center, template edges and other fields
-- Smart guides work with zoom and pan
-- Existing zoom, pan, copy field and Card Creator behavior preserved
+- Improved Shift/Ctrl detection for template field multi selection
+- Added explicit KeyDown/KeyUp modifier tracking
+- Added Ctrl+Click as alternate multi-select input
+- Existing Smart Guides, Copy Field and single-field editing preserved
 ```
