@@ -1,18 +1,16 @@
 # CHANGELOG
 
-## v2.7.6.1 - Add drag and drop visual polish
+## v2.7.7.5 - Fix squeezed Layer Up button
 
-### Added
-- Gold drop indicator line while dragging layer rows.
-- Drag target updates live during movement.
-- Dragged layer row is highlighted during drag.
-- Drop indicator disappears after release.
+### Fixed
+- Layer Up button was squeezed into a very narrow column.
+- Field rows now use an internal row frame with fixed action button columns.
+- Move buttons are clearly visible as `↑` and `↓`.
 
-### Changed
-- Layer drag & drop is easier to understand visually.
+### Kept
+- Style Presets below Properties.
+- Style Engine.
+- `styles/` folder.
 
-### Notes
-- Auto-scroll while dragging is planned for a later polish version.
-
-## v2.7.6 - Add drag and drop layer reordering
-- Added Drag & Drop reordering for field layers in the Layer Panel.
+## v2.7.7.4 - Layer Panel Polish + Style Presets
+- Added arrow button polish.

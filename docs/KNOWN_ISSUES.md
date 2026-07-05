@@ -1,8 +1,8 @@
 # Known Issues
 
-## Aktuell zu prüfen
-- v2.7.6.1 Drop indicator line.
-- Prüfen, ob die Linie sichtbar und hilfreich ist.
+## Fixed in v2.7.7.5
+- Layer Up button was too narrow / not visible.
 
-## Bekannte Einschränkung
-- Auto-scroll beim Draggen in langen Layer-Listen ist noch nicht eingebaut.
+## Beobachten
+- Save Style uses a simple name dialog for now.
+- Resizable Panels are planned later.

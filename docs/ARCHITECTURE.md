@@ -1,11 +1,16 @@
 # Architecture
 
-## v2.7.6.1 Drop Indicator
+## Style Engine
 
-Layer Drag & Drop now uses a temporary UI frame as a drop indicator.
+Module:
+`vadafok_studio/core/style_engine.py`
 
-State:
-- template_layer_drop_indicator
-- template_layer_drop_target
+Storage:
+`styles/*.json`
 
-The indicator is a visual-only Layer Panel element and does not affect template data until mouse release.
+Styles store appearance only, not layout:
+- no x/y
+- no width/height
+- no name
+- no group
+- no layer order

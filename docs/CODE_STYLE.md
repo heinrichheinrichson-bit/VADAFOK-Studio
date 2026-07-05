@@ -1,3 +1,3 @@
 # Code Style
 
-Visual drag indicators should not modify template data until drop.
+Reusable systems should live in core modules, e.g. style_engine.py.

@@ -1,3 +1,3 @@
 # Testing
 
-Test drag and drop with visual drop indicator.
+Test Style Presets visibility below Properties, save/apply/delete and integration with Card Creator.

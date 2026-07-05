@@ -4,8 +4,8 @@
   "fields": [
     {
       "name": "222222",
-      "x": 300,
-      "y": 1203,
+      "x": 226,
+      "y": 1373,
       "width": 330,
       "height": 53,
       "font_family": "Bebas Neue",
@@ -20,8 +20,8 @@
     },
     {
       "name": "field_1",
-      "x": 493,
-      "y": 1394,
+      "x": 334,
+      "y": 1024,
       "width": 345,
       "height": 190,
       "font_family": "Bebas Neue",
@@ -33,39 +33,18 @@
       "id": "67ff9f68-c026-43c4-a794-3065f9998ad0",
       "hidden": false,
       "locked": false
-    },
-    {
-      "name": "11111",
-      "x": 560,
-      "y": 937,
-      "width": 278,
-      "height": 90,
-      "font_family": "Bebas Neue",
-      "font_size": 90,
-      "text_color": "#FFFFFF",
-      "stroke_color": "#000000",
-      "stroke_width": 3,
-      "uppercase": true,
-      "id": "158967f6-fd09-44dd-9562-c8d20c27b95b",
-      "hidden": false,
-      "locked": false
-    },
-    {
-      "name": "field_1_copy2",
-      "x": 393,
-      "y": 576,
-      "width": 335,
-      "height": 190,
-      "font_family": "Bebas Neue",
-      "font_size": 90,
-      "text_color": "#FFFFFF",
-      "stroke_color": "#000000",
-      "stroke_width": 3,
-      "uppercase": true,
-      "id": "e57e860e-52e2-408e-a567-e1aeff97783a",
-      "hidden": false,
-      "locked": false
     }
   ],
-  "groups": []
+  "groups": [
+    {
+      "id": "84a79b37-c27e-4c99-9e21-36454cf68ce2",
+      "name": "Group",
+      "field_ids": [
+        "67ff9f68-c026-43c4-a794-3065f9998ad0",
+        "772553e8-55cf-4ab0-87de-58592cdc5f0d"
+      ],
+      "locked": false,
+      "hidden": false
+    }
+  ]
 }

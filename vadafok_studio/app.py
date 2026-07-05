@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.7.6.1.1.1.1.1.1")
+        self.wm_title("VADAFOK Studio 2.7.7.5.1.1.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -153,7 +153,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.7.6.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.7.7.5", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -1014,7 +1014,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.7.6.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.7.7.5: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -2322,7 +2322,7 @@ class VadafokStudio(ctk.CTk):
             ctk.CTkButton(
                 self.template_layers_body,
                 text="▶" if collapsed else "▼",
-                width=30,
+                width=38,
                 fg_color="#333333",
                 hover_color="#444444",
                 command=lambda gid=group_id: self.template_toggle_group_collapsed(gid)
@@ -2351,7 +2351,8 @@ class VadafokStudio(ctk.CTk):
             ctk.CTkButton(
                 self.template_layers_body,
                 text="👁" if not group_hidden else "🚫",
-                width=34,
+                width=40,
+                height=32,
                 fg_color="#333333" if not group_hidden else "#5A1F1F",
                 hover_color="#444444" if not group_hidden else "#7A2A2A",
                 command=lambda gid=group_id: self.template_toggle_group_hidden(gid)
@@ -2360,7 +2361,8 @@ class VadafokStudio(ctk.CTk):
             ctk.CTkButton(
                 self.template_layers_body,
                 text="🔒" if group_locked else "○",
-                width=34,
+                width=40,
+                height=32,
                 fg_color="#5A1F1F" if group_locked else "#333333",
                 hover_color="#7A2A2A" if group_locked else "#444444",
                 command=lambda gid=group_id: self.template_toggle_group_lock(gid)
@@ -2385,8 +2387,16 @@ class VadafokStudio(ctk.CTk):
             if group_name:
                 name = f"{name} · {group_name}"
 
+            row_frame = ctk.CTkFrame(self.template_layers_body, fg_color="transparent")
+            row_frame.grid(row=row, column=0, columnspan=5, padx=8, pady=3, sticky="ew")
+            row_frame.grid_columnconfigure(0, weight=1)
+            row_frame.grid_columnconfigure(1, minsize=44)
+            row_frame.grid_columnconfigure(2, minsize=44)
+            row_frame.grid_columnconfigure(3, minsize=40)
+            row_frame.grid_columnconfigure(4, minsize=40)
+
             btn = ctk.CTkButton(
-                self.template_layers_body,
+                row_frame,
                 text=("✓ " if active else "") + ("🚫 " if hidden else "") + ("🔒 " if locked else "") + name,
                 fg_color=GOLD if active else "#171717",
                 text_color="#111111" if active else "#D9C58C",
@@ -2394,8 +2404,8 @@ class VadafokStudio(ctk.CTk):
                 anchor="w",
                 command=lambda i=idx: self.template_select_layer(i)
             )
-            pad_left = 24 if group_name else 8
-            btn.grid(row=row, column=0, padx=(pad_left, 4), pady=3, sticky="ew")
+            pad_left = 16 if group_name else 0
+            btn.grid(row=0, column=0, padx=(pad_left, 4), pady=0, sticky="ew")
             try:
                 btn.bind("<Double-Button-1>", lambda _e, i=idx: self.template_start_inline_rename_field(i))
                 btn.bind("<ButtonPress-1>", lambda e, i=idx: self.template_layer_drag_start(e, i), add="+")
@@ -2405,45 +2415,50 @@ class VadafokStudio(ctk.CTk):
                 pass
 
             ctk.CTkButton(
-                self.template_layers_body,
-                text="▲",
-                width=32,
+                row_frame,
+                text="↑",
+                width=44,
+                height=32,
+                font=ctk.CTkFont(size=16, weight="bold"),
                 fg_color="#333333",
                 hover_color="#444444",
                 command=lambda i=idx: self.template_move_layer(i, 1)
-            ).grid(row=row, column=1, padx=2, pady=3, sticky="ew")
+            ).grid(row=0, column=1, padx=2, pady=0, sticky="ew")
 
             ctk.CTkButton(
-                self.template_layers_body,
-                text="▼",
-                width=32,
+                row_frame,
+                text="↓",
+                width=44,
+                height=32,
+                font=ctk.CTkFont(size=16, weight="bold"),
                 fg_color="#333333",
                 hover_color="#444444",
                 command=lambda i=idx: self.template_move_layer(i, -1)
-            ).grid(row=row, column=2, padx=2, pady=3, sticky="ew")
+            ).grid(row=0, column=2, padx=2, pady=0, sticky="ew")
 
             ctk.CTkButton(
-                self.template_layers_body,
+                row_frame,
                 text="👁" if not hidden else "🚫",
-                width=34,
+                width=40,
+                height=32,
                 fg_color="#333333" if not hidden else "#5A1F1F",
                 hover_color="#444444" if not hidden else "#7A2A2A",
                 command=lambda i=idx: self.template_toggle_field_hidden(i)
-            ).grid(row=row, column=3, padx=2, pady=3, sticky="ew")
+            ).grid(row=0, column=3, padx=2, pady=0, sticky="ew")
 
             ctk.CTkButton(
-                self.template_layers_body,
+                row_frame,
                 text="🔒" if locked else "○",
-                width=34,
+                width=40,
+                height=32,
                 fg_color="#5A1F1F" if locked else "#333333",
                 hover_color="#7A2A2A" if locked else "#444444",
                 command=lambda i=idx: self.template_toggle_field_lock(i)
-            ).grid(row=row, column=4, padx=(2, 8), pady=3, sticky="ew")
+            ).grid(row=0, column=4, padx=(2, 0), pady=0, sticky="ew")
 
             row += 1
 
         self.template_layers_body.grid_columnconfigure(0, weight=1)
-        self.template_layers_body.grid_columnconfigure(1, weight=1)
 
 
     def template_select_layer(self, idx):
@@ -2547,6 +2562,111 @@ class VadafokStudio(ctk.CTk):
         self.template_draw_canvas()
         if hasattr(self, "template_layers_body"):
             self.template_build_layers_panel()
+
+
+
+    def template_selected_style_indices(self):
+        if hasattr(self, "template_selected_indices"):
+            return self.template_selected_indices()
+        selected = set(getattr(self, "template_selected_fields", set()))
+        if self.template_selected_field is not None:
+            selected.add(self.template_selected_field)
+        template = self.template_current()
+        count = len(template.get("fields", []))
+        return sorted(i for i in selected if 0 <= i < count)
+
+    def template_build_style_presets_panel(self):
+        if not hasattr(self, "template_styles_body"):
+            return
+
+        for w in self.template_styles_body.winfo_children():
+            w.destroy()
+
+        styles = style_engine.list_styles()
+        if not styles:
+            ctk.CTkLabel(
+                self.template_styles_body,
+                text="Noch keine Styles gespeichert.",
+                text_color="#777777",
+                wraplength=170,
+                justify="left"
+            ).grid(row=0, column=0, columnspan=2, padx=8, pady=8, sticky="w")
+            return
+
+        for row, name in enumerate(styles):
+            ctk.CTkButton(
+                self.template_styles_body,
+                text=name,
+                anchor="w",
+                fg_color="#171717",
+                hover_color="#2C2C2C",
+                text_color="#D9C58C",
+                command=lambda n=name: self.template_apply_style_preset(n)
+            ).grid(row=row, column=0, padx=(8, 4), pady=3, sticky="ew")
+
+            ctk.CTkButton(
+                self.template_styles_body,
+                text="DEL",
+                width=44,
+                fg_color="#5A1F1F",
+                hover_color="#7A2A2A",
+                command=lambda n=name: self.template_delete_style_preset(n)
+            ).grid(row=row, column=1, padx=(2, 8), pady=3, sticky="ew")
+
+        self.template_styles_body.grid_columnconfigure(0, weight=1)
+
+    def template_save_style_preset(self):
+        indices = self.template_selected_style_indices()
+        if not indices:
+            messagebox.showwarning("Style Presets", "Bitte zuerst ein Feld auswählen.")
+            return
+
+        fields = self.template_current().get("fields", [])
+        field = fields[indices[-1]]
+
+        name = simpledialog.askstring("Save Style", "Style Name:")
+        if not name:
+            return
+        name = name.strip()
+        if not name:
+            return
+
+        style_engine.save_style(name, field)
+        self.template_build_style_presets_panel()
+
+    def template_apply_style_preset(self, name):
+        indices = self.template_selected_style_indices()
+        if not indices:
+            messagebox.showwarning("Style Presets", "Bitte zuerst ein oder mehrere Felder auswählen.")
+            return
+
+        style = style_engine.load_style(name)
+        if not style:
+            messagebox.showwarning("Style Presets", "Dieser Style ist leer oder konnte nicht geladen werden.")
+            return
+
+        if hasattr(self, "template_push_history"):
+            self.template_push_history("apply style preset")
+
+        template = self.template_current()
+        fields = template.get("fields", [])
+        for idx in indices:
+            if 0 <= idx < len(fields):
+                style_engine.apply_style(fields[idx], style)
+
+        save_template(self.template_selected_name, template)
+        self.template_draw_canvas()
+        self.template_load_selected_properties()
+        if hasattr(self, "template_props_body"):
+            self.template_build_properties_panel()
+        if hasattr(self, "template_layers_body"):
+            self.template_build_layers_panel()
+
+    def template_delete_style_preset(self, name):
+        if not messagebox.askyesno("Style Presets", f"Style '{name}' wirklich löschen?"):
+            return
+        style_engine.delete_style(name)
+        self.template_build_style_presets_panel()
 
 
     def show_template_editor_page(self):
@@ -2691,6 +2811,8 @@ class VadafokStudio(ctk.CTk):
         props = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         props.grid(row=0, column=3, sticky="nsew", padx=(12, 0))
         props.grid_columnconfigure(0, weight=1)
+        props.grid_rowconfigure(1, weight=2)
+        props.grid_rowconfigure(3, weight=1)
 
         ctk.CTkLabel(
             props,
@@ -2700,8 +2822,32 @@ class VadafokStudio(ctk.CTk):
         ).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
 
         self.template_props_body = ctk.CTkFrame(props, fg_color="#0B0B0B", corner_radius=12)
-        self.template_props_body.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
+        self.template_props_body.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 10))
         self.template_props_body.grid_columnconfigure(1, weight=1)
+
+        ctk.CTkLabel(
+            props,
+            text="Style Presets",
+            text_color=GOLD,
+            font=ctk.CTkFont(size=16, weight="bold")
+        ).grid(row=2, column=0, padx=18, pady=(0, 6), sticky="w")
+
+        style_box = ctk.CTkFrame(props, fg_color="#0B0B0B", corner_radius=12)
+        style_box.grid(row=3, column=0, sticky="nsew", padx=18, pady=(0, 18))
+        style_box.grid_columnconfigure(0, weight=1)
+        style_box.grid_rowconfigure(1, weight=1)
+
+        ctk.CTkButton(
+            style_box,
+            text="+ SAVE STYLE",
+            fg_color=GOLD,
+            text_color="#111111",
+            hover_color=GOLD_DARK,
+            command=self.template_save_style_preset
+        ).grid(row=0, column=0, padx=10, pady=(10, 8), sticky="ew")
+
+        self.template_styles_body = ctk.CTkScrollableFrame(style_box, fg_color="#080808", corner_radius=10)
+        self.template_styles_body.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
 
         self.template_build_properties_panel()
         self.template_ensure_field_ids()
@@ -2776,6 +2922,7 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkButton(group_bar, text="UNGROUP", fg_color="#333333", hover_color="#444444", command=self.template_ungroup_selected).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
 
         self.template_draw_canvas()
+        self.template_build_style_presets_panel()
         self.template_build_layers_panel()
 
     def template_build_properties_panel(self):
