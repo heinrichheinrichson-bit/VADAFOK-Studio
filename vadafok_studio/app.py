@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.7.5.1.1.1.1.1")
+        self.wm_title("VADAFOK Studio 2.7.6.1.1.1.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -58,6 +58,11 @@ class VadafokStudio(ctk.CTk):
         self.template_marquee_item = None
         self.template_marquee_add_mode = False
         self.template_collapsed_groups = set()
+        self.template_layer_drag_index = None
+        self.template_layer_drag_start_y = None
+        self.template_layer_drag_indicator = None
+        self.template_layer_drop_indicator = None
+        self.template_layer_drop_target = None
         self.template_working_data = None
         self.template_zoom_factor = 1.0
         self.template_zoom_label_var = ctk.StringVar(value="100%")
@@ -148,7 +153,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.7.5.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.7.6.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -1009,7 +1014,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.7.5.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.7.6.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -2113,6 +2118,160 @@ class VadafokStudio(ctk.CTk):
         self.template_build_layers_panel()
 
 
+
+    def template_layer_drag_start(self, event, idx):
+        self.template_layer_drag_index = idx
+        self.template_layer_drag_start_y = getattr(event, "y_root", 0)
+        self.template_layer_drop_target = None
+
+        try:
+            event.widget.configure(fg_color=GOLD, text_color="#111111")
+        except Exception:
+            pass
+
+        return "break"
+
+    def template_layer_clear_drop_indicator(self):
+        if hasattr(self, "template_layer_drop_indicator") and self.template_layer_drop_indicator is not None:
+            try:
+                self.template_layer_drop_indicator.destroy()
+            except Exception:
+                pass
+        self.template_layer_drop_indicator = None
+
+    def template_layer_drag_motion(self, event):
+        try:
+            self.template_layers_body.configure(cursor="hand2")
+        except Exception:
+            pass
+
+        target_idx = self.template_layer_target_from_y(getattr(event, "y_root", 0))
+        self.template_layer_drop_target = target_idx
+        self.template_layer_show_drop_indicator(target_idx)
+
+        return "break"
+
+    def template_layer_show_drop_indicator(self, target_idx):
+        self.template_layer_clear_drop_indicator()
+
+        if target_idx is None:
+            return
+
+        try:
+            row = self._template_layer_row_for_field.get(target_idx)
+            if row is None:
+                return
+
+            # Add a thin gold bar above the target row.
+            indicator = ctk.CTkFrame(
+                self.template_layers_body,
+                height=4,
+                fg_color=GOLD,
+                corner_radius=2
+            )
+            indicator.grid(row=row, column=0, columnspan=5, padx=8, pady=(0, 0), sticky="ew")
+            try:
+                indicator.lift()
+            except Exception:
+                pass
+
+            self.template_layer_drop_indicator = indicator
+        except Exception:
+            self.template_layer_drop_indicator = None
+
+    def template_layer_drag_end(self, event):
+        try:
+            self.template_layers_body.configure(cursor="")
+        except Exception:
+            pass
+
+        self.template_layer_clear_drop_indicator()
+
+        source_idx = getattr(self, "template_layer_drag_index", None)
+        self.template_layer_drag_index = None
+
+        if source_idx is None:
+            self.template_build_layers_panel()
+            return "break"
+
+        target_idx = getattr(self, "template_layer_drop_target", None)
+        if target_idx is None:
+            target_idx = self.template_layer_target_from_y(getattr(event, "y_root", 0))
+
+        self.template_layer_drop_target = None
+
+        if target_idx is None or target_idx == source_idx:
+            self.template_build_layers_panel()
+            return "break"
+
+        self.template_move_layer_to_index(source_idx, target_idx)
+        return "break"
+
+    def template_layer_target_from_y(self, y_root):
+        if not hasattr(self, "_template_layer_row_for_field"):
+            return None
+
+        best_idx = None
+        best_dist = None
+
+        for idx, row in self._template_layer_row_for_field.items():
+            try:
+                widgets = self.template_layers_body.grid_slaves(row=row, column=0)
+                if not widgets:
+                    continue
+                widget = widgets[0]
+                center = widget.winfo_rooty() + widget.winfo_height() / 2
+                dist = abs(center - y_root)
+                if best_dist is None or dist < best_dist:
+                    best_dist = dist
+                    best_idx = idx
+            except Exception:
+                continue
+
+        return best_idx
+
+
+    def template_move_layer_to_index(self, source_idx, target_idx):
+        template = self.template_current()
+        fields = template.get("fields", [])
+
+        if not (0 <= source_idx < len(fields)) or not (0 <= target_idx < len(fields)):
+            return
+
+        if source_idx == target_idx:
+            return
+
+        if hasattr(self, "template_push_history"):
+            self.template_push_history("drag layer reorder")
+
+        item = fields.pop(source_idx)
+        fields.insert(target_idx, item)
+
+        # Update selected indices after list move.
+        def remap(old_idx):
+            if old_idx == source_idx:
+                return target_idx
+            if source_idx < target_idx:
+                if source_idx < old_idx <= target_idx:
+                    return old_idx - 1
+            else:
+                if target_idx <= old_idx < source_idx:
+                    return old_idx + 1
+            return old_idx
+
+        selected = set(getattr(self, "template_selected_fields", set()))
+        self.template_selected_fields = {remap(i) for i in selected if 0 <= i < len(fields)}
+        if self.template_selected_field is not None:
+            self.template_selected_field = remap(self.template_selected_field)
+
+        # Groups use stable field ids, so no group remap is needed.
+        save_template(self.template_selected_name, template)
+        self.template_draw_canvas()
+        self.template_build_layers_panel()
+        if hasattr(self, "template_props_body"):
+            self.template_build_properties_panel()
+
+
     def template_build_layers_panel(self):
         if not hasattr(self, "template_layers_body"):
             return
@@ -2239,6 +2398,9 @@ class VadafokStudio(ctk.CTk):
             btn.grid(row=row, column=0, padx=(pad_left, 4), pady=3, sticky="ew")
             try:
                 btn.bind("<Double-Button-1>", lambda _e, i=idx: self.template_start_inline_rename_field(i))
+                btn.bind("<ButtonPress-1>", lambda e, i=idx: self.template_layer_drag_start(e, i), add="+")
+                btn.bind("<B1-Motion>", self.template_layer_drag_motion, add="+")
+                btn.bind("<ButtonRelease-1>", self.template_layer_drag_end, add="+")
             except Exception:
                 pass
 

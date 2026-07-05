@@ -1,10 +1,11 @@
 # Architecture
 
-## v2.7.4.1 Shortcut Scope
+## v2.7.6.1 Drop Indicator
 
-Template Editor keyboard shortcuts are now scoped.
+Layer Drag & Drop now uses a temporary UI frame as a drop indicator.
 
-Rules:
-- Shortcuts only run when the active page is `Template Editor`.
-- Shortcuts do not run when focus is inside input widgets.
-- Text editing in Live Card or other pages must not trigger Template Editor actions.
+State:
+- template_layer_drop_indicator
+- template_layer_drop_target
+
+The indicator is a visual-only Layer Panel element and does not affect template data until mouse release.

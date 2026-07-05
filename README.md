@@ -1,23 +1,18 @@
-# VADAFOK Studio 2.7.5.1
-
-## Hotfix
-
-Layer Panel wurde in 2.7.5 leer angezeigt.
-
-Repariert:
-- Layer Panel bleibt sichtbar
-- Felder werden wieder angezeigt
-- Gruppen können ein-/ausgeklappt werden
+# VADAFOK Studio 2.7.6.1
 
 ## Neu
 
-- `▼` = Gruppe ausgeklappt
-- `▶` = Gruppe eingeklappt
+Drag & Drop Polish im Layer Panel.
+
+- goldene Drop-Linie während des Ziehens
+- Live-Anzeige der Einfügeposition
+- gezogene Zeile wird hervorgehoben
+- Drop-Linie verschwindet nach dem Loslassen
 
 ## Git nach erfolgreichem Test
 
 ```bash
 git add .
-git commit -m "v2.7.5.1 - Fix Layer Panel collapsible groups"
+git commit -m "v2.7.6.1 - Add layer drag drop indicator"
 git push
 ```

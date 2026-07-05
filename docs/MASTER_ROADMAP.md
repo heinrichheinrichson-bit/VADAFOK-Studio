@@ -1,18 +1,8 @@
 # VADAFOK Studio – MASTER ROADMAP
 
-Stand: v2.7.4.1 Hotfix Testbuild
+Stand: v2.7.6.1 Testbuild
 
 ## Template Editor Skilltree
-
-Editing:
-- ✅ Move / Resize
-- ✅ Copy / Delete
-- ✅ Multi Selection
-- ✅ Group Move
-- ✅ Keyboard Editing
-- ✅ Undo / Redo
-- ✅ Selection Rectangle
-- 🔧 Shortcut Scope Hotfix
 
 Layers:
 - ✅ Layer Panel
@@ -20,8 +10,11 @@ Layers:
 - ✅ Hide / Show
 - ✅ Group / Ungroup
 - ✅ Group Rename / Lock / Hide
+- ✅ Collapsible Groups
+- ✅ Drag & Drop Layer Reordering
+- 🚧 Drop Indicator Polish
+- ⬜ Auto-scroll while dragging
 
 Next:
-- Collapsible Groups
-- Drag & Drop Layer Reordering
 - Style Presets
+- Card Creator Polish

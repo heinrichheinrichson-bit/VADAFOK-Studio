@@ -1,3 +1,3 @@
 # Code Style
 
-Global keyboard shortcuts must be scoped and must not steal input from text widgets.
+Visual drag indicators should not modify template data until drop.

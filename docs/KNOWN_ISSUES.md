@@ -1,7 +1,8 @@
 # Known Issues
 
-## Fixed in v2.7.5.1
-- Layer Panel wurde nach erstem Collapsible-Groups-Build leer.
+## Aktuell zu prüfen
+- v2.7.6.1 Drop indicator line.
+- Prüfen, ob die Linie sichtbar und hilfreich ist.
 
-## Beobachten
-- Doppelklick-Rename im Layer Panel ist als Polish vorgemerkt.
+## Bekannte Einschränkung
+- Auto-scroll beim Draggen in langen Layer-Listen ist noch nicht eingebaut.
