@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.6.5.1.1.1")
+        self.wm_title("VADAFOK Studio 2.6.6.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -140,7 +140,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.6.5", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.6.6", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -1000,7 +1000,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.6.5: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.6.6: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1378,7 +1378,7 @@ class VadafokStudio(ctk.CTk):
         selected = set(getattr(self, "template_selected_fields", set()))
         if self.template_selected_field is not None:
             selected.add(self.template_selected_field)
-        return sorted(idx for idx in selected if 0 <= idx < count)
+        return sorted(idx for idx in selected if 0 <= idx < count and not template.get('fields', [])[idx].get('hidden', False))
 
     def template_align_selected(self, mode):
         self.template_push_history('align')
@@ -1613,6 +1613,39 @@ class VadafokStudio(ctk.CTk):
 
 
 
+
+    def template_is_field_hidden(self, idx):
+        template = self.template_current()
+        fields = template.get("fields", [])
+        if not (0 <= idx < len(fields)):
+            return False
+        return bool(fields[idx].get("hidden", False))
+
+    def template_toggle_field_hidden(self, idx):
+        template = self.template_current()
+        fields = template.get("fields", [])
+        if not (0 <= idx < len(fields)):
+            return
+
+        if hasattr(self, "template_push_history"):
+            self.template_push_history("toggle visibility")
+
+        fields[idx]["hidden"] = not bool(fields[idx].get("hidden", False))
+
+        # Hidden fields should not stay selected.
+        if fields[idx]["hidden"]:
+            if hasattr(self, "template_selected_fields"):
+                self.template_selected_fields.discard(idx)
+            if self.template_selected_field == idx:
+                self.template_selected_field = next(iter(getattr(self, "template_selected_fields", set())), None)
+
+        save_template(self.template_selected_name, template)
+        self.template_draw_canvas()
+        self.template_build_layers_panel()
+        if hasattr(self, "template_props_body"):
+            self.template_build_properties_panel()
+
+
     def template_is_field_locked(self, idx):
         template = self.template_current()
         fields = template.get("fields", [])
@@ -1661,7 +1694,7 @@ class VadafokStudio(ctk.CTk):
                 text_color="#777777",
                 wraplength=160,
                 justify="left"
-            ).grid(row=0, column=0, columnspan=4, padx=8, pady=8, sticky="w")
+            ).grid(row=0, column=0, columnspan=5, padx=8, pady=8, sticky="w")
             return
 
         # Higher index is drawn later = visually in front.
@@ -1670,11 +1703,12 @@ class VadafokStudio(ctk.CTk):
             field = fields[idx]
             active = idx in selected
             locked = bool(field.get("locked", False))
+            hidden = bool(field.get("hidden", False))
             name = field.get("name", f"field_{idx+1}")
 
             btn = ctk.CTkButton(
                 self.template_layers_body,
-                text=("✓ " if active else "") + ("🔒 " if locked else "") + name,
+                text=("✓ " if active else "") + ("🚫 " if hidden else "") + ("🔒 " if locked else "") + name,
                 fg_color=GOLD if active else "#171717",
                 text_color="#111111" if active else "#D9C58C",
                 hover_color=GOLD_DARK if active else "#2C2C2C",
@@ -1703,12 +1737,21 @@ class VadafokStudio(ctk.CTk):
 
             ctk.CTkButton(
                 self.template_layers_body,
+                text="👁" if not hidden else "🚫",
+                width=34,
+                fg_color="#333333" if not hidden else "#5A1F1F",
+                hover_color="#444444" if not hidden else "#7A2A2A",
+                command=lambda i=idx: self.template_toggle_field_hidden(i)
+            ).grid(row=row, column=3, padx=2, pady=3, sticky="ew")
+
+            ctk.CTkButton(
+                self.template_layers_body,
                 text="🔒" if locked else "○",
                 width=34,
                 fg_color="#5A1F1F" if locked else "#333333",
                 hover_color="#7A2A2A" if locked else "#444444",
                 command=lambda i=idx: self.template_toggle_field_lock(i)
-            ).grid(row=row, column=3, padx=(2, 8), pady=3, sticky="ew")
+            ).grid(row=row, column=4, padx=(2, 8), pady=3, sticky="ew")
 
         self.template_layers_body.grid_columnconfigure(0, weight=1)
 
@@ -2323,7 +2366,7 @@ class VadafokStudio(ctk.CTk):
         ]
 
         for idx, field in enumerate(template.get("fields", [])):
-            if idx == self.template_selected_field:
+            if idx == self.template_selected_field or field.get("hidden", False):
                 continue
             edges = self.template_field_edges(field)
             targets_x.extend([
@@ -2512,6 +2555,8 @@ class VadafokStudio(ctk.CTk):
                 bg_info = {"name": "?", "exists": False}
 
         for idx, field in enumerate(template.get("fields", [])):
+            if field.get("hidden", False):
+                continue
             x1, y1, x2, y2 = self.template_field_screen_rect(field)
             selected = idx == self.template_selected_field or idx in getattr(self, 'template_selected_fields', set())
             outline = GOLD if selected else "#BCA870"

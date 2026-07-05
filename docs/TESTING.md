@@ -1,28 +1,10 @@
 # Testing
 
-## Vor jedem Release
+## v2.6.6
+Test Hide / Show Fields:
 
-### Programmstart
-- Startet fehlerfrei
-
-### Template Editor
-- Move
-- Resize
-- Multi Selection
-- Group Move
-- Copy/Delete
-- Undo/Redo
-- Layer Panel
-- Lock/Unlock
-- Zoom/Pan
-- Smart Guides
-
-### Card Creator
-- Vorschau
-- Rendering
-- Richtiger Hintergrund
-
-### Dokumentation
-- CHANGELOG
-- ROADMAP
-- MASTER_ROADMAP
+- Toggle visibility in Layer Panel
+- Verify hidden fields are not visible
+- Verify hidden fields are not rendered
+- Verify Save / Restart
+- Verify Undo / Redo

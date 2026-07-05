@@ -158,6 +158,8 @@ def render_template_card(template, values, output_path, background_path=None, si
     draw = ImageDraw.Draw(img)
 
     for field in template.get("fields", []):
+        if field.get("hidden", False):
+            continue
         name = field.get("name", "field")
         text = values.get(name, "")
         if field.get("uppercase", True):

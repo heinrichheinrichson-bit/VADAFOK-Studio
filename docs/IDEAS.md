@@ -1,24 +1,10 @@
 # Ideas
 
-## Hohe Priorität
-- Hide / Show Layer
+## Next Editor Ideas
 - Group / Ungroup
 - Equal Spacing
-- Drag Selection
-
-## Mittlere Priorität
+- Selection Rectangle
 - Style Presets
-- Rotation
-- Opacity
-- Shadow
-- Stroke
-
-## Langfristig
-- Plugin System
-- Cloud Sync
-- Template Marketplace
-- Animationen
-- SVG Export
-- PDF Export
-
-> Neue Ideen werden immer hier ergänzt und erst später priorisiert.
+- Drag & Drop Layer Reordering
+- Layer colors
+- Field opacity

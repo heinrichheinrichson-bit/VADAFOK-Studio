@@ -1,22 +1,22 @@
 # Architecture
 
-## Aufbau
+## v2.6.6 Notes
 
-run.py
-→ App
-→ Template Editor
-→ Card Creator
-→ Banner Editor
-→ Caption Engine
-→ OBS Controller
+Field data can now contain:
 
-## Daten
+```json
+{
+  "locked": true,
+  "hidden": false
+}
+```
 
-assets/  = Grafiken
-data/    = Konfiguration
-templates/ = Templates
-docs/    = Dokumentation
+## Rendering Rule
+Hidden fields are skipped during card rendering.
 
-## Grundprinzip
-
-Template → Card Creator → Renderer → PNG → OBS
+## Editor Rule
+Hidden fields are skipped by:
+- overlay drawing
+- canvas hit testing
+- smart guide targets
+- selection-based operations

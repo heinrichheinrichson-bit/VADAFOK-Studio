@@ -14,7 +14,8 @@
       "stroke_color": "#000000",
       "stroke_width": 3,
       "uppercase": true,
-      "locked": true
+      "locked": true,
+      "hidden": true
     },
     {
       "name": "time",

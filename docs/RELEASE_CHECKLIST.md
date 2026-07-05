@@ -1,39 +1,19 @@
 # Release Checklist
 
-Vor jedem Git-Release:
+## v2.6.6 Testliste
 
-## Programm
-- [ ] Startet ohne Fehler
-- [ ] Library funktioniert
-- [ ] Save / Load funktioniert
-
-## Template Editor
-- [ ] Move
-- [ ] Resize
-- [ ] Copy
-- [ ] Delete
-- [ ] Multi Selection
-- [ ] Group Move
-- [ ] Smart Guides
-- [ ] Zoom / Pan
-- [ ] Undo / Redo
-- [ ] Layer Panel
-- [ ] Lock / Unlock
-
-## Card Creator
-- [ ] Vorschau
-- [ ] Rendering
-- [ ] Richtiger Hintergrund
-
-## Dokumentation
-- [ ] ROADMAP.md aktualisiert
-- [ ] MASTER_ROADMAP.md geprüft
-- [ ] CHANGELOG.md ergänzt
-- [ ] IDEAS.md ergänzt (falls nötig)
-- [ ] KNOWN_ISSUES.md geprüft
-
-## GitHub
-- [ ] git add .
-- [ ] git commit
-- [ ] git push
-- [ ] GitHub Project aktualisiert
+- [ ] Programm startet
+- [ ] Template Editor öffnet
+- [ ] Layers Panel sichtbar
+- [ ] 👁 blendet Feld aus
+- [ ] 🚫 blendet Feld wieder ein
+- [ ] Verstecktes Feld ist im Canvas nicht sichtbar
+- [ ] Verstecktes Feld ist im Canvas nicht auswählbar
+- [ ] Smart Guides ignorieren versteckte Felder
+- [ ] Card Creator rendert versteckte Felder nicht
+- [ ] Save + Neustart erhält Sichtbarkeit
+- [ ] Undo / Redo funktioniert für Hide / Show
+- [ ] Lock / Unlock funktioniert weiterhin
+- [ ] Group Move funktioniert weiterhin
+- [ ] Keyboard Editing funktioniert weiterhin
+- [ ] Card Creator kurz prüfen

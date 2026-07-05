@@ -1,60 +1,37 @@
 # VADAFOK Studio – MASTER ROADMAP
 
-> Die zentrale Projektübersicht. Dieses Dokument beschreibt die Vision, den aktuellen Stand und alle geplanten Entwicklungsbereiche.
+Stand: v2.6.6 Testbuild
 
-# Vision
-VADAFOK Studio soll sich zu einer vollständigen Broadcast- und Grafik-Suite für Streamer entwickeln.
-
-# Hauptbereiche
-- Template Editor
-- Card Creator
-- Banner Editor
-- Caption Engine
-- OBS Integration
-- Live Tools
-- Asset Management
-- Template Packs
-- Projektverwaltung
-
-# Projektstatus (Stand: v2.6.5)
+## Vision
+VADAFOK Studio wird eine spezialisierte Broadcast- und Stream-Grafik-Suite.
 
 ## Template Editor
-Fortschritt: ██████████████████░░ 90%
+Fortschritt: ███████████████████░ 95%
 
 Erledigt:
-- Smart Guides
-- Smart Snap
-- Zoom / Pan
+- Move / Resize
+- Copy / Delete
 - Multi Selection
 - Group Move
 - Keyboard Editing
 - Undo / Redo
 - Layer Panel
 - Lock / Unlock
+- Hide / Show im Test
+- Smart Guides / Smart Snap
+- Zoom / Pan
 
-Geplant:
-- Hide / Show
-- Groups
+Nächste Skilltree-Knoten:
+- Group / Ungroup
 - Equal Spacing
-- Drag Selection
+- Selection Rectangle
 - Style Presets
-- Rotation
 
 ## Card Creator
 Fortschritt: ██████████████░░░░░░ 70%
 
-## Banner Editor
-Fortschritt: ████████░░░░░░░░░░░░ 40%
+## OBS Integration
+Fortschritt: ██░░░░░░░░░░░░░░░░░░ 10%
 
 ## Caption Engine
 Fortschritt: ███░░░░░░░░░░░░░░░░░ 15%
-
-## OBS
-Fortschritt: ██░░░░░░░░░░░░░░░░░░ 10%
-
-# Meilensteine
-- ✅ M1 Stabiler Template Editor
-- 🚧 M2 Professioneller Layout Editor
-- ⏳ M3 Produktionsreifer Card Creator
-- ⏳ M4 OBS Live Integration
-- ⏳ M5 VADAFOK Studio 3.0
