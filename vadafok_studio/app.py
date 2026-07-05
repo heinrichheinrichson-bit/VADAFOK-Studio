@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.6.0.1.1.1.1")
+        self.wm_title("VADAFOK Studio 2.6.1.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -136,7 +136,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.6.0.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.6.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -995,7 +995,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.6.0.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.6.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1366,6 +1366,90 @@ class VadafokStudio(ctk.CTk):
         )
 
 
+
+    def template_selected_indices(self):
+        template = self.template_current()
+        count = len(template.get("fields", []))
+        selected = set(getattr(self, "template_selected_fields", set()))
+        if self.template_selected_field is not None:
+            selected.add(self.template_selected_field)
+        return sorted(idx for idx in selected if 0 <= idx < count)
+
+    def template_align_selected(self, mode):
+        template = self.template_current()
+        fields = template.get("fields", [])
+        selected = self.template_selected_indices()
+
+        if len(selected) < 2:
+            messagebox.showwarning("Template Editor", "Bitte mindestens zwei Felder auswählen.")
+            return
+
+        selected_fields = [fields[i] for i in selected]
+
+        left = min(int(f.get("x", 0)) for f in selected_fields)
+        right = max(int(f.get("x", 0)) + int(f.get("width", 0)) for f in selected_fields)
+        top = min(int(f.get("y", 0)) for f in selected_fields)
+        bottom = max(int(f.get("y", 0)) + int(f.get("height", 0)) for f in selected_fields)
+        center_x = (left + right) // 2
+        center_y = (top + bottom) // 2
+
+        for f in selected_fields:
+            w = int(f.get("width", 0))
+            h = int(f.get("height", 0))
+
+            if mode == "left":
+                f["x"] = left
+            elif mode == "center":
+                f["x"] = center_x - w // 2
+            elif mode == "right":
+                f["x"] = right - w
+            elif mode == "top":
+                f["y"] = top
+            elif mode == "middle":
+                f["y"] = center_y - h // 2
+            elif mode == "bottom":
+                f["y"] = bottom - h
+
+        save_template(self.template_selected_name, template)
+        self.template_draw_canvas()
+
+    def template_distribute_selected(self, axis):
+        template = self.template_current()
+        fields = template.get("fields", [])
+        selected = self.template_selected_indices()
+
+        if len(selected) < 3:
+            messagebox.showwarning("Template Editor", "Zum Verteilen bitte mindestens drei Felder auswählen.")
+            return
+
+        selected_fields = [fields[i] for i in selected]
+
+        if axis == "horizontal":
+            selected_fields.sort(key=lambda f: int(f.get("x", 0)))
+            first = selected_fields[0]
+            last = selected_fields[-1]
+            start = int(first.get("x", 0))
+            end = int(last.get("x", 0))
+            if len(selected_fields) > 1:
+                step = (end - start) / (len(selected_fields) - 1)
+                for i, f in enumerate(selected_fields):
+                    f["x"] = int(round(start + step * i))
+
+        elif axis == "vertical":
+            selected_fields.sort(key=lambda f: int(f.get("y", 0)))
+            first = selected_fields[0]
+            last = selected_fields[-1]
+            start = int(first.get("y", 0))
+            end = int(last.get("y", 0))
+            if len(selected_fields) > 1:
+                step = (end - start) / (len(selected_fields) - 1)
+                for i, f in enumerate(selected_fields):
+                    f["y"] = int(round(start + step * i))
+
+        save_template(self.template_selected_name, template)
+        self.template_draw_canvas()
+
+
     def show_template_editor_page(self):
         self.set_active("Template Editor")
         self.clear_main()
@@ -1537,6 +1621,23 @@ class VadafokStudio(ctk.CTk):
             fg_color=GOLD,
             hover_color=GOLD_DARK
         ).grid(row=0, column=1, padx=(0, 12), sticky="w")
+
+        align_bar = ctk.CTkFrame(controls, fg_color="transparent")
+        align_bar.grid(row=4, column=0, columnspan=5, padx=4, pady=(6, 0), sticky="ew")
+        align_bar.grid_columnconfigure((0,1,2,3,4,5), weight=1)
+
+        ctk.CTkButton(align_bar, text="ALIGN LEFT", fg_color="#333333", hover_color="#444444", command=lambda: self.template_align_selected("left")).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
+        ctk.CTkButton(align_bar, text="CENTER", fg_color="#333333", hover_color="#444444", command=lambda: self.template_align_selected("center")).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
+        ctk.CTkButton(align_bar, text="ALIGN RIGHT", fg_color="#333333", hover_color="#444444", command=lambda: self.template_align_selected("right")).grid(row=0, column=2, padx=2, pady=2, sticky="ew")
+        ctk.CTkButton(align_bar, text="ALIGN TOP", fg_color="#333333", hover_color="#444444", command=lambda: self.template_align_selected("top")).grid(row=0, column=3, padx=2, pady=2, sticky="ew")
+        ctk.CTkButton(align_bar, text="MIDDLE", fg_color="#333333", hover_color="#444444", command=lambda: self.template_align_selected("middle")).grid(row=0, column=4, padx=2, pady=2, sticky="ew")
+        ctk.CTkButton(align_bar, text="ALIGN BOTTOM", fg_color="#333333", hover_color="#444444", command=lambda: self.template_align_selected("bottom")).grid(row=0, column=5, padx=2, pady=2, sticky="ew")
+
+        distribute_bar = ctk.CTkFrame(controls, fg_color="transparent")
+        distribute_bar.grid(row=5, column=0, columnspan=5, padx=4, pady=(2, 0), sticky="ew")
+        distribute_bar.grid_columnconfigure((0,1), weight=1)
+        ctk.CTkButton(distribute_bar, text="DISTRIBUTE H", fg_color="#333333", hover_color="#444444", command=lambda: self.template_distribute_selected("horizontal")).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
+        ctk.CTkButton(distribute_bar, text="DISTRIBUTE V", fg_color="#333333", hover_color="#444444", command=lambda: self.template_distribute_selected("vertical")).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
 
         self.template_draw_canvas()
 
