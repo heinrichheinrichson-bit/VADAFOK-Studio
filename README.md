@@ -1,59 +1,69 @@
-# VADAFOK Studio 2.6.2
+# VADAFOK Studio 2.6.3
 
 ## Ziel
 
-Keyboard Editing im Template Editor.
+Undo / Redo im Template Editor.
 
 ## Neu
 
-- Pfeiltasten bewegen ausgewählte Felder um 1 px
-- Shift + Pfeiltaste bewegt ausgewählte Felder um 10 px
-- Delete / Backspace löscht Auswahl
-- Ctrl + D dupliziert Auswahl
-- Ctrl + A wählt alle Felder
-- Esc hebt Auswahl auf
+- `Ctrl + Z` = Undo
+- `Ctrl + Y` = Redo
+- Buttons:
+  - `UNDO`
+  - `REDO`
 
-## Funktioniert mit
+## Unterstützte Aktionen
 
-- Einzelauswahl
-- Multi Selection
+Undo / Redo funktioniert für:
+
+- Feld verschieben
+- Feld skalieren
 - Group Move
+- Copy Field
 - Multi Copy
-- Smart Guides
-- Zoom / Pan
-- Alignment Tools
+- Delete Field
+- Multi Delete
+- Align
+- Distribute
+- Keyboard Move
+- Property-Änderungen wie Name/Größe/Farbe
+
+## Hinweise
+
+- History ist pro Session aktiv.
+- Beim Start des Studios ist die History leer.
+- Die maximale History-Größe liegt aktuell bei 80 Zuständen.
 
 ## Test
 
-1. Ein Feld auswählen.
-2. Pfeiltasten testen.
-3. Shift + Pfeiltasten testen.
-4. Mehrere Felder mit Ctrl + Klick auswählen.
-5. Pfeiltasten testen: alle ausgewählten Felder müssen sich bewegen.
-6. Ctrl + D testen.
-7. Ctrl + A testen.
-8. Delete / Backspace testen.
-9. Esc testen.
-10. Smart Guides / Align / Card Creator kurz prüfen.
+1. Feld verschieben.
+2. Ctrl + Z testen.
+3. Ctrl + Y testen.
+4. Feld skalieren.
+5. Ctrl + Z / Ctrl + Y testen.
+6. Copy Field testen.
+7. Delete Field testen.
+8. Multi Selection + Group Move testen.
+9. Align testen.
+10. Keyboard Move testen.
+11. Card Creator kurz prüfen.
 
 ## Git nach erfolgreichem Test
 
 ```bash
 git add .
-git commit -m "v2.6.2 - Add keyboard editing to Template Editor"
+git commit -m "v2.6.3 - Add undo and redo to Template Editor"
 git push
 ```
 
 ## Commit-Beschreibung
 
 ```text
-v2.6.2 - Add keyboard editing to Template Editor
+v2.6.3 - Add undo and redo to Template Editor
 
-- Added arrow-key movement for selected template fields
-- Shift+Arrow moves selected fields by 10 px
-- Delete/Backspace deletes selected fields
-- Ctrl+D duplicates selected fields
-- Ctrl+A selects all fields
-- Esc clears selection
-- Works with multi-selection, group move, Smart Guides, Zoom, Pan and Alignment Tools
+- Added undo/redo history for Template Editor
+- Ctrl+Z and Ctrl+Y shortcuts
+- Added UNDO and REDO buttons
+- Supports move, resize, group move, copy, delete, align, distribute and keyboard editing
+- Maintains existing Smart Guides, Zoom, Pan, Multi Selection and Card Creator behavior
 ```

@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.6.2.1.1.1")
+        self.wm_title("VADAFOK Studio 2.6.3.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -46,6 +46,10 @@ class VadafokStudio(ctk.CTk):
         self.template_drag_start = None
         self.template_drag_original = None
         self.template_group_drag_originals = None
+        self.template_undo_stack = []
+        self.template_redo_stack = []
+        self.template_history_limit = 80
+        self.template_drag_history_snapshot = None
         self.template_working_data = None
         self.template_zoom_factor = 1.0
         self.template_zoom_label_var = ctk.StringVar(value="100%")
@@ -136,7 +140,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.6.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.6.3", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -995,7 +999,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.6.2: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.6.3: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1376,6 +1380,7 @@ class VadafokStudio(ctk.CTk):
         return sorted(idx for idx in selected if 0 <= idx < count)
 
     def template_align_selected(self, mode):
+        self.template_push_history('align')
         template = self.template_current()
         fields = template.get("fields", [])
         selected = self.template_selected_indices()
@@ -1414,6 +1419,7 @@ class VadafokStudio(ctk.CTk):
         self.template_draw_canvas()
 
     def template_distribute_selected(self, axis):
+        self.template_push_history('distribute')
         template = self.template_current()
         fields = template.get("fields", [])
         selected = self.template_selected_indices()
@@ -1452,6 +1458,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_keyboard_move_selected(self, dx, dy):
+        self.template_push_history('keyboard move')
         template = self.template_current()
         fields = template.get("fields", [])
         selected = self.template_selected_indices() if hasattr(self, "template_selected_indices") else []
@@ -1508,6 +1515,12 @@ class VadafokStudio(ctk.CTk):
         ctrl = bool(state & 0x0004) or bool(getattr(self, "template_ctrl_down", False))
         shift = bool(state & 0x0001) or bool(getattr(self, "template_shift_down", False))
 
+        if ctrl and key.lower() == "z":
+            return self.template_undo()
+
+        if ctrl and key.lower() == "y":
+            return self.template_redo()
+
         if ctrl and key.lower() == "a":
             return self.template_keyboard_select_all()
 
@@ -1532,6 +1545,69 @@ class VadafokStudio(ctk.CTk):
             return self.template_keyboard_move_selected(0, step)
 
         return None
+
+
+
+    def template_snapshot(self):
+        import copy
+        return copy.deepcopy(self.template_current())
+
+    def template_push_history(self, reason="edit"):
+        import copy
+        if not hasattr(self, "template_undo_stack"):
+            self.template_undo_stack = []
+        if not hasattr(self, "template_redo_stack"):
+            self.template_redo_stack = []
+
+        snapshot = copy.deepcopy(self.template_current())
+
+        if self.template_undo_stack and self.template_undo_stack[-1] == snapshot:
+            return
+
+        self.template_undo_stack.append(snapshot)
+        limit = int(getattr(self, "template_history_limit", 80))
+        if len(self.template_undo_stack) > limit:
+            self.template_undo_stack = self.template_undo_stack[-limit:]
+
+        self.template_redo_stack.clear()
+
+    def template_restore_snapshot(self, snapshot):
+        import copy
+        self.template_working_data = copy.deepcopy(snapshot)
+        save_template(self.template_selected_name, self.template_working_data)
+
+        # Clean selection if fields count changed.
+        count = len(self.template_working_data.get("fields", []))
+        self.template_selected_fields = {i for i in getattr(self, "template_selected_fields", set()) if 0 <= i < count}
+        if self.template_selected_field is not None and not (0 <= self.template_selected_field < count):
+            self.template_selected_field = next(iter(self.template_selected_fields), None) if self.template_selected_fields else None
+
+        self.template_draw_canvas()
+        self.template_load_selected_properties()
+        if hasattr(self, "template_props_body"):
+            self.template_build_properties_panel()
+
+    def template_undo(self):
+        import copy
+        if not getattr(self, "template_undo_stack", []):
+            return "break"
+
+        current = copy.deepcopy(self.template_current())
+        previous = self.template_undo_stack.pop()
+        self.template_redo_stack.append(current)
+        self.template_restore_snapshot(previous)
+        return "break"
+
+    def template_redo(self):
+        import copy
+        if not getattr(self, "template_redo_stack", []):
+            return "break"
+
+        current = copy.deepcopy(self.template_current())
+        nxt = self.template_redo_stack.pop()
+        self.template_undo_stack.append(current)
+        self.template_restore_snapshot(nxt)
+        return "break"
 
 
     def show_template_editor_page(self):
@@ -1725,6 +1801,12 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkButton(distribute_bar, text="DISTRIBUTE H", fg_color="#333333", hover_color="#444444", command=lambda: self.template_distribute_selected("horizontal")).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
         ctk.CTkButton(distribute_bar, text="DISTRIBUTE V", fg_color="#333333", hover_color="#444444", command=lambda: self.template_distribute_selected("vertical")).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
 
+        history_bar = ctk.CTkFrame(controls, fg_color="transparent")
+        history_bar.grid(row=6, column=0, columnspan=5, padx=4, pady=(2, 0), sticky="ew")
+        history_bar.grid_columnconfigure((0,1), weight=1)
+        ctk.CTkButton(history_bar, text="UNDO", fg_color="#333333", hover_color="#444444", command=self.template_undo).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
+        ctk.CTkButton(history_bar, text="REDO", fg_color="#333333", hover_color="#444444", command=self.template_redo).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
+
         self.template_draw_canvas()
 
     def template_build_properties_panel(self):
@@ -1847,6 +1929,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_add_field(self):
+        self.template_push_history('add field')
         template = self.template_current()
         name = f"field_{len(template['fields']) + 1}"
         template["fields"].append({
@@ -1870,6 +1953,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_copy_field(self):
+        self.template_push_history('copy field')
         template = self.template_current()
         fields = template.get("fields", [])
 
@@ -1924,6 +2008,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_delete_field(self):
+        self.template_push_history('delete field')
         template = self.template_current()
         fields = template.get("fields", [])
 
@@ -2439,6 +2524,7 @@ class VadafokStudio(ctk.CTk):
         if hasattr(self, "template_props_body"):
             self.template_build_properties_panel()
 
+        self.template_drag_history_snapshot = self.template_snapshot()
         self.template_drag_mode = mode
         self.template_drag_start = (event.x, event.y)
         template = self.template_current()
@@ -2541,6 +2627,15 @@ class VadafokStudio(ctk.CTk):
 
     def template_mouse_up(self, event):
         self.template_clear_smart_guides()
+        if getattr(self, "template_drag_history_snapshot", None) is not None:
+            current = self.template_current()
+            if current != self.template_drag_history_snapshot:
+                self.template_undo_stack.append(self.template_drag_history_snapshot)
+                limit = int(getattr(self, "template_history_limit", 80))
+                if len(self.template_undo_stack) > limit:
+                    self.template_undo_stack = self.template_undo_stack[-limit:]
+                self.template_redo_stack.clear()
+            self.template_drag_history_snapshot = None
         save_template(self.template_selected_name, self.template_current())
         self.template_drag_mode = None
         self.template_drag_start = None
