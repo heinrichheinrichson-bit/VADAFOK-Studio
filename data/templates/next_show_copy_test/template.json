@@ -52,7 +52,8 @@
       "text_color": "#FFFFFF",
       "stroke_color": "#000000",
       "stroke_width": 3,
-      "uppercase": true
+      "uppercase": true,
+      "locked": false
     }
   ]
 }

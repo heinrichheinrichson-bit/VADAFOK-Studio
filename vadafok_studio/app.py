@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.6.4.1.1.1.1")
+        self.wm_title("VADAFOK Studio 2.6.5.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -140,7 +140,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.6.4.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.6.5", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -1000,7 +1000,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.6.4.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.6.5: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1384,7 +1384,7 @@ class VadafokStudio(ctk.CTk):
         self.template_push_history('align')
         template = self.template_current()
         fields = template.get("fields", [])
-        selected = self.template_selected_indices()
+        selected = self.template_selected_unlocked_indices() if hasattr(self, "template_selected_unlocked_indices") else self.template_selected_indices()
 
         if len(selected) < 2:
             messagebox.showwarning("Template Editor", "Bitte mindestens zwei Felder auswählen.")
@@ -1423,7 +1423,7 @@ class VadafokStudio(ctk.CTk):
         self.template_push_history('distribute')
         template = self.template_current()
         fields = template.get("fields", [])
-        selected = self.template_selected_indices()
+        selected = self.template_selected_unlocked_indices() if hasattr(self, "template_selected_unlocked_indices") else self.template_selected_indices()
 
         if len(selected) < 3:
             messagebox.showwarning("Template Editor", "Zum Verteilen bitte mindestens drei Felder auswählen.")
@@ -1462,7 +1462,7 @@ class VadafokStudio(ctk.CTk):
         self.template_push_history('keyboard move')
         template = self.template_current()
         fields = template.get("fields", [])
-        selected = self.template_selected_indices() if hasattr(self, "template_selected_indices") else []
+        selected = self.template_selected_unlocked_indices() if hasattr(self, "template_selected_unlocked_indices") else (self.template_selected_indices() if hasattr(self, "template_selected_indices") else [])
 
         if not selected:
             return "break"
@@ -1612,6 +1612,35 @@ class VadafokStudio(ctk.CTk):
 
 
 
+
+    def template_is_field_locked(self, idx):
+        template = self.template_current()
+        fields = template.get("fields", [])
+        if not (0 <= idx < len(fields)):
+            return False
+        return bool(fields[idx].get("locked", False))
+
+    def template_toggle_field_lock(self, idx):
+        template = self.template_current()
+        fields = template.get("fields", [])
+        if not (0 <= idx < len(fields)):
+            return
+
+        if hasattr(self, "template_push_history"):
+            self.template_push_history("toggle lock")
+
+        fields[idx]["locked"] = not bool(fields[idx].get("locked", False))
+        save_template(self.template_selected_name, template)
+
+        # If the field was selected and is now locked, keep selection visible but prevent movement.
+        self.template_update_fields_overlay()
+        self.template_build_layers_panel()
+
+    def template_selected_unlocked_indices(self):
+        selected = self.template_selected_indices() if hasattr(self, "template_selected_indices") else []
+        return [idx for idx in selected if not self.template_is_field_locked(idx)]
+
+
     def template_build_layers_panel(self):
         if not hasattr(self, "template_layers_body"):
             return
@@ -1632,7 +1661,7 @@ class VadafokStudio(ctk.CTk):
                 text_color="#777777",
                 wraplength=160,
                 justify="left"
-            ).grid(row=0, column=0, columnspan=3, padx=8, pady=8, sticky="w")
+            ).grid(row=0, column=0, columnspan=4, padx=8, pady=8, sticky="w")
             return
 
         # Higher index is drawn later = visually in front.
@@ -1640,11 +1669,12 @@ class VadafokStudio(ctk.CTk):
         for row, idx in enumerate(reversed(range(len(fields)))):
             field = fields[idx]
             active = idx in selected
+            locked = bool(field.get("locked", False))
             name = field.get("name", f"field_{idx+1}")
 
             btn = ctk.CTkButton(
                 self.template_layers_body,
-                text=("✓ " if active else "") + name,
+                text=("✓ " if active else "") + ("🔒 " if locked else "") + name,
                 fg_color=GOLD if active else "#171717",
                 text_color="#111111" if active else "#D9C58C",
                 hover_color=GOLD_DARK if active else "#2C2C2C",
@@ -1669,7 +1699,16 @@ class VadafokStudio(ctk.CTk):
                 fg_color="#333333",
                 hover_color="#444444",
                 command=lambda i=idx: self.template_move_layer(i, -1)
-            ).grid(row=row, column=2, padx=(2, 8), pady=3, sticky="ew")
+            ).grid(row=row, column=2, padx=2, pady=3, sticky="ew")
+
+            ctk.CTkButton(
+                self.template_layers_body,
+                text="🔒" if locked else "○",
+                width=34,
+                fg_color="#5A1F1F" if locked else "#333333",
+                hover_color="#7A2A2A" if locked else "#444444",
+                command=lambda i=idx: self.template_toggle_field_lock(i)
+            ).grid(row=row, column=3, padx=(2, 8), pady=3, sticky="ew")
 
         self.template_layers_body.grid_columnconfigure(0, weight=1)
 
@@ -2143,6 +2182,13 @@ class VadafokStudio(ctk.CTk):
             selected.add(self.template_selected_field)
 
         selected = {idx for idx in selected if 0 <= idx < len(fields)}
+        locked_selected = {idx for idx in selected if self.template_is_field_locked(idx)}
+        selected = selected - locked_selected
+        if locked_selected and not selected:
+            messagebox.showwarning("Template Editor", "Auswahl enthält nur gesperrte Felder.")
+            return
+        if locked_selected:
+            messagebox.showinfo("Template Editor", f"{len(locked_selected)} gesperrte Felder wurden nicht gelöscht.")
         if not selected:
             messagebox.showwarning("Template Editor", "Bitte zuerst ein Feld auswählen.")
             return
@@ -2654,6 +2700,14 @@ class VadafokStudio(ctk.CTk):
         if hasattr(self, "template_props_body"):
             self.template_build_properties_panel()
 
+        if self.template_is_field_locked(idx):
+            self.template_drag_mode = None
+            self.template_drag_start = None
+            self.template_drag_original = None
+            self.template_group_drag_originals = None
+            self.template_update_fields_overlay()
+            return
+
         self.template_drag_history_snapshot = self.template_snapshot()
         self.template_drag_mode = mode
         self.template_drag_start = (event.x, event.y)
@@ -2665,8 +2719,10 @@ class VadafokStudio(ctk.CTk):
             self.template_group_drag_originals = {
                 i: dict(template["fields"][i])
                 for i in selected
-                if 0 <= i < len(template.get("fields", []))
+                if 0 <= i < len(template.get("fields", [])) and not self.template_is_field_locked(i)
             }
+            if not self.template_group_drag_originals:
+                self.template_group_drag_originals = None
         else:
             self.template_group_drag_originals = None
 
