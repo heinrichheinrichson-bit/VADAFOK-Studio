@@ -1,12 +1,9 @@
 # Known Issues
 
-## Aktuell zu prüfen
-- v2.7.3 Equal Spacing:
-  - horizontale echte Abstände
-  - vertikale echte Abstände
-  - unterschiedliche Feldgrößen
-  - Lock / Hide
-  - Undo / Redo
+## Fixed in v2.7.4.1
+- Global Delete/Backspace shortcut from Template Editor triggered on all pages and inside text inputs.
 
-## Beobachten
-- Doppelklick-Rename im Layer Panel ist als Polish vorgemerkt.
+## Aktuell zu prüfen
+- Template Editor shortcuts only work inside Template Editor.
+- Delete/Backspace works normally in Live Card and other text input areas.
+- Marquee Selection from v2.7.4 still works.

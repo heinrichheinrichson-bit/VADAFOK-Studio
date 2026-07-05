@@ -1,19 +1,15 @@
-# VADAFOK Studio 2.7.3
+# VADAFOK Studio 2.7.4.1
 
-## Neu
+## Hotfix
 
-Equal Spacing Layout Tools:
+Template Editor Keyboard Shortcuts wurden bisher global ausgelöst.
 
-- `EQUAL SPACE H`
-- `EQUAL SPACE V`
+Repariert:
 
-Diese Funktion verteilt die **echten sichtbaren Abstände** zwischen Feldern gleichmäßig.
-
-## Unterschied zu Distribute
-
-`DISTRIBUTE H/V` verteilt Positionen.
-
-`EQUAL SPACE H/V` verteilt die Lücken zwischen den Objekten.
+- Delete / Backspace öffnen keine Template-Editor-Meldung mehr in anderen Bereichen.
+- Texteingaben in Live Card und anderen Bereichen funktionieren wieder normal.
+- Template Editor Shortcuts funktionieren nur noch im Template Editor.
+- Shortcuts greifen nicht mehr in Textfeldern / Eingabefeldern.
 
 ## Test
 
@@ -23,6 +19,6 @@ Siehe `docs/RELEASE_CHECKLIST.md`.
 
 ```bash
 git add .
-git commit -m "v2.7.3 - Add equal spacing layout tools"
+git commit -m "v2.7.4.1 - Fix Template Editor shortcut scope"
 git push
 ```

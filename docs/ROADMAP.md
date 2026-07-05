@@ -1,22 +1,19 @@
 # VADAFOK Studio – Roadmap
 
-Aktueller Teststand: **v2.7.3**
+Aktueller Hotfix-Teststand: **v2.7.4.1**
 
-## In Test
-### v2.7.3 – Equal Spacing
-- EQUAL SPACE H
-- EQUAL SPACE V
-- echte Abstände zwischen Objekten
-- respektiert Lock / Hide
+## Hotfix
+### v2.7.4.1 – Template Shortcut Scope Fix
+- Template Editor Shortcuts nur noch im Template Editor
+- Delete / Backspace blockieren keine Texteingabe mehr in anderen Bereichen
 
-## Vormerken / Polish
-- Doppelklick auf Gruppenname startet Inline Rename
-- Doppelklick auf Feldname startet Inline Rename
-- Einheitliches Rename-Verhalten für Felder und Gruppen
+## Zuletzt hinzugefügt
+### v2.7.4 – Selection Rectangle
+- Auswahlrahmen mit Maus
+- Ctrl + Auswahlrahmen als Add-Modus
 
 ## Nächste mögliche Schritte
-1. Selection Rectangle
-2. Collapsible Groups
-3. Drag & Drop Layer Reordering
-4. Style Presets
-5. Card Creator Export Polish
+1. Collapsible Groups
+2. Drag & Drop Layer Reordering
+3. Style Presets
+4. Card Creator Export Polish

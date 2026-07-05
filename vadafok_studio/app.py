@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.7.3.1.1.1")
+        self.wm_title("VADAFOK Studio 2.7.4.1.1.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -53,6 +53,10 @@ class VadafokStudio(ctk.CTk):
         self.template_rename_entry = None
         self.template_renaming_kind = None
         self.template_renaming_target = None
+        self.template_marquee_active = False
+        self.template_marquee_start = None
+        self.template_marquee_item = None
+        self.template_marquee_add_mode = False
         self.template_working_data = None
         self.template_zoom_factor = 1.0
         self.template_zoom_label_var = ctk.StringVar(value="100%")
@@ -143,7 +147,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.7.3", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.7.4.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -169,6 +173,7 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkLabel(box, text="F8 = Quick Caption", text_color="#BCA870").pack(anchor="w", padx=12, pady=(0, 10))
 
     def set_active(self, name):
+        self.active_page = name
         for n, b in self.nav_buttons.items():
             active = n == name
             b.configure(fg_color=GOLD if active else "transparent", text_color="#111111" if active else TEXT)
@@ -1003,7 +1008,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.7.3: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.7.4.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1276,6 +1281,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_pan_start_drag(self, event):
+        self.template_marquee_clear()
         self.template_clear_smart_guides()
         self.template_pan_active = True
         self.template_pan_start = (event.x, event.y)
@@ -1513,7 +1519,48 @@ class VadafokStudio(ctk.CTk):
         self.template_copy_field()
         return "break"
 
+
+    def template_shortcuts_allowed(self, event=None):
+        # Template shortcuts must only work while the Template Editor page is active.
+        try:
+            if getattr(self, "active_page", None) != "Template Editor":
+                return False
+        except Exception:
+            pass
+
+        # Do not steal Delete/Backspace/Ctrl+A/etc. from text input widgets.
+        widget = getattr(event, "widget", None) if event is not None else None
+        try:
+            widget_class = widget.winfo_class() if widget is not None else ""
+        except Exception:
+            widget_class = ""
+
+        blocked_classes = {
+            "Entry",
+            "Text",
+            "Spinbox",
+            "TEntry",
+            "TCombobox",
+            "CTkEntry",
+            "CTkTextbox",
+            "CTkComboBox",
+        }
+
+        if widget_class in blocked_classes:
+            return False
+
+        # CustomTkinter wraps widgets; class names vary, so also check repr/name.
+        widget_text = str(widget).lower() if widget is not None else ""
+        if any(token in widget_text for token in ("entry", "textbox", "text", "combobox")):
+            return False
+
+        return True
+
+
     def template_keyboard_handler(self, event):
+        if not self.template_shortcuts_allowed(event):
+            return None
+
         key = getattr(event, "keysym", "")
         state = int(getattr(event, "state", 0) or 0)
         ctrl = bool(state & 0x0004) or bool(getattr(self, "template_ctrl_down", False))
@@ -3206,6 +3253,8 @@ class VadafokStudio(ctk.CTk):
         # any field body
         for idx in reversed(range(len(template["fields"]))):
             f = template["fields"][idx]
+            if f.get("hidden", False):
+                continue
             x1, y1, x2, y2 = self.template_field_screen_rect(f)
             if x1 <= x <= x2 and y1 <= y <= y2:
                 return idx, "move"
@@ -3228,6 +3277,109 @@ class VadafokStudio(ctk.CTk):
         _idx, mode = self.template_hit_test(event.x, event.y)
         self.template_canvas.configure(cursor=self.template_cursor_for_mode(mode))
 
+
+    def template_marquee_clear(self):
+        if hasattr(self, "template_canvas") and getattr(self, "template_marquee_item", None):
+            try:
+                self.template_canvas.delete(self.template_marquee_item)
+            except Exception:
+                pass
+        self.template_marquee_item = None
+
+    def template_marquee_start_select(self, event, add_mode=False):
+        self.template_marquee_clear()
+        self.template_marquee_active = True
+        self.template_marquee_start = (event.x, event.y)
+        self.template_marquee_add_mode = bool(add_mode)
+        self.template_drag_mode = None
+        self.template_drag_start = None
+        self.template_drag_original = None
+        self.template_group_drag_originals = None
+
+        if hasattr(self, "template_canvas"):
+            self.template_marquee_item = self.template_canvas.create_rectangle(
+                event.x, event.y, event.x, event.y,
+                outline=GOLD,
+                width=2,
+                dash=(6, 4),
+                fill="#D6A43A",
+                stipple="gray25",
+                tags=("template_marquee",)
+            )
+            try:
+                self.template_canvas.tag_raise("template_marquee")
+            except Exception:
+                pass
+
+    def template_marquee_drag(self, event):
+        if not getattr(self, "template_marquee_active", False):
+            return False
+        if not self.template_marquee_start:
+            return True
+
+        x0, y0 = self.template_marquee_start
+        x1, y1 = event.x, event.y
+        if hasattr(self, "template_canvas") and getattr(self, "template_marquee_item", None):
+            self.template_canvas.coords(self.template_marquee_item, x0, y0, x1, y1)
+        return True
+
+    def template_marquee_finish(self, event):
+        if not getattr(self, "template_marquee_active", False):
+            return False
+
+        x0, y0 = self.template_marquee_start or (event.x, event.y)
+        x1, y1 = event.x, event.y
+        self.template_marquee_active = False
+
+        min_x, max_x = sorted((x0, x1))
+        min_y, max_y = sorted((y0, y1))
+        moved = abs(max_x - min_x) >= 4 or abs(max_y - min_y) >= 4
+
+        self.template_marquee_clear()
+
+        if not moved:
+            if not getattr(self, "template_marquee_add_mode", False):
+                self.template_clear_selection()
+                self.template_load_selected_properties()
+                if hasattr(self, "template_props_body"):
+                    self.template_build_properties_panel()
+                self.template_update_fields_overlay()
+            return True
+
+        template = self.template_current()
+        found = set()
+
+        for idx, field in enumerate(template.get("fields", [])):
+            if field.get("hidden", False):
+                continue
+
+            fx1, fy1, fx2, fy2 = self.template_field_screen_rect(field)
+
+            # Select fields whose visible rectangle intersects the marquee rectangle.
+            intersects = not (fx2 < min_x or fx1 > max_x or fy2 < min_y or fy1 > max_y)
+            if intersects:
+                found.add(idx)
+
+        if getattr(self, "template_marquee_add_mode", False):
+            selected = set(getattr(self, "template_selected_fields", set()))
+            selected.update(found)
+            self.template_selected_fields = selected
+            if found:
+                self.template_selected_field = next(iter(found))
+        else:
+            self.template_selected_fields = found
+            self.template_selected_field = next(iter(found), None)
+
+        self.template_load_selected_properties()
+        if hasattr(self, "template_props_body"):
+            self.template_build_properties_panel()
+        self.template_update_fields_overlay()
+        if hasattr(self, "template_layers_body"):
+            self.template_build_layers_panel()
+
+        return True
+
+
     def template_mouse_down(self, event):
         try:
             self.template_canvas.focus_set()
@@ -3237,17 +3389,9 @@ class VadafokStudio(ctk.CTk):
         multi_pressed = self.template_multi_select_modifier(event)
 
         if idx is None:
-            had_selection = bool(getattr(self, "template_selected_fields", set())) or self.template_selected_field is not None
-            self.template_clear_selection()
-            self.template_drag_mode = None
-            self.template_drag_start = None
-            self.template_drag_original = None
-            self.template_group_drag_originals = None
-            self.template_load_selected_properties()
-            if hasattr(self, "template_props_body"):
-                self.template_build_properties_panel()
-            if had_selection:
-                self.template_update_fields_overlay()
+            # Empty canvas drag starts marquee selection.
+            # Plain drag replaces selection. Ctrl/Cmd-like modifier drag adds to selection.
+            self.template_marquee_start_select(event, add_mode=multi_pressed)
             return
 
         selected = set(getattr(self, "template_selected_fields", set()))
@@ -3298,6 +3442,8 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_mouse_drag(self, event):
+        if self.template_marquee_drag(event):
+            return
         if self.template_selected_field is None or self.template_drag_original is None:
             return
 
@@ -3380,6 +3526,8 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_mouse_up(self, event):
+        if self.template_marquee_finish(event):
+            return
         self.template_clear_smart_guides()
         if getattr(self, "template_drag_history_snapshot", None) is not None:
             current = self.template_current()

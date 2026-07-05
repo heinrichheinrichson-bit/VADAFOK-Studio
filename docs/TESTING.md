@@ -1,3 +1,3 @@
 # Testing
 
-Test Equal Space H/V with same-size and different-size fields.
+Hotfix: ensure Template Editor shortcuts do not trigger outside Template Editor or inside text input widgets.

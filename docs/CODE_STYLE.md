@@ -1,3 +1,3 @@
 # Code Style
 
-Layout tools must respect locked and hidden fields.
+Global keyboard shortcuts must be scoped and must not steal input from text widgets.

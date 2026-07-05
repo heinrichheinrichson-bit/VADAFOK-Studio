@@ -1,18 +1,10 @@
 # Architecture
 
-## v2.7.3 Equal Spacing
+## v2.7.4.1 Shortcut Scope
 
-Equal Spacing differs from basic Distribute:
+Template Editor keyboard shortcuts are now scoped.
 
-- Basic Distribute equalizes X/Y positions.
-- Equal Spacing equalizes the visible gap between object edges.
-
-Horizontal:
-- left boundary = min(x)
-- right boundary = max(x + width)
-- gap = (right - left - sum(widths)) / (n - 1)
-
-Vertical:
-- top boundary = min(y)
-- bottom boundary = max(y + height)
-- gap = (bottom - top - sum(heights)) / (n - 1)
+Rules:
+- Shortcuts only run when the active page is `Template Editor`.
+- Shortcuts do not run when focus is inside input widgets.
+- Text editing in Live Card or other pages must not trigger Template Editor actions.
