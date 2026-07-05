@@ -27,7 +27,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.6.3.1.1.1")
+        self.wm_title("VADAFOK Studio 2.6.4.1.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -140,7 +140,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.6.3", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.6.4.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -461,8 +461,9 @@ class VadafokStudio(ctk.CTk):
         outer = ctk.CTkFrame(self.main, fg_color=DARK)
         outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
         outer.grid_columnconfigure(0, weight=1)
-        outer.grid_columnconfigure(1, weight=3)
+        outer.grid_columnconfigure(1, weight=4)
         outer.grid_columnconfigure(2, weight=1)
+        outer.grid_columnconfigure(3, weight=1)
         outer.grid_rowconfigure(0, weight=1)
 
         left = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
@@ -999,7 +1000,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.6.3: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.6.4.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -1610,6 +1611,114 @@ class VadafokStudio(ctk.CTk):
         return "break"
 
 
+
+    def template_build_layers_panel(self):
+        if not hasattr(self, "template_layers_body"):
+            return
+
+        for w in self.template_layers_body.winfo_children():
+            w.destroy()
+
+        template = self.template_current()
+        fields = template.get("fields", [])
+        selected = set(getattr(self, "template_selected_fields", set()))
+        if self.template_selected_field is not None:
+            selected.add(self.template_selected_field)
+
+        if not fields:
+            ctk.CTkLabel(
+                self.template_layers_body,
+                text="Keine Felder",
+                text_color="#777777",
+                wraplength=160,
+                justify="left"
+            ).grid(row=0, column=0, columnspan=3, padx=8, pady=8, sticky="w")
+            return
+
+        # Higher index is drawn later = visually in front.
+        # Show front/top layers first.
+        for row, idx in enumerate(reversed(range(len(fields)))):
+            field = fields[idx]
+            active = idx in selected
+            name = field.get("name", f"field_{idx+1}")
+
+            btn = ctk.CTkButton(
+                self.template_layers_body,
+                text=("✓ " if active else "") + name,
+                fg_color=GOLD if active else "#171717",
+                text_color="#111111" if active else "#D9C58C",
+                hover_color=GOLD_DARK if active else "#2C2C2C",
+                anchor="w",
+                command=lambda i=idx: self.template_select_layer(i)
+            )
+            btn.grid(row=row, column=0, padx=(8, 4), pady=3, sticky="ew")
+
+            ctk.CTkButton(
+                self.template_layers_body,
+                text="▲",
+                width=32,
+                fg_color="#333333",
+                hover_color="#444444",
+                command=lambda i=idx: self.template_move_layer(i, 1)
+            ).grid(row=row, column=1, padx=2, pady=3, sticky="ew")
+
+            ctk.CTkButton(
+                self.template_layers_body,
+                text="▼",
+                width=32,
+                fg_color="#333333",
+                hover_color="#444444",
+                command=lambda i=idx: self.template_move_layer(i, -1)
+            ).grid(row=row, column=2, padx=(2, 8), pady=3, sticky="ew")
+
+        self.template_layers_body.grid_columnconfigure(0, weight=1)
+
+    def template_select_layer(self, idx):
+        self.template_set_single_selection(idx)
+        self.template_load_selected_properties()
+        if hasattr(self, "template_props_body"):
+            self.template_build_properties_panel()
+        self.template_update_fields_overlay()
+        self.template_build_layers_panel()
+
+    def template_move_layer(self, idx, direction):
+        template = self.template_current()
+        fields = template.get("fields", [])
+        if not (0 <= idx < len(fields)):
+            return
+
+        new_idx = idx + int(direction)
+        if not (0 <= new_idx < len(fields)):
+            return
+
+        if hasattr(self, "template_push_history"):
+            self.template_push_history("layer order")
+
+        fields[idx], fields[new_idx] = fields[new_idx], fields[idx]
+
+        selected = set(getattr(self, "template_selected_fields", set()))
+        updated = set()
+        for s in selected:
+            if s == idx:
+                updated.add(new_idx)
+            elif s == new_idx:
+                updated.add(idx)
+            else:
+                updated.add(s)
+        self.template_selected_fields = updated
+
+        if self.template_selected_field == idx:
+            self.template_selected_field = new_idx
+        elif self.template_selected_field == new_idx:
+            self.template_selected_field = idx
+
+        save_template(self.template_selected_name, template)
+        self.template_draw_canvas()
+        self.template_build_layers_panel()
+        if hasattr(self, "template_props_body"):
+            self.template_build_properties_panel()
+
+
     def show_template_editor_page(self):
         self.set_active("Template Editor")
         self.clear_main()
@@ -1624,8 +1733,9 @@ class VadafokStudio(ctk.CTk):
         outer = ctk.CTkFrame(self.main, fg_color=DARK)
         outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
         outer.grid_columnconfigure(0, weight=1)
-        outer.grid_columnconfigure(1, weight=3)
+        outer.grid_columnconfigure(1, weight=4)
         outer.grid_columnconfigure(2, weight=1)
+        outer.grid_columnconfigure(3, weight=1)
         outer.grid_rowconfigure(0, weight=1)
 
         left = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
@@ -1733,8 +1843,23 @@ class VadafokStudio(ctk.CTk):
         ).grid(row=1, column=2, columnspan=2, padx=4, pady=4, sticky="ew")
 
 
+        layers = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        layers.grid(row=0, column=2, sticky="nsew", padx=(12, 0))
+        layers.grid_columnconfigure(0, weight=1)
+        layers.grid_rowconfigure(1, weight=1)
+
+        ctk.CTkLabel(
+            layers,
+            text="LAYERS",
+            text_color=GOLD,
+            font=ctk.CTkFont(size=18, weight="bold")
+        ).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+
+        self.template_layers_body = ctk.CTkScrollableFrame(layers, fg_color="#0B0B0B", corner_radius=12)
+        self.template_layers_body.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
+
         props = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
-        props.grid(row=0, column=2, sticky="nsew", padx=(12, 0))
+        props.grid(row=0, column=3, sticky="nsew", padx=(12, 0))
         props.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(
@@ -1808,6 +1933,7 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkButton(history_bar, text="REDO", fg_color="#333333", hover_color="#444444", command=self.template_redo).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
 
         self.template_draw_canvas()
+        self.template_build_layers_panel()
 
     def template_build_properties_panel(self):
         if not hasattr(self, "template_props_body"):
@@ -2403,6 +2529,10 @@ class VadafokStudio(ctk.CTk):
                     text=f"{self.template_selected_name} | Felder: {len(template.get('fields', []))} | BG: {bg_info.get('name', '?')}",
                     text_color="#8FE6A0"
                 )
+
+        if hasattr(self, "template_layers_body"):
+            self.template_build_layers_panel()
+
 
 
     def template_field_screen_rect(self, field):

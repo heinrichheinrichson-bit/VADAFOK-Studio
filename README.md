@@ -1,69 +1,71 @@
-# VADAFOK Studio 2.6.3
+# VADAFOK Studio 2.6.4.1
 
 ## Ziel
 
-Undo / Redo im Template Editor.
+Layer Panel im Template Editor – sichtbarer, sauberer 4-Spalten-Aufbau.
+
+## Fix gegenüber 2.6.4
+
+In 2.6.4 wurde die Layer-Logik eingefügt, aber das Panel war im UI nicht sichtbar.
+Diese Version baut den Template Editor bewusst als 4-Spalten-Layout auf:
+
+```text
+Templates | Canvas | Layers | Properties
+```
 
 ## Neu
 
-- `Ctrl + Z` = Undo
-- `Ctrl + Y` = Redo
-- Buttons:
-  - `UNDO`
-  - `REDO`
+- Sichtbares `LAYERS` Panel zwischen Canvas und Properties
+- Klick auf Layer wählt das passende Feld aus
+- Canvas-Auswahl markiert den passenden Layer
+- `▲` bewegt ein Feld nach vorne
+- `▼` bewegt ein Feld nach hinten
+- Layer-Reihenfolge wird im Template gespeichert
+- Undo/Redo für Layer-Reihenfolge
 
-## Unterstützte Aktionen
+## Weiterhin vorhanden
 
-Undo / Redo funktioniert für:
-
-- Feld verschieben
-- Feld skalieren
+- Undo / Redo
+- Keyboard Editing
+- Multi Selection
 - Group Move
-- Copy Field
-- Multi Copy
-- Delete Field
-- Multi Delete
-- Align
-- Distribute
-- Keyboard Move
-- Property-Änderungen wie Name/Größe/Farbe
-
-## Hinweise
-
-- History ist pro Session aktiv.
-- Beim Start des Studios ist die History leer.
-- Die maximale History-Größe liegt aktuell bei 80 Zuständen.
+- Multi Copy / Delete
+- Alignment Tools
+- Smart Guides
+- Zoom / Pan
+- Card Creator
 
 ## Test
 
-1. Feld verschieben.
-2. Ctrl + Z testen.
-3. Ctrl + Y testen.
-4. Feld skalieren.
-5. Ctrl + Z / Ctrl + Y testen.
-6. Copy Field testen.
-7. Delete Field testen.
-8. Multi Selection + Group Move testen.
-9. Align testen.
-10. Keyboard Move testen.
-11. Card Creator kurz prüfen.
+1. Template Editor öffnen.
+2. Prüfen: `LAYERS` Panel ist zwischen Canvas und Properties sichtbar.
+3. Layer anklicken.
+4. Prüfen: Feld wird im Canvas ausgewählt.
+5. Feld im Canvas anklicken.
+6. Prüfen: Layer wird markiert.
+7. `▲` und `▼` testen.
+8. Undo / Redo für Layer-Reihenfolge testen.
+9. Speichern und neu starten.
+10. Prüfen: Layer-Reihenfolge bleibt erhalten.
+11. Smart Guides / Keyboard / Group Move kurz prüfen.
 
 ## Git nach erfolgreichem Test
 
 ```bash
 git add .
-git commit -m "v2.6.3 - Add undo and redo to Template Editor"
+git commit -m "v2.6.4.1 - Add visible Layer Panel to Template Editor"
 git push
 ```
 
 ## Commit-Beschreibung
 
 ```text
-v2.6.3 - Add undo and redo to Template Editor
+v2.6.4.1 - Add visible Layer Panel to Template Editor
 
-- Added undo/redo history for Template Editor
-- Ctrl+Z and Ctrl+Y shortcuts
-- Added UNDO and REDO buttons
-- Supports move, resize, group move, copy, delete, align, distribute and keyboard editing
-- Maintains existing Smart Guides, Zoom, Pan, Multi Selection and Card Creator behavior
+- Reworked Template Editor into a 4-column layout
+- Added visible Layers panel between canvas and properties
+- Layer list selects matching template fields
+- Canvas selection syncs back to layer list
+- Added layer forward/back controls
+- Layer order persists in templates and supports undo/redo
 ```
