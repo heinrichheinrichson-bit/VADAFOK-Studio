@@ -28,7 +28,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.8.1.1.1.1.1.1.1.1")
+        self.wm_title("VADAFOK Studio 2.8.2.1.1.1.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -159,7 +159,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.8.1.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.8.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -1020,7 +1020,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.8.1.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.8.2: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -4019,6 +4019,60 @@ class VadafokStudio(ctk.CTk):
         self.card_apply_data_snapshot(next_snapshot)
 
 
+
+    def card_template_field_index_by_name(self, field_name):
+        template = self.card_template()
+        for idx, field in enumerate(template.get("fields", [])):
+            if field.get("name") == field_name:
+                return idx
+        return None
+
+    def card_apply_style_to_field(self, field_name, style_name):
+        if not style_name or style_name == "Select Style":
+            return
+
+        template_name = self.card_selected_template.get()
+        template = load_template(template_name)
+        fields = template.get("fields", [])
+
+        target_idx = None
+        for idx, field in enumerate(fields):
+            if field.get("name") == field_name:
+                target_idx = idx
+                break
+
+        if target_idx is None:
+            messagebox.showwarning("Card Creator Styles", f"Feld nicht gefunden: {field_name}")
+            return
+
+        try:
+            if hasattr(self, "template_push_history"):
+                # Only meaningful if the same template is open in the Template Editor later,
+                # but it keeps the operation conceptually tracked.
+                pass
+
+            style = style_engine.load_style(style_name)
+            if not style:
+                messagebox.showwarning("Card Creator Styles", "Style ist leer oder konnte nicht geladen werden.")
+                return
+
+            style_engine.apply_style(fields[target_idx], style)
+            save_template(template_name, template)
+
+            # Keep working data in sync if this template is also active in Template Editor.
+            if getattr(self, "template_selected_name", None) == template_name:
+                self.template_working_data = None
+
+            self.card_update_preview()
+            messagebox.showinfo("Card Creator Styles", f"Style '{style_name}' wurde auf '{field_name}' angewendet.")
+        except Exception as e:
+            messagebox.showerror("Card Creator Styles", str(e))
+
+    def card_open_template_editor_for_styles(self):
+        self.template_selected_name = self.card_selected_template.get()
+        self.show_template_editor_page()
+
+
     def show_card_creator_page(self):
         self.set_active("Card Creator")
         self.clear_main()
@@ -4075,10 +4129,11 @@ class VadafokStudio(ctk.CTk):
 
         preview_actions = ctk.CTkFrame(preview, fg_color="transparent")
         preview_actions.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 8))
-        preview_actions.grid_columnconfigure((0, 1, 2), weight=1)
+        preview_actions.grid_columnconfigure((0, 1, 2, 3), weight=1)
         ctk.CTkButton(preview_actions, text="UPDATE PREVIEW", fg_color="#333333", hover_color="#444444", command=self.card_update_preview).grid(row=0, column=0, padx=(0, 4), sticky="ew")
         ctk.CTkButton(preview_actions, text="OPEN EXPORTS", fg_color="#333333", hover_color="#444444", command=self.card_open_export_folder).grid(row=0, column=1, padx=4, sticky="ew")
-        ctk.CTkButton(preview_actions, text="COPY LAST PATH", fg_color="#333333", hover_color="#444444", command=self.card_copy_last_path).grid(row=0, column=2, padx=(4, 0), sticky="ew")
+        ctk.CTkButton(preview_actions, text="REFRESH STYLES", fg_color="#333333", hover_color="#444444", command=self.card_build_form).grid(row=0, column=2, padx=4, sticky="ew")
+        ctk.CTkButton(preview_actions, text="COPY LAST PATH", fg_color="#333333", hover_color="#444444", command=self.card_copy_last_path).grid(row=0, column=3, padx=(4, 0), sticky="ew")
 
         self.card_preview_frame = ctk.CTkFrame(preview, fg_color="#050505", corner_radius=14, border_color="#3A2A0D", border_width=1)
         self.card_preview_frame.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
@@ -4167,16 +4222,51 @@ class VadafokStudio(ctk.CTk):
             ctk.CTkLabel(self.card_form_frame, text="Dieses Template hat keine Felder.", text_color="#BCA870").grid(row=0, column=0, padx=12, pady=12, sticky="w")
             return
 
+        available_styles = style_engine.list_styles()
+        style_options = ["Select Style"] + available_styles
+
         for row, field in enumerate(fields):
             name = field.get("name", f"field_{row+1}")
             saved = self.card_saved_values.get(self.card_selected_template.get(), {})
             if name not in values or not hasattr(values.get(name), "get"):
                 values[name] = ctk.StringVar(value=str(saved.get(name, "")))
+
             label = name.replace("_", " ").title()
-            ctk.CTkLabel(self.card_form_frame, text=label, text_color="#BCA870").grid(row=row*2, column=0, padx=12, pady=(10, 2), sticky="w")
-            entry = ctk.CTkEntry(self.card_form_frame, textvariable=values[name])
-            entry.grid(row=row*2+1, column=0, padx=12, pady=(0, 8), sticky="ew")
+
+            field_box = ctk.CTkFrame(self.card_form_frame, fg_color="#111111", corner_radius=10)
+            field_box.grid(row=row, column=0, padx=10, pady=(8, 4), sticky="ew")
+            field_box.grid_columnconfigure(0, weight=1)
+
+            ctk.CTkLabel(field_box, text=label, text_color="#BCA870").grid(row=0, column=0, padx=10, pady=(8, 2), sticky="w")
+
+            entry = ctk.CTkEntry(field_box, textvariable=values[name])
+            entry.grid(row=1, column=0, padx=10, pady=(0, 8), sticky="ew")
             entry.bind("<KeyRelease>", lambda e: self.card_preview_changed())
+
+            style_row = ctk.CTkFrame(field_box, fg_color="transparent")
+            style_row.grid(row=2, column=0, padx=10, pady=(0, 10), sticky="ew")
+            style_row.grid_columnconfigure(0, weight=1)
+
+            style_var = ctk.StringVar(value="Select Style")
+            style_menu = ctk.CTkOptionMenu(
+                style_row,
+                values=style_options,
+                variable=style_var,
+                fg_color="#333333",
+                button_color="#444444",
+                button_hover_color="#555555",
+                command=lambda selected, field_name=name: self.card_apply_style_to_field(field_name, selected)
+            )
+            style_menu.grid(row=0, column=0, padx=(0, 6), sticky="ew")
+
+            ctk.CTkButton(
+                style_row,
+                text="EDIT",
+                width=54,
+                fg_color="#333333",
+                hover_color="#444444",
+                command=self.card_open_template_editor_for_styles
+            ).grid(row=0, column=1, sticky="e")
 
 
     def card_save_values(self):

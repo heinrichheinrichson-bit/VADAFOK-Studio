@@ -10,10 +10,11 @@
       "height": 90,
       "font_family": "Bebas Neue",
       "font_size": 90,
-      "text_color": "#FFFFFF",
+      "text_color": "#F54927",
       "stroke_color": "#000000",
       "stroke_width": 3,
-      "uppercase": true
+      "uppercase": true,
+      "id": "6a438bec-cb25-4c52-aba9-3aad2232fdb7"
     },
     {
       "name": "game",
@@ -23,10 +24,11 @@
       "height": 120,
       "font_family": "Bebas Neue",
       "font_size": 90,
-      "text_color": "#FFFFFF",
+      "text_color": "#F54927",
       "stroke_color": "#000000",
       "stroke_width": 3,
-      "uppercase": true
+      "uppercase": true,
+      "id": "5f8d1a0f-274f-4266-aaa7-4916568842f1"
     },
     {
       "name": "time",
@@ -39,7 +41,9 @@
       "text_color": "#FFFFFF",
       "stroke_color": "#000000",
       "stroke_width": 3,
-      "uppercase": true
+      "uppercase": true,
+      "id": "188e440a-5108-453e-ad5a-0706187a23ae"
     }
-  ]
+  ],
+  "groups": []
 }

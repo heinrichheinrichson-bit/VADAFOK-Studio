@@ -1,17 +1,17 @@
 # Architecture
 
-## v2.8.1
+## v2.8.2 Card Creator Styles
 
-### Style Engine
-Style saving now verifies that the target JSON file exists after writing.
+Card Creator now reuses the Style Engine.
 
-### Card Creator Data History
-Card Creator has lightweight data undo/redo:
+Flow:
+1. Load available style names via `style_engine.list_styles()`.
+2. User selects a style for a field.
+3. The style is loaded via `style_engine.load_style()`.
+4. The template field is updated via `style_engine.apply_style()`.
+5. The template is saved.
+6. Card preview is re-rendered.
 
-- `card_data_undo_stack`
-- `card_data_redo_stack`
-- `card_push_data_history`
-- `card_undo_data`
-- `card_redo_data`
-
-Currently this is focused on form data operations, especially `CLEAR FIELDS`.
+Important:
+- This changes the template's visual style.
+- It does not change card data text.

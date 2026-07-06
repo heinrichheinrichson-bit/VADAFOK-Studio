@@ -1,20 +1,27 @@
-# VADAFOK Studio 2.8.1.1
+# VADAFOK Studio 2.8.2
 
-## Fix
+## Neu
 
-Style Presets:
-- fehlender `style_engine` Import repariert
-- Save Style sollte jetzt eine JSON-Datei in `styles/` schreiben
-- vorhandene Styles werden vor dem Überschreiben abgefragt
+Card Creator Styles.
 
-Card Creator:
-- `UNDO DATA`
-- `REDO DATA`
-- `CLEAR FIELDS` undo bleibt erhalten
+- jedes Card-Feld hat ein Style Dropdown
+- gespeicherte Style Presets können direkt im Card Creator angewendet werden
+- Preview aktualisiert sich sofort
+- REFRESH STYLES lädt Styles neu
+- EDIT öffnet den Template Editor
+
+## Wichtig
+
+Das Anwenden eines Styles im Card Creator verändert den visuellen Stil des Template-Felds.
+
+Es verändert nicht:
+- Textinhalt
+- Position
+- Größe
 
 ## Installation
 
-Direkt über v2.8.1 installieren:
+Direkt über v2.8.1.1 installieren:
 
 1. VADAFOK Studio schließen.
 2. ZIP entpacken.
@@ -25,6 +32,6 @@ Direkt über v2.8.1 installieren:
 
 ```bash
 git add .
-git commit -m "v2.8.1.1 - Fix Style Engine import"
+git commit -m "v2.8.2 - Add Card Creator Styles"
 git push
 ```

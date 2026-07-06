@@ -1,12 +1,14 @@
 # VADAFOK Studio – Roadmap
 
-Aktueller Teststand: **v2.8.1.1**
+Aktueller Teststand: **v2.8.2**
 
 ## In Test
-### v2.8.1.1 – Style Engine Import Fix
-- Style speichern ohne Importfehler
-- JSON-Datei sichtbar in styles/
-- Card Creator Undo/Redo bleibt erhalten
+### v2.8.2 – Card Creator Styles
+- Styles im Card Creator auswählen
+- Style auf einzelnes Card-Feld anwenden
+- Vorschau aktualisiert sich sofort
+- REFRESH STYLES
+- EDIT öffnet Template Editor
 
 ## Nächste v2.8.x Schritte
 1. Export Profiles
