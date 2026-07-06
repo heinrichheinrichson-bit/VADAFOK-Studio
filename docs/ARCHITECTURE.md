@@ -1,29 +1,38 @@
 # Architecture
 
-## v2.8.4 Batch Cards Phase 1
+## v2.8.5 Batch Engine
 
-Batch item structure:
+New module:
+
+```text
+vadafok_studio/core/batch_engine.py
+```
+
+Responsibilities:
+- read CSV
+- read XLSX
+- normalize column and field names
+- convert table rows to Batch Card items
+
+Mapping rule:
+- Column names are normalized.
+- Template field names are normalized.
+- Matching names are assigned automatically.
+
+Example:
+- column `Game`
+- field `game`
+- match
+
+Batch item output:
 
 ```json
 {
   "template": "Template Name",
-  "output_name": "card_name",
+  "output_name": "spieler_001",
   "profile": "Broadcast PNG",
   "values": {
-    "title": "Example"
+    "game": "Finale"
   }
 }
 ```
-
-Batch Cards are currently in-memory only.
-
-Flow:
-1. Add Current stores current form data and export settings.
-2. Selecting an item restores its values.
-3. Render Batch iterates items, restores each state, and renders final output.
-
-Future:
-- CSV import creates batch items.
-- Excel import creates batch items.
-- Batch progress bar.
-- Saved batch projects.

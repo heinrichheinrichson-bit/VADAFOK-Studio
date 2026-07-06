@@ -16,6 +16,7 @@ from .core.image_view import load_rgba, fit_image_to_box, pil_to_tk_photo_data, 
 from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card
 from .core import style_engine
 from .core import export_engine
+from .core import batch_engine
 from .core.banner_profiles import load_banner_profiles, save_banner_profiles, ensure_profile, has_profile, profile_count, reset_profile_style
 
 GOLD = "#D6A43A"
@@ -29,7 +30,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.8.4.2.1.1.1.1.1.1.1")
+        self.wm_title("VADAFOK Studio 2.8.5.2.1.1.1.1.1.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -163,7 +164,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.8.4.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.8.5.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -1024,7 +1025,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.8.4.2: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.8.5.2: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -4270,6 +4271,66 @@ class VadafokStudio(ctk.CTk):
             self.card_build_batch_panel()
 
 
+
+    def card_import_batch_file(self):
+        from pathlib import Path as _Path
+
+        selected_path = filedialog.askopenfilename(
+            title="CSV oder Excel-Datei importieren",
+            filetypes=[
+                ("CSV / Excel", "*.csv *.xlsx"),
+                ("CSV", "*.csv"),
+                ("Excel", "*.xlsx"),
+                ("Alle Dateien", "*.*"),
+            ],
+        )
+        if not selected_path:
+            return
+
+        try:
+            import_path = _Path(selected_path)
+            rows = batch_engine.read_table(import_path)
+            if not rows:
+                messagebox.showinfo("Batch Import", "Die Datei enthält keine Datensätze.")
+                return
+
+            template = self.card_template()
+            fields = template.get("fields", [])
+            items = batch_engine.rows_to_batch_items(
+                rows,
+                self.card_selected_template.get(),
+                fields,
+                self.card_batch_current_item_name(),
+                self.card_export_profile.get(),
+            )
+
+            matched = [item for item in items if item.get("values")]
+            if not matched:
+                field_names = ", ".join([f.get("name", "") for f in fields if f.get("name")])
+                messagebox.showwarning(
+                    "Batch Import",
+                    "Keine passenden Spalten gefunden.\n\n"
+                    f"Datei: {import_path.name}\n"
+                    f"Template-Felder: {field_names}\n\n"
+                    "Tipp: Die Spaltennamen müssen zu den Feldnamen im Template passen, z.B. date, game, time, feature."
+                )
+                return
+
+            self.card_batch_items.extend(matched)
+            self.card_batch_selected_index = len(self.card_batch_items) - len(matched)
+            self.card_build_batch_panel()
+
+            if hasattr(self, "card_render_status"):
+                self.card_render_status.configure(
+                    text=f"Batch Import: {len(matched)} Karte(n) hinzugefügt.",
+                    text_color="#8FE6A0"
+                )
+
+            messagebox.showinfo("Batch Import", f"{len(matched)} Batch-Karte(n) importiert.\n\nDatei:\n{import_path}")
+        except Exception as e:
+            messagebox.showerror("Batch Import", f"Import fehlgeschlagen:\n{e}")
+
+
     def show_card_creator_page(self):
         self.set_active("Card Creator")
         self.clear_main()
@@ -4364,8 +4425,9 @@ class VadafokStudio(ctk.CTk):
         batch_actions.grid_columnconfigure((0, 1), weight=1)
         ctk.CTkButton(batch_actions, text="+ ADD CURRENT", fg_color="#333333", hover_color="#444444", command=self.card_batch_add_current).grid(row=0, column=0, padx=(0, 4), pady=2, sticky="ew")
         ctk.CTkButton(batch_actions, text="RENDER BATCH", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.card_render_batch).grid(row=0, column=1, padx=(4, 0), pady=2, sticky="ew")
-        ctk.CTkButton(batch_actions, text="DUPLICATE", fg_color="#333333", hover_color="#444444", command=self.card_batch_duplicate_selected).grid(row=1, column=0, padx=(0, 4), pady=2, sticky="ew")
-        ctk.CTkButton(batch_actions, text="REMOVE", fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.card_batch_remove_selected).grid(row=1, column=1, padx=(4, 0), pady=2, sticky="ew")
+        ctk.CTkButton(batch_actions, text="IMPORT CSV/XLSX", fg_color="#333333", hover_color="#444444", command=self.card_import_batch_file).grid(row=1, column=0, columnspan=2, padx=0, pady=2, sticky="ew")
+        ctk.CTkButton(batch_actions, text="DUPLICATE", fg_color="#333333", hover_color="#444444", command=self.card_batch_duplicate_selected).grid(row=2, column=0, padx=(0, 4), pady=2, sticky="ew")
+        ctk.CTkButton(batch_actions, text="REMOVE", fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.card_batch_remove_selected).grid(row=2, column=1, padx=(4, 0), pady=2, sticky="ew")
 
         self.card_batch_body = ctk.CTkScrollableFrame(batch_box, fg_color="#080808", corner_radius=10, height=190)
         self.card_batch_body.grid(row=2, column=0, sticky="nsew", padx=10, pady=(0, 10))
