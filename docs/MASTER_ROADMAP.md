@@ -1,40 +1,38 @@
 # VADAFOK Studio – MASTER ROADMAP
 
-Stand: v2.7.7.4 Testbuild
+Stand: v2.8.1 Testbuild
 
 ## Template Editor
+Status: Stable professional foundation.
 
-Layers:
-- ✅ Layer Panel
-- ✅ Lock / Unlock
-- ✅ Hide / Show
-- ✅ Group / Ungroup
-- ✅ Group Rename / Lock / Hide
-- ✅ Collapsible Groups
-- ✅ Drag & Drop Layer Reordering
-- 🚧 Layer Panel Polish
-
-Layout:
-- ✅ Align
-- ✅ Distribute
-- ✅ Equal Spacing
-- ✅ Selection Rectangle
-
-Style System:
-- 🚧 Style Engine
-- 🚧 Style Presets
+## Style System
+- 🚧 Style Presets save/apply/delete
+- ⬜ custom VADAFOK rename/save dialog
 - ⬜ Style Packs
 - ⬜ Default Style
 - ⬜ Import / Export Styles
 
-Workspace & UI:
-- ✅ Dark Theme
-- ✅ Zoom / Pan
-- 🚧 Right panel structure
-- ⬜ Resizable Panels
-- ⬜ Saved Workspace Layout
-- ⬜ Adjustable Sidebars
-- ⬜ Dockable Panels
+## Card Creator
+Status: v2.8.x professional upgrade.
+
+Completed / In Test:
+- 🚧 Larger preview
+- 🚧 Manual / Auto Preview
+- 🚧 Output Name
+- 🚧 Clear Fields
+- 🚧 Undo / Redo Data
+- 🚧 Open Export Folder
+- 🚧 Copy Last Path
 
 Next:
-- Card Creator Polish
+- ⬜ Export Profiles
+- ⬜ Batch Export
+- ⬜ Card Sets / Projects
+- ⬜ CSV / Spreadsheet Import
+- ⬜ Style Preset integration
+
+## Workflow Improvements
+- ⬜ Fast Text Color Buttons, while keeping Hex input
+- ⬜ Extendable QuickCards
+- ⬜ Voice-controlled QuickCards
+- ⬜ Speech-to-LiveCard

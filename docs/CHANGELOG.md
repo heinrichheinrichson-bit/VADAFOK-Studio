@@ -1,16 +1,16 @@
 # CHANGELOG
 
-## v2.7.7.5 - Fix squeezed Layer Up button
+## v2.8.1.1 - Fix Style Engine import
 
 ### Fixed
-- Layer Up button was squeezed into a very narrow column.
-- Field rows now use an internal row frame with fixed action button columns.
-- Move buttons are clearly visible as `↑` and `↓`.
+- `style_engine` import was missing in `app.py`.
+- Style Preset saving no longer fails with `name 'style_engine' is not defined`.
+- Save Style now asks before overwriting an existing style name.
 
 ### Kept
-- Style Presets below Properties.
-- Style Engine.
-- `styles/` folder.
+- Card Creator `UNDO DATA`.
+- Card Creator `REDO DATA`.
+- `CLEAR FIELDS` undo support.
 
-## v2.7.7.4 - Layer Panel Polish + Style Presets
-- Added arrow button polish.
+## v2.8.1 - Finalize Style Save and add Card Creator data undo
+- Added style save verification and Card Creator data undo/redo.

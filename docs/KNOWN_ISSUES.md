@@ -1,8 +1,8 @@
 # Known Issues
 
-## Fixed in v2.7.7.5
-- Layer Up button was too narrow / not visible.
+## Fixed in v2.8.1.1
+- Missing `style_engine` import caused Style Save to fail.
 
 ## Beobachten
 - Save Style uses a simple name dialog for now.
-- Resizable Panels are planned later.
+- A custom VADAFOK dialog is still planned as UI polish.

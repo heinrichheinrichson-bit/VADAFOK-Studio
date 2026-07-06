@@ -1,12 +1,15 @@
 # VADAFOK Studio – Roadmap
 
-Aktueller Teststand: **v2.7.7.5**
+Aktueller Teststand: **v2.8.1.1**
 
 ## In Test
-### v2.7.7.5 – Layer Button Width Fix
-- Layer Up Button sichtbar
-- Layer Down Button sichtbar
-- Style Presets bleiben unter Properties
+### v2.8.1.1 – Style Engine Import Fix
+- Style speichern ohne Importfehler
+- JSON-Datei sichtbar in styles/
+- Card Creator Undo/Redo bleibt erhalten
 
-## Nächster großer Bereich
-### v2.8.x – Card Creator Polish
+## Nächste v2.8.x Schritte
+1. Export Profiles
+2. Batch Export
+3. Fast Text Color Buttons
+4. Card Project Management

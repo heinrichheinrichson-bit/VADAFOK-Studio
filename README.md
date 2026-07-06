@@ -1,17 +1,20 @@
-# VADAFOK Studio 2.7.7.5
+# VADAFOK Studio 2.8.1.1
 
 ## Fix
 
-Layer Panel:
-- Up Button war zu schmal und kaum sichtbar.
-- Feldzeilen nutzen jetzt ein internes Layout mit festen Button-Spalten.
-- `↑` und `↓` sind sichtbar.
+Style Presets:
+- fehlender `style_engine` Import repariert
+- Save Style sollte jetzt eine JSON-Datei in `styles/` schreiben
+- vorhandene Styles werden vor dem Überschreiben abgefragt
 
-Style Presets bleiben unverändert unter Properties.
+Card Creator:
+- `UNDO DATA`
+- `REDO DATA`
+- `CLEAR FIELDS` undo bleibt erhalten
 
 ## Installation
 
-Du kannst diese Version direkt über v2.7.7.4 installieren.
+Direkt über v2.8.1 installieren:
 
 1. VADAFOK Studio schließen.
 2. ZIP entpacken.
@@ -22,6 +25,6 @@ Du kannst diese Version direkt über v2.7.7.4 installieren.
 
 ```bash
 git add .
-git commit -m "v2.7.7.5 - Fix Layer Panel button width"
+git commit -m "v2.8.1.1 - Fix Style Engine import"
 git push
 ```

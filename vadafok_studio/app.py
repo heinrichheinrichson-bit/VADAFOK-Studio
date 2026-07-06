@@ -14,6 +14,7 @@ from .core.caption_renderer import render_caption_png
 from .core.template_store import list_templates, load_template, save_template, create_template, set_background_from_file, background_path, import_legacy_templates, delete_template, duplicate_template, rename_template, set_default_template, get_default_template, ensure_background_file, template_dir
 from .core.image_view import load_rgba, fit_image_to_box, pil_to_tk_photo_data, image_status
 from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card
+from .core import style_engine
 from .core.banner_profiles import load_banner_profiles, save_banner_profiles, ensure_profile, has_profile, profile_count, reset_profile_style
 
 GOLD = "#D6A43A"
@@ -27,7 +28,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.7.7.5.1.1.1.1.1")
+        self.wm_title("VADAFOK Studio 2.8.1.1.1.1.1.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -87,6 +88,11 @@ class VadafokStudio(ctk.CTk):
         self.card_saved_values = load_json(CARD_VALUES_PATH, {})
         self.card_creator_preview_image = None
         self.card_creator_last_render = None
+        self.card_output_name = ctk.StringVar(value="")
+        self.card_auto_preview = ctk.BooleanVar(value=True)
+        self.card_data_undo_stack = []
+        self.card_data_redo_stack = []
+        self.card_history_limit = 50
         self.obs = OBSController()
         self.hide_timer = None
         self.quick_window = None
@@ -153,7 +159,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.7.7.5", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.8.1.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -1014,7 +1020,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.7.7.5: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.8.1.1: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -2631,8 +2637,17 @@ class VadafokStudio(ctk.CTk):
         if not name:
             return
 
-        style_engine.save_style(name, field)
-        self.template_build_style_presets_panel()
+        try:
+            existing = set(style_engine.list_styles())
+            if name in existing:
+                if not messagebox.askyesno("Style Presets", f"Style '{name}' existiert bereits. Überschreiben?"):
+                    return
+
+            path = style_engine.save_style(name, field)
+            self.template_build_style_presets_panel()
+            messagebox.showinfo("Style Presets", f"Style gespeichert:\n{path}")
+        except Exception as e:
+            messagebox.showerror("Style Presets", f"Style konnte nicht gespeichert werden:\n{e}")
 
     def template_apply_style_preset(self, name):
         indices = self.template_selected_style_indices()
@@ -3909,6 +3924,101 @@ class VadafokStudio(ctk.CTk):
         self.template_group_drag_originals = None
 
 
+
+    def card_template_safe_name(self):
+        return "".join(c if c.isalnum() or c in "-_" else "_" for c in self.card_selected_template.get())
+
+    def card_default_output_name(self):
+        return f"card_{self.card_template_safe_name()}"
+
+    def card_output_path(self, final=False):
+        suffix = "final" if final else "preview"
+        base = self.card_output_name.get().strip() if hasattr(self, "card_output_name") else ""
+        if not base:
+            base = self.card_default_output_name()
+        safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in base)
+        return EXPORT_DIR / f"{safe}_{suffix}.png"
+
+    def card_preview_changed(self):
+        self.card_save_values()
+        if getattr(self, "card_auto_preview", None) is None or self.card_auto_preview.get():
+            self.card_update_preview()
+
+    def card_clear_values(self):
+        self.card_push_data_history()
+        values = self.card_creator_values.get(self.card_selected_template.get(), {})
+        for var in values.values():
+            if hasattr(var, "set"):
+                var.set("")
+        self.card_save_values()
+        self.card_update_preview()
+
+    def card_open_export_folder(self):
+        try:
+            EXPORT_DIR.mkdir(parents=True, exist_ok=True)
+            os.startfile(str(EXPORT_DIR))
+        except Exception as e:
+            messagebox.showerror("Card Creator", f"Export-Ordner konnte nicht geöffnet werden:\\n{e}")
+
+    def card_copy_last_path(self):
+        if not self.card_creator_last_render:
+            messagebox.showinfo("Card Creator", "Noch keine finale Karte gerendert.")
+            return
+        try:
+            self.clipboard_clear()
+            self.clipboard_append(str(self.card_creator_last_render))
+            messagebox.showinfo("Card Creator", "Pfad wurde in die Zwischenablage kopiert.")
+        except Exception as e:
+            messagebox.showerror("Card Creator", str(e))
+
+
+
+    def card_current_data_snapshot(self):
+        return dict(self.card_values_plain())
+
+    def card_apply_data_snapshot(self, snapshot):
+        values = self.card_creator_values.get(self.card_selected_template.get(), {})
+        # Ensure variables exist by building form before applying if needed.
+        for key, value in snapshot.items():
+            if key in values and hasattr(values[key], "set"):
+                values[key].set(value)
+
+        # Keys not in snapshot should become empty.
+        for key, var in values.items():
+            if key not in snapshot and hasattr(var, "set"):
+                var.set("")
+
+        self.card_save_values()
+        self.card_update_preview()
+
+    def card_push_data_history(self):
+        snapshot = self.card_current_data_snapshot()
+        if self.card_data_undo_stack and self.card_data_undo_stack[-1] == snapshot:
+            return
+        self.card_data_undo_stack.append(snapshot)
+        if len(self.card_data_undo_stack) > self.card_history_limit:
+            self.card_data_undo_stack.pop(0)
+        self.card_data_redo_stack.clear()
+
+    def card_undo_data(self):
+        if not self.card_data_undo_stack:
+            messagebox.showinfo("Card Creator", "Nichts zum Rückgängig machen.")
+            return
+        current = self.card_current_data_snapshot()
+        previous = self.card_data_undo_stack.pop()
+        self.card_data_redo_stack.append(current)
+        self.card_apply_data_snapshot(previous)
+
+    def card_redo_data(self):
+        if not self.card_data_redo_stack:
+            messagebox.showinfo("Card Creator", "Nichts zum Wiederherstellen.")
+            return
+        current = self.card_current_data_snapshot()
+        next_snapshot = self.card_data_redo_stack.pop()
+        self.card_data_undo_stack.append(current)
+        self.card_apply_data_snapshot(next_snapshot)
+
+
     def show_card_creator_page(self):
         self.set_active("Card Creator")
         self.clear_main()
@@ -3923,10 +4033,13 @@ class VadafokStudio(ctk.CTk):
             default_name = get_default_template()
             self.card_selected_template.set(default_name if default_name in names else sorted(names)[0])
 
+        if not self.card_output_name.get():
+            self.card_output_name.set(self.card_default_output_name())
+
         outer = ctk.CTkFrame(self.main, fg_color=DARK)
         outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
         outer.grid_columnconfigure(0, weight=1)
-        outer.grid_columnconfigure(1, weight=3)
+        outer.grid_columnconfigure(1, weight=4)
         outer.grid_columnconfigure(2, weight=2)
         outer.grid_rowconfigure(0, weight=1)
 
@@ -3939,40 +4052,87 @@ class VadafokStudio(ctk.CTk):
         tlist.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
         for name in sorted(list_templates()):
             prefix = "✓ " if name == self.card_selected_template.get() else ""
-            ctk.CTkButton(tlist, text=prefix + name, anchor="w", fg_color="#171717", hover_color="#2C2C2C", command=lambda n=name: self.card_select_template(n)).pack(fill="x", padx=8, pady=4)
+            ctk.CTkButton(
+                tlist,
+                text=prefix + name,
+                anchor="w",
+                fg_color="#171717",
+                hover_color="#2C2C2C",
+                command=lambda n=name: self.card_select_template(n)
+            ).pack(fill="x", padx=8, pady=4)
 
         preview = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         preview.grid(row=0, column=1, sticky="nsew", padx=12)
         preview.grid_columnconfigure(0, weight=1)
-        preview.grid_rowconfigure(1, weight=1)
-        ctk.CTkLabel(preview, text="Preview", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+        preview.grid_rowconfigure(2, weight=1)
+
+        header = ctk.CTkFrame(preview, fg_color="transparent")
+        header.grid(row=0, column=0, sticky="ew", padx=18, pady=(18, 8))
+        header.grid_columnconfigure(1, weight=1)
+        ctk.CTkLabel(header, text="Preview", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, sticky="w")
+        self.card_preview_info = ctk.CTkLabel(header, text="", text_color="#8FE6A0", anchor="e")
+        self.card_preview_info.grid(row=0, column=1, sticky="e")
+
+        preview_actions = ctk.CTkFrame(preview, fg_color="transparent")
+        preview_actions.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 8))
+        preview_actions.grid_columnconfigure((0, 1, 2), weight=1)
+        ctk.CTkButton(preview_actions, text="UPDATE PREVIEW", fg_color="#333333", hover_color="#444444", command=self.card_update_preview).grid(row=0, column=0, padx=(0, 4), sticky="ew")
+        ctk.CTkButton(preview_actions, text="OPEN EXPORTS", fg_color="#333333", hover_color="#444444", command=self.card_open_export_folder).grid(row=0, column=1, padx=4, sticky="ew")
+        ctk.CTkButton(preview_actions, text="COPY LAST PATH", fg_color="#333333", hover_color="#444444", command=self.card_copy_last_path).grid(row=0, column=2, padx=(4, 0), sticky="ew")
+
         self.card_preview_frame = ctk.CTkFrame(preview, fg_color="#050505", corner_radius=14, border_color="#3A2A0D", border_width=1)
-        self.card_preview_frame.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
+        self.card_preview_frame.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
 
         form = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         form.grid(row=0, column=2, sticky="nsew", padx=(12, 0))
         form.grid_columnconfigure(0, weight=1)
         form.grid_rowconfigure(1, weight=1)
+
         ctk.CTkLabel(form, text="Card Data", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
 
         self.card_form_frame = ctk.CTkScrollableFrame(form, fg_color="#0B0B0B", corner_radius=12)
         self.card_form_frame.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 12))
         self.card_form_frame.grid_columnconfigure(0, weight=1)
 
+        export_box = ctk.CTkFrame(form, fg_color="#0B0B0B", corner_radius=12)
+        export_box.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 12))
+        export_box.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkLabel(export_box, text="Output Name", text_color="#BCA870").grid(row=0, column=0, padx=10, pady=(10, 2), sticky="w")
+        ctk.CTkEntry(export_box, textvariable=self.card_output_name).grid(row=1, column=0, padx=10, pady=(0, 8), sticky="ew")
+
+        ctk.CTkCheckBox(
+            export_box,
+            text="Auto Preview",
+            variable=self.card_auto_preview,
+            text_color="#BCA870",
+            fg_color=GOLD,
+            hover_color=GOLD_DARK
+        ).grid(row=2, column=0, padx=10, pady=(0, 10), sticky="w")
+
         buttons = ctk.CTkFrame(form, fg_color="transparent")
-        buttons.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
-        buttons.grid_columnconfigure(0, weight=1)
-        ctk.CTkButton(buttons, text="RENDER CARD", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.card_render_final).grid(row=0, column=0, padx=0, pady=4, sticky="ew")
+        buttons.grid(row=3, column=0, sticky="ew", padx=18, pady=(0, 18))
+        buttons.grid_columnconfigure((0, 1), weight=1)
+        ctk.CTkButton(buttons, text="CLEAR FIELDS", fg_color="#333333", hover_color="#444444", command=self.card_clear_values).grid(row=0, column=0, padx=(0, 4), pady=4, sticky="ew")
+        ctk.CTkButton(buttons, text="RENDER CARD", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.card_render_final).grid(row=0, column=1, padx=(4, 0), pady=4, sticky="ew")
+
+        ctk.CTkButton(buttons, text="UNDO DATA", fg_color="#333333", hover_color="#444444", command=self.card_undo_data).grid(row=1, column=0, padx=(0, 4), pady=4, sticky="ew")
+        ctk.CTkButton(buttons, text="REDO DATA", fg_color="#333333", hover_color="#444444", command=self.card_redo_data).grid(row=1, column=1, padx=(4, 0), pady=4, sticky="ew")
+
         self.card_render_status = ctk.CTkLabel(buttons, text="Noch nicht gerendert.", text_color="#BCA870", wraplength=260, justify="left")
-        self.card_render_status.grid(row=1, column=0, pady=(8, 0), sticky="w")
+        self.card_render_status.grid(row=2, column=0, columnspan=2, pady=(8, 0), sticky="w")
 
         self.card_build_form()
         self.card_update_preview()
 
 
 
+
     def card_select_template(self, name):
         self.card_selected_template.set(name)
+        self.card_output_name.set(self.card_default_output_name())
+        self.card_data_undo_stack = []
+        self.card_data_redo_stack = []
         self.card_creator_preview_image = None
         self.card_creator_last_render = None
         self.show_card_creator_page()
@@ -4016,7 +4176,7 @@ class VadafokStudio(ctk.CTk):
             ctk.CTkLabel(self.card_form_frame, text=label, text_color="#BCA870").grid(row=row*2, column=0, padx=12, pady=(10, 2), sticky="w")
             entry = ctk.CTkEntry(self.card_form_frame, textvariable=values[name])
             entry.grid(row=row*2+1, column=0, padx=12, pady=(0, 8), sticky="ew")
-            entry.bind("<KeyRelease>", lambda e: (self.card_save_values(), self.card_update_preview()))
+            entry.bind("<KeyRelease>", lambda e: self.card_preview_changed())
 
 
     def card_save_values(self):
@@ -4064,9 +4224,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def card_render_to_file(self, final=False):
-        suffix = "final" if final else "preview"
-        safe_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in self.card_selected_template.get())
-        out = EXPORT_DIR / f"card_{safe_name}_{suffix}.png"
+        out = self.card_output_path(final=final)
         render_template_card(self.card_template(), self.card_values_plain(), out, self.card_background_path(), size=None)
         return out
 
@@ -4078,13 +4236,15 @@ class VadafokStudio(ctk.CTk):
             w.destroy()
         self.card_creator_preview_image = None
         try:
-            if not self.card_background_path():
-                raise FileNotFoundError(f"Kein Background gefunden für Template: {self.card_selected_template.get()}")
-            if not self.card_background_path():
+            bg_path = self.card_background_path()
+            if not bg_path:
                 raise FileNotFoundError(f"Kein Background gefunden für Template: {self.card_selected_template.get()}")
             preview_path = self.card_render_to_file(final=False)
             img = Image.open(preview_path).convert("RGBA")
-            img.thumbnail((620, 520))
+            original_size = img.size
+            img.thumbnail((760, 620))
+            if hasattr(self, "card_preview_info"):
+                self.card_preview_info.configure(text=f"{self.card_selected_template.get()} | {original_size[0]}×{original_size[1]}")
             self.card_creator_preview_image = ctk.CTkImage(light_image=img, dark_image=img, size=img.size)
             ctk.CTkLabel(self.card_preview_frame, image=self.card_creator_preview_image, text="").place(relx=0.5, rely=0.5, anchor="center")
         except Exception as e:
