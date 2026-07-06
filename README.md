@@ -1,26 +1,14 @@
-# VADAFOK Studio 2.8.3
+# VADAFOK Studio 2.8.4.2
 
-## Neu
+## Hotfix
 
-Export Profiles im Card Creator.
-
-Profile:
-- Broadcast PNG
-- OBS Overlay PNG
-- YouTube Thumbnail JPG
-- Instagram Square PNG
-- TikTok Vertical PNG
-
-## Wichtig
-
-Export Profiles ändern:
-- Dateiformat
-- Dateiname
-- Zielgröße
+Batch Cards:
+- `_font` Fehler bei + ADD CURRENT repariert
+- Batch-Einträge werden jetzt als stabile Zeilen angezeigt
 
 ## Installation
 
-Direkt über v2.8.2 installieren:
+Direkt über v2.8.4.1 installieren:
 
 1. VADAFOK Studio schließen.
 2. ZIP entpacken.
@@ -31,6 +19,6 @@ Direkt über v2.8.2 installieren:
 
 ```bash
 git add .
-git commit -m "v2.8.3 - Add Export Profiles"
+git commit -m "v2.8.4.2 - Fix Batch row rendering"
 git push
 ```

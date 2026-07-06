@@ -29,7 +29,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.8.3.1.1.1.1.1.1")
+        self.wm_title("VADAFOK Studio 2.8.4.2.1.1.1.1.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -92,6 +92,8 @@ class VadafokStudio(ctk.CTk):
         self.card_output_name = ctk.StringVar(value="")
         self.card_auto_preview = ctk.BooleanVar(value=True)
         self.card_export_profile = ctk.StringVar(value="Broadcast PNG")
+        self.card_batch_items = []
+        self.card_batch_selected_index = None
         self.card_data_undo_stack = []
         self.card_data_redo_stack = []
         self.card_history_limit = 50
@@ -161,7 +163,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.8.3", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.8.4.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -1022,7 +1024,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.8.3: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.8.4.2: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -4074,6 +4076,200 @@ class VadafokStudio(ctk.CTk):
         self.show_template_editor_page()
 
 
+
+    def card_batch_current_item_name(self):
+        base = self.card_output_name.get().strip() if hasattr(self, "card_output_name") else ""
+        if not base:
+            base = self.card_default_output_name()
+        return base
+
+    def card_batch_add_current(self):
+        try:
+            self.card_save_values()
+            item = {
+                "template": self.card_selected_template.get(),
+                "output_name": self.card_batch_current_item_name(),
+                "profile": self.card_export_profile.get(),
+                "values": dict(self.card_values_plain()),
+            }
+            self.card_batch_items.append(item)
+            self.card_batch_selected_index = len(self.card_batch_items) - 1
+
+            self.card_build_batch_panel()
+
+            if hasattr(self, "card_render_status"):
+                self.card_render_status.configure(
+                    text=f"Batch: {len(self.card_batch_items)} Karte(n) in der Liste.",
+                    text_color="#8FE6A0"
+                )
+        except Exception as e:
+            messagebox.showerror("Batch Cards", f"Add Current fehlgeschlagen:\n{e}")
+
+    def card_batch_duplicate_selected(self):
+        idx = self.card_batch_selected_index
+        if idx is None or not (0 <= idx < len(self.card_batch_items)):
+            messagebox.showinfo("Batch Cards", "Bitte zuerst einen Batch-Eintrag auswählen.")
+            return
+
+        original = self.card_batch_items[idx]
+        copy_item = {
+            "template": original.get("template", ""),
+            "output_name": str(original.get("output_name", "card")) + "_copy",
+            "profile": original.get("profile", "Broadcast PNG"),
+            "values": dict(original.get("values", {})),
+        }
+        self.card_batch_items.insert(idx + 1, copy_item)
+        self.card_batch_selected_index = idx + 1
+        self.card_build_batch_panel()
+
+    def card_batch_remove_selected(self):
+        idx = self.card_batch_selected_index
+        if idx is None or not (0 <= idx < len(self.card_batch_items)):
+            messagebox.showinfo("Batch Cards", "Bitte zuerst einen Batch-Eintrag auswählen.")
+            return
+        self.card_batch_items.pop(idx)
+        self.card_batch_selected_index = None
+        self.card_build_batch_panel()
+
+    def card_batch_clear(self):
+        if not self.card_batch_items:
+            return
+        if not messagebox.askyesno("Batch Cards", "Batch-Liste wirklich leeren?"):
+            return
+        self.card_batch_items.clear()
+        self.card_batch_selected_index = None
+        self.card_build_batch_panel()
+
+    def card_batch_select(self, idx):
+        if not (0 <= idx < len(self.card_batch_items)):
+            return
+
+        self.card_batch_selected_index = idx
+        item = self.card_batch_items[idx]
+
+        template_name = item.get("template", "")
+        if template_name in list_templates():
+            self.card_selected_template.set(template_name)
+
+        self.card_output_name.set(item.get("output_name", self.card_default_output_name()))
+        self.card_export_profile.set(item.get("profile", "Broadcast PNG"))
+
+        # Rebuild form first so StringVars exist, then apply values.
+        self.card_build_form()
+        values = self.card_creator_values.get(self.card_selected_template.get(), {})
+        for key, var in values.items():
+            if hasattr(var, "set"):
+                var.set(str(item.get("values", {}).get(key, "")))
+
+        self.card_save_values()
+        self.card_update_preview()
+        self.card_build_batch_panel()
+
+    def card_build_batch_panel(self):
+        if not hasattr(self, "card_batch_body"):
+            return
+
+        for w in self.card_batch_body.winfo_children():
+            w.destroy()
+
+        if not self.card_batch_items:
+            ctk.CTkLabel(
+                self.card_batch_body,
+                text="Noch keine Batch-Karten.\nKlicke + ADD CURRENT.",
+                text_color="#777777",
+                wraplength=240,
+                justify="left"
+            ).grid(row=0, column=0, padx=8, pady=8, sticky="w")
+            return
+
+        for row, item in enumerate(self.card_batch_items):
+            active = row == self.card_batch_selected_index
+            title = f"{row+1}. {item.get('output_name', 'card')}"
+            subtitle = f"{item.get('template', '')} · {item.get('profile', '')}"
+
+            row_box = ctk.CTkFrame(
+                self.card_batch_body,
+                fg_color=GOLD if active else "#171717",
+                corner_radius=8
+            )
+            row_box.grid(row=row, column=0, padx=8, pady=4, sticky="ew")
+            row_box.grid_columnconfigure(0, weight=1)
+
+            title_label = ctk.CTkLabel(
+                row_box,
+                text=title,
+                text_color="#111111" if active else "#D9C58C",
+                anchor="w"
+            )
+            title_label.grid(row=0, column=0, padx=10, pady=(6, 0), sticky="ew")
+
+            subtitle_label = ctk.CTkLabel(
+                row_box,
+                text=subtitle,
+                text_color="#333333" if active else "#777777",
+                anchor="w"
+            )
+            subtitle_label.grid(row=1, column=0, padx=10, pady=(0, 6), sticky="ew")
+
+            for widget in (row_box, title_label, subtitle_label):
+                widget.bind("<Button-1>", lambda _e, i=row: self.card_batch_select(i))
+
+        self.card_batch_body.grid_columnconfigure(0, weight=1)
+
+
+    def card_render_batch(self):
+        if not self.card_batch_items:
+            messagebox.showinfo("Batch Cards", "Batch-Liste ist leer.")
+            return
+
+        rendered = []
+        old_template = self.card_selected_template.get()
+        old_output = self.card_output_name.get()
+        old_profile = self.card_export_profile.get()
+        old_values_snapshot = self.card_values_plain()
+
+        try:
+            for item in self.card_batch_items:
+                template_name = item.get("template", "")
+                if template_name not in list_templates():
+                    continue
+
+                self.card_selected_template.set(template_name)
+                self.card_output_name.set(item.get("output_name", self.card_default_output_name()))
+                self.card_export_profile.set(item.get("profile", "Broadcast PNG"))
+
+                if template_name not in self.card_creator_values:
+                    self.card_creator_values[template_name] = {}
+                # Ensure form variables exist for this template.
+                self.card_build_form()
+                values = self.card_creator_values.get(template_name, {})
+                for key, var in values.items():
+                    if hasattr(var, "set"):
+                        var.set(str(item.get("values", {}).get(key, "")))
+
+                out = self.card_render_to_file(final=True)
+                rendered.append(str(out))
+
+            self.card_render_status.configure(text=f"Batch gerendert: {len(rendered)} Datei(en)", text_color="#8FE6A0")
+            messagebox.showinfo("Batch Cards", f"Batch gerendert:\\n{len(rendered)} Datei(en)")
+        except Exception as e:
+            messagebox.showerror("Batch Cards", str(e))
+        finally:
+            # Restore the user's previous UI state as much as possible.
+            if old_template in list_templates():
+                self.card_selected_template.set(old_template)
+            self.card_output_name.set(old_output)
+            self.card_export_profile.set(old_profile)
+            self.card_build_form()
+            values = self.card_creator_values.get(self.card_selected_template.get(), {})
+            for key, var in values.items():
+                if hasattr(var, "set"):
+                    var.set(str(old_values_snapshot.get(key, "")))
+            self.card_save_values()
+            self.card_update_preview()
+            self.card_build_batch_panel()
+
+
     def show_card_creator_page(self):
         self.set_active("Card Creator")
         self.clear_main()
@@ -4142,7 +4338,8 @@ class VadafokStudio(ctk.CTk):
         form = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         form.grid(row=0, column=2, sticky="nsew", padx=(12, 0))
         form.grid_columnconfigure(0, weight=1)
-        form.grid_rowconfigure(1, weight=1)
+        form.grid_rowconfigure(1, weight=3)
+        form.grid_rowconfigure(2, weight=2)
 
         ctk.CTkLabel(form, text="Card Data", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
 
@@ -4150,8 +4347,31 @@ class VadafokStudio(ctk.CTk):
         self.card_form_frame.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 12))
         self.card_form_frame.grid_columnconfigure(0, weight=1)
 
+        batch_box = ctk.CTkFrame(form, fg_color="#0B0B0B", corner_radius=12)
+        batch_box.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 12))
+        batch_box.grid_columnconfigure(0, weight=1)
+        batch_box.grid_rowconfigure(2, weight=1)
+
+        ctk.CTkLabel(
+            batch_box,
+            text="Batch Cards",
+            text_color=GOLD,
+            font=ctk.CTkFont(size=16, weight="bold")
+        ).grid(row=0, column=0, padx=10, pady=(10, 6), sticky="w")
+
+        batch_actions = ctk.CTkFrame(batch_box, fg_color="transparent")
+        batch_actions.grid(row=1, column=0, padx=10, pady=(0, 6), sticky="ew")
+        batch_actions.grid_columnconfigure((0, 1), weight=1)
+        ctk.CTkButton(batch_actions, text="+ ADD CURRENT", fg_color="#333333", hover_color="#444444", command=self.card_batch_add_current).grid(row=0, column=0, padx=(0, 4), pady=2, sticky="ew")
+        ctk.CTkButton(batch_actions, text="RENDER BATCH", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.card_render_batch).grid(row=0, column=1, padx=(4, 0), pady=2, sticky="ew")
+        ctk.CTkButton(batch_actions, text="DUPLICATE", fg_color="#333333", hover_color="#444444", command=self.card_batch_duplicate_selected).grid(row=1, column=0, padx=(0, 4), pady=2, sticky="ew")
+        ctk.CTkButton(batch_actions, text="REMOVE", fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.card_batch_remove_selected).grid(row=1, column=1, padx=(4, 0), pady=2, sticky="ew")
+
+        self.card_batch_body = ctk.CTkScrollableFrame(batch_box, fg_color="#080808", corner_radius=10, height=190)
+        self.card_batch_body.grid(row=2, column=0, sticky="nsew", padx=10, pady=(0, 10))
+
         export_box = ctk.CTkFrame(form, fg_color="#0B0B0B", corner_radius=12)
-        export_box.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 12))
+        export_box.grid(row=3, column=0, sticky="ew", padx=18, pady=(0, 12))
         export_box.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(export_box, text="Output Name", text_color="#BCA870").grid(row=0, column=0, padx=10, pady=(10, 2), sticky="w")
@@ -4181,7 +4401,7 @@ class VadafokStudio(ctk.CTk):
         ).grid(row=5, column=0, padx=10, pady=(0, 10), sticky="w")
 
         buttons = ctk.CTkFrame(form, fg_color="transparent")
-        buttons.grid(row=3, column=0, sticky="ew", padx=18, pady=(0, 18))
+        buttons.grid(row=4, column=0, sticky="ew", padx=18, pady=(0, 18))
         buttons.grid_columnconfigure((0, 1), weight=1)
         ctk.CTkButton(buttons, text="CLEAR FIELDS", fg_color="#333333", hover_color="#444444", command=self.card_clear_values).grid(row=0, column=0, padx=(0, 4), pady=4, sticky="ew")
         ctk.CTkButton(buttons, text="RENDER CARD", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.card_render_final).grid(row=0, column=1, padx=(4, 0), pady=4, sticky="ew")
@@ -4193,6 +4413,7 @@ class VadafokStudio(ctk.CTk):
         self.card_render_status.grid(row=2, column=0, columnspan=2, pady=(8, 0), sticky="w")
 
         self.card_build_form()
+        self.card_build_batch_panel()
         self.card_update_preview()
 
 

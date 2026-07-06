@@ -1,22 +1,11 @@
 # CHANGELOG
 
-## v2.8.3 - Add Export Profiles
+## v2.8.4.2 - Fix Batch row rendering
 
-### Added
-- New Export Engine: `vadafok_studio/core/export_engine.py`.
-- Card Creator Export Profile selector.
-- Built-in export profiles:
-  - Broadcast PNG
-  - OBS Overlay PNG
-  - YouTube Thumbnail JPG
-  - Instagram Square PNG
-  - TikTok Vertical PNG
-- Export profile affects output filename, format and size.
-- Preview info now shows selected export profile.
+### Fixed
+- Batch list no longer uses multiline CTkButton rows.
+- Fixed CustomTkinter `_font` error when adding a batch card.
+- Batch entries now render as stable row frames with labels.
 
-### Notes
-- Export Profiles are the foundation for Batch Cards in v2.8.4.
-- Transparent PNG profile is prepared for overlay workflows.
-
-## v2.8.2 - Add Card Creator Styles
-- Card Creator can apply saved Style Presets.
+## v2.8.4.1 - Fix Batch Add Current feedback
+- Added visible feedback and error dialog for Add Current.

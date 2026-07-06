@@ -1,22 +1,29 @@
 # Architecture
 
-## v2.8.3 Export Engine
+## v2.8.4 Batch Cards Phase 1
 
-New module:
+Batch item structure:
 
-```text
-vadafok_studio/core/export_engine.py
+```json
+{
+  "template": "Template Name",
+  "output_name": "card_name",
+  "profile": "Broadcast PNG",
+  "values": {
+    "title": "Example"
+  }
+}
 ```
 
-Responsibilities:
-- list built-in profiles
-- resolve profile metadata
-- build output paths
-- resize/canvas images for profile output
-- save PNG/JPEG with profile settings
+Batch Cards are currently in-memory only.
 
-Card Creator workflow:
-1. render normal template card to temporary PNG
-2. load image
-3. apply selected export profile
-4. save final output
+Flow:
+1. Add Current stores current form data and export settings.
+2. Selecting an item restores its values.
+3. Render Batch iterates items, restores each state, and renders final output.
+
+Future:
+- CSV import creates batch items.
+- Excel import creates batch items.
+- Batch progress bar.
+- Saved batch projects.
