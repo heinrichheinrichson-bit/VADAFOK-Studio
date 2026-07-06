@@ -15,6 +15,7 @@ from .core.template_store import list_templates, load_template, save_template, c
 from .core.image_view import load_rgba, fit_image_to_box, pil_to_tk_photo_data, image_status
 from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card
 from .core import style_engine
+from .core import export_engine
 from .core.banner_profiles import load_banner_profiles, save_banner_profiles, ensure_profile, has_profile, profile_count, reset_profile_style
 
 GOLD = "#D6A43A"
@@ -28,7 +29,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.8.2.1.1.1.1.1.1")
+        self.wm_title("VADAFOK Studio 2.8.3.1.1.1.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -90,6 +91,7 @@ class VadafokStudio(ctk.CTk):
         self.card_creator_last_render = None
         self.card_output_name = ctk.StringVar(value="")
         self.card_auto_preview = ctk.BooleanVar(value=True)
+        self.card_export_profile = ctk.StringVar(value="Broadcast PNG")
         self.card_data_undo_stack = []
         self.card_data_redo_stack = []
         self.card_history_limit = 50
@@ -159,7 +161,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.8.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.8.3", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -1020,7 +1022,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.8.2: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.8.3: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -3932,12 +3934,11 @@ class VadafokStudio(ctk.CTk):
         return f"card_{self.card_template_safe_name()}"
 
     def card_output_path(self, final=False):
-        suffix = "final" if final else "preview"
         base = self.card_output_name.get().strip() if hasattr(self, "card_output_name") else ""
         if not base:
             base = self.card_default_output_name()
-        safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in base)
-        return EXPORT_DIR / f"{safe}_{suffix}.png"
+        profile = self.card_export_profile.get() if hasattr(self, "card_export_profile") else "Broadcast PNG"
+        return export_engine.export_path(EXPORT_DIR, base, profile, final=final)
 
     def card_preview_changed(self):
         self.card_save_values()
@@ -4156,6 +4157,20 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkLabel(export_box, text="Output Name", text_color="#BCA870").grid(row=0, column=0, padx=10, pady=(10, 2), sticky="w")
         ctk.CTkEntry(export_box, textvariable=self.card_output_name).grid(row=1, column=0, padx=10, pady=(0, 8), sticky="ew")
 
+        ctk.CTkLabel(export_box, text="Export Profile", text_color="#BCA870").grid(row=2, column=0, padx=10, pady=(2, 2), sticky="w")
+        ctk.CTkOptionMenu(
+            export_box,
+            values=export_engine.list_export_profiles(),
+            variable=self.card_export_profile,
+            fg_color="#333333",
+            button_color="#444444",
+            button_hover_color="#555555",
+            command=lambda _v: self.card_update_preview()
+        ).grid(row=3, column=0, padx=10, pady=(0, 8), sticky="ew")
+
+        self.card_export_profile_info = ctk.CTkLabel(export_box, text="", text_color="#777777", wraplength=240, justify="left")
+        self.card_export_profile_info.grid(row=4, column=0, padx=10, pady=(0, 8), sticky="w")
+
         ctk.CTkCheckBox(
             export_box,
             text="Auto Preview",
@@ -4163,7 +4178,7 @@ class VadafokStudio(ctk.CTk):
             text_color="#BCA870",
             fg_color=GOLD,
             hover_color=GOLD_DARK
-        ).grid(row=2, column=0, padx=10, pady=(0, 10), sticky="w")
+        ).grid(row=5, column=0, padx=10, pady=(0, 10), sticky="w")
 
         buttons = ctk.CTkFrame(form, fg_color="transparent")
         buttons.grid(row=3, column=0, sticky="ew", padx=18, pady=(0, 18))
@@ -4314,8 +4329,20 @@ class VadafokStudio(ctk.CTk):
 
 
     def card_render_to_file(self, final=False):
+        # First render to a temporary PNG using the existing layout engine, then apply export profile.
+        temp = EXPORT_DIR / "_vadafok_card_temp_profile_source.png"
+        render_template_card(self.card_template(), self.card_values_plain(), temp, self.card_background_path(), size=None)
+
         out = self.card_output_path(final=final)
-        render_template_card(self.card_template(), self.card_values_plain(), out, self.card_background_path(), size=None)
+        profile = self.card_export_profile.get() if hasattr(self, "card_export_profile") else "Broadcast PNG"
+        img = Image.open(temp).convert("RGBA")
+        export_engine.save_with_profile(img, out, profile)
+
+        try:
+            temp.unlink()
+        except Exception:
+            pass
+
         return out
 
 
@@ -4334,7 +4361,13 @@ class VadafokStudio(ctk.CTk):
             original_size = img.size
             img.thumbnail((760, 620))
             if hasattr(self, "card_preview_info"):
-                self.card_preview_info.configure(text=f"{self.card_selected_template.get()} | {original_size[0]}×{original_size[1]}")
+                self.card_preview_info.configure(text=f"{self.card_selected_template.get()} | {original_size[0]}×{original_size[1]} | {self.card_export_profile.get()}")
+
+            if hasattr(self, "card_export_profile_info"):
+                profile = export_engine.get_export_profile(self.card_export_profile.get())
+                size_text = "Originalgröße" if not profile.get("size") else f"{profile.get('size')[0]}×{profile.get('size')[1]}"
+                fmt = profile.get("format", "PNG")
+                self.card_export_profile_info.configure(text=f"{fmt} | {size_text}")
             self.card_creator_preview_image = ctk.CTkImage(light_image=img, dark_image=img, size=img.size)
             ctk.CTkLabel(self.card_preview_frame, image=self.card_creator_preview_image, text="").place(relx=0.5, rely=0.5, anchor="center")
         except Exception as e:

@@ -1,6 +1,6 @@
 # VADAFOK Studio – MASTER ROADMAP
 
-Stand: v2.8.2 Testbuild
+Stand: v2.8.3 Testbuild
 
 ## Card Creator
 
@@ -12,18 +12,18 @@ v2.8.x Professional Upgrade:
 - ✅ Undo / Redo Data
 - ✅ Open Export Folder
 - ✅ Copy Last Path
-- 🚧 Card Creator Styles
+- ✅ Card Creator Styles
+- 🚧 Export Profiles
 
 Next:
-- ⬜ Export Profiles
-- ⬜ Batch Export
-- ⬜ Card Sets / Projects
+- ⬜ Batch Cards
 - ⬜ CSV / Spreadsheet Import
 - ⬜ Fast Text Color Buttons
+- ⬜ Card Sets / Projects
 
-## Style System
-- ✅ Style Engine
-- ✅ Style Presets save/apply/delete
-- 🚧 Card Creator integration
-- ⬜ Style Packs
-- ⬜ Default Style
+## Export System
+- 🚧 export_engine.py
+- 🚧 Built-in Export Profiles
+- ⬜ Custom Export Profiles
+- ⬜ Export History
+- ⬜ Batch Export Pipeline

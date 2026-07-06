@@ -1,24 +1,26 @@
 # Release Checklist
 
-## v2.8.2 Testliste
+## v2.8.3 Testliste
 
-### Vorbereitung
-- [ ] Mindestens ein Style Preset existiert im Ordner styles/
+### Export Profiles
 - [ ] Programm startet
 - [ ] Card Creator öffnet
-
-### Card Creator Styles
-- [ ] Bei jedem Card-Feld ist ein Style Dropdown sichtbar
-- [ ] Style im Dropdown auswählen
-- [ ] Vorschau aktualisiert sich
-- [ ] Aussehen des gewählten Felds ändert sich
-- [ ] Textinhalt bleibt unverändert
-- [ ] Position/Größe bleiben unverändert
-- [ ] REFRESH STYLES funktioniert
-- [ ] EDIT öffnet den Template Editor
-- [ ] Render Card verwendet den neuen Style
+- [ ] Export Profile Dropdown sichtbar
+- [ ] Broadcast PNG auswählen und rendern
+- [ ] Datei endet auf `.png`
+- [ ] YouTube Thumbnail JPG auswählen und rendern
+- [ ] Datei endet auf `.jpg`
+- [ ] JPG ist 1280×720
+- [ ] Instagram Square PNG auswählen und rendern
+- [ ] PNG ist 1080×1080
+- [ ] TikTok Vertical PNG auswählen und rendern
+- [ ] PNG ist 1080×1920
+- [ ] Preview Info zeigt Profilname
+- [ ] Output Name funktioniert weiterhin
+- [ ] OPEN EXPORTS funktioniert
+- [ ] COPY LAST PATH funktioniert
 
 ### Regression
-- [ ] Template Editor Style Presets funktionieren weiterhin
-- [ ] Card Creator UNDO DATA / REDO DATA funktioniert weiterhin
-- [ ] Card Creator Render funktioniert weiterhin
+- [ ] Card Creator Styles funktionieren weiterhin
+- [ ] UNDO DATA / REDO DATA funktioniert weiterhin
+- [ ] Template Editor kurz prüfen

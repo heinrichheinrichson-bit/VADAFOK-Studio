@@ -1,19 +1,22 @@
 # CHANGELOG
 
-## v2.8.2 - Add Card Creator Styles
+## v2.8.3 - Add Export Profiles
 
 ### Added
-- Card Creator can now apply saved Style Presets to individual template fields.
-- Each Card Data field has a Style dropdown.
-- `REFRESH STYLES` button reloads the list of available styles.
-- `EDIT` button opens the selected template in the Template Editor for deeper styling.
-- Preview updates immediately after applying a style.
+- New Export Engine: `vadafok_studio/core/export_engine.py`.
+- Card Creator Export Profile selector.
+- Built-in export profiles:
+  - Broadcast PNG
+  - OBS Overlay PNG
+  - YouTube Thumbnail JPG
+  - Instagram Square PNG
+  - TikTok Vertical PNG
+- Export profile affects output filename, format and size.
+- Preview info now shows selected export profile.
 
 ### Notes
-- Applying a style from Card Creator changes the selected template field's visual style.
-- Text content is not changed.
-- Position and size are not changed.
+- Export Profiles are the foundation for Batch Cards in v2.8.4.
+- Transparent PNG profile is prepared for overlay workflows.
 
-## v2.8.1.1 - Fix Style Engine import
-- Fixed missing `style_engine` import.
-- Style Presets now save JSON files correctly.
+## v2.8.2 - Add Card Creator Styles
+- Card Creator can apply saved Style Presets.
