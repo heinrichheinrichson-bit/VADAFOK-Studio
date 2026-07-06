@@ -30,7 +30,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.8.5.2.1.1.1.1.1.1.1.1")
+        self.wm_title("VADAFOK Studio 2.8.6.1.1.1.1.1.1.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -164,7 +164,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.8.5.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.8.6", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -1025,7 +1025,7 @@ class VadafokStudio(ctk.CTk):
             else:
                 ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.8.5.2: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
+        ctk.CTkLabel(box, text="Studio 2.8.6: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
         ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
 
 
@@ -4331,6 +4331,82 @@ class VadafokStudio(ctk.CTk):
             messagebox.showerror("Batch Import", f"Import fehlgeschlagen:\n{e}")
 
 
+
+    def card_save_batch_project(self):
+        try:
+            if not self.card_batch_items:
+                messagebox.showinfo("Batch Project", "Die Batch-Liste ist leer.")
+                return
+
+            initial_dir = str(batch_engine.batch_projects_dir())
+            path = filedialog.asksaveasfilename(
+                title="Batch Project speichern",
+                initialdir=initial_dir,
+                initialfile="new_batch_project.vbatch",
+                defaultextension=".vbatch",
+                filetypes=[
+                    ("VADAFOK Batch Project", "*.vbatch"),
+                    ("JSON", "*.json"),
+                    ("Alle Dateien", "*.*"),
+                ],
+            )
+
+            if not path:
+                if hasattr(self, "card_render_status"):
+                    self.card_render_status.configure(text="SAVE PROJECT abgebrochen.", text_color="#BCA870")
+                return
+
+            saved_path = batch_engine.save_batch_project_file(path, self.card_batch_items)
+
+            if hasattr(self, "card_render_status"):
+                self.card_render_status.configure(
+                    text=f"Batch Project gespeichert.",
+                    text_color="#8FE6A0"
+                )
+
+            messagebox.showinfo("Batch Project", f"Batch Project gespeichert:\n{saved_path}")
+        except Exception as e:
+            messagebox.showerror("Batch Project", f"SAVE PROJECT Fehler:\n{e}")
+
+    def card_load_batch_project(self):
+        try:
+            initial_dir = str(batch_engine.batch_projects_dir())
+            path = filedialog.askopenfilename(
+                title="Batch Project laden",
+                initialdir=initial_dir,
+                filetypes=[
+                    ("VADAFOK Batch Project", "*.vbatch"),
+                    ("JSON", "*.json"),
+                    ("Alle Dateien", "*.*"),
+                ],
+            )
+
+            if not path:
+                if hasattr(self, "card_render_status"):
+                    self.card_render_status.configure(text="LOAD PROJECT abgebrochen.", text_color="#BCA870")
+                return
+
+            items = batch_engine.load_batch_project_file(path)
+            self.card_batch_items = items
+            self.card_batch_selected_index = 0 if items else None
+            self.card_build_batch_panel()
+
+            if items:
+                self.card_batch_select(0)
+            else:
+                self.card_update_preview()
+
+            if hasattr(self, "card_render_status"):
+                self.card_render_status.configure(
+                    text=f"Batch Project geladen: {len(items)} Karte(n)",
+                    text_color="#8FE6A0"
+                )
+
+            messagebox.showinfo("Batch Project", f"Batch Project geladen:\n{len(items)} Karte(n)")
+        except Exception as e:
+            messagebox.showerror("Batch Project", f"LOAD PROJECT Fehler:\n{e}")
+
+
     def show_card_creator_page(self):
         self.set_active("Card Creator")
         self.clear_main()
@@ -4426,8 +4502,10 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkButton(batch_actions, text="+ ADD CURRENT", fg_color="#333333", hover_color="#444444", command=self.card_batch_add_current).grid(row=0, column=0, padx=(0, 4), pady=2, sticky="ew")
         ctk.CTkButton(batch_actions, text="RENDER BATCH", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.card_render_batch).grid(row=0, column=1, padx=(4, 0), pady=2, sticky="ew")
         ctk.CTkButton(batch_actions, text="IMPORT CSV/XLSX", fg_color="#333333", hover_color="#444444", command=self.card_import_batch_file).grid(row=1, column=0, columnspan=2, padx=0, pady=2, sticky="ew")
-        ctk.CTkButton(batch_actions, text="DUPLICATE", fg_color="#333333", hover_color="#444444", command=self.card_batch_duplicate_selected).grid(row=2, column=0, padx=(0, 4), pady=2, sticky="ew")
-        ctk.CTkButton(batch_actions, text="REMOVE", fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.card_batch_remove_selected).grid(row=2, column=1, padx=(4, 0), pady=2, sticky="ew")
+        ctk.CTkButton(batch_actions, text="SAVE PROJECT", fg_color="#333333", hover_color="#444444", command=self.card_save_batch_project).grid(row=2, column=0, padx=(0, 4), pady=2, sticky="ew")
+        ctk.CTkButton(batch_actions, text="LOAD PROJECT", fg_color="#333333", hover_color="#444444", command=self.card_load_batch_project).grid(row=2, column=1, padx=(4, 0), pady=2, sticky="ew")
+        ctk.CTkButton(batch_actions, text="DUPLICATE", fg_color="#333333", hover_color="#444444", command=self.card_batch_duplicate_selected).grid(row=3, column=0, padx=(0, 4), pady=2, sticky="ew")
+        ctk.CTkButton(batch_actions, text="REMOVE", fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.card_batch_remove_selected).grid(row=3, column=1, padx=(4, 0), pady=2, sticky="ew")
 
         self.card_batch_body = ctk.CTkScrollableFrame(batch_box, fg_color="#080808", corner_radius=10, height=190)
         self.card_batch_body.grid(row=2, column=0, sticky="nsew", padx=10, pady=(0, 10))

@@ -1,7 +1,10 @@
 # Known Issues
 
-## Fixed in v2.8.5.2
-- CSV/XLSX Import still showed `name 'Path' is not defined`.
+## Aktuell zu prüfen
+- Batch Projects speichern/laden.
+- SAVE/LOAD sollten im Ordner `batch_projects/` starten.
 
-## Beobachten
-- Manual column mapping UI is planned.
+## Vorgemerkt
+- Recent Batch Projects.
+- Auto-save Batch Project.
+- Manual column mapping.

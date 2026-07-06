@@ -1,38 +1,33 @@
 # Architecture
 
-## v2.8.5 Batch Engine
+## v2.8.6 Batch Projects
 
-New module:
+Batch Project file logic is in:
 
 ```text
 vadafok_studio/core/batch_engine.py
 ```
 
-Responsibilities:
-- read CSV
-- read XLSX
-- normalize column and field names
-- convert table rows to Batch Card items
+The UI passes string paths to the engine.
+The app UI does not need to construct `Path(...)` for save/load.
 
-Mapping rule:
-- Column names are normalized.
-- Template field names are normalized.
-- Matching names are assigned automatically.
+Batch Projects use `.vbatch` files in the `batch_projects/` folder.
 
-Example:
-- column `Game`
-- field `game`
-- match
-
-Batch item output:
+Internal JSON format:
 
 ```json
 {
-  "template": "Template Name",
-  "output_name": "spieler_001",
-  "profile": "Broadcast PNG",
-  "values": {
-    "game": "Finale"
-  }
+  "format": "VADAFOK_BATCH_PROJECT",
+  "version": 1,
+  "items": [
+    {
+      "template": "Template Name",
+      "output_name": "card_001",
+      "profile": "Broadcast PNG",
+      "values": {
+        "date": "2026-07-06"
+      }
+    }
+  ]
 }
 ```

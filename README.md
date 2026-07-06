@@ -1,18 +1,32 @@
-# VADAFOK Studio 2.8.5.2
+# VADAFOK Studio 2.8.6
 
-## Hotfix
+## Neu
 
-CSV / Excel Import:
-- `Path` Fehler endgültig repariert
-- Import-Funktion importiert `Path` jetzt lokal
+Batch Projects sauber integriert.
+
+- SAVE PROJECT
+- LOAD PROJECT
+- eigener Ordner `batch_projects/`
+- `.vbatch` Dateiformat
+- speichert komplette Batch-Liste
+- lädt komplette Batch-Liste wieder
+
+## Wichtig
+
+Diese Version basiert wieder sauber auf v2.8.5.2 Stable.
 
 ## Installation
 
-Direkt über v2.8.5.1 installieren:
-
 1. VADAFOK Studio schließen.
-2. ZIP entpacken.
-3. Inhalt in Projektordner kopieren und überschreiben.
-4. Mit `Start VADAFOK Studio.bat` starten.
+2. Sicherstellen, dass dein Projekt auf v2.8.5.2 Stable zurückgesetzt ist.
+3. ZIP entpacken.
+4. Inhalt in Projektordner kopieren und überschreiben.
+5. Mit `Start VADAFOK Studio.bat` starten.
 
-Noch nicht Git speichern, erst testen.
+## Git nach erfolgreichem Test
+
+```bash
+git add .
+git commit -m "v2.8.6 - Add Batch Projects"
+git push
+```

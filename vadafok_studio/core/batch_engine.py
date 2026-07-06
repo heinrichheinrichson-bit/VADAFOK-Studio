@@ -114,3 +114,55 @@ def rows_to_batch_items(rows: List[Dict[str, str]], template_name: str, fields: 
         })
 
     return items
+
+
+
+def batch_projects_dir() -> Path:
+    folder = Path.cwd() / "batch_projects"
+    folder.mkdir(parents=True, exist_ok=True)
+    return folder
+
+
+def default_batch_project_path() -> Path:
+    return batch_projects_dir() / "new_batch_project.vbatch"
+
+
+def save_batch_project_file(path_value, items: List[dict]) -> str:
+    import json
+
+    path = Path(path_value)
+    data = {
+        "format": "VADAFOK_BATCH_PROJECT",
+        "version": 1,
+        "items": items,
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    return str(path)
+
+
+def load_batch_project_file(path_value) -> List[dict]:
+    import json
+
+    path = Path(path_value)
+    data = json.loads(path.read_text(encoding="utf-8"))
+
+    if data.get("format") != "VADAFOK_BATCH_PROJECT":
+        raise ValueError("Keine gültige VADAFOK Batch Project Datei.")
+
+    items = data.get("items", [])
+    if not isinstance(items, list):
+        raise ValueError("Batch Project enthält keine gültige Item-Liste.")
+
+    cleaned = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        values = item.get("values", {})
+        cleaned.append({
+            "template": str(item.get("template", "")),
+            "output_name": str(item.get("output_name", "card")),
+            "profile": str(item.get("profile", "Broadcast PNG")),
+            "values": dict(values) if isinstance(values, dict) else {},
+        })
+    return cleaned
