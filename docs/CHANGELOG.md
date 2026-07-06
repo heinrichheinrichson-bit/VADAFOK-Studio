@@ -1,23 +1,12 @@
 # CHANGELOG
 
-## v2.8.6 - Add Batch Projects clean integration
+## v2.9.3.2 - Inline Quick Card Text Editing
 
-### Added
-- `batch_projects/` folder.
-- Save Batch Project as `.vbatch`.
-- Load Batch Project from `.vbatch`.
-- SAVE PROJECT button.
-- LOAD PROJECT button.
-- Batch Project stores:
-  - template
-  - output name
-  - export profile
-  - field values
+### Changed
+- Editing a Quick Card text no longer opens a SimpleDialog.
+- The text row turns into an inline edit field with SAVE and CANCEL.
 
-### Fixed / Design
-- App UI does not use `Path` directly for Batch Project save/load.
-- File logic lives in `batch_engine.py`.
-- SAVE/LOAD dialogs start in `batch_projects/`.
-
-## v2.8.5.2 - CSV / Excel Import stable
-- CSV/XLSX import creates Batch Cards.
+### Kept
+- Live Card Quick Save Category from v2.9.3.1.
+- Quick Card click to Live Card.
+- Category rename/delete/edit workflow.

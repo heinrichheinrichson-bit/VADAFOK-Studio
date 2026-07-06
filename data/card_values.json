@@ -30,9 +30,12 @@
     "time": "22:00"
   },
   "now showing": {
-    "date": "20.20.20",
-    "game": "",
-    "time": ""
+    "time": "22:00",
+    "game": "Resident evil 2",
+    "date": "06.07.2026",
+    "time_copy": "20:00",
+    "game_copy": "Super MArio 64",
+    "date_copy": "07.07.2026"
   },
   "this week": {
     "date": "06.07.2026",

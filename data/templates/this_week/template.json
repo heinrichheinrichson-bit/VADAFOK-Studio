@@ -13,7 +13,8 @@
       "text_color": "#FFFFFF",
       "stroke_color": "#000000",
       "stroke_width": 3,
-      "uppercase": true
+      "uppercase": true,
+      "id": "c7e9740a-6b7d-4f53-a923-dba99ca97853"
     },
     {
       "name": "game",
@@ -26,7 +27,8 @@
       "text_color": "#FFFFFF",
       "stroke_color": "#000000",
       "stroke_width": 3,
-      "uppercase": true
+      "uppercase": true,
+      "id": "ddf6957f-8ad4-4a38-8a3a-6ebb0379d430"
     },
     {
       "name": "time",
@@ -39,7 +41,8 @@
       "text_color": "#FFFFFF",
       "stroke_color": "#000000",
       "stroke_width": 3,
-      "uppercase": true
+      "uppercase": true,
+      "id": "407695b2-49c3-40ce-b599-3c46fd3388f9"
     },
     {
       "name": "date 2",
@@ -52,7 +55,8 @@
       "text_color": "#FFFFFF",
       "stroke_color": "#000000",
       "stroke_width": 3,
-      "uppercase": true
+      "uppercase": true,
+      "id": "49b73f8f-0e9d-40c5-b840-ad23d76ad51c"
     },
     {
       "name": "time 2",
@@ -65,7 +69,8 @@
       "text_color": "#FFFFFF",
       "stroke_color": "#000000",
       "stroke_width": 3,
-      "uppercase": true
+      "uppercase": true,
+      "id": "f56d488c-f204-497d-a679-527e580f8af8"
     },
     {
       "name": "game 2",
@@ -78,7 +83,8 @@
       "text_color": "#FFFFFF",
       "stroke_color": "#000000",
       "stroke_width": 3,
-      "uppercase": true
+      "uppercase": true,
+      "id": "1ed9c226-d7ea-4002-994e-f9870fb11056"
     },
     {
       "name": "date 3",
@@ -91,7 +97,8 @@
       "text_color": "#FFFFFF",
       "stroke_color": "#000000",
       "stroke_width": 3,
-      "uppercase": true
+      "uppercase": true,
+      "id": "c2c66046-8c0f-48c1-b5dc-01e9b1765aae"
     },
     {
       "name": "Time 3",
@@ -104,7 +111,8 @@
       "text_color": "#FFFFFF",
       "stroke_color": "#000000",
       "stroke_width": 3,
-      "uppercase": true
+      "uppercase": true,
+      "id": "fb6230bc-8de4-4e30-abc7-446d4a232f65"
     },
     {
       "name": "game 2",
@@ -117,7 +125,21 @@
       "text_color": "#FFFFFF",
       "stroke_color": "#000000",
       "stroke_width": 3,
-      "uppercase": true
+      "uppercase": true,
+      "id": "ce47072c-4d69-4368-839f-ce3d76b22e63"
+    }
+  ],
+  "groups": [
+    {
+      "id": "7857cbe0-c6ac-46d0-b58a-3fd58bb28300",
+      "name": "Group",
+      "field_ids": [
+        "c7e9740a-6b7d-4f53-a923-dba99ca97853",
+        "ddf6957f-8ad4-4a38-8a3a-6ebb0379d430",
+        "407695b2-49c3-40ce-b599-3c46fd3388f9"
+      ],
+      "locked": false,
+      "hidden": false
     }
   ]
 }

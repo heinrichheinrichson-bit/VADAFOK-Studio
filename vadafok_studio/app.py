@@ -17,6 +17,7 @@ from .core.layout_engine import banner_profile_to_layout_field, apply_layout_fie
 from .core import style_engine
 from .core import export_engine
 from .core import batch_engine
+from .core import text_library_engine
 from .core.banner_profiles import load_banner_profiles, save_banner_profiles, ensure_profile, has_profile, profile_count, reset_profile_style
 
 GOLD = "#D6A43A"
@@ -30,7 +31,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.8.6.1.1.1.1.1.1.1.1")
+        self.wm_title("VADAFOK Studio 2.9.3.2")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -122,6 +123,14 @@ class VadafokStudio(ctk.CTk):
         self.editor_stroke_width = ctk.IntVar(value=3)
         self.editor_uppercase = ctk.BooleanVar(value=True)
         self.last_render_path = EXPORT_DIR / "caption_render.png"
+        self.text_library_new_text = ctk.StringVar(value="")
+        self.text_library_new_category = ctk.StringVar(value="")
+        self.quick_cards_collapsed = set()
+        self.live_card_pending_text = ""
+        self.quick_cards_target_category = ctk.StringVar(value="Chat")
+        self.quick_cards_editing_category = None
+        self.quick_cards_editing_text = None
+        self.quick_cards_edit_text_var = ctk.StringVar(value="")
 
         self.host = ctk.StringVar(value=self.config_data["host"])
         self.port = ctk.StringVar(value=self.config_data["port"])
@@ -164,7 +173,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.8.6", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.9.3.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -944,7 +953,7 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkLabel(left, text="Message", font=ctk.CTkFont(size=16, weight="bold"), text_color=TEXT).grid(row=0, column=0, padx=18, pady=(18, 6), sticky="w")
         self.message_box = ctk.CTkTextbox(left, height=180, font=ctk.CTkFont(size=18), fg_color="#050505", border_color=GOLD_DARK, border_width=1)
         self.message_box.grid(row=1, column=0, padx=18, pady=(0, 12), sticky="nsew")
-        self.message_box.insert("1.0", "CHAT WAS RIGHT.")
+        self.message_box.insert("1.0", self.live_card_pending_text or "CHAT WAS RIGHT.")
         self.message_box.bind("<Return>", self.enter_to_show)
         self.message_box.bind("<KeyRelease>", lambda e: self.update_render_preview())
 
@@ -962,6 +971,22 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkButton(btns, text="HIDE", height=46, fg_color="#333333", command=self.hide_card).grid(row=0, column=1, padx=5, sticky="ew")
         ctk.CTkButton(btns, text="CLEAR", height=46, fg_color="#222222", command=self.clear_text).grid(row=0, column=2, padx=5, sticky="ew")
         ctk.CTkButton(btns, text="SAVE QUICK", height=46, fg_color="#222222", command=self.save_current_quick).grid(row=0, column=3, padx=5, sticky="ew")
+
+        quick_save_box = ctk.CTkFrame(left, fg_color="#0B0B0B", corner_radius=10)
+        quick_save_box.grid(row=4, column=0, sticky="ew", padx=18, pady=(0, 12))
+        quick_save_box.grid_columnconfigure(1, weight=1)
+        ctk.CTkLabel(quick_save_box, text="Quick Save Category", text_color="#BCA870").grid(row=0, column=0, padx=(10, 8), pady=10, sticky="w")
+        cats = self.quick_cards_categories()
+        if self.quick_cards_target_category.get() not in cats:
+            self.quick_cards_target_category.set("Chat" if "Chat" in cats else cats[0])
+        ctk.CTkOptionMenu(
+            quick_save_box,
+            values=cats,
+            variable=self.quick_cards_target_category,
+            fg_color="#333333",
+            button_color="#444444",
+            button_hover_color="#555555"
+        ).grid(row=0, column=1, padx=(0, 10), pady=10, sticky="ew")
 
         right = ctk.CTkFrame(content, fg_color=PANEL, corner_radius=18)
         right.grid(row=0, column=1, sticky="nsew", padx=(12, 0))
@@ -1897,23 +1922,36 @@ class VadafokStudio(ctk.CTk):
         return "break"
 
     def template_start_inline_rename_group(self, group_id):
+        template = self.template_current()
         group = self.template_find_group(group_id)
-        if not group or not hasattr(self, "template_layers_body"):
+        old_name = group.get("name", "Group") if group else str(group_id)
+
+        new_name = simpledialog.askstring("Rename Group", "New group name:", initialvalue=old_name)
+        if not new_name:
+            return
+        new_name = new_name.strip()
+        if not new_name or new_name == old_name:
             return
 
-        self.template_cancel_inline_rename()
-        self.template_renaming_kind = "group"
-        self.template_renaming_target = group_id
+        if hasattr(self, "template_push_history"):
+            self.template_push_history("rename group")
 
-        entry = ctk.CTkEntry(self.template_layers_body)
-        entry.insert(0, group.get("name", "Group"))
-        entry.grid(row=getattr(self, "_template_layer_row_for_group", {}).get(group_id, 0), column=0, padx=(8, 4), pady=(6, 3), sticky="ew")
-        entry.focus_set()
-        entry.select_range(0, "end")
-        entry.bind("<Return>", self.template_commit_inline_rename)
-        entry.bind("<Escape>", self.template_cancel_inline_rename)
-        entry.bind("<FocusOut>", self.template_commit_inline_rename)
-        self.template_rename_entry = entry
+        changed = False
+        for grp in template.get("groups", []):
+            if grp.get("id") == group_id or grp.get("name") == old_name:
+                grp["name"] = new_name
+                changed = True
+
+        for field in template.get("fields", []):
+            if field.get("group") == old_name:
+                field["group"] = new_name
+                changed = True
+
+        if changed:
+            save_template(self.template_selected_name, template)
+            self.template_draw_canvas()
+            self.template_build_layers_panel()
+
 
     def template_start_inline_rename_field(self, idx):
         template = self.template_current()
@@ -4746,16 +4784,295 @@ class VadafokStudio(ctk.CTk):
             messagebox.showerror("Card Creator", str(e))
 
 
+
+    def quick_cards_categories(self):
+        try:
+            data = text_library_engine.load_library()
+            categories = sorted(data.keys())
+            return categories or ["Chat"]
+        except Exception:
+            return ["Chat"]
+
     def show_quick_cards(self):
         self.set_active("Quick Cards")
         self.clear_main()
         self.page_title("Quick Cards")
-        box = ctk.CTkScrollableFrame(self.main, fg_color=PANEL, corner_radius=18)
-        box.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
-        for category, items in self.favorites.items():
-            ctk.CTkLabel(box, text=category, text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).pack(anchor="w", padx=18, pady=(18, 6))
-            for fav in items:
-                ctk.CTkButton(box, text=fav, height=42, fg_color="#171717", hover_color="#2C2C2C", anchor="w", command=lambda t=fav: self.use_favorite(t)).pack(fill="x", padx=18, pady=4)
+
+        self.text_library_data = text_library_engine.load_library()
+
+        outer = ctk.CTkFrame(self.main, fg_color=DARK)
+        outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
+        outer.grid_columnconfigure(0, weight=2)
+        outer.grid_columnconfigure(1, weight=1)
+        outer.grid_rowconfigure(0, weight=1)
+
+        left = ctk.CTkScrollableFrame(outer, fg_color=PANEL, corner_radius=18)
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 12))
+        left.grid_columnconfigure(0, weight=1)
+        self.quick_cards_tree = left
+
+        right = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        right.grid(row=0, column=1, sticky="nsew", padx=(12, 0))
+        right.grid_columnconfigure(0, weight=1)
+
+        cats = sorted(self.text_library_data.keys()) or ["Chat"]
+        if self.quick_cards_target_category.get() not in cats:
+            self.quick_cards_target_category.set(cats[0])
+
+        ctk.CTkLabel(right, text="Quick Card Manager", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+
+        ctk.CTkLabel(right, text="Target Category", text_color="#BCA870").grid(row=1, column=0, padx=18, pady=(8, 4), sticky="w")
+        ctk.CTkOptionMenu(right, values=cats, variable=self.quick_cards_target_category, fg_color="#333333", button_color="#444444", button_hover_color="#555555").grid(row=2, column=0, padx=18, pady=(0, 12), sticky="ew")
+
+        ctk.CTkLabel(right, text="New Category", text_color="#BCA870").grid(row=3, column=0, padx=18, pady=(8, 4), sticky="w")
+        ctk.CTkEntry(right, textvariable=self.text_library_new_category).grid(row=4, column=0, padx=18, pady=(0, 8), sticky="ew")
+        ctk.CTkButton(right, text="+ ADD CATEGORY", fg_color="#333333", hover_color="#444444", command=self.quick_cards_add_category).grid(row=5, column=0, padx=18, pady=(0, 12), sticky="ew")
+
+        ctk.CTkLabel(right, text="New Text", text_color="#BCA870").grid(row=6, column=0, padx=18, pady=(8, 4), sticky="w")
+        ctk.CTkEntry(right, textvariable=self.text_library_new_text).grid(row=7, column=0, padx=18, pady=(0, 8), sticky="ew")
+
+        ctk.CTkButton(right, text="+ SAVE TEXT", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.quick_cards_add_text).grid(row=8, column=0, padx=18, pady=(0, 8), sticky="ew")
+        ctk.CTkButton(right, text="SAVE LIVE CARD TEXT", fg_color="#333333", hover_color="#444444", command=self.quick_cards_save_live_text).grid(row=9, column=0, padx=18, pady=(0, 8), sticky="ew")
+        ctk.CTkButton(right, text="OPEN LIVE CARD", fg_color="#333333", hover_color="#444444", command=self.show_live_card).grid(row=10, column=0, padx=18, pady=(0, 18), sticky="ew")
+
+        ctk.CTkLabel(
+            right,
+            text="Click a text on the left to send it straight to Live Card.\\nSAVE QUICK uses Target Category.",
+            text_color="#777777",
+            justify="left",
+            wraplength=300
+        ).grid(row=11, column=0, padx=18, pady=(8, 18), sticky="w")
+
+        self.quick_cards_build_tree()
+
+
+
+    def live_card_set_message_text(self, text):
+        text = str(text or "").strip()
+        if not text:
+            return
+        self.live_card_pending_text = text
+
+        for attr in ("message_box", "message", "live_message", "live_card_message"):
+            widget = getattr(self, attr, None)
+            if widget is not None:
+                try:
+                    widget.delete("1.0", "end")
+                    widget.insert("1.0", text)
+                    return
+                except Exception:
+                    pass
+
+    def live_card_get_message_text(self):
+        for attr in ("message_box", "message", "live_message", "live_card_message"):
+            widget = getattr(self, attr, None)
+            if widget is not None:
+                try:
+                    return widget.get("1.0", "end").strip()
+                except Exception:
+                    pass
+        return str(getattr(self, "live_card_pending_text", "") or "").strip()
+
+    def live_card_apply_pending_text(self):
+        text = str(getattr(self, "live_card_pending_text", "") or "").strip()
+        if not text:
+            return
+        self.live_card_set_message_text(text)
+
+    def quick_cards_build_tree(self):
+        if not hasattr(self, "quick_cards_tree"):
+            return
+
+        for w in self.quick_cards_tree.winfo_children():
+            w.destroy()
+
+        row = 0
+        for category in sorted(self.text_library_data.keys()):
+            collapsed = category in self.quick_cards_collapsed
+            header = ctk.CTkFrame(self.quick_cards_tree, fg_color="#111111", corner_radius=10)
+            header.grid(row=row, column=0, padx=12, pady=(10, 4), sticky="ew")
+            header.grid_columnconfigure(1, weight=1)
+
+            arrow = "▶" if collapsed else "▼"
+            ctk.CTkButton(header, text=arrow, width=42, fg_color="#333333", hover_color="#444444", command=lambda c=category: self.quick_cards_toggle_category(c)).grid(row=0, column=0, padx=(8, 4), pady=8)
+            ctk.CTkLabel(header, text=category, text_color=GOLD, font=ctk.CTkFont(size=16, weight="bold")).grid(row=0, column=1, padx=4, pady=8, sticky="w")
+            ctk.CTkButton(header, text="✎", width=42, fg_color="#333333", hover_color="#444444", command=lambda c=category: self.quick_cards_rename_category(c)).grid(row=0, column=2, padx=4, pady=8)
+            ctk.CTkButton(header, text="DEL", width=54, fg_color="#5A1F1F", hover_color="#7A2A2A", command=lambda c=category: self.quick_cards_delete_category(c)).grid(row=0, column=3, padx=(4, 8), pady=8)
+            row += 1
+
+            if not collapsed:
+                items = self.text_library_data.get(category, [])
+                if not items:
+                    ctk.CTkLabel(self.quick_cards_tree, text="No texts.", text_color="#777777").grid(row=row, column=0, padx=34, pady=4, sticky="w")
+                    row += 1
+                for text in items:
+                    item = ctk.CTkFrame(self.quick_cards_tree, fg_color="#0B0B0B", corner_radius=8)
+                    item.grid(row=row, column=0, padx=34, pady=3, sticky="ew")
+                    item.grid_columnconfigure(0, weight=1)
+
+                    editing = (
+                        getattr(self, "quick_cards_editing_category", None) == category
+                        and getattr(self, "quick_cards_editing_text", None) == text
+                    )
+
+                    if editing:
+                        edit_entry = ctk.CTkEntry(item, textvariable=self.quick_cards_edit_text_var)
+                        edit_entry.grid(row=0, column=0, padx=(8, 4), pady=6, sticky="ew")
+                        edit_entry.focus_set()
+                        edit_entry.select_range(0, "end")
+                        edit_entry.bind("<Return>", lambda _e, c=category, t=text: self.quick_cards_commit_text_edit(c, t))
+                        edit_entry.bind("<Escape>", lambda _e: self.quick_cards_cancel_text_edit())
+
+                        ctk.CTkButton(
+                            item,
+                            text="SAVE",
+                            width=60,
+                            fg_color=GOLD,
+                            text_color="#111111",
+                            hover_color=GOLD_DARK,
+                            command=lambda c=category, t=text: self.quick_cards_commit_text_edit(c, t)
+                        ).grid(row=0, column=1, padx=4, pady=6)
+
+                        ctk.CTkButton(
+                            item,
+                            text="CANCEL",
+                            width=70,
+                            fg_color="#333333",
+                            hover_color="#444444",
+                            command=self.quick_cards_cancel_text_edit
+                        ).grid(row=0, column=2, padx=(4, 8), pady=6)
+
+                    else:
+                        ctk.CTkButton(
+                            item,
+                            text=text,
+                            anchor="w",
+                            fg_color="#171717",
+                            hover_color="#2C2C2C",
+                            text_color="#D9C58C",
+                            command=lambda t=text: self.quick_cards_use_text(t)
+                        ).grid(row=0, column=0, padx=(8, 4), pady=6, sticky="ew")
+
+                        ctk.CTkButton(
+                            item,
+                            text="✎",
+                            width=42,
+                            fg_color="#333333",
+                            hover_color="#444444",
+                            command=lambda c=category, t=text: self.quick_cards_start_text_edit(c, t)
+                        ).grid(row=0, column=1, padx=4, pady=6)
+
+                        ctk.CTkButton(
+                            item,
+                            text="DEL",
+                            width=48,
+                            fg_color="#5A1F1F",
+                            hover_color="#7A2A2A",
+                            command=lambda c=category, t=text: self.quick_cards_delete_text(c, t)
+                        ).grid(row=0, column=2, padx=(4, 8), pady=6)
+
+                    row += 1
+
+        self.quick_cards_tree.grid_columnconfigure(0, weight=1)
+
+
+    def quick_cards_toggle_category(self, category):
+        if category in self.quick_cards_collapsed:
+            self.quick_cards_collapsed.remove(category)
+        else:
+            self.quick_cards_collapsed.add(category)
+        self.show_quick_cards()
+
+    def quick_cards_use_text(self, text):
+        self.live_card_pending_text = str(text or "").strip()
+        self.show_live_card()
+        self.after(80, self.live_card_apply_pending_text)
+        self.after(120, self.update_render_preview)
+
+    def quick_cards_add_category(self):
+        category = self.text_library_new_category.get().strip()
+        if not category:
+            messagebox.showinfo("Quick Cards", "Please enter a category name.")
+            return
+        self.text_library_data = text_library_engine.add_category(category)
+        self.text_library_new_category.set("")
+        self.quick_cards_target_category.set(category)
+        if category in self.quick_cards_collapsed:
+            self.quick_cards_collapsed.remove(category)
+        self.show_quick_cards()
+
+    def quick_cards_rename_category(self, category):
+        new_name = simpledialog.askstring("Quick Cards", "New category name:", initialvalue=category)
+        if not new_name:
+            return
+        new_name = new_name.strip()
+        if not new_name:
+            return
+        self.text_library_data = text_library_engine.rename_category(category, new_name)
+        self.quick_cards_target_category.set(new_name)
+        self.show_quick_cards()
+
+    def quick_cards_delete_category(self, category):
+        if not messagebox.askyesno("Quick Cards", f"Delete category '{category}'?\\nAll texts inside will be removed."):
+            return
+        self.text_library_data = text_library_engine.delete_category(category)
+        self.show_quick_cards()
+
+    def quick_cards_add_text(self):
+        text = self.text_library_new_text.get().strip()
+        if not text:
+            messagebox.showinfo("Quick Cards", "Please enter a text first.")
+            return
+        category = self.quick_cards_target_category.get()
+        self.text_library_data = text_library_engine.add_text(category, text)
+        self.text_library_new_text.set("")
+        self.live_card_pending_text = text
+        self.show_quick_cards()
+
+    def quick_cards_save_live_text(self):
+        text = self.live_card_get_message_text()
+        if not text:
+            messagebox.showinfo("Quick Cards", "No Live Card text found.")
+            return
+        categories = self.quick_cards_categories()
+        if self.quick_cards_target_category.get() not in categories:
+            self.quick_cards_target_category.set("Chat" if "Chat" in categories else categories[0])
+        category = self.quick_cards_target_category.get()
+        self.text_library_data = text_library_engine.add_text(category, text)
+        messagebox.showinfo("Quick Cards", f"Text saved.\nCategory: {category}")
+        self.show_quick_cards()
+
+
+
+    def quick_cards_start_text_edit(self, category, text):
+        self.quick_cards_editing_category = category
+        self.quick_cards_editing_text = text
+        self.quick_cards_edit_text_var.set(text)
+        self.show_quick_cards()
+
+    def quick_cards_commit_text_edit(self, category, text):
+        new_text = self.quick_cards_edit_text_var.get().strip()
+        if not new_text:
+            messagebox.showinfo("Quick Cards", "Text cannot be empty.")
+            return
+        self.text_library_data = text_library_engine.edit_text(category, text, new_text)
+        self.quick_cards_editing_category = None
+        self.quick_cards_editing_text = None
+        self.quick_cards_edit_text_var.set("")
+        self.show_quick_cards()
+
+    def quick_cards_cancel_text_edit(self):
+        self.quick_cards_editing_category = None
+        self.quick_cards_editing_text = None
+        self.quick_cards_edit_text_var.set("")
+        self.show_quick_cards()
+
+    def quick_cards_delete_text(self, category, text):
+        if not messagebox.askyesno("Quick Cards", "Delete this text?"):
+            return
+        self.text_library_data = text_library_engine.delete_text(category, text)
+        self.show_quick_cards()
+
 
     def show_obs_page(self):
         self.set_active("OBS Connection")
@@ -5032,14 +5349,25 @@ class VadafokStudio(ctk.CTk):
             self.update_preview()
 
     def save_current_quick(self):
-        if not hasattr(self, "message_box"): return
-        text = self.message_box.get("1.0", "end").strip()
-        if not text: return
-        self.favorites.setdefault("Custom", [])
-        if text not in self.favorites["Custom"]:
-            self.favorites["Custom"].append(text)
-            save_favorites(self.favorites)
-        messagebox.showinfo("Quick Card", "Gespeichert.")
+        text = self.live_card_get_message_text() if hasattr(self, "live_card_get_message_text") else ""
+        if not text and hasattr(self, "message_box"):
+            try:
+                text = self.message_box.get("1.0", "end").strip()
+            except Exception:
+                text = ""
+        if not text:
+            messagebox.showinfo("Quick Cards", "No Live Card text found.")
+            return
+
+        categories = self.quick_cards_categories() if hasattr(self, "quick_cards_categories") else ["Chat"]
+        if not hasattr(self, "quick_cards_target_category") or self.quick_cards_target_category.get() not in categories:
+            self.quick_cards_target_category = ctk.StringVar(value="Chat" if "Chat" in categories else categories[0])
+
+        category = self.quick_cards_target_category.get()
+        text_library_engine.add_text(category, text)
+        self.live_card_pending_text = text
+        messagebox.showinfo("Quick Cards", f"Text saved.\nCategory: {category}")
+
 
     def set_message(self, text):
         if not hasattr(self, "message_box"): return

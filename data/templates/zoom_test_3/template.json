@@ -48,5 +48,17 @@
       "id": "e4d424af-f395-4416-8c99-28d843866e2e"
     }
   ],
-  "groups": []
+  "groups": [
+    {
+      "id": "f66d7d14-b01f-42a5-86d9-80256080c17c",
+      "name": "Group",
+      "field_ids": [
+        "f4a7655a-1d8f-45e2-aee0-7674cf93ec76",
+        "d9e7a289-4d5a-49d3-927e-7f3bb2ca4e50",
+        "e4d424af-f395-4416-8c99-28d843866e2e"
+      ],
+      "locked": false,
+      "hidden": false
+    }
+  ]
 }

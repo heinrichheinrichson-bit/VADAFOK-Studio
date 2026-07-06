@@ -1,32 +1,12 @@
-# VADAFOK Studio 2.8.6
+# VADAFOK Studio 2.9.3.2
 
-## Neu
+## Fix
 
-Batch Projects sauber integriert.
-
-- SAVE PROJECT
-- LOAD PROJECT
-- eigener Ordner `batch_projects/`
-- `.vbatch` Dateiformat
-- speichert komplette Batch-Liste
-- lädt komplette Batch-Liste wieder
-
-## Wichtig
-
-Diese Version basiert wieder sauber auf v2.8.5.2 Stable.
+- Quick Card Texte werden jetzt inline bearbeitet.
+- Kein SimpleDialog mehr beim Bearbeiten einzelner Sätze.
 
 ## Installation
 
-1. VADAFOK Studio schließen.
-2. Sicherstellen, dass dein Projekt auf v2.8.5.2 Stable zurückgesetzt ist.
-3. ZIP entpacken.
-4. Inhalt in Projektordner kopieren und überschreiben.
-5. Mit `Start VADAFOK Studio.bat` starten.
+Direkt über v2.9.3.1 installieren.
 
-## Git nach erfolgreichem Test
-
-```bash
-git add .
-git commit -m "v2.8.6 - Add Batch Projects"
-git push
-```
+Noch nicht Git speichern, erst testen.
