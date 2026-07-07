@@ -1,5 +1,5 @@
 # Known Issues
 
-## v2.11.2
-- Favorite reordering UI is not implemented yet.
-- Source visibility management is not implemented yet.
+## v2.11.3.2
+- Workflow Log display itself is not live-updated after source toggle to avoid full redraw.
+- Overlay installation is not implemented yet.

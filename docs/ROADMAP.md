@@ -1,18 +1,18 @@
 # VADAFOK Studio – Roadmap
 
-Aktueller Teststand: **v2.11.2**
+Aktueller Teststand: **v2.11.3**
 
 ## In Test
-### v2.11.2 – Scene Favorites
-- Szenen favorisieren
-- Favoriten dauerhaft speichern
-- Favoriten mit einem Klick wechseln
-
-## Nächste Schritte
 ### v2.11.3 – Source Manager
 - Quellen der aktuellen Szene anzeigen
-- Sichtbarkeit schalten
+- Sichtbarkeit anzeigen
+- Quellen ein-/ausblenden
 
-### v2.11.4 – OBS Overlay Health
-- prüfen, ob VADAFOK Overlay in allen Szenen vorhanden ist
-- Install/Fix Workflow vorbereiten
+## Nächste Schritte
+### v2.11.4 – Overlay Health
+- prüfen, ob VADAFOK Overlay in Szenen vorhanden ist
+- Missing Overlay Warnungen
+
+### v2.11.5 – Scene Actions
+- einfache Makros
+- kombinierte Aktionen

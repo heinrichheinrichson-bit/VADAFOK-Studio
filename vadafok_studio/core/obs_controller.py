@@ -110,6 +110,41 @@ class OBSController:
         client = self._require_connected()
         return client.get_current_program_scene().current_program_scene_name
 
+
+    def get_scene_sources(self, scene_name=""):
+        """Return sources/items for a scene with visibility state."""
+        client = self._require_connected()
+        scene = self.current_scene(scene_name)
+        response = client.get_scene_item_list(scene)
+        raw_items = getattr(response, "scene_items", [])
+        sources = []
+        for item in raw_items:
+            if not isinstance(item, dict):
+                item = {
+                    "sourceName": getattr(item, "source_name", None) or getattr(item, "sourceName", None) or str(item),
+                    "sceneItemId": getattr(item, "scene_item_id", None) or getattr(item, "sceneItemId", None),
+                    "sceneItemEnabled": getattr(item, "scene_item_enabled", None) if hasattr(item, "scene_item_enabled") else getattr(item, "sceneItemEnabled", None),
+                }
+            name = item.get("sourceName") or item.get("source_name") or item.get("inputName") or item.get("name")
+            item_id = item.get("sceneItemId") or item.get("scene_item_id")
+            enabled = item.get("sceneItemEnabled")
+            if enabled is None:
+                enabled = item.get("scene_item_enabled")
+            if enabled is None:
+                enabled = True
+            if name:
+                sources.append({
+                    "name": str(name),
+                    "item_id": item_id,
+                    "enabled": bool(enabled),
+                })
+        return sources
+
+    def set_source_visibility(self, scene_name, source_name, enabled):
+        scene = self.current_scene(scene_name)
+        self.enable_source(scene, source_name, bool(enabled))
+        return True
+
     def find_item_id(self, scene, source_name):
         client = self._require_connected()
         items = client.get_scene_item_list(scene).scene_items

@@ -1,16 +1,15 @@
-# VADAFOK Studio 2.11.2
+# VADAFOK Studio 2.11.3.2
 
-## Neu
+## Fix
 
-Scene Favorites.
+True No-Flicker Source Toggle.
 
-- Szenen als Favoriten markieren
-- Favoritenbereich im OBS Workflow
-- Favoriten dauerhaft speichern in `scene_favorites.json`
-- Favorit anklicken = Szene wechseln
+- Source SHOW/HIDE baut die OBS Workflow Seite nicht mehr neu.
+- Nur die betroffene Source-Zeile wird aktualisiert.
+- Das sichtbare Flackern sollte weg sein.
 
 ## Installation
 
-Direkt über v2.11.1 installieren.
+Direkt über v2.11.3.1 installieren.
 
 Noch nicht Git speichern, erst testen.

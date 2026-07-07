@@ -33,7 +33,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.11.2")
+        self.wm_title("VADAFOK Studio 2.11.3.2")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -177,7 +177,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.11.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.11.3.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -5274,17 +5274,23 @@ class VadafokStudio(ctk.CTk):
                 except Exception:
                     self.obs_workflow_state.current_scene = ""
 
-                # Source cache, best effort
-                for method_name in ("get_sources", "list_sources", "get_source_list", "get_scene_items"):
-                    method = getattr(obs, method_name, None)
-                    if callable(method):
-                        result = method()
-                        if isinstance(result, list):
-                            sources = [str(x.get("sourceName", x.get("inputName", x))) if isinstance(x, dict) else str(x) for x in result]
-                        elif isinstance(result, dict):
-                            raw = result.get("sources", result.get("inputs", result.get("sceneItems", [])))
-                            sources = [str(x.get("sourceName", x.get("inputName", x))) if isinstance(x, dict) else str(x) for x in raw]
-                        break
+                # Source cache for current scene
+                try:
+                    if hasattr(obs, "get_scene_sources"):
+                        sources = obs.get_scene_sources(getattr(self.obs_workflow_state, "current_scene", ""))
+                    else:
+                        for method_name in ("get_sources", "list_sources", "get_source_list", "get_scene_items"):
+                            method = getattr(obs, method_name, None)
+                            if callable(method):
+                                result = method()
+                                if isinstance(result, list):
+                                    sources = [str(x.get("sourceName", x.get("inputName", x))) if isinstance(x, dict) else str(x) for x in result]
+                                elif isinstance(result, dict):
+                                    raw = result.get("sources", result.get("inputs", result.get("sceneItems", [])))
+                                    sources = [str(x.get("sourceName", x.get("inputName", x))) if isinstance(x, dict) else str(x) for x in raw]
+                                break
+                except Exception as source_error:
+                    self.obs_workflow_log(f"SOURCE CACHE ERROR: {source_error}")
         except Exception as e:
             if hasattr(self.obs_workflow_state, "set_connected"):
                 self.obs_workflow_state.set_connected(False)
@@ -5394,6 +5400,88 @@ class VadafokStudio(ctk.CTk):
             self.obs_workflow_log(f"SCENE SWITCH ERROR: {e}")
             messagebox.showerror("Scene Switch", str(e))
             self.show_obs_workflow_page()
+
+
+
+    def obs_workflow_refresh_sources_only(self):
+        """Refresh only the source list for the current scene, without rebuilding scene cache."""
+        try:
+            if not self.obs_workflow_is_connected():
+                return False
+
+            scene = getattr(self.obs_workflow_state, "current_scene", "") or self.current_scene()
+            if hasattr(self.obs, "get_scene_sources"):
+                self.obs_workflow_state.sources = self.obs.get_scene_sources(scene)
+                return True
+        except Exception as e:
+            self.obs_workflow_state.last_error = str(e)
+            self.obs_workflow_log(f"SOURCE REFRESH ERROR: {e}")
+        return False
+
+
+    def obs_workflow_update_source_row_ui(self, source_name, enabled):
+        """Update only one rendered source row, without rebuilding the whole OBS Workflow page."""
+        try:
+            widgets = getattr(self, "obs_source_row_widgets", {}).get(source_name)
+            if not widgets:
+                return False
+
+            label = widgets.get("label")
+            show_btn = widgets.get("show_btn")
+            hide_btn = widgets.get("hide_btn")
+
+            label_text = ("✓ " if enabled else "✗ ") + source_name
+            label_color = "#8FE6A0" if enabled else "#F08A8A"
+
+            if label is not None:
+                label.configure(text=label_text, text_color=label_color)
+
+            if show_btn is not None:
+                show_btn.configure(
+                    fg_color=GOLD if not enabled else "#333333",
+                    text_color="#111111" if not enabled else "#AAAAAA"
+                )
+
+            if hide_btn is not None:
+                hide_btn.configure(
+                    fg_color="#5A1F1F" if enabled else "#333333",
+                    text_color="#FFFFFF" if enabled else "#AAAAAA"
+                )
+
+            return True
+        except Exception:
+            return False
+
+    def obs_workflow_set_source_visibility(self, source_name, enabled):
+        source_name = str(source_name or "").strip()
+        if not source_name:
+            return
+        if not self.ensure_obs_ready():
+            return
+
+        try:
+            scene = getattr(self.obs_workflow_state, "current_scene", "") or self.current_scene()
+            self.obs.set_source_visibility(scene, source_name, enabled)
+
+            # Update local source cache.
+            for source in getattr(self.obs_workflow_state, "sources", []):
+                if isinstance(source, dict) and source.get("name") == source_name:
+                    source["enabled"] = bool(enabled)
+                    break
+
+            action = "SHOW Source" if enabled else "HIDE Source"
+            if hasattr(self.obs_workflow_state, "add_event"):
+                self.obs_workflow_state.add_event(f"{action}: {source_name}")
+            self.obs_workflow_mark_command(f"{action}: {source_name}")
+
+            # True no-flicker update: only touch the affected row.
+            self.obs_workflow_update_source_row_ui(source_name, bool(enabled))
+
+        except Exception as e:
+            self.obs_workflow_state.last_error = str(e)
+            self.obs_workflow_log(f"SOURCE VISIBILITY ERROR: {e}")
+            messagebox.showerror("Source Manager", str(e))
+
 
     def show_obs_workflow_page(self):
         self.set_active("OBS Workflow")
@@ -5538,12 +5626,53 @@ class VadafokStudio(ctk.CTk):
         sources_box.grid_columnconfigure(0, weight=1)
         sources_box.grid_rowconfigure(1, weight=1)
 
-        ctk.CTkLabel(sources_box, text="Sources", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+        ctk.CTkLabel(sources_box, text="Sources / Current Scene", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
         sources_list = ctk.CTkScrollableFrame(sources_box, fg_color="#0B0B0B", corner_radius=12)
         sources_list.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
         sources_list.grid_columnconfigure(0, weight=1)
+        self.obs_source_row_widgets = {}
         for idx, source in enumerate(state.sources or ["No source cache yet"]):
-            ctk.CTkLabel(sources_list, text=str(source), text_color=TEXT, anchor="w").grid(row=idx, column=0, padx=10, pady=5, sticky="ew")
+            if isinstance(source, dict):
+                source_name = source.get("name", "")
+                enabled = bool(source.get("enabled", False))
+                label_text = ("✓ " if enabled else "✗ ") + source_name
+                label_color = "#8FE6A0" if enabled else "#F08A8A"
+                row_frame = ctk.CTkFrame(sources_list, fg_color="#0B0B0B", corner_radius=8)
+                row_frame.grid(row=idx, column=0, padx=6, pady=3, sticky="ew")
+                row_frame.grid_columnconfigure(0, weight=1)
+
+                source_label = ctk.CTkLabel(row_frame, text=label_text, text_color=label_color, anchor="w")
+                source_label.grid(row=0, column=0, padx=10, pady=6, sticky="ew")
+
+                show_btn = ctk.CTkButton(
+                    row_frame,
+                    text="SHOW",
+                    width=64,
+                    fg_color=GOLD if not enabled else "#333333",
+                    text_color="#111111" if not enabled else "#AAAAAA",
+                    hover_color=GOLD_DARK,
+                    command=lambda s=source_name: self.obs_workflow_set_source_visibility(s, True)
+                )
+                show_btn.grid(row=0, column=1, padx=(4, 4), pady=6)
+
+                hide_btn = ctk.CTkButton(
+                    row_frame,
+                    text="HIDE",
+                    width=64,
+                    fg_color="#5A1F1F" if enabled else "#333333",
+                    text_color="#FFFFFF" if enabled else "#AAAAAA",
+                    hover_color="#7A2A2A",
+                    command=lambda s=source_name: self.obs_workflow_set_source_visibility(s, False)
+                )
+                hide_btn.grid(row=0, column=2, padx=(4, 8), pady=6)
+
+                self.obs_source_row_widgets[source_name] = {
+                    "label": source_label,
+                    "show_btn": show_btn,
+                    "hide_btn": hide_btn,
+                }
+            else:
+                ctk.CTkLabel(sources_list, text=str(source), text_color=TEXT, anchor="w").grid(row=idx, column=0, padx=10, pady=5, sticky="ew")
 
         bottom = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         bottom.grid(row=3, column=0, columnspan=2, sticky="ew", padx=0, pady=(14, 0))
