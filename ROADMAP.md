@@ -416,5 +416,5 @@ v2.6.3 - Undo / Redo
 
 Warum:
 
-Jetzt, wo der Editor viele Bearbeitungsfunktionen hat, wird Undo/Redo wichtig, damit man risikofrei experimentieren kann.
+Jetzt, wo der Editor viele Bearbeitungsfunktionen hat, wird Undo/Redo wichtig, damit man risikofrei experimentieren kann..
 
