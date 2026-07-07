@@ -1,8 +1,8 @@
-
 try:
     import obsws_python as obs
 except ImportError:
     obs = None
+
 
 class OBSController:
     def __init__(self):
@@ -10,30 +10,95 @@ class OBSController:
         self.connected = False
 
     def connect(self, host, port, password):
+        self.disconnect()
         if obs is None:
             raise RuntimeError("obsws-python fehlt. Installiere: py -m pip install -r requirements.txt")
         self.client = obs.ReqClient(host=host, port=int(port), password=password)
         self.client.get_version()
         self.connected = True
+        return True
+
+    def disconnect(self):
+        """Hard-disconnect OBS client and clear local connection state."""
+        client = getattr(self, "client", None)
+        if client is not None:
+            # obsws-python ReqClient usually stores the websocket in private attributes.
+            for obj in (
+                client,
+                getattr(client, "base_client", None),
+                getattr(client, "_base_client", None),
+                getattr(client, "ws", None),
+                getattr(client, "_ws", None),
+                getattr(getattr(client, "base_client", None), "ws", None),
+                getattr(getattr(client, "base_client", None), "_ws", None),
+                getattr(getattr(client, "_base_client", None), "ws", None),
+                getattr(getattr(client, "_base_client", None), "_ws", None),
+            ):
+                if obj is None:
+                    continue
+                for method_name in ("disconnect", "close", "stop", "shutdown"):
+                    method = getattr(obj, method_name, None)
+                    if callable(method):
+                        try:
+                            method()
+                        except Exception:
+                            pass
+                        break
+
+        self.client = None
+        self.connected = False
+        return True
+
+    def is_connected(self):
+        return self.probe()
+
+
+    def _require_connected(self):
+        if not self.probe():
+            raise RuntimeError("OBS ist nicht verbunden.")
+        return self.client
+
+
+    def probe(self):
+        """Actively ask OBS if the websocket is still alive."""
+        if not bool(getattr(self, "connected", False)) or getattr(self, "client", None) is None:
+            self.connected = False
+            return False
+        try:
+            self.client.get_version()
+            self.connected = True
+            return True
+        except Exception:
+            self.connected = False
+            self.client = None
+            return False
 
     def current_scene(self, scene_name=""):
         if scene_name:
             return scene_name
-        return self.client.get_current_program_scene().current_program_scene_name
+        client = self._require_connected()
+        return client.get_current_program_scene().current_program_scene_name
 
     def find_item_id(self, scene, source_name):
-        items = self.client.get_scene_item_list(scene).scene_items
+        client = self._require_connected()
+        items = client.get_scene_item_list(scene).scene_items
         for item in items:
             if item.get("sourceName") == source_name:
                 return item["sceneItemId"]
         raise RuntimeError(f"Quelle '{source_name}' wurde in Szene '{scene}' nicht gefunden.")
 
     def enable_source(self, scene, source_name, enabled):
+        client = self._require_connected()
         item_id = self.find_item_id(scene, source_name)
-        self.client.set_scene_item_enabled(scene, item_id, enabled)
+        client.set_scene_item_enabled(scene, item_id, enabled)
+        return True
 
     def set_text(self, source_name, text):
-        self.client.set_input_settings(name=source_name, settings={"text": text}, overlay=True)
+        client = self._require_connected()
+        client.set_input_settings(name=source_name, settings={"text": text}, overlay=True)
+        return True
 
     def set_image_file(self, source_name, file_path):
-        self.client.set_input_settings(name=source_name, settings={"file": str(file_path)}, overlay=True)
+        client = self._require_connected()
+        client.set_input_settings(name=source_name, settings={"file": str(file_path)}, overlay=True)
+        return True

@@ -32,7 +32,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.10.1")
+        self.wm_title("VADAFOK Studio 2.10.3.4")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -175,7 +175,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.10.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.10.3.4", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -5105,6 +5105,19 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkButton(btnrow, text="SAVE SETTINGS", fg_color="#333333", command=self.save_config).pack(side="left", padx=8)
 
 
+
+    def obs_workflow_set_sidebar_status(self, connected):
+        try:
+            label = getattr(self, "status_label", None)
+            if label is not None:
+                if connected:
+                    label.configure(text="● Connected", text_color="#6EE08C")
+                else:
+                    label.configure(text="● Not connected", text_color="#D86A6A")
+        except Exception:
+            pass
+
+
     def obs_workflow_log(self, message):
         if not hasattr(self, "obs_workflow_state"):
             self.obs_workflow_state = obs_workflow.OBSWorkflowState()
@@ -5116,52 +5129,123 @@ class VadafokStudio(ctk.CTk):
         self.obs_workflow_state.command(str(message))
 
     def obs_workflow_is_connected(self):
-        obs = getattr(self, "obs", None)
-        if obs is None:
+        obs_obj = getattr(self, "obs", None)
+        if obs_obj is None:
             return False
-
-        # Prefer explicit controller flags when available.
-        for attr in ("connected", "is_connected"):
-            try:
-                value = getattr(obs, attr, None)
-                if callable(value):
-                    value = value()
-                if isinstance(value, bool):
-                    return value
-            except Exception:
-                return False
-
-        # If no reliable flag exists, keep current workflow state.
         try:
-            return bool(getattr(self.obs_workflow_state, "connected", False))
+            probe = getattr(obs_obj, "probe", None)
+            if callable(probe):
+                return bool(probe())
+            return bool(obs_obj.is_connected())
         except Exception:
             return False
 
 
     def obs_workflow_connect(self):
+        connected_after_probe = False
+
         try:
             self.connect_obs()
-            self.obs_workflow_state.connected = True
-            self.obs_workflow_state.last_error = ""
-            self.obs_workflow_mark_command("OBS connected")
+
+            try:
+                connected_after_probe = self.obs_workflow_is_connected()
+            except Exception:
+                connected_after_probe = False
+
+            if hasattr(self.obs_workflow_state, "set_connected"):
+                self.obs_workflow_state.set_connected(connected_after_probe)
+            else:
+                self.obs_workflow_state.connected = connected_after_probe
+
+            self.obs_workflow_set_sidebar_status(connected_after_probe)
+
+            if connected_after_probe:
+                self.obs_workflow_state.last_error = ""
+                if hasattr(self.obs_workflow_state, "add_event"):
+                    self.obs_workflow_state.add_event("OBS connected")
+                self.obs_workflow_mark_command("OBS connected")
+                self.obs_workflow_refresh(silent=True)
+            else:
+                self.obs_workflow_state.last_error = "OBS probe failed after connect"
+                self.obs_workflow_log("CONNECT ERROR: OBS probe failed after connect")
+                messagebox.showerror("OBS Workflow", "OBS Verbindung wurde aufgebaut, aber die Statusprüfung ist fehlgeschlagen.")
+
         except Exception as e:
-            self.obs_workflow_state.connected = False
+            try:
+                if hasattr(self.obs_workflow_state, "set_connected"):
+                    self.obs_workflow_state.set_connected(False)
+                else:
+                    self.obs_workflow_state.connected = False
+            except Exception:
+                pass
+            self.obs_workflow_set_sidebar_status(False)
             self.obs_workflow_state.last_error = str(e)
             self.obs_workflow_log(f"CONNECT ERROR: {e}")
             messagebox.showerror("OBS Workflow", str(e))
+
         self.show_obs_workflow_page()
 
-    def obs_workflow_refresh(self):
+
+    def obs_workflow_disconnect(self):
+        try:
+            obs_obj = getattr(self, "obs", None)
+            if obs_obj is not None:
+                try:
+                    obs_obj.disconnect()
+                except Exception:
+                    pass
+
+            # Replace controller instance to guarantee no stale websocket/client is reused.
+            self.obs = OBSController()
+
+            if hasattr(self.obs_workflow_state, "set_connected"):
+                self.obs_workflow_state.set_connected(False)
+            else:
+                self.obs_workflow_state.connected = False
+
+            self.obs_workflow_set_sidebar_status(False)
+            self.obs_workflow_state.last_error = ""
+
+            if hasattr(self.obs_workflow_state, "add_event"):
+                self.obs_workflow_state.add_event("OBS disconnected")
+            self.obs_workflow_mark_command("OBS disconnected")
+
+        except Exception as e:
+            try:
+                self.obs = OBSController()
+            except Exception:
+                pass
+            try:
+                self.obs_workflow_state.set_connected(False)
+            except Exception:
+                self.obs_workflow_state.connected = False
+            self.obs_workflow_set_sidebar_status(False)
+            self.obs_workflow_state.last_error = str(e)
+            self.obs_workflow_log(f"DISCONNECT ERROR: {e}")
+            messagebox.showerror("OBS Workflow", str(e))
+
+        self.show_obs_workflow_page()
+
+
+    def obs_workflow_refresh(self, silent=False):
         if not hasattr(self, "obs_workflow_state"):
             self.obs_workflow_state = obs_workflow.OBSWorkflowState()
-        self.obs_workflow_state.connected = self.obs_workflow_is_connected()
+
+        connected_now = self.obs_workflow_is_connected()
+        if not connected_now:
+            self.obs_workflow_log("OBS probe failed / disconnected")
+        self.obs_workflow_set_sidebar_status(connected_now)
+        if hasattr(self.obs_workflow_state, "set_connected"):
+            self.obs_workflow_state.set_connected(connected_now)
+        else:
+            self.obs_workflow_state.connected = connected_now
 
         scenes = []
         sources = []
 
         try:
             obs = getattr(self, "obs", None)
-            if obs is not None:
+            if obs is not None and connected_now:
                 for method_name in ("get_scenes", "list_scenes", "get_scene_list"):
                     method = getattr(obs, method_name, None)
                     if callable(method):
@@ -5184,6 +5268,10 @@ class VadafokStudio(ctk.CTk):
                             sources = [str(x.get("sourceName", x.get("inputName", x))) if isinstance(x, dict) else str(x) for x in raw]
                         break
         except Exception as e:
+            if hasattr(self.obs_workflow_state, "set_connected"):
+                self.obs_workflow_state.set_connected(False)
+            else:
+                self.obs_workflow_state.connected = False
             self.obs_workflow_state.last_error = str(e)
             self.obs_workflow_log(f"REFRESH ERROR: {e}")
 
@@ -5211,13 +5299,17 @@ class VadafokStudio(ctk.CTk):
         self.obs_workflow_state.scenes = scenes
         self.obs_workflow_state.sources = sources
         self.obs_workflow_mark_command("OBS cache refreshed")
-        self.show_obs_workflow_page()
+        if hasattr(self.obs_workflow_state, "add_event"):
+            self.obs_workflow_state.add_event("OBS cache refreshed")
+
+        if not silent:
+            self.show_obs_workflow_page()
 
 
     def obs_workflow_banner_action(self, action, text=""):
         if not hasattr(self, "obs_workflow_state"):
             self.obs_workflow_state = obs_workflow.OBSWorkflowState()
-        self.obs_workflow_state.connected = self.obs_workflow_is_connected()
+        self.obs_workflow_state.set_connected(self.obs_workflow_is_connected()) if hasattr(self.obs_workflow_state, 'set_connected') else setattr(self.obs_workflow_state, 'connected', self.obs_workflow_is_connected())
         try:
             self.obs_workflow_state.banner(str(action), str(text or ""))
         except Exception:
@@ -5246,7 +5338,10 @@ class VadafokStudio(ctk.CTk):
 
         state = self.obs_workflow_state
         connected = self.obs_workflow_is_connected()
-        state.connected = connected
+        if hasattr(state, "set_connected"):
+            state.set_connected(connected)
+        else:
+            state.connected = connected
 
         outer = ctk.CTkFrame(self.main, fg_color=DARK)
         outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
@@ -5271,12 +5366,21 @@ class VadafokStudio(ctk.CTk):
                 info.append(f"Scene optional: {self.scene_name.get()}")
         except Exception:
             pass
-        ctk.CTkLabel(status_box, text="   ".join(info), text_color="#BCA870").grid(row=1, column=1, padx=18, pady=(0, 14), sticky="w")
+        ctk.CTkLabel(status_box, text="   ".join(info), text_color="#BCA870").grid(row=1, column=1, padx=18, pady=(0, 4), sticky="w")
+
+        stats = []
+        if getattr(state, "connected_since", ""):
+            stats.append(f"Connected Since: {state.connected_since}")
+        stats.append(f"Banner Commands: {getattr(state, 'banner_count', 0)}")
+        if getattr(state, "last_banner_text", ""):
+            stats.append(f"Last Banner Text: {state.last_banner_text[:60]}")
+        ctk.CTkLabel(status_box, text="   ".join(stats), text_color="#888888").grid(row=2, column=1, padx=18, pady=(0, 14), sticky="w")
 
         btns = ctk.CTkFrame(status_box, fg_color="transparent")
-        btns.grid(row=0, column=2, rowspan=2, padx=18, pady=14, sticky="e")
+        btns.grid(row=0, column=2, rowspan=3, padx=18, pady=14, sticky="e")
         ctk.CTkButton(btns, text="CONNECT", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.obs_workflow_connect).pack(side="left", padx=4)
         ctk.CTkButton(btns, text="RECONNECT", fg_color="#333333", hover_color="#444444", command=self.obs_workflow_connect).pack(side="left", padx=4)
+        ctk.CTkButton(btns, text="DISCONNECT", fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.obs_workflow_disconnect).pack(side="left", padx=4)
         ctk.CTkButton(btns, text="REFRESH", fg_color="#333333", hover_color="#444444", command=self.obs_workflow_refresh).pack(side="left", padx=4)
 
         scenes_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
@@ -5305,18 +5409,31 @@ class VadafokStudio(ctk.CTk):
 
         bottom = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         bottom.grid(row=2, column=0, columnspan=2, sticky="ew", padx=0, pady=(14, 0))
-        bottom.grid_columnconfigure(0, weight=1)
+        bottom.grid_columnconfigure((0, 1, 2), weight=1)
 
         last = state.last_command or "No command yet"
         if state.last_command_time:
             last = f"{last}  ({state.last_command_time})"
-        ctk.CTkLabel(bottom, text=f"Last Command: {last}", text_color="#BCA870", anchor="w").grid(row=0, column=0, padx=18, pady=(14, 6), sticky="ew")
+        ctk.CTkLabel(bottom, text=f"Last Command: {last}", text_color="#BCA870", anchor="w").grid(row=0, column=0, columnspan=3, padx=18, pady=(14, 6), sticky="ew")
 
         if state.last_error:
-            ctk.CTkLabel(bottom, text=f"Last Error: {state.last_error}", text_color="#F08A8A", anchor="w").grid(row=1, column=0, padx=18, pady=(0, 6), sticky="ew")
+            ctk.CTkLabel(bottom, text=f"Last Error: {state.last_error}", text_color="#F08A8A", anchor="w").grid(row=1, column=0, columnspan=3, padx=18, pady=(0, 6), sticky="ew")
+            base_row = 2
+        else:
+            base_row = 1
 
-        log_text = "\\n".join(state.log[-8:]) if state.log else "No OBS workflow log yet."
-        ctk.CTkLabel(bottom, text=log_text, text_color="#888888", justify="left", anchor="w").grid(row=2, column=0, padx=18, pady=(0, 14), sticky="ew")
+        history_text = "\n".join(getattr(state, "banner_history", [])[-6:]) if getattr(state, "banner_history", []) else "No banner history yet."
+        event_text = "\n".join(getattr(state, "obs_events", [])[-6:]) if getattr(state, "obs_events", []) else "No OBS events yet."
+        log_text = "\n".join(state.log[-6:]) if state.log else "No workflow log yet."
+
+        ctk.CTkLabel(bottom, text="Banner History", text_color=GOLD, anchor="w", font=ctk.CTkFont(size=14, weight="bold")).grid(row=base_row, column=0, padx=18, pady=(4, 2), sticky="ew")
+        ctk.CTkLabel(bottom, text=history_text, text_color="#BCA870", justify="left", anchor="w").grid(row=base_row + 1, column=0, padx=18, pady=(0, 14), sticky="ew")
+
+        ctk.CTkLabel(bottom, text="OBS Events", text_color=GOLD, anchor="w", font=ctk.CTkFont(size=14, weight="bold")).grid(row=base_row, column=1, padx=18, pady=(4, 2), sticky="ew")
+        ctk.CTkLabel(bottom, text=event_text, text_color="#AAAAAA", justify="left", anchor="w").grid(row=base_row + 1, column=1, padx=18, pady=(0, 14), sticky="ew")
+
+        ctk.CTkLabel(bottom, text="Workflow Log", text_color=GOLD, anchor="w", font=ctk.CTkFont(size=14, weight="bold")).grid(row=base_row, column=2, padx=18, pady=(4, 2), sticky="ew")
+        ctk.CTkLabel(bottom, text=log_text, text_color="#888888", justify="left", anchor="w").grid(row=base_row + 1, column=2, padx=18, pady=(0, 14), sticky="ew")
 
 
     def show_settings_page(self):
@@ -5368,26 +5485,44 @@ class VadafokStudio(ctk.CTk):
 
 
     def ensure_obs_ready(self):
-        if self.obs.connected:
-            return True
         try:
-            self.obs.connect(self.host.get().strip(), self.port.get().strip(), self.password.get())
-            self.status_label.configure(text="● Connected", text_color="#6EE08C")
-            self.save_config()
+            connected = self.obs_workflow_is_connected() if hasattr(self, "obs_workflow_is_connected") else self.obs.is_connected()
+            if hasattr(self, "obs_workflow_state"):
+                if hasattr(self.obs_workflow_state, "set_connected"):
+                    self.obs_workflow_state.set_connected(connected)
+                else:
+                    self.obs_workflow_state.connected = connected
+            if hasattr(self, "obs_workflow_set_sidebar_status"):
+                self.obs_workflow_set_sidebar_status(connected)
+
+            if not connected:
+                messagebox.showinfo("OBS", "OBS ist nicht verbunden.")
+                return False
             return True
-        except Exception as e:
-            messagebox.showerror("OBS Verbindung fehlgeschlagen", str(e))
-            self.status_label.configure(text="● Not connected", text_color="#D86A6A")
+        except Exception:
+            try:
+                self.obs_workflow_set_sidebar_status(False)
+            except Exception:
+                pass
+            try:
+                if hasattr(self.obs_workflow_state, "set_connected"):
+                    self.obs_workflow_state.set_connected(False)
+                else:
+                    self.obs_workflow_state.connected = False
+            except Exception:
+                pass
+            messagebox.showinfo("OBS", "OBS ist nicht verbunden.")
             return False
+
 
     def connect_obs(self):
         try:
             self.obs.connect(self.host.get().strip(), self.port.get().strip(), self.password.get())
-            self.status_label.configure(text="● Connected", text_color="#6EE08C")
+            self.obs_workflow_set_sidebar_status(True) if hasattr(self, "obs_workflow_set_sidebar_status") else self.status_label.configure(text="● Connected", text_color="#6EE08C")
             self.save_config()
             messagebox.showinfo("OBS", "Verbindung erfolgreich.")
         except Exception as e:
-            self.status_label.configure(text="● Not connected", text_color="#D86A6A")
+            self.obs_workflow_set_sidebar_status(False) if hasattr(self, "obs_workflow_set_sidebar_status") else self.status_label.configure(text="● Not connected", text_color="#D86A6A")
             messagebox.showerror("OBS Verbindung fehlgeschlagen", str(e))
 
     def save_config(self):
@@ -5555,7 +5690,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def hide_card(self):
-        if not self.obs.connected: return
+        if not self.ensure_obs_ready(): return
         try: self.obs.enable_source(self.current_scene(), self.caption_group.get().strip(), False)
         except Exception: pass
         try:

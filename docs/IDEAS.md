@@ -38,3 +38,12 @@ Possible uses:
 Important:
 - VADAFOK Studio should remain usable offline without AI.
 - AI should be an optional assistant, not a requirement.
+
+
+## Custom Program Icon
+
+Future polish:
+- custom VADAFOK application icon
+- visible during program start
+- visible in the Windows taskbar
+- later usable for `.exe` builds and installer

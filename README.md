@@ -1,15 +1,13 @@
-# VADAFOK Studio 2.10.1
+# VADAFOK Studio 2.10.3.4
 
-## Neu
+## Fix
 
-OBS Banner Workflow.
-
-- Live Card SHOW/HIDE/CLEAR wird im OBS Workflow geloggt
-- Last Banner Anzeige
-- Verbindungstatus wird bei Aktionen aktualisiert
+- CONNECT verursacht keine `connected_after_probe` Fehlermeldung mehr.
+- OBS Probe Fix bleibt aktiv.
+- REFRESH erkennt weiterhin, wenn OBS manuell geschlossen wurde.
 
 ## Installation
 
-Direkt über v2.10.0 installieren.
+Direkt über v2.10.3.3 installieren.
 
 Noch nicht Git speichern, erst testen.
