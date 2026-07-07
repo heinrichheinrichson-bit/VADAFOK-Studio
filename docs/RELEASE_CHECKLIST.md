@@ -1,15 +1,18 @@
 # Release Checklist
 
-## v2.9.3.2 Testliste
+## v2.10.1 Testliste
 
 - [ ] Programm startet
-- [ ] Version zeigt 2.9.3.2
-- [ ] Quick Cards öffnen
-- [ ] Text-Stift klicken
-- [ ] Kein SimpleDialog erscheint
-- [ ] Textzeile wird zu Eingabefeld
-- [ ] Text ändern und SAVE klicken
-- [ ] Änderung bleibt sichtbar
-- [ ] CANCEL testen
-- [ ] Quick Card Text anklicken öffnet Live Card weiterhin
-- [ ] Live Card SAVE QUICK Category funktioniert weiterhin
+- [ ] Version zeigt 2.10.1
+- [ ] OBS Workflow öffnet
+- [ ] CONNECT funktioniert
+- [ ] REFRESH funktioniert
+- [ ] Live Card öffnen
+- [ ] Text schreiben
+- [ ] SHOW klicken
+- [ ] OBS Workflow zeigt Last Banner / SHOW Live Card
+- [ ] HIDE klicken
+- [ ] OBS Workflow Log zeigt HIDE Live Card
+- [ ] CLEAR klicken
+- [ ] OBS Workflow Log zeigt CLEAR Live Card
+- [ ] Quick Cards funktionieren weiterhin

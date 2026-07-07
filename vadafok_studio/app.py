@@ -18,6 +18,7 @@ from .core import style_engine
 from .core import export_engine
 from .core import batch_engine
 from .core import text_library_engine
+from .core import obs_workflow
 from .core.banner_profiles import load_banner_profiles, save_banner_profiles, ensure_profile, has_profile, profile_count, reset_profile_style
 
 GOLD = "#D6A43A"
@@ -31,7 +32,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.9.3.2")
+        self.wm_title("VADAFOK Studio 2.10.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -100,6 +101,7 @@ class VadafokStudio(ctk.CTk):
         self.card_data_redo_stack = []
         self.card_history_limit = 50
         self.obs = OBSController()
+        self.obs_workflow_state = obs_workflow.OBSWorkflowState()
         self.hide_timer = None
         self.quick_window = None
         self.thumbnail_refs = []
@@ -173,7 +175,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.9.3.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.10.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -184,6 +186,7 @@ class VadafokStudio(ctk.CTk):
             ("Caption Engine", self.show_caption_engine_page),
             ("Quick Cards", self.show_quick_cards),
             ("OBS Connection", self.show_obs_page),
+            ("OBS Workflow", self.show_obs_workflow_page),
             ("Settings", self.show_settings_page),
         ]
         for name, cmd in pages:
@@ -5101,6 +5104,221 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkButton(btnrow, text="CONNECT", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.connect_obs).pack(side="left", padx=(0, 8))
         ctk.CTkButton(btnrow, text="SAVE SETTINGS", fg_color="#333333", command=self.save_config).pack(side="left", padx=8)
 
+
+    def obs_workflow_log(self, message):
+        if not hasattr(self, "obs_workflow_state"):
+            self.obs_workflow_state = obs_workflow.OBSWorkflowState()
+        self.obs_workflow_state.add_log(str(message))
+
+    def obs_workflow_mark_command(self, message):
+        if not hasattr(self, "obs_workflow_state"):
+            self.obs_workflow_state = obs_workflow.OBSWorkflowState()
+        self.obs_workflow_state.command(str(message))
+
+    def obs_workflow_is_connected(self):
+        obs = getattr(self, "obs", None)
+        if obs is None:
+            return False
+
+        # Prefer explicit controller flags when available.
+        for attr in ("connected", "is_connected"):
+            try:
+                value = getattr(obs, attr, None)
+                if callable(value):
+                    value = value()
+                if isinstance(value, bool):
+                    return value
+            except Exception:
+                return False
+
+        # If no reliable flag exists, keep current workflow state.
+        try:
+            return bool(getattr(self.obs_workflow_state, "connected", False))
+        except Exception:
+            return False
+
+
+    def obs_workflow_connect(self):
+        try:
+            self.connect_obs()
+            self.obs_workflow_state.connected = True
+            self.obs_workflow_state.last_error = ""
+            self.obs_workflow_mark_command("OBS connected")
+        except Exception as e:
+            self.obs_workflow_state.connected = False
+            self.obs_workflow_state.last_error = str(e)
+            self.obs_workflow_log(f"CONNECT ERROR: {e}")
+            messagebox.showerror("OBS Workflow", str(e))
+        self.show_obs_workflow_page()
+
+    def obs_workflow_refresh(self):
+        if not hasattr(self, "obs_workflow_state"):
+            self.obs_workflow_state = obs_workflow.OBSWorkflowState()
+        self.obs_workflow_state.connected = self.obs_workflow_is_connected()
+
+        scenes = []
+        sources = []
+
+        try:
+            obs = getattr(self, "obs", None)
+            if obs is not None:
+                for method_name in ("get_scenes", "list_scenes", "get_scene_list"):
+                    method = getattr(obs, method_name, None)
+                    if callable(method):
+                        result = method()
+                        if isinstance(result, list):
+                            scenes = [str(x.get("sceneName", x)) if isinstance(x, dict) else str(x) for x in result]
+                        elif isinstance(result, dict):
+                            raw = result.get("scenes", [])
+                            scenes = [str(x.get("sceneName", x)) if isinstance(x, dict) else str(x) for x in raw]
+                        break
+
+                for method_name in ("get_sources", "list_sources", "get_source_list", "get_scene_items"):
+                    method = getattr(obs, method_name, None)
+                    if callable(method):
+                        result = method()
+                        if isinstance(result, list):
+                            sources = [str(x.get("sourceName", x.get("inputName", x))) if isinstance(x, dict) else str(x) for x in result]
+                        elif isinstance(result, dict):
+                            raw = result.get("sources", result.get("inputs", result.get("sceneItems", [])))
+                            sources = [str(x.get("sourceName", x.get("inputName", x))) if isinstance(x, dict) else str(x) for x in raw]
+                        break
+        except Exception as e:
+            self.obs_workflow_state.last_error = str(e)
+            self.obs_workflow_log(f"REFRESH ERROR: {e}")
+
+        if not scenes:
+            scene_value = ""
+            try:
+                scene_value = self.scene_name.get()
+            except Exception:
+                scene_value = ""
+            scenes = [scene_value] if scene_value else ["No scene cache yet"]
+
+        if not sources:
+            possible = []
+            for attr in ("caption_group", "caption_text", "caption_banner_source", "caption_render_source", "scene_card_source"):
+                var = getattr(self, attr, None)
+                if var is not None:
+                    try:
+                        val = var.get()
+                        if val:
+                            possible.append(val)
+                    except Exception:
+                        pass
+            sources = possible or ["No source cache yet"]
+
+        self.obs_workflow_state.scenes = scenes
+        self.obs_workflow_state.sources = sources
+        self.obs_workflow_mark_command("OBS cache refreshed")
+        self.show_obs_workflow_page()
+
+
+    def obs_workflow_banner_action(self, action, text=""):
+        if not hasattr(self, "obs_workflow_state"):
+            self.obs_workflow_state = obs_workflow.OBSWorkflowState()
+        self.obs_workflow_state.connected = self.obs_workflow_is_connected()
+        try:
+            self.obs_workflow_state.banner(str(action), str(text or ""))
+        except Exception:
+            self.obs_workflow_mark_command(str(action))
+
+    def obs_workflow_current_live_text(self):
+        try:
+            if hasattr(self, "live_card_get_message_text"):
+                return self.live_card_get_message_text()
+        except Exception:
+            pass
+        try:
+            if hasattr(self, "message_box"):
+                return self.message_box.get("1.0", "end").strip()
+        except Exception:
+            pass
+        return ""
+
+    def show_obs_workflow_page(self):
+        self.set_active("OBS Workflow")
+        self.clear_main()
+        self.page_title("OBS Workflow")
+
+        if not hasattr(self, "obs_workflow_state"):
+            self.obs_workflow_state = obs_workflow.OBSWorkflowState()
+
+        state = self.obs_workflow_state
+        connected = self.obs_workflow_is_connected()
+        state.connected = connected
+
+        outer = ctk.CTkFrame(self.main, fg_color=DARK)
+        outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
+        outer.grid_columnconfigure(0, weight=1)
+        outer.grid_columnconfigure(1, weight=1)
+        outer.grid_rowconfigure(1, weight=1)
+
+        status_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        status_box.grid(row=0, column=0, columnspan=2, sticky="ew", padx=0, pady=(0, 14))
+        status_box.grid_columnconfigure(1, weight=1)
+
+        status_text = "Connected" if connected else "Disconnected"
+        status_color = "#8FE6A0" if connected else "#F08A8A"
+        ctk.CTkLabel(status_box, text="OBS Status", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(16, 4), sticky="w")
+        ctk.CTkLabel(status_box, text=status_text, text_color=status_color, font=ctk.CTkFont(size=18, weight="bold")).grid(row=1, column=0, padx=18, pady=(0, 14), sticky="w")
+
+        info = []
+        try:
+            info.append(f"Host: {self.host.get()}")
+            info.append(f"Port: {self.port.get()}")
+            if self.scene_name.get():
+                info.append(f"Scene optional: {self.scene_name.get()}")
+        except Exception:
+            pass
+        ctk.CTkLabel(status_box, text="   ".join(info), text_color="#BCA870").grid(row=1, column=1, padx=18, pady=(0, 14), sticky="w")
+
+        btns = ctk.CTkFrame(status_box, fg_color="transparent")
+        btns.grid(row=0, column=2, rowspan=2, padx=18, pady=14, sticky="e")
+        ctk.CTkButton(btns, text="CONNECT", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.obs_workflow_connect).pack(side="left", padx=4)
+        ctk.CTkButton(btns, text="RECONNECT", fg_color="#333333", hover_color="#444444", command=self.obs_workflow_connect).pack(side="left", padx=4)
+        ctk.CTkButton(btns, text="REFRESH", fg_color="#333333", hover_color="#444444", command=self.obs_workflow_refresh).pack(side="left", padx=4)
+
+        scenes_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        scenes_box.grid(row=1, column=0, sticky="nsew", padx=(0, 7), pady=0)
+        scenes_box.grid_columnconfigure(0, weight=1)
+        scenes_box.grid_rowconfigure(1, weight=1)
+
+        ctk.CTkLabel(scenes_box, text="Scenes", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+        scenes_list = ctk.CTkScrollableFrame(scenes_box, fg_color="#0B0B0B", corner_radius=12)
+        scenes_list.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
+        scenes_list.grid_columnconfigure(0, weight=1)
+        for idx, scene in enumerate(state.scenes or ["No scene cache yet"]):
+            ctk.CTkLabel(scenes_list, text=str(scene), text_color=TEXT, anchor="w").grid(row=idx, column=0, padx=10, pady=5, sticky="ew")
+
+        sources_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        sources_box.grid(row=1, column=1, sticky="nsew", padx=(7, 0), pady=0)
+        sources_box.grid_columnconfigure(0, weight=1)
+        sources_box.grid_rowconfigure(1, weight=1)
+
+        ctk.CTkLabel(sources_box, text="Sources", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+        sources_list = ctk.CTkScrollableFrame(sources_box, fg_color="#0B0B0B", corner_radius=12)
+        sources_list.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
+        sources_list.grid_columnconfigure(0, weight=1)
+        for idx, source in enumerate(state.sources or ["No source cache yet"]):
+            ctk.CTkLabel(sources_list, text=str(source), text_color=TEXT, anchor="w").grid(row=idx, column=0, padx=10, pady=5, sticky="ew")
+
+        bottom = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        bottom.grid(row=2, column=0, columnspan=2, sticky="ew", padx=0, pady=(14, 0))
+        bottom.grid_columnconfigure(0, weight=1)
+
+        last = state.last_command or "No command yet"
+        if state.last_command_time:
+            last = f"{last}  ({state.last_command_time})"
+        ctk.CTkLabel(bottom, text=f"Last Command: {last}", text_color="#BCA870", anchor="w").grid(row=0, column=0, padx=18, pady=(14, 6), sticky="ew")
+
+        if state.last_error:
+            ctk.CTkLabel(bottom, text=f"Last Error: {state.last_error}", text_color="#F08A8A", anchor="w").grid(row=1, column=0, padx=18, pady=(0, 6), sticky="ew")
+
+        log_text = "\\n".join(state.log[-8:]) if state.log else "No OBS workflow log yet."
+        ctk.CTkLabel(bottom, text=log_text, text_color="#888888", justify="left", anchor="w").grid(row=2, column=0, padx=18, pady=(0, 14), sticky="ew")
+
+
     def show_settings_page(self):
         self.set_active("Settings")
         self.clear_main()
@@ -5330,11 +5548,21 @@ class VadafokStudio(ctk.CTk):
             self.save_config()
         except Exception as e:
             messagebox.showerror("SHOW fehlgeschlagen", str(e))
+        try:
+            self.obs_workflow_banner_action("SHOW Live Card", self.obs_workflow_current_live_text())
+        except Exception:
+            pass
+
 
     def hide_card(self):
         if not self.obs.connected: return
         try: self.obs.enable_source(self.current_scene(), self.caption_group.get().strip(), False)
         except Exception: pass
+        try:
+            self.obs_workflow_banner_action("HIDE Live Card")
+        except Exception:
+            pass
+
 
     def enter_to_show(self, event):
         if event.state & 0x0001:
@@ -5347,6 +5575,11 @@ class VadafokStudio(ctk.CTk):
             self.message_box.delete("1.0", "end")
             self.message_box.focus_set()
             self.update_preview()
+        try:
+            self.obs_workflow_banner_action("CLEAR Live Card")
+        except Exception:
+            pass
+
 
     def save_current_quick(self):
         text = self.live_card_get_message_text() if hasattr(self, "live_card_get_message_text") else ""

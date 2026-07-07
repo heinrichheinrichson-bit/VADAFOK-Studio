@@ -1,21 +1,19 @@
 # VADAFOK Studio – Roadmap
 
-Aktueller Teststand: **v2.9.3**
+Aktueller Teststand: **v2.10.1**
 
 ## In Test
-### v2.9.3 – Quick Cards Final
-- Explorer-Kategorien
-- Zielkategorie
-- Text → Live Card
-- SAVE QUICK ohne Dialog
-- Kategorien/Text bearbeiten
+### v2.10.1 – OBS Banner Workflow
+- Live Card actions in OBS Workflow log
+- Last Banner
+- more robust connection state during actions
 
-## Danach
-### v2.9.4 – Silent Film Themes
-- schnelle Textfarben
-- Schwarz/Weiß
-- Sepia
-- Farbstimmungen
+## Nächste Schritte
+### v2.10.2 – Auto Hide
+- Auto Hide after SHOW
+- Duration presets
+- Log Auto Hide
 
-### v3.0 – OBS Workflow
-- Live Card / Quick Cards direkter mit OBS verbinden
+### v2.10.3 – Scene Assistant
+- scenes from OBS
+- one-click scene switching

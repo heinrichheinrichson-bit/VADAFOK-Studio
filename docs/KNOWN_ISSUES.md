@@ -1,4 +1,6 @@
 # Known Issues
 
-- Category rename still uses a dialog. Text editing is inline.
-- Existing text_library.json is preserved.
+## v2.10.1
+- Connection status after OBS is closed may still depend on OBSController internals.
+- Scene list still depends on available OBSController methods.
+- No Auto Hide yet.

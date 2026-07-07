@@ -21,3 +21,20 @@
 - Fast Text Color Buttons, while keeping Hex input.
 - Extendable QuickCards.
 - Voice-controlled QuickCards / Live Card.
+
+
+## AI / ChatGPT Integration
+
+Long-term optional module.
+
+Possible uses:
+- Improve Live Card text.
+- Make a sentence shorter, funnier, more dramatic, or more silent-movie-like.
+- Generate Quick Card suggestions.
+- Generate Intertitle text from short keywords.
+- Translate or restyle captions.
+- Create style variants such as Dramatic, Funny, Noir, Silent Movie.
+
+Important:
+- VADAFOK Studio should remain usable offline without AI.
+- AI should be an optional assistant, not a requirement.

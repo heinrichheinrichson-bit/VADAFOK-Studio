@@ -1,12 +1,19 @@
 # CHANGELOG
 
-## v2.9.3.2 - Inline Quick Card Text Editing
+## v2.10.1 - OBS Banner Workflow
 
-### Changed
-- Editing a Quick Card text no longer opens a SimpleDialog.
-- The text row turns into an inline edit field with SAVE and CANCEL.
+### Added
+- OBS Workflow now logs Live Card banner actions:
+  - SHOW Live Card
+  - HIDE Live Card
+  - CLEAR Live Card
+- Last Banner display on OBS Workflow page.
+- Workflow state stores last banner action and text preview.
 
-### Kept
-- Live Card Quick Save Category from v2.9.3.1.
-- Quick Card click to Live Card.
-- Category rename/delete/edit workflow.
+### Improved
+- OBS Workflow connection status is refreshed during actions.
+- REFRESH updates connection state more conservatively.
+
+### Notes
+- Auto Hide is still planned for v2.10.2 or later.
+- Scene switching is still planned later.

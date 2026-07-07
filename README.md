@@ -1,12 +1,15 @@
-# VADAFOK Studio 2.9.3.2
+# VADAFOK Studio 2.10.1
 
-## Fix
+## Neu
 
-- Quick Card Texte werden jetzt inline bearbeitet.
-- Kein SimpleDialog mehr beim Bearbeiten einzelner Sätze.
+OBS Banner Workflow.
+
+- Live Card SHOW/HIDE/CLEAR wird im OBS Workflow geloggt
+- Last Banner Anzeige
+- Verbindungstatus wird bei Aktionen aktualisiert
 
 ## Installation
 
-Direkt über v2.9.3.1 installieren.
+Direkt über v2.10.0 installieren.
 
 Noch nicht Git speichern, erst testen.
