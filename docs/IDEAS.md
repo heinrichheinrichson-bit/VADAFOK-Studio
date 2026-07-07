@@ -56,3 +56,12 @@ Future module:
 - Show warnings for scenes without VADAFOK Caption / Banner / Render sources.
 - Offer an Install/Fix workflow to add the overlay to selected scenes.
 - Help avoid the common issue where Live Cards only appear in some scenes.
+
+
+## Overlay Installer / Fix Scene
+
+Next step after Overlay Health:
+- Add missing VADAFOK overlay sources to selected scenes.
+- Offer "Fix Scene" for one scene.
+- Offer "Install Overlay to All Scenes" for setup.
+- Keep diagnosis and installation separate for safety.

@@ -1,18 +1,19 @@
 # VADAFOK Studio – Roadmap
 
-Aktueller Teststand: **v2.11.3**
+Aktueller Teststand: **v2.11.4**
 
 ## In Test
-### v2.11.3 – Source Manager
-- Quellen der aktuellen Szene anzeigen
-- Sichtbarkeit anzeigen
-- Quellen ein-/ausblenden
+### v2.11.4 – Overlay Health
+- Szenen auf VADAFOK Overlay prüfen
+- Health Score
+- fehlende Quellen anzeigen
 
 ## Nächste Schritte
-### v2.11.4 – Overlay Health
-- prüfen, ob VADAFOK Overlay in Szenen vorhanden ist
-- Missing Overlay Warnungen
+### v2.11.5 – Overlay Installer
+- Fix Scene
+- Install Overlay to selected scenes
+- Install Overlay to all scenes
 
-### v2.11.5 – Scene Actions
-- einfache Makros
-- kombinierte Aktionen
+### v2.12 – Silent Director
+- kombinierte Regieaktionen
+- Scene + Banner + Source Aktionen

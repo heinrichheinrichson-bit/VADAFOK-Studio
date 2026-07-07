@@ -33,7 +33,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.11.3.2")
+        self.wm_title("VADAFOK Studio 2.11.5")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -177,7 +177,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.11.3.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.11.5", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -5483,6 +5483,151 @@ class VadafokStudio(ctk.CTk):
             messagebox.showerror("Source Manager", str(e))
 
 
+
+    def obs_workflow_required_overlay_sources(self):
+        names = []
+        for attr in ("caption_group", "caption_text", "caption_banner_source", "caption_render_source", "scene_card_source"):
+            var = getattr(self, attr, None)
+            if var is not None:
+                try:
+                    value = str(var.get()).strip()
+                    if value and value not in names:
+                        names.append(value)
+                except Exception:
+                    pass
+        return names
+
+    def obs_workflow_normalize_source_name(self, name):
+        base = " ".join(str(name or "").strip().lower().split())
+
+        # Remove pure numeric suffix without requiring a regex import.
+        # Examples:
+        # "vadafok caption 2" -> "vadafok caption"
+        # "vadafok caption2"  -> "vadafok caption"
+        parts = base.split()
+        if parts and parts[-1].isdigit():
+            base = " ".join(parts[:-1]).strip()
+
+        while base and base[-1].isdigit():
+            base = base[:-1].strip()
+
+        return base
+
+
+    def obs_workflow_source_matches(self, required_name, found_names):
+        required_norm = self.obs_workflow_normalize_source_name(required_name)
+        for found_name in found_names:
+            found_norm = self.obs_workflow_normalize_source_name(found_name)
+
+            if found_norm == required_norm:
+                return True
+
+            # Allow exact duplicate suffix variants:
+            # "VADAFOK Caption1" -> "VADAFOK Caption"
+            if found_norm.startswith(required_norm) and found_norm[len(required_norm):].strip().isdigit():
+                return True
+
+            # Allow OBS/group variants that include the configured name, but avoid matching
+            # the broad group "VADAFOK Caption" against "VADAFOK Caption Text".
+            if required_norm in found_norm:
+                extra = found_norm.replace(required_norm, "").strip()
+                if not extra or extra.isdigit() or extra in ("group", "grp"):
+                    return True
+
+        return False
+
+    def obs_workflow_scan_overlay_health(self, silent=False):
+        if not self.ensure_obs_ready():
+            return
+
+        required = self.obs_workflow_required_overlay_sources()
+        if not required:
+            messagebox.showinfo("Overlay Health", "Keine VADAFOK Overlay-Quellen konfiguriert.")
+            return
+
+        scenes = list(getattr(self.obs_workflow_state, "scenes", []) or [])
+        scenes = [str(s).strip() for s in scenes if s and str(s).strip() != "No scene cache yet"]
+
+        if not scenes:
+            try:
+                scenes = self.obs.get_scene_list()
+                self.obs_workflow_state.scenes = scenes
+            except Exception as e:
+                self.obs_workflow_state.last_error = str(e)
+                messagebox.showerror("Overlay Health", str(e))
+                return
+
+        results = []
+        ok_count = 0
+
+        for scene in scenes:
+            try:
+                if hasattr(self.obs, "get_scene_sources_recursive"):
+                    sources = self.obs.get_scene_sources_recursive(scene)
+                else:
+                    sources = self.obs.get_scene_sources(scene)
+                source_names = []
+                for source in sources:
+                    if isinstance(source, dict):
+                        source_names.append(str(source.get("name", "")).strip())
+                    else:
+                        source_names.append(str(source).strip())
+                source_names = [name for name in source_names if name]
+
+                missing = []
+                present = []
+                for required_name in required:
+                    if self.obs_workflow_source_matches(required_name, source_names):
+                        present.append(required_name)
+                    else:
+                        missing.append(required_name)
+
+                ok = len(missing) == 0
+                if ok:
+                    ok_count += 1
+
+                # Detailed debug for this phase. Shows real OBS names.
+                found_preview = ", ".join(source_names[:30])
+                if len(source_names) > 30:
+                    found_preview += f", ... (+{len(source_names) - 30})"
+                self.obs_workflow_log(
+                    f"Overlay Recursive Found [{scene}]: {found_preview}"
+                )
+
+                results.append({
+                    "scene": scene,
+                    "ok": ok,
+                    "missing": missing,
+                    "present": present,
+                    "found": source_names,
+                })
+
+            except Exception as e:
+                results.append({
+                    "scene": scene,
+                    "ok": False,
+                    "missing": list(required),
+                    "present": [],
+                    "found": [],
+                    "error": str(e),
+                })
+                self.obs_workflow_log(f"Overlay Scan ERROR [{scene}]: {e}")
+
+        total = len(results)
+        score = f"{ok_count} / {total} Scenes Ready" if total else "No scenes checked"
+
+        self.obs_workflow_state.overlay_health = results
+        self.obs_workflow_state.overlay_health_score = score
+
+        issues = total - ok_count
+        if hasattr(self.obs_workflow_state, "add_event"):
+            self.obs_workflow_state.add_event(f"Overlay Health Scan: {total} scenes checked, {issues} issue(s)")
+        self.obs_workflow_mark_command(f"Overlay Health Scan: {score}")
+
+        if not silent:
+            self.show_obs_workflow_page()
+
+
     def show_obs_workflow_page(self):
         self.set_active("OBS Workflow")
         self.clear_main()
@@ -5503,7 +5648,8 @@ class VadafokStudio(ctk.CTk):
         outer.grid_columnconfigure(0, weight=1)
         outer.grid_columnconfigure(1, weight=1)
         outer.grid_rowconfigure(1, weight=0)
-        outer.grid_rowconfigure(2, weight=1)
+        outer.grid_rowconfigure(2, weight=0)
+        outer.grid_rowconfigure(3, weight=1)
 
         status_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         status_box.grid(row=0, column=0, columnspan=2, sticky="ew", padx=0, pady=(0, 14))
@@ -5573,8 +5719,57 @@ class VadafokStudio(ctk.CTk):
                     command=lambda s=fav_scene: self.obs_workflow_remove_scene_favorite(s)
                 ).pack(side="left", padx=(2, 6), pady=6)
 
+        health_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        health_box.grid(row=2, column=0, columnspan=2, sticky="ew", padx=0, pady=(0, 14))
+        health_box.grid_columnconfigure(0, weight=1)
+
+        health_header = ctk.CTkFrame(health_box, fg_color="transparent")
+        health_header.grid(row=0, column=0, sticky="ew", padx=18, pady=(14, 6))
+        health_header.grid_columnconfigure(1, weight=1)
+
+        ctk.CTkLabel(health_header, text="Overlay Health", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, sticky="w")
+
+        health_score = getattr(state, "overlay_health_score", "") or "Not scanned yet"
+        ctk.CTkLabel(health_header, text=health_score, text_color="#BCA870").grid(row=0, column=1, padx=12, sticky="w")
+
+        ctk.CTkButton(
+            health_header,
+            text="SCAN",
+            width=90,
+            fg_color="#333333",
+            hover_color="#444444",
+            command=self.obs_workflow_scan_overlay_health
+        ).grid(row=0, column=2, sticky="e")
+
+        health_list = ctk.CTkScrollableFrame(health_box, fg_color="#0B0B0B", corner_radius=12, height=110)
+        health_list.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 14))
+        health_list.grid_columnconfigure(0, weight=1)
+
+        health_results = getattr(state, "overlay_health", []) or []
+        if not health_results:
+            ctk.CTkLabel(
+                health_list,
+                text="No scan yet. Click SCAN to check which scenes contain the configured VADAFOK overlay sources.",
+                text_color="#777777",
+                anchor="w"
+            ).grid(row=0, column=0, padx=10, pady=8, sticky="ew")
+        else:
+            for idx, item in enumerate(health_results):
+                scene_name = item.get("scene", "Unknown")
+                ok = bool(item.get("ok", False))
+                missing = item.get("missing", [])
+                text = f"✓ {scene_name}" if ok else f"⚠ {scene_name} — {len(missing)} missing: {', '.join(missing)}"
+                color = "#8FE6A0" if ok else "#F0C06A"
+                ctk.CTkLabel(
+                    health_list,
+                    text=text,
+                    text_color=color,
+                    anchor="w",
+                    wraplength=1100
+                ).grid(row=idx, column=0, padx=10, pady=4, sticky="ew")
+
         scenes_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
-        scenes_box.grid(row=2, column=0, sticky="nsew", padx=(0, 7), pady=0)
+        scenes_box.grid(row=3, column=0, sticky="nsew", padx=(0, 7), pady=0)
         scenes_box.grid_columnconfigure(0, weight=1)
         scenes_box.grid_rowconfigure(1, weight=1)
 
@@ -5622,7 +5817,7 @@ class VadafokStudio(ctk.CTk):
                 ).grid(row=0, column=2, padx=(4, 8), pady=6)
 
         sources_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
-        sources_box.grid(row=2, column=1, sticky="nsew", padx=(7, 0), pady=0)
+        sources_box.grid(row=3, column=1, sticky="nsew", padx=(7, 0), pady=0)
         sources_box.grid_columnconfigure(0, weight=1)
         sources_box.grid_rowconfigure(1, weight=1)
 
@@ -5675,7 +5870,7 @@ class VadafokStudio(ctk.CTk):
                 ctk.CTkLabel(sources_list, text=str(source), text_color=TEXT, anchor="w").grid(row=idx, column=0, padx=10, pady=5, sticky="ew")
 
         bottom = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
-        bottom.grid(row=3, column=0, columnspan=2, sticky="ew", padx=0, pady=(14, 0))
+        bottom.grid(row=4, column=0, columnspan=2, sticky="ew", padx=0, pady=(14, 0))
         bottom.grid_columnconfigure((0, 1, 2), weight=1)
 
         last = state.last_command or "No command yet"

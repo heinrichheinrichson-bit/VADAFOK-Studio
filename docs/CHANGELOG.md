@@ -1,13 +1,18 @@
 # CHANGELOG
 
-## v2.11.3.2 - True No-Flicker Source Toggle
+## v2.11.5 - Recursive OBS Scene Scanner
 
-### Fixed
-- Source SHOW/HIDE no longer rebuilds the OBS Workflow page.
-- Only the affected source row is updated.
-- The visible flackering after Source SHOW/HIDE should be gone.
+### Added
+- Recursive source scanner in OBSController:
+  - reads normal scene items
+  - attempts to read group contents
+  - includes nested/group sources for Overlay Health
+- Overlay Health now uses recursive source scan when available.
 
-### Kept
-- Source visibility changes are still sent to OBS immediately.
-- Source status colors update directly.
-- Workflow state/log still records the action internally.
+### Improved
+- Overlay Health can detect VADAFOK sources inside OBS groups.
+- Debug log now shows `Overlay Recursive Found`.
+
+### Notes
+- This is still diagnosis only.
+- Automatic overlay installation is not included yet.

@@ -19,6 +19,8 @@ class OBSWorkflowState:
         self.sources: List[str] = []
         self.banner_history: List[str] = []
         self.obs_events: List[str] = []
+        self.overlay_health: List[Dict[str, Any]] = []
+        self.overlay_health_score: str = ""
         self.log: List[str] = []
 
     def now(self) -> str:
@@ -74,5 +76,7 @@ class OBSWorkflowState:
             "sources": list(self.sources),
             "banner_history": list(self.banner_history),
             "obs_events": list(self.obs_events),
+            "overlay_health": list(self.overlay_health),
+            "overlay_health_score": self.overlay_health_score,
             "log": list(self.log),
         }

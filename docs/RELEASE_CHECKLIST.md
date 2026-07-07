@@ -1,20 +1,15 @@
 # Release Checklist
 
-## v2.11.3.2 Testliste
+## v2.11.5 Testliste
 
 - [ ] Programm startet
-- [ ] Version zeigt 2.11.3.2
+- [ ] Version zeigt 2.11.5
 - [ ] OBS verbinden
 - [ ] OBS Workflow öffnen
-- [ ] REFRESH klicken
-- [ ] Sources werden angezeigt
-- [ ] HIDE bei einer sichtbaren Quelle klicken
-- [ ] Quelle wird in OBS ausgeblendet
-- [ ] Kein komplettes Flackern der Seite
-- [ ] Zeile wechselt von grün zu rot
-- [ ] SHOW klicken
-- [ ] Quelle wird in OBS eingeblendet
-- [ ] Kein komplettes Flackern der Seite
-- [ ] Zeile wechselt von rot zu grün
+- [ ] SCAN klicken
+- [ ] Workflow Log zeigt `Overlay Recursive Found`
+- [ ] Cam - Normal wird korrekt erkannt oder zeigt weniger Missing
+- [ ] Health Score ist plausibler als vorher
+- [ ] Source Manager funktioniert weiterhin
 - [ ] Scene Switch funktioniert weiterhin
 - [ ] Live Card funktioniert weiterhin

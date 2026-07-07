@@ -1,15 +1,15 @@
-# VADAFOK Studio 2.11.3.2
+# VADAFOK Studio 2.11.5
 
-## Fix
+## Neu
 
-True No-Flicker Source Toggle.
+Recursive OBS Scene Scanner.
 
-- Source SHOW/HIDE baut die OBS Workflow Seite nicht mehr neu.
-- Nur die betroffene Source-Zeile wird aktualisiert.
-- Das sichtbare Flackern sollte weg sein.
+- Overlay Health prüft jetzt auch Quellen innerhalb von OBS-Gruppen.
+- Log zeigt `Overlay Recursive Found`.
+- Ziel: VADAFOK Overlay auch dann erkennen, wenn es gruppiert/verschachtelt ist.
 
 ## Installation
 
-Direkt über v2.11.3.1 installieren.
+Direkt über v2.11.4.3 installieren.
 
 Noch nicht Git speichern, erst testen.
