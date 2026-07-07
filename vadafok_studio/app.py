@@ -19,6 +19,7 @@ from .core import export_engine
 from .core import batch_engine
 from .core import text_library_engine
 from .core import obs_workflow
+from .core import scene_favorites
 from .core.banner_profiles import load_banner_profiles, save_banner_profiles, ensure_profile, has_profile, profile_count, reset_profile_style
 
 GOLD = "#D6A43A"
@@ -32,7 +33,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.11.1")
+        self.wm_title("VADAFOK Studio 2.11.2")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -102,6 +103,7 @@ class VadafokStudio(ctk.CTk):
         self.card_history_limit = 50
         self.obs = OBSController()
         self.obs_workflow_state = obs_workflow.OBSWorkflowState()
+        self.scene_favorites = scene_favorites.load_favorites()
         self.hide_timer = None
         self.quick_window = None
         self.thumbnail_refs = []
@@ -175,7 +177,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.11.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.11.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -5347,6 +5349,30 @@ class VadafokStudio(ctk.CTk):
         return ""
 
 
+
+    def obs_workflow_load_scene_favorites(self):
+        try:
+            self.scene_favorites = scene_favorites.load_favorites()
+        except Exception:
+            self.scene_favorites = []
+        return self.scene_favorites
+
+    def obs_workflow_add_scene_favorite(self, scene_name):
+        scene_name = str(scene_name or "").strip()
+        if not scene_name or scene_name == "No scene cache yet":
+            return
+        self.scene_favorites = scene_favorites.add_favorite(scene_name)
+        self.obs_workflow_log(f"Scene favorite added: {scene_name}")
+        self.show_obs_workflow_page()
+
+    def obs_workflow_remove_scene_favorite(self, scene_name):
+        scene_name = str(scene_name or "").strip()
+        if not scene_name:
+            return
+        self.scene_favorites = scene_favorites.remove_favorite(scene_name)
+        self.obs_workflow_log(f"Scene favorite removed: {scene_name}")
+        self.show_obs_workflow_page()
+
     def obs_workflow_switch_scene(self, scene_name):
         scene_name = str(scene_name or "").strip()
         if not scene_name or scene_name == "No scene cache yet":
@@ -5388,7 +5414,8 @@ class VadafokStudio(ctk.CTk):
         outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
         outer.grid_columnconfigure(0, weight=1)
         outer.grid_columnconfigure(1, weight=1)
-        outer.grid_rowconfigure(1, weight=1)
+        outer.grid_rowconfigure(1, weight=0)
+        outer.grid_rowconfigure(2, weight=1)
 
         status_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         status_box.grid(row=0, column=0, columnspan=2, sticky="ew", padx=0, pady=(0, 14))
@@ -5426,8 +5453,40 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkButton(btns, text="DISCONNECT", fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.obs_workflow_disconnect).pack(side="left", padx=4)
         ctk.CTkButton(btns, text="REFRESH", fg_color="#333333", hover_color="#444444", command=self.obs_workflow_refresh).pack(side="left", padx=4)
 
+        favorites_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        favorites_box.grid(row=1, column=0, columnspan=2, sticky="ew", padx=0, pady=(0, 14))
+        favorites_box.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(favorites_box, text="Scene Favorites", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(14, 6), sticky="w")
+
+        self.obs_workflow_load_scene_favorites()
+        fav_row = ctk.CTkFrame(favorites_box, fg_color="transparent")
+        fav_row.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 14))
+
+        if not self.scene_favorites:
+            ctk.CTkLabel(fav_row, text="No favorite scenes yet. Use star in the Scenes list.", text_color="#777777").pack(side="left", padx=4)
+        else:
+            for fav_scene in self.scene_favorites:
+                pill = ctk.CTkFrame(fav_row, fg_color="#0B0B0B", corner_radius=10)
+                pill.pack(side="left", padx=4, pady=2)
+                ctk.CTkButton(
+                    pill,
+                    text=fav_scene,
+                    fg_color="#171717",
+                    hover_color="#2C2C2C",
+                    text_color="#D9C58C",
+                    command=lambda s=fav_scene: self.obs_workflow_switch_scene(s)
+                ).pack(side="left", padx=(6, 2), pady=6)
+                ctk.CTkButton(
+                    pill,
+                    text="x",
+                    width=34,
+                    fg_color="#5A1F1F",
+                    hover_color="#7A2A2A",
+                    command=lambda s=fav_scene: self.obs_workflow_remove_scene_favorite(s)
+                ).pack(side="left", padx=(2, 6), pady=6)
+
         scenes_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
-        scenes_box.grid(row=1, column=0, sticky="nsew", padx=(0, 7), pady=0)
+        scenes_box.grid(row=2, column=0, sticky="nsew", padx=(0, 7), pady=0)
         scenes_box.grid_columnconfigure(0, weight=1)
         scenes_box.grid_rowconfigure(1, weight=1)
 
@@ -5453,6 +5512,17 @@ class VadafokStudio(ctk.CTk):
                 row_frame.bind("<Double-Button-1>", lambda _e, s=scene_text: self.obs_workflow_switch_scene(s))
 
             if not is_placeholder:
+                is_fav = scene_text in getattr(self, "scene_favorites", [])
+                ctk.CTkButton(
+                    row_frame,
+                    text="STAR" if is_fav else "ADD",
+                    width=58,
+                    fg_color=GOLD if is_fav else "#333333",
+                    text_color="#111111" if is_fav else "#D9C58C",
+                    hover_color=GOLD_DARK,
+                    command=lambda s=scene_text, f=is_fav: self.obs_workflow_remove_scene_favorite(s) if f else self.obs_workflow_add_scene_favorite(s)
+                ).grid(row=0, column=1, padx=(4, 4), pady=6)
+
                 ctk.CTkButton(
                     row_frame,
                     text="SWITCH",
@@ -5461,10 +5531,10 @@ class VadafokStudio(ctk.CTk):
                     text_color="#111111" if not is_current else "#AAAAAA",
                     hover_color=GOLD_DARK,
                     command=lambda s=scene_text: self.obs_workflow_switch_scene(s)
-                ).grid(row=0, column=1, padx=(4, 8), pady=6)
+                ).grid(row=0, column=2, padx=(4, 8), pady=6)
 
         sources_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
-        sources_box.grid(row=1, column=1, sticky="nsew", padx=(7, 0), pady=0)
+        sources_box.grid(row=2, column=1, sticky="nsew", padx=(7, 0), pady=0)
         sources_box.grid_columnconfigure(0, weight=1)
         sources_box.grid_rowconfigure(1, weight=1)
 
@@ -5476,7 +5546,7 @@ class VadafokStudio(ctk.CTk):
             ctk.CTkLabel(sources_list, text=str(source), text_color=TEXT, anchor="w").grid(row=idx, column=0, padx=10, pady=5, sticky="ew")
 
         bottom = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
-        bottom.grid(row=2, column=0, columnspan=2, sticky="ew", padx=0, pady=(14, 0))
+        bottom.grid(row=3, column=0, columnspan=2, sticky="ew", padx=0, pady=(14, 0))
         bottom.grid_columnconfigure((0, 1, 2), weight=1)
 
         last = state.last_command or "No command yet"

@@ -47,3 +47,12 @@ Future polish:
 - visible during program start
 - visible in the Windows taskbar
 - later usable for `.exe` builds and installer
+
+
+## OBS Scene Assistant / Overlay Health
+
+Future module:
+- Check which OBS scenes are missing the VADAFOK overlay sources.
+- Show warnings for scenes without VADAFOK Caption / Banner / Render sources.
+- Offer an Install/Fix workflow to add the overlay to selected scenes.
+- Help avoid the common issue where Live Cards only appear in some scenes.

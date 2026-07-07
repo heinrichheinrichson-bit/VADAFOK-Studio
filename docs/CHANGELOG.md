@@ -1,13 +1,9 @@
 # CHANGELOG
 
-## v2.11.1 - OBS Scene Switch
+## v2.11.2 - Scene Favorites
 
 ### Added
-- OBSController `switch_scene(scene_name)`.
-- SWITCH button for every OBS scene in OBS Workflow.
-- Double-click scene row to switch.
-- Current scene updates after switching.
-- Workflow log entry: `Scene switched`.
-
-### Notes
-- Favorites and macros are not included yet.
+- Scene Favorites section in OBS Workflow.
+- Add/remove favorite button in the Scenes list.
+- Favorite scenes are saved in `scene_favorites.json`.
+- Favorite pills switch scenes with one click.

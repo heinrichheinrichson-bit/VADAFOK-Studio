@@ -1,17 +1,16 @@
-# VADAFOK Studio 2.11.1
+# VADAFOK Studio 2.11.2
 
 ## Neu
 
-OBS Scene Switch.
+Scene Favorites.
 
-- Szenen direkt aus OBS Workflow wechseln
-- SWITCH Button pro Szene
-- Doppelklick auf Szene
-- Current Scene wird aktualisiert
-- Workflow Log zeigt Scene switched
+- Szenen als Favoriten markieren
+- Favoritenbereich im OBS Workflow
+- Favoriten dauerhaft speichern in `scene_favorites.json`
+- Favorit anklicken = Szene wechseln
 
 ## Installation
 
-Direkt über v2.11.0 installieren.
+Direkt über v2.11.1 installieren.
 
 Noch nicht Git speichern, erst testen.
