@@ -73,6 +73,27 @@ class OBSController:
             self.client = None
             return False
 
+
+    def get_scene_list(self):
+        """Return a list of OBS scene names."""
+        client = self._require_connected()
+        response = client.get_scene_list()
+        raw_scenes = getattr(response, "scenes", [])
+        scenes = []
+        for item in raw_scenes:
+            if isinstance(item, dict):
+                name = item.get("sceneName") or item.get("scene_name") or item.get("name")
+            else:
+                name = getattr(item, "scene_name", None) or getattr(item, "sceneName", None) or getattr(item, "name", None) or str(item)
+            if name:
+                scenes.append(str(name))
+        return scenes
+
+    def get_current_scene_name(self):
+        client = self._require_connected()
+        response = client.get_current_program_scene()
+        return getattr(response, "current_program_scene_name", None) or getattr(response, "scene_name", None) or ""
+
     def current_scene(self, scene_name=""):
         if scene_name:
             return scene_name

@@ -1,5 +1,5 @@
 # Known Issues
 
-## v2.10.3.4
-- Scene list still depends on OBSController capabilities.
-- Auto Hide is not implemented yet.
+## v2.11.0
+- Scene switching is not implemented yet.
+- Source list is still best-effort.

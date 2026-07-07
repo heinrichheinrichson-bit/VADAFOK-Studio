@@ -1,13 +1,16 @@
 # CHANGELOG
 
-## v2.10.3.4 - Connect Probe Variable Fix
+## v2.11.0 - OBS Scene Cache
 
-### Fixed
-- Fixed `connected_after_probe` error after CONNECT.
-- CONNECT now initializes probe state safely.
-- OBS status probe behavior from v2.10.3.3 remains active.
+### Added
+- OBSController scene list support:
+  - `get_scene_list()`
+  - `get_current_scene_name()`
+- OBS Workflow now loads scene names from OBS.
+- Current OBS scene is detected.
+- Current scene is highlighted in the Scenes panel.
+- Scene cache update is logged.
 
-### Kept
-- REFRESH detects manually closed OBS.
-- SHOW/HIDE check real OBS connection before sending.
-- DISCONNECT hard reset remains included.
+### Notes
+- This version only reads and displays scenes.
+- Scene switching starts in v2.11.1.

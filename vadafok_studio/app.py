@@ -32,7 +32,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.10.3.4")
+        self.wm_title("VADAFOK Studio 2.11.0")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -175,7 +175,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.10.3.4", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.11.0", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -5246,17 +5246,33 @@ class VadafokStudio(ctk.CTk):
         try:
             obs = getattr(self, "obs", None)
             if obs is not None and connected_now:
-                for method_name in ("get_scenes", "list_scenes", "get_scene_list"):
-                    method = getattr(obs, method_name, None)
-                    if callable(method):
-                        result = method()
-                        if isinstance(result, list):
-                            scenes = [str(x.get("sceneName", x)) if isinstance(x, dict) else str(x) for x in result]
-                        elif isinstance(result, dict):
-                            raw = result.get("scenes", [])
-                            scenes = [str(x.get("sceneName", x)) if isinstance(x, dict) else str(x) for x in raw]
-                        break
+                # Scene cache
+                try:
+                    if hasattr(obs, "get_scene_list"):
+                        scenes = obs.get_scene_list()
+                    else:
+                        for method_name in ("get_scenes", "list_scenes"):
+                            method = getattr(obs, method_name, None)
+                            if callable(method):
+                                result = method()
+                                if isinstance(result, list):
+                                    scenes = [str(x.get("sceneName", x)) if isinstance(x, dict) else str(x) for x in result]
+                                elif isinstance(result, dict):
+                                    raw = result.get("scenes", [])
+                                    scenes = [str(x.get("sceneName", x)) if isinstance(x, dict) else str(x) for x in raw]
+                                break
+                except Exception as scene_error:
+                    self.obs_workflow_log(f"SCENE CACHE ERROR: {scene_error}")
 
+                try:
+                    if hasattr(obs, "get_current_scene_name"):
+                        self.obs_workflow_state.current_scene = obs.get_current_scene_name()
+                    else:
+                        self.obs_workflow_state.current_scene = obs.current_scene("")
+                except Exception:
+                    self.obs_workflow_state.current_scene = ""
+
+                # Source cache, best effort
                 for method_name in ("get_sources", "list_sources", "get_source_list", "get_scene_items"):
                     method = getattr(obs, method_name, None)
                     if callable(method):
@@ -5298,6 +5314,8 @@ class VadafokStudio(ctk.CTk):
 
         self.obs_workflow_state.scenes = scenes
         self.obs_workflow_state.sources = sources
+        if scenes and scenes != ["No scene cache yet"]:
+            self.obs_workflow_log(f"Scene Cache updated: {len(scenes)} scene(s) loaded")
         self.obs_workflow_mark_command("OBS cache refreshed")
         if hasattr(self.obs_workflow_state, "add_event"):
             self.obs_workflow_state.add_event("OBS cache refreshed")
@@ -5372,6 +5390,8 @@ class VadafokStudio(ctk.CTk):
         if getattr(state, "connected_since", ""):
             stats.append(f"Connected Since: {state.connected_since}")
         stats.append(f"Banner Commands: {getattr(state, 'banner_count', 0)}")
+        if getattr(state, "current_scene", ""):
+            stats.append(f"Current Scene: {state.current_scene}")
         if getattr(state, "last_banner_text", ""):
             stats.append(f"Last Banner Text: {state.last_banner_text[:60]}")
         ctk.CTkLabel(status_box, text="   ".join(stats), text_color="#888888").grid(row=2, column=1, padx=18, pady=(0, 14), sticky="w")
@@ -5392,8 +5412,16 @@ class VadafokStudio(ctk.CTk):
         scenes_list = ctk.CTkScrollableFrame(scenes_box, fg_color="#0B0B0B", corner_radius=12)
         scenes_list.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
         scenes_list.grid_columnconfigure(0, weight=1)
+        current_scene = getattr(state, "current_scene", "")
         for idx, scene in enumerate(state.scenes or ["No scene cache yet"]):
-            ctk.CTkLabel(scenes_list, text=str(scene), text_color=TEXT, anchor="w").grid(row=idx, column=0, padx=10, pady=5, sticky="ew")
+            scene_text = str(scene)
+            is_current = scene_text == current_scene and scene_text != "No scene cache yet"
+            label_text = f"▶ {scene_text}" if is_current else scene_text
+            label_color = GOLD if is_current else TEXT
+            row_frame = ctk.CTkFrame(scenes_list, fg_color="#171717" if is_current else "transparent", corner_radius=8)
+            row_frame.grid(row=idx, column=0, padx=6, pady=3, sticky="ew")
+            row_frame.grid_columnconfigure(0, weight=1)
+            ctk.CTkLabel(row_frame, text=label_text, text_color=label_color, anchor="w").grid(row=0, column=0, padx=10, pady=6, sticky="ew")
 
         sources_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         sources_box.grid(row=1, column=1, sticky="nsew", padx=(7, 0), pady=0)

@@ -1,16 +1,17 @@
 # Release Checklist
 
-## v2.10.3.4 Testliste
+## v2.11.0 Testliste
 
 - [ ] Programm startet
-- [ ] Version zeigt 2.10.3.4
+- [ ] Version zeigt 2.11.0
+- [ ] OBS starten
 - [ ] CONNECT klicken
-- [ ] Keine `connected_after_probe` Fehlermeldung
-- [ ] Oben und links unten zeigen Connected
-- [ ] OBS schließen
+- [ ] OBS Workflow öffnen
 - [ ] REFRESH klicken
-- [ ] Oben und links unten zeigen Disconnected / Not connected
-- [ ] OBS wieder starten
-- [ ] RECONNECT funktioniert
-- [ ] Live Card SHOW funktioniert wieder
-- [ ] DISCONNECT funktioniert weiterhin
+- [ ] Scenes-Bereich zeigt echte OBS-Szenen
+- [ ] aktuelle Szene ist mit ▶ markiert
+- [ ] Current Scene erscheint oben in den Stats
+- [ ] Workflow Log zeigt Scene Cache updated
+- [ ] Sources funktionieren weiterhin
+- [ ] Live Card SHOW/HIDE funktioniert weiterhin
+- [ ] DISCONNECT / RECONNECT funktioniert weiterhin

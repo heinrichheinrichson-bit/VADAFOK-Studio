@@ -15,6 +15,7 @@ class OBSWorkflowState:
         self.last_banner_action: str = ""
         self.banner_count: int = 0
         self.scenes: List[str] = []
+        self.current_scene: str = ""
         self.sources: List[str] = []
         self.banner_history: List[str] = []
         self.obs_events: List[str] = []
@@ -69,6 +70,7 @@ class OBSWorkflowState:
             "last_banner_action": self.last_banner_action,
             "banner_count": self.banner_count,
             "scenes": list(self.scenes),
+            "current_scene": self.current_scene,
             "sources": list(self.sources),
             "banner_history": list(self.banner_history),
             "obs_events": list(self.obs_events),

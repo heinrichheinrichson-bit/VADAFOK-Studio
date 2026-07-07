@@ -1,21 +1,19 @@
 # VADAFOK Studio – Roadmap
 
-Aktueller Teststand: **v2.10.3**
+Aktueller Teststand: **v2.11.0**
 
 ## In Test
-### v2.10.3 – OBS Workflow Polish
-- DISCONNECT
-- unified status handling
-- Banner History visible
-- OBS Events
-- Workflow Log
+### v2.11.0 – OBS Scene Cache
+- Szenen aus OBS laden
+- aktuelle Szene erkennen
+- Scene Cache im OBS Workflow anzeigen
 
 ## Nächste Schritte
-### v2.10.4 – Auto Hide
-- Auto Hide after SHOW
-- Duration presets
-- Log Auto Hide
+### v2.11.1 – Scene Switch
+- Szene per Button wechseln
+- aktuelle Szene aktualisieren
+- Workflow Log für Szenenwechsel
 
-### v2.10.5 – Scene Assistant
-- Scenes from OBS
-- one-click scene switching
+### v2.11.2 – Scene Favorites
+- Lieblingsszenen
+- Schnellzugriff
