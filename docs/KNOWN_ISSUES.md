@@ -1,5 +1,5 @@
 # Known Issues
 
-## v2.11.0
-- Scene switching is not implemented yet.
-- Source list is still best-effort.
+## v2.11.1
+- Scene favorites are not implemented yet.
+- Source visibility management is not implemented yet.

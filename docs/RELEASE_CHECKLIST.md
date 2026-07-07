@@ -1,17 +1,17 @@
 # Release Checklist
 
-## v2.11.0 Testliste
+## v2.11.1 Testliste
 
 - [ ] Programm startet
-- [ ] Version zeigt 2.11.0
-- [ ] OBS starten
-- [ ] CONNECT klicken
+- [ ] Version zeigt 2.11.1
+- [ ] OBS verbinden
 - [ ] OBS Workflow öffnen
-- [ ] REFRESH klicken
-- [ ] Scenes-Bereich zeigt echte OBS-Szenen
-- [ ] aktuelle Szene ist mit ▶ markiert
-- [ ] Current Scene erscheint oben in den Stats
-- [ ] Workflow Log zeigt Scene Cache updated
-- [ ] Sources funktionieren weiterhin
+- [ ] Szenenliste wird geladen
+- [ ] SWITCH bei einer anderen Szene klicken
+- [ ] OBS wechselt Szene
+- [ ] ▶ springt auf neue aktuelle Szene
+- [ ] Current Scene oben aktualisiert sich
+- [ ] Workflow Log zeigt Scene switched
+- [ ] Doppelklick auf Szene testen
 - [ ] Live Card SHOW/HIDE funktioniert weiterhin
-- [ ] DISCONNECT / RECONNECT funktioniert weiterhin
+- [ ] DISCONNECT/RECONNECT funktioniert weiterhin

@@ -94,6 +94,16 @@ class OBSController:
         response = client.get_current_program_scene()
         return getattr(response, "current_program_scene_name", None) or getattr(response, "scene_name", None) or ""
 
+
+    def switch_scene(self, scene_name):
+        """Switch OBS program scene."""
+        client = self._require_connected()
+        scene_name = str(scene_name or "").strip()
+        if not scene_name:
+            raise RuntimeError("Keine Szene ausgewählt.")
+        client.set_current_program_scene(scene_name)
+        return True
+
     def current_scene(self, scene_name=""):
         if scene_name:
             return scene_name

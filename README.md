@@ -1,16 +1,17 @@
-# VADAFOK Studio 2.11.0
+# VADAFOK Studio 2.11.1
 
 ## Neu
 
-OBS Scene Cache.
+OBS Scene Switch.
 
-- Szenen aus OBS laden
-- aktuelle Szene erkennen
-- aktuelle Szene im OBS Workflow markieren
-- Scene Cache Update im Log
+- Szenen direkt aus OBS Workflow wechseln
+- SWITCH Button pro Szene
+- Doppelklick auf Szene
+- Current Scene wird aktualisiert
+- Workflow Log zeigt Scene switched
 
 ## Installation
 
-Direkt über v2.10.3.4 Stable installieren.
+Direkt über v2.11.0 installieren.
 
 Noch nicht Git speichern, erst testen.

@@ -32,7 +32,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.11.0")
+        self.wm_title("VADAFOK Studio 2.11.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -175,7 +175,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.11.0", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.11.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -5346,6 +5346,29 @@ class VadafokStudio(ctk.CTk):
             pass
         return ""
 
+
+    def obs_workflow_switch_scene(self, scene_name):
+        scene_name = str(scene_name or "").strip()
+        if not scene_name or scene_name == "No scene cache yet":
+            return
+
+        if not self.ensure_obs_ready():
+            return
+
+        try:
+            self.obs.switch_scene(scene_name)
+            self.obs_workflow_state.current_scene = scene_name
+            if hasattr(self.obs_workflow_state, "add_event"):
+                self.obs_workflow_state.add_event(f"Scene switched: {scene_name}")
+            self.obs_workflow_mark_command(f"Scene switched: {scene_name}")
+            self.obs_workflow_refresh(silent=True)
+            self.show_obs_workflow_page()
+        except Exception as e:
+            self.obs_workflow_state.last_error = str(e)
+            self.obs_workflow_log(f"SCENE SWITCH ERROR: {e}")
+            messagebox.showerror("Scene Switch", str(e))
+            self.show_obs_workflow_page()
+
     def show_obs_workflow_page(self):
         self.set_active("OBS Workflow")
         self.clear_main()
@@ -5415,13 +5438,30 @@ class VadafokStudio(ctk.CTk):
         current_scene = getattr(state, "current_scene", "")
         for idx, scene in enumerate(state.scenes or ["No scene cache yet"]):
             scene_text = str(scene)
-            is_current = scene_text == current_scene and scene_text != "No scene cache yet"
+            is_placeholder = scene_text == "No scene cache yet"
+            is_current = scene_text == current_scene and not is_placeholder
             label_text = f"▶ {scene_text}" if is_current else scene_text
             label_color = GOLD if is_current else TEXT
             row_frame = ctk.CTkFrame(scenes_list, fg_color="#171717" if is_current else "transparent", corner_radius=8)
             row_frame.grid(row=idx, column=0, padx=6, pady=3, sticky="ew")
             row_frame.grid_columnconfigure(0, weight=1)
-            ctk.CTkLabel(row_frame, text=label_text, text_color=label_color, anchor="w").grid(row=0, column=0, padx=10, pady=6, sticky="ew")
+
+            scene_label = ctk.CTkLabel(row_frame, text=label_text, text_color=label_color, anchor="w")
+            scene_label.grid(row=0, column=0, padx=10, pady=6, sticky="ew")
+            if not is_placeholder:
+                scene_label.bind("<Double-Button-1>", lambda _e, s=scene_text: self.obs_workflow_switch_scene(s))
+                row_frame.bind("<Double-Button-1>", lambda _e, s=scene_text: self.obs_workflow_switch_scene(s))
+
+            if not is_placeholder:
+                ctk.CTkButton(
+                    row_frame,
+                    text="SWITCH",
+                    width=80,
+                    fg_color=GOLD if not is_current else "#333333",
+                    text_color="#111111" if not is_current else "#AAAAAA",
+                    hover_color=GOLD_DARK,
+                    command=lambda s=scene_text: self.obs_workflow_switch_scene(s)
+                ).grid(row=0, column=1, padx=(4, 8), pady=6)
 
         sources_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         sources_box.grid(row=1, column=1, sticky="nsew", padx=(7, 0), pady=0)

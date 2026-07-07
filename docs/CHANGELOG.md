@@ -1,16 +1,13 @@
 # CHANGELOG
 
-## v2.11.0 - OBS Scene Cache
+## v2.11.1 - OBS Scene Switch
 
 ### Added
-- OBSController scene list support:
-  - `get_scene_list()`
-  - `get_current_scene_name()`
-- OBS Workflow now loads scene names from OBS.
-- Current OBS scene is detected.
-- Current scene is highlighted in the Scenes panel.
-- Scene cache update is logged.
+- OBSController `switch_scene(scene_name)`.
+- SWITCH button for every OBS scene in OBS Workflow.
+- Double-click scene row to switch.
+- Current scene updates after switching.
+- Workflow log entry: `Scene switched`.
 
 ### Notes
-- This version only reads and displays scenes.
-- Scene switching starts in v2.11.1.
+- Favorites and macros are not included yet.
