@@ -33,7 +33,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.12.1")
+        self.wm_title("VADAFOK Studio 2.12.2")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -177,7 +177,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.12.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.12.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -5686,6 +5686,51 @@ class VadafokStudio(ctk.CTk):
 
         return f"{icon}  {label}"
 
+
+    def obs_workflow_overlay_installer_source_values(self):
+        scenes = [str(s).strip() for s in getattr(self.obs_workflow_state, "scenes", []) or []]
+        scenes = [s for s in scenes if s and s != "No scene cache yet"]
+        return scenes or ["No scenes loaded"]
+
+    def obs_workflow_overlay_installer_set_source(self, scene_name):
+        scene_name = str(scene_name or "").strip()
+        if scene_name and scene_name != "No scenes loaded":
+            self.obs_workflow_state.overlay_installer_source_scene = scene_name
+            self.obs_workflow_mark_command(f"Overlay Installer source scene: {scene_name}")
+        self.show_obs_workflow_page()
+
+    def obs_workflow_overlay_installer_toggle_scene(self, scene_name):
+        scene_name = str(scene_name or "").strip()
+        if not scene_name:
+            return
+        selected = list(getattr(self.obs_workflow_state, "overlay_installer_selected_scenes", []) or [])
+        if scene_name in selected:
+            selected.remove(scene_name)
+        else:
+            selected.append(scene_name)
+        self.obs_workflow_state.overlay_installer_selected_scenes = selected
+        self.show_obs_workflow_page()
+
+    def obs_workflow_overlay_installer_select_missing(self):
+        results = getattr(self.obs_workflow_state, "overlay_health", []) or []
+        selected = []
+        source_scene = getattr(self.obs_workflow_state, "overlay_installer_source_scene", "")
+        for item in results:
+            scene = item.get("scene", "")
+            if scene and not item.get("ok") and scene != source_scene:
+                selected.append(scene)
+        self.obs_workflow_state.overlay_installer_selected_scenes = selected
+        self.obs_workflow_mark_command(f"Overlay Installer selected missing: {len(selected)} scene(s)")
+        self.show_obs_workflow_page()
+
+    def obs_workflow_overlay_installer_clear_selection(self):
+        self.obs_workflow_state.overlay_installer_selected_scenes = []
+        self.obs_workflow_mark_command("Overlay Installer selection cleared")
+        self.show_obs_workflow_page()
+
+    def obs_workflow_overlay_installer_placeholder(self):
+        messagebox.showinfo("Overlay Installer", "Install Selected kommt in v2.12.3. Diese Version bereitet Auswahl und Workflow vor.")
+
     def show_obs_workflow_page(self):
         self.set_active("OBS Workflow")
         self.clear_main()
@@ -5710,7 +5755,8 @@ class VadafokStudio(ctk.CTk):
         outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
         outer.grid_columnconfigure(0, weight=2)
         outer.grid_columnconfigure(1, weight=3)
-        outer.grid_rowconfigure(2, weight=1)
+        outer.grid_rowconfigure(2, weight=0)
+        outer.grid_rowconfigure(3, weight=1)
 
         top = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         top.grid(row=0, column=0, columnspan=2, sticky="ew", padx=0, pady=(0, 14))
@@ -5767,8 +5813,76 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkLabel(health_box, text=(f"{missing_count} scene(s) need attention" if total else "Run a scan to check overlay coverage."), text_color="#AAAAAA").grid(row=1, column=0, columnspan=2, sticky="w", padx=18, pady=(0, 12))
         ctk.CTkButton(health_box, text="SCAN", width=90, fg_color="#333333", hover_color="#444444", command=self.obs_workflow_scan_overlay_health).grid(row=0, column=2, rowspan=2, sticky="e", padx=18, pady=14)
 
+        installer_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        installer_box.grid(row=2, column=0, columnspan=2, sticky="ew", padx=0, pady=(0, 14))
+        installer_box.grid_columnconfigure(1, weight=1)
+
+        ctk.CTkLabel(installer_box, text="Overlay Installer", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, sticky="w", padx=18, pady=(14, 6))
+
+        source_values = self.obs_workflow_overlay_installer_source_values()
+        current_source = getattr(state, "overlay_installer_source_scene", "") or (current_scene if current_scene in source_values else source_values[0])
+        if current_source != "No scenes loaded":
+            state.overlay_installer_source_scene = current_source
+
+        ctk.CTkLabel(installer_box, text="Source Scene", text_color="#888888").grid(row=1, column=0, sticky="w", padx=18, pady=(0, 4))
+        source_menu = ctk.CTkOptionMenu(
+            installer_box,
+            values=source_values,
+            command=self.obs_workflow_overlay_installer_set_source,
+            fg_color="#333333",
+            button_color="#444444",
+            button_hover_color="#555555"
+        )
+        source_menu.grid(row=1, column=1, sticky="ew", padx=(0, 12), pady=(0, 8))
+        try:
+            source_menu.set(current_source)
+        except Exception:
+            pass
+
+        selected = list(getattr(state, "overlay_installer_selected_scenes", []) or [])
+        selected_text = f"{len(selected)} selected"
+        ctk.CTkLabel(installer_box, text=selected_text, text_color="#BCA870").grid(row=1, column=2, sticky="e", padx=8, pady=(0, 8))
+
+        btn_row = ctk.CTkFrame(installer_box, fg_color="transparent")
+        btn_row.grid(row=1, column=3, sticky="e", padx=18, pady=(0, 8))
+        ctk.CTkButton(btn_row, text="SELECT MISSING", fg_color="#333333", hover_color="#444444", command=self.obs_workflow_overlay_installer_select_missing).pack(side="left", padx=4)
+        ctk.CTkButton(btn_row, text="CLEAR", fg_color="#333333", hover_color="#444444", command=self.obs_workflow_overlay_installer_clear_selection).pack(side="left", padx=4)
+        ctk.CTkButton(btn_row, text="INSTALL SELECTED", fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.obs_workflow_overlay_installer_placeholder).pack(side="left", padx=4)
+
+        target_area = ctk.CTkScrollableFrame(installer_box, fg_color="#0B0B0B", corner_radius=12, height=95)
+        target_area.grid(row=2, column=0, columnspan=4, sticky="ew", padx=18, pady=(0, 14))
+        target_area.grid_columnconfigure(0, weight=1)
+
+        health_results = getattr(state, "overlay_health", []) or []
+        if not health_results:
+            ctk.CTkLabel(target_area, text="Run Overlay Health SCAN first. Then use SELECT MISSING.", text_color="#777777").grid(row=0, column=0, padx=10, pady=8, sticky="w")
+        else:
+            row_i = 0
+            for item in health_results:
+                scene_name = item.get("scene", "")
+                if not scene_name or scene_name == current_source:
+                    continue
+                ok = bool(item.get("ok"))
+                is_selected = scene_name in selected
+                label = ("[x] " if is_selected else "[ ] ") + scene_name
+                label += "  READY" if ok else f"  MISSING {len(item.get('missing', []))}"
+                color = "#8FE6A0" if ok else "#F0C06A"
+                row = ctk.CTkFrame(target_area, fg_color="#171717" if is_selected else "transparent", corner_radius=8)
+                row.grid(row=row_i, column=0, sticky="ew", padx=6, pady=3)
+                row.grid_columnconfigure(0, weight=1)
+                ctk.CTkButton(
+                    row,
+                    text=label,
+                    anchor="w",
+                    fg_color="transparent",
+                    hover_color="#2C2C2C",
+                    text_color=color,
+                    command=lambda s=scene_name: self.obs_workflow_overlay_installer_toggle_scene(s)
+                ).grid(row=0, column=0, sticky="ew", padx=6, pady=4)
+                row_i += 1
+
         scenes_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
-        scenes_box.grid(row=2, column=0, sticky="nsew", padx=(0, 7), pady=0)
+        scenes_box.grid(row=3, column=0, sticky="nsew", padx=(0, 7), pady=0)
         scenes_box.grid_columnconfigure(0, weight=1)
         scenes_box.grid_rowconfigure(1, weight=1)
         ctk.CTkLabel(scenes_box, text="Scenes", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
@@ -5793,7 +5907,7 @@ class VadafokStudio(ctk.CTk):
                 ctk.CTkButton(row_frame, text="SWITCH", width=80, fg_color=GOLD if not is_current else "#333333", text_color="#111111" if not is_current else "#AAAAAA", hover_color=GOLD_DARK, command=lambda s=scene_text: self.obs_workflow_switch_scene(s)).grid(row=0, column=2, padx=(4, 8), pady=6)
 
         right_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
-        right_box.grid(row=2, column=1, sticky="nsew", padx=(7, 0), pady=0)
+        right_box.grid(row=3, column=1, sticky="nsew", padx=(7, 0), pady=0)
         right_box.grid_columnconfigure(0, weight=1)
         right_box.grid_rowconfigure(2, weight=1)
         ctk.CTkLabel(right_box, text="Current Scene Control", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 6), sticky="w")
@@ -5839,7 +5953,7 @@ class VadafokStudio(ctk.CTk):
                 ctk.CTkLabel(sources_list, text=str(source), text_color=TEXT, anchor="w").grid(row=idx, column=0, padx=10, pady=5, sticky="ew")
 
         bottom = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
-        bottom.grid(row=3, column=0, columnspan=2, sticky="ew", padx=0, pady=(14, 0))
+        bottom.grid(row=4, column=0, columnspan=2, sticky="ew", padx=0, pady=(14, 0))
         bottom.grid_columnconfigure(0, weight=1)
         last = state.last_command or "No command yet"
         if state.last_command_time:

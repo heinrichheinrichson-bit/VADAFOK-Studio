@@ -1,23 +1,15 @@
 # CHANGELOG
 
-## v2.12.1 - Quick Scene Controls
+## v2.12.2 - Overlay Installer Preparation
 
 ### Added
-- Last Switch dashboard card.
-- Last Scene Switch line in Current Scene Control.
-- Last scene switch is stored in OBS workflow state.
-
-### Improved
-- Quick Scene Favorite buttons are larger and more dashboard-like.
-- Current scene is highlighted as `LIVE`.
-- Current Scene Control is more prominent.
-- Recent Activity uses compact labels:
-  - OBS
-  - SCENE
-  - CARD
-  - SOURCE
-  - HEALTH
+- Overlay Installer preparation card in OBS Workflow Dashboard.
+- Source Scene selector.
+- Target scene selection list based on Overlay Health results.
+- SELECT MISSING button.
+- CLEAR button.
+- INSTALL SELECTED placeholder for v2.12.3.
 
 ### Notes
-- OBS logic is unchanged.
-- This is a dashboard/control polish version.
+- This version does not install or modify OBS scenes yet.
+- It prepares the workflow and selection state for the real installer.

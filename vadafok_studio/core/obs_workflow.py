@@ -23,6 +23,8 @@ class OBSWorkflowState:
         self.obs_events: List[str] = []
         self.overlay_health: List[Dict[str, Any]] = []
         self.overlay_health_score: str = ""
+        self.overlay_installer_source_scene: str = ""
+        self.overlay_installer_selected_scenes: List[str] = []
         self.log: List[str] = []
 
     def now(self) -> str:
@@ -82,5 +84,7 @@ class OBSWorkflowState:
             "obs_events": list(self.obs_events),
             "overlay_health": list(self.overlay_health),
             "overlay_health_score": self.overlay_health_score,
+            "overlay_installer_source_scene": self.overlay_installer_source_scene,
+            "overlay_installer_selected_scenes": list(self.overlay_installer_selected_scenes),
             "log": list(self.log),
         }

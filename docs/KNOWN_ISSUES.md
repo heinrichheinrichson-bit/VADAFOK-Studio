@@ -1,5 +1,5 @@
 # Known Issues
 
-## v2.12.1
-- Last Switch is stored for the current app session only.
-- No automatic overlay installation yet.
+## v2.12.2
+- INSTALL SELECTED is a placeholder.
+- No OBS scene modifications are performed in this version.

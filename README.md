@@ -1,14 +1,14 @@
-# VADAFOK Studio 2.12.1
+# VADAFOK Studio 2.12.2
 
 ## Neu
 
-Quick Scene Controls.
+Overlay Installer Preparation.
 
-- Last Switch Karte
-- größere Quick-Favorite-Buttons
-- LIVE Scene Markierung
-- Current Scene Control verbessert
-- Recent Activity besser lesbar
+- Overlay Installer Karte
+- Source Scene Dropdown
+- Select Missing
+- Ziel-Szenen auswählen
+- Install Selected ist vorbereitet, aber noch nicht aktiv
 
 ## Test
 
@@ -16,6 +16,6 @@ Siehe `docs/RELEASE_CHECKLIST.md`.
 
 ## Installation
 
-Direkt über v2.12.0 installieren.
+Direkt über v2.12.1 installieren.
 
 Noch nicht Git speichern, erst testen.
