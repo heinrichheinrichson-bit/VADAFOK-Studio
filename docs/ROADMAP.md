@@ -1,20 +1,21 @@
 # VADAFOK Studio – Roadmap
 
-Aktueller Teststand: **v2.13.1**
+Aktueller Teststand: **v2.13.2**
 
 ## In Test
-### v2.13.1 – Silent Director Preset Editor
-- Name bearbeiten
-- Szene auswählen
-- Banner Text bearbeiten
+### v2.13.2 – Silent Director Action Editor
+- Action-Liste
+- Add Action
+- Switch Scene
 - Show Banner
-- Save / Run
+- Show/Hide Source
+- RUN führt Aktionen aus
 
 ## Nächste Schritte
-### v2.13.2 – Source Steps
-- Sources im Preset hinzufügen
-- Show/Hide Source Steps
+### v2.13.3 – Action Reorder
+- Aktionen nach oben/unten verschieben
+- bessere Detailkarten
 
-### v2.13.3 – Timers
-- Delay/Auto-Hide
-- einfache Sequenzen
+### v2.13.4 – Timers
+- Wait/Delay
+- Auto Hide Banner

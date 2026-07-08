@@ -5,7 +5,8 @@
     "banner_text": "Back to the adventure.",
     "show_banner": false,
     "show_sources": [],
-    "hide_sources": []
+    "hide_sources": [],
+    "actions": []
   },
   {
     "name": "Pause",
@@ -13,7 +14,15 @@
     "banner_text": "One moment, please...",
     "show_banner": true,
     "show_sources": [],
-    "hide_sources": []
+    "hide_sources": [],
+    "actions": [
+      {
+        "type": "show_banner",
+        "scene": "",
+        "text": "One moment, please...",
+        "source": ""
+      }
+    ]
   },
   {
     "name": "Boss Fight",
@@ -21,7 +30,15 @@
     "banner_text": "This could get ugly...",
     "show_banner": true,
     "show_sources": [],
-    "hide_sources": []
+    "hide_sources": [],
+    "actions": [
+      {
+        "type": "show_banner",
+        "scene": "",
+        "text": "This could get ugly...",
+        "source": ""
+      }
+    ]
   },
   {
     "name": "new test 1",
@@ -29,6 +46,32 @@
     "banner_text": "hallo test",
     "show_banner": false,
     "show_sources": [],
-    "hide_sources": []
+    "hide_sources": [],
+    "actions": [
+      {
+        "type": "switch_scene",
+        "scene": "Cam - Normal",
+        "text": "",
+        "source": ""
+      },
+      {
+        "type": "switch_scene",
+        "scene": "Cam - Normal",
+        "text": "",
+        "source": ""
+      },
+      {
+        "type": "show_banner",
+        "scene": "",
+        "text": "test test test silent diector actions",
+        "source": ""
+      },
+      {
+        "type": "hide_source",
+        "scene": "",
+        "text": "",
+        "source": "Theatre Red (Frame)"
+      }
+    ]
   }
 ]

@@ -1,26 +1,27 @@
 # Release Checklist
 
-## v2.13.1 Testliste
+## v2.13.2 Testliste
 
 ### Grundtest
 - [ ] Programm startet
-- [ ] Version zeigt 2.13.1
+- [ ] Version zeigt 2.13.2
 - [ ] Silent Director öffnet
 
-### Preset Editor
+### Action Editor
 - [ ] Preset auswählen
-- [ ] Name ändern
-- [ ] Szene im Dropdown wählen
-- [ ] Banner Text eintragen
-- [ ] Show Banner aktivieren/deaktivieren
-- [ ] SAVE klicken
-- [ ] Seite neu öffnen, Werte bleiben erhalten
-- [ ] Programm neu starten, Werte bleiben erhalten
+- [ ] Action `switch_scene` hinzufügen
+- [ ] Action `show_banner` hinzufügen
+- [ ] Action `show_source` hinzufügen
+- [ ] Action `hide_source` hinzufügen
+- [ ] Action löschen
+- [ ] SAVE funktioniert
+- [ ] Programm neu starten, Actions bleiben gespeichert
 
 ### RUN
-- [ ] RUN PRESET wechselt gespeicherte Szene
-- [ ] RUN PRESET zeigt Banner, wenn Show Banner aktiv ist
-- [ ] RUN bei leerem Preset zeigt weiter Hinweis
+- [ ] RUN PRESET führt switch_scene aus
+- [ ] RUN PRESET zeigt Banner bei show_banner
+- [ ] RUN PRESET zeigt/versteckt Source bei Source-Aktionen
+- [ ] Aktionen laufen von oben nach unten
 
 ### Regression
 - [ ] OBS Dashboard funktioniert
