@@ -1,19 +1,22 @@
 # VADAFOK Studio – Roadmap
 
-Aktueller Teststand: **v2.11.4**
+Aktueller Teststand: **v2.12.0**
 
 ## In Test
-### v2.11.4 – Overlay Health
-- Szenen auf VADAFOK Overlay prüfen
-- Health Score
-- fehlende Quellen anzeigen
+### v2.12.0 – OBS Workflow Dashboard
+- Dashboard layout
+- quick scene favorites
+- compact overlay health
+- current scene control
+- recent activity
 
 ## Nächste Schritte
-### v2.11.5 – Overlay Installer
-- Fix Scene
-- Install Overlay to selected scenes
-- Install Overlay to all scenes
+### v2.12.1 – Quick Scene Controls
+- größere Regiebuttons
+- Szenen-Gruppen
+- Hotkey-Vorbereitung
 
-### v2.12 – Silent Director
-- kombinierte Regieaktionen
-- Scene + Banner + Source Aktionen
+### v2.12.2 – Overlay Installer Preparation
+- Vorlage-Szene auswählen
+- fehlende Szenen auswählen
+- Fix Workflow vorbereiten

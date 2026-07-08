@@ -1,18 +1,14 @@
 # CHANGELOG
 
-## v2.11.5 - Recursive OBS Scene Scanner
+## v2.12.0 - OBS Workflow Dashboard
 
 ### Added
-- Recursive source scanner in OBSController:
-  - reads normal scene items
-  - attempts to read group contents
-  - includes nested/group sources for Overlay Health
-- Overlay Health now uses recursive source scan when available.
+- New dashboard-style OBS Workflow layout.
+- Top status cards.
+- Quick Scene Favorites as large buttons.
+- Compact Overlay Health summary.
+- Current Scene Control panel.
+- Recent Activity feed.
 
 ### Improved
-- Overlay Health can detect VADAFOK sources inside OBS groups.
-- Debug log now shows `Overlay Recursive Found`.
-
-### Notes
-- This is still diagnosis only.
-- Automatic overlay installation is not included yet.
+- OBS Workflow now feels more like a live control dashboard.

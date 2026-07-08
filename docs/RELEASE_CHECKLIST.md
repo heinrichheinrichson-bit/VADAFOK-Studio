@@ -1,15 +1,17 @@
 # Release Checklist
 
-## v2.11.5 Testliste
+## v2.12.0 Testliste
 
 - [ ] Programm startet
-- [ ] Version zeigt 2.11.5
-- [ ] OBS verbinden
-- [ ] OBS Workflow öffnen
-- [ ] SCAN klicken
-- [ ] Workflow Log zeigt `Overlay Recursive Found`
-- [ ] Cam - Normal wird korrekt erkannt oder zeigt weniger Missing
-- [ ] Health Score ist plausibler als vorher
-- [ ] Source Manager funktioniert weiterhin
-- [ ] Scene Switch funktioniert weiterhin
+- [ ] Version zeigt 2.12.0
+- [ ] OBS Workflow Dashboard öffnet
+- [ ] Statuskarten werden angezeigt
+- [ ] Favoriten erscheinen als große Buttons
+- [ ] Favorit klickt Szene um
+- [ ] Overlay Health Summary sichtbar
+- [ ] SCAN funktioniert weiterhin
+- [ ] Current Scene Control zeigt aktuelle Szene
+- [ ] Source SHOW/HIDE funktioniert weiterhin ohne Flackern
+- [ ] Scene SWITCH funktioniert weiterhin
+- [ ] DISCONNECT / RECONNECT funktioniert weiterhin
 - [ ] Live Card funktioniert weiterhin

@@ -1,6 +1,5 @@
 # Known Issues
 
-## v2.11.5
-- Overlay Health only diagnoses missing sources.
-- Recursive scan is best-effort for OBS groups and nested structures.
-- Overlay installation is not implemented yet.
+## v2.12.0
+- Dashboard is a UI upgrade; no automatic overlay installation yet.
+- Recent Activity is compact and may not show every debug line.

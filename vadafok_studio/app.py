@@ -33,7 +33,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.11.5")
+        self.wm_title("VADAFOK Studio 2.12.0")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -177,7 +177,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.11.5", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.12.0", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -5628,10 +5628,43 @@ class VadafokStudio(ctk.CTk):
             self.show_obs_workflow_page()
 
 
+
+    def obs_workflow_health_counts(self):
+        results = getattr(self.obs_workflow_state, "overlay_health", []) or []
+        if not results:
+            return 0, 0, 0
+        ready = sum(1 for item in results if item.get("ok"))
+        total = len(results)
+        return ready, total - ready, total
+
+    def obs_workflow_current_scene_health(self):
+        current = getattr(self.obs_workflow_state, "current_scene", "")
+        for item in getattr(self.obs_workflow_state, "overlay_health", []) or []:
+            if item.get("scene") == current:
+                return item
+        return None
+
+    def obs_workflow_recent_activity(self):
+        items = []
+        for attr in ("obs_events", "banner_history", "log"):
+            try:
+                items.extend(getattr(self.obs_workflow_state, attr, [])[-5:])
+            except Exception:
+                pass
+        cleaned = []
+        seen = set()
+        for item in items[-12:]:
+            text = str(item)
+            if text not in seen:
+                cleaned.append(text)
+                seen.add(text)
+        return cleaned[-8:]
+
+
     def show_obs_workflow_page(self):
         self.set_active("OBS Workflow")
         self.clear_main()
-        self.page_title("OBS Workflow")
+        self.page_title("OBS Workflow Dashboard")
 
         if not hasattr(self, "obs_workflow_state"):
             self.obs_workflow_state = obs_workflow.OBSWorkflowState()
@@ -5643,259 +5676,149 @@ class VadafokStudio(ctk.CTk):
         else:
             state.connected = connected
 
-        outer = ctk.CTkFrame(self.main, fg_color=DARK)
-        outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
-        outer.grid_columnconfigure(0, weight=1)
-        outer.grid_columnconfigure(1, weight=1)
-        outer.grid_rowconfigure(1, weight=0)
-        outer.grid_rowconfigure(2, weight=0)
-        outer.grid_rowconfigure(3, weight=1)
-
-        status_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
-        status_box.grid(row=0, column=0, columnspan=2, sticky="ew", padx=0, pady=(0, 14))
-        status_box.grid_columnconfigure(1, weight=1)
-
-        status_text = "Connected" if connected else "Disconnected"
-        status_color = "#8FE6A0" if connected else "#F08A8A"
-        ctk.CTkLabel(status_box, text="OBS Status", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(16, 4), sticky="w")
-        ctk.CTkLabel(status_box, text=status_text, text_color=status_color, font=ctk.CTkFont(size=18, weight="bold")).grid(row=1, column=0, padx=18, pady=(0, 14), sticky="w")
-
-        info = []
         try:
-            info.append(f"Host: {self.host.get()}")
-            info.append(f"Port: {self.port.get()}")
-            if self.scene_name.get():
-                info.append(f"Scene optional: {self.scene_name.get()}")
+            self.obs_workflow_load_scene_favorites()
         except Exception:
             pass
-        ctk.CTkLabel(status_box, text="   ".join(info), text_color="#BCA870").grid(row=1, column=1, padx=18, pady=(0, 4), sticky="w")
 
-        stats = []
-        if getattr(state, "connected_since", ""):
-            stats.append(f"Connected Since: {state.connected_since}")
-        stats.append(f"Banner Commands: {getattr(state, 'banner_count', 0)}")
-        if getattr(state, "current_scene", ""):
-            stats.append(f"Current Scene: {state.current_scene}")
-        if getattr(state, "last_banner_text", ""):
-            stats.append(f"Last Banner Text: {state.last_banner_text[:60]}")
-        ctk.CTkLabel(status_box, text="   ".join(stats), text_color="#888888").grid(row=2, column=1, padx=18, pady=(0, 14), sticky="w")
+        outer = ctk.CTkFrame(self.main, fg_color=DARK)
+        outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
+        outer.grid_columnconfigure(0, weight=2)
+        outer.grid_columnconfigure(1, weight=3)
+        outer.grid_rowconfigure(2, weight=1)
 
-        btns = ctk.CTkFrame(status_box, fg_color="transparent")
-        btns.grid(row=0, column=2, rowspan=3, padx=18, pady=14, sticky="e")
-        ctk.CTkButton(btns, text="CONNECT", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.obs_workflow_connect).pack(side="left", padx=4)
-        ctk.CTkButton(btns, text="RECONNECT", fg_color="#333333", hover_color="#444444", command=self.obs_workflow_connect).pack(side="left", padx=4)
-        ctk.CTkButton(btns, text="DISCONNECT", fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.obs_workflow_disconnect).pack(side="left", padx=4)
-        ctk.CTkButton(btns, text="REFRESH", fg_color="#333333", hover_color="#444444", command=self.obs_workflow_refresh).pack(side="left", padx=4)
+        top = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        top.grid(row=0, column=0, columnspan=2, sticky="ew", padx=0, pady=(0, 14))
+        top.grid_columnconfigure((0, 1, 2, 3), weight=1)
 
-        favorites_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
-        favorites_box.grid(row=1, column=0, columnspan=2, sticky="ew", padx=0, pady=(0, 14))
-        favorites_box.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(favorites_box, text="Scene Favorites", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(14, 6), sticky="w")
+        current_scene = getattr(state, "current_scene", "") or "Unknown"
+        cards = [
+            ("OBS", "CONNECTED" if connected else "DISCONNECTED", "#8FE6A0" if connected else "#F08A8A"),
+            ("Current Scene", current_scene, GOLD),
+            ("Connected Since", getattr(state, "connected_since", "") or "-", "#BCA870"),
+            ("Banner Commands", str(getattr(state, "banner_count", 0)), "#BCA870"),
+        ]
 
-        self.obs_workflow_load_scene_favorites()
-        fav_row = ctk.CTkFrame(favorites_box, fg_color="transparent")
-        fav_row.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 14))
+        for col, (title, value, color) in enumerate(cards):
+            card = ctk.CTkFrame(top, fg_color="#0B0B0B", corner_radius=14)
+            card.grid(row=0, column=col, sticky="ew", padx=8, pady=14)
+            ctk.CTkLabel(card, text=title, text_color="#888888").pack(anchor="w", padx=14, pady=(10, 2))
+            ctk.CTkLabel(card, text=value, text_color=color, font=ctk.CTkFont(size=18, weight="bold")).pack(anchor="w", padx=14, pady=(0, 12))
 
-        if not self.scene_favorites:
-            ctk.CTkLabel(fav_row, text="No favorite scenes yet. Use star in the Scenes list.", text_color="#777777").pack(side="left", padx=4)
+        buttons = ctk.CTkFrame(top, fg_color="transparent")
+        buttons.grid(row=1, column=0, columnspan=4, sticky="e", padx=10, pady=(0, 12))
+        ctk.CTkButton(buttons, text="CONNECT", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.obs_workflow_connect).pack(side="left", padx=4)
+        ctk.CTkButton(buttons, text="RECONNECT", fg_color="#333333", hover_color="#444444", command=self.obs_workflow_connect).pack(side="left", padx=4)
+        ctk.CTkButton(buttons, text="DISCONNECT", fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.obs_workflow_disconnect).pack(side="left", padx=4)
+        ctk.CTkButton(buttons, text="REFRESH", fg_color="#333333", hover_color="#444444", command=self.obs_workflow_refresh).pack(side="left", padx=4)
+
+        fav_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        fav_box.grid(row=1, column=0, sticky="ew", padx=(0, 7), pady=(0, 14))
+        fav_box.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(fav_box, text="Quick Scene Favorites", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, sticky="w", padx=18, pady=(14, 8))
+        fav_area = ctk.CTkFrame(fav_box, fg_color="transparent")
+        fav_area.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 14))
+
+        if not getattr(self, "scene_favorites", []):
+            ctk.CTkLabel(fav_area, text="No favorites yet. Add scenes below.", text_color="#777777").pack(side="left")
         else:
             for fav_scene in self.scene_favorites:
-                pill = ctk.CTkFrame(fav_row, fg_color="#0B0B0B", corner_radius=10)
-                pill.pack(side="left", padx=4, pady=2)
                 ctk.CTkButton(
-                    pill,
-                    text=fav_scene,
-                    fg_color="#171717",
-                    hover_color="#2C2C2C",
-                    text_color="#D9C58C",
+                    fav_area, text=fav_scene, height=42,
+                    fg_color=GOLD if fav_scene == current_scene else "#171717",
+                    text_color="#111111" if fav_scene == current_scene else "#D9C58C",
+                    hover_color=GOLD_DARK,
                     command=lambda s=fav_scene: self.obs_workflow_switch_scene(s)
-                ).pack(side="left", padx=(6, 2), pady=6)
-                ctk.CTkButton(
-                    pill,
-                    text="x",
-                    width=34,
-                    fg_color="#5A1F1F",
-                    hover_color="#7A2A2A",
-                    command=lambda s=fav_scene: self.obs_workflow_remove_scene_favorite(s)
-                ).pack(side="left", padx=(2, 6), pady=6)
+                ).pack(side="left", padx=4, pady=4)
 
         health_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
-        health_box.grid(row=2, column=0, columnspan=2, sticky="ew", padx=0, pady=(0, 14))
-        health_box.grid_columnconfigure(0, weight=1)
-
-        health_header = ctk.CTkFrame(health_box, fg_color="transparent")
-        health_header.grid(row=0, column=0, sticky="ew", padx=18, pady=(14, 6))
-        health_header.grid_columnconfigure(1, weight=1)
-
-        ctk.CTkLabel(health_header, text="Overlay Health", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, sticky="w")
-
-        health_score = getattr(state, "overlay_health_score", "") or "Not scanned yet"
-        ctk.CTkLabel(health_header, text=health_score, text_color="#BCA870").grid(row=0, column=1, padx=12, sticky="w")
-
-        ctk.CTkButton(
-            health_header,
-            text="SCAN",
-            width=90,
-            fg_color="#333333",
-            hover_color="#444444",
-            command=self.obs_workflow_scan_overlay_health
-        ).grid(row=0, column=2, sticky="e")
-
-        health_list = ctk.CTkScrollableFrame(health_box, fg_color="#0B0B0B", corner_radius=12, height=110)
-        health_list.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 14))
-        health_list.grid_columnconfigure(0, weight=1)
-
-        health_results = getattr(state, "overlay_health", []) or []
-        if not health_results:
-            ctk.CTkLabel(
-                health_list,
-                text="No scan yet. Click SCAN to check which scenes contain the configured VADAFOK overlay sources.",
-                text_color="#777777",
-                anchor="w"
-            ).grid(row=0, column=0, padx=10, pady=8, sticky="ew")
-        else:
-            for idx, item in enumerate(health_results):
-                scene_name = item.get("scene", "Unknown")
-                ok = bool(item.get("ok", False))
-                missing = item.get("missing", [])
-                text = f"✓ {scene_name}" if ok else f"⚠ {scene_name} — {len(missing)} missing: {', '.join(missing)}"
-                color = "#8FE6A0" if ok else "#F0C06A"
-                ctk.CTkLabel(
-                    health_list,
-                    text=text,
-                    text_color=color,
-                    anchor="w",
-                    wraplength=1100
-                ).grid(row=idx, column=0, padx=10, pady=4, sticky="ew")
+        health_box.grid(row=1, column=1, sticky="ew", padx=(7, 0), pady=(0, 14))
+        health_box.grid_columnconfigure(1, weight=1)
+        ready, missing_count, total = self.obs_workflow_health_counts()
+        health_text = f"{ready} / {total} Ready" if total else "Not scanned"
+        health_color = "#8FE6A0" if total and missing_count == 0 else ("#F0C06A" if total else "#777777")
+        ctk.CTkLabel(health_box, text="Overlay Health", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, sticky="w", padx=18, pady=(14, 4))
+        ctk.CTkLabel(health_box, text=health_text, text_color=health_color, font=ctk.CTkFont(size=16, weight="bold")).grid(row=0, column=1, sticky="w", padx=8, pady=(14, 4))
+        ctk.CTkLabel(health_box, text=(f"{missing_count} scene(s) need attention" if total else "Run a scan to check overlay coverage."), text_color="#AAAAAA").grid(row=1, column=0, columnspan=2, sticky="w", padx=18, pady=(0, 12))
+        ctk.CTkButton(health_box, text="SCAN", width=90, fg_color="#333333", hover_color="#444444", command=self.obs_workflow_scan_overlay_health).grid(row=0, column=2, rowspan=2, sticky="e", padx=18, pady=14)
 
         scenes_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
-        scenes_box.grid(row=3, column=0, sticky="nsew", padx=(0, 7), pady=0)
+        scenes_box.grid(row=2, column=0, sticky="nsew", padx=(0, 7), pady=0)
         scenes_box.grid_columnconfigure(0, weight=1)
         scenes_box.grid_rowconfigure(1, weight=1)
-
         ctk.CTkLabel(scenes_box, text="Scenes", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
         scenes_list = ctk.CTkScrollableFrame(scenes_box, fg_color="#0B0B0B", corner_radius=12)
         scenes_list.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
         scenes_list.grid_columnconfigure(0, weight=1)
-        current_scene = getattr(state, "current_scene", "")
+
         for idx, scene in enumerate(state.scenes or ["No scene cache yet"]):
             scene_text = str(scene)
             is_placeholder = scene_text == "No scene cache yet"
             is_current = scene_text == current_scene and not is_placeholder
-            label_text = f"▶ {scene_text}" if is_current else scene_text
-            label_color = GOLD if is_current else TEXT
+            is_fav = scene_text in getattr(self, "scene_favorites", [])
             row_frame = ctk.CTkFrame(scenes_list, fg_color="#171717" if is_current else "transparent", corner_radius=8)
             row_frame.grid(row=idx, column=0, padx=6, pady=3, sticky="ew")
             row_frame.grid_columnconfigure(0, weight=1)
-
-            scene_label = ctk.CTkLabel(row_frame, text=label_text, text_color=label_color, anchor="w")
-            scene_label.grid(row=0, column=0, padx=10, pady=6, sticky="ew")
+            label = ctk.CTkLabel(row_frame, text=(f"▶ {scene_text}" if is_current else scene_text), text_color=GOLD if is_current else TEXT, anchor="w")
+            label.grid(row=0, column=0, padx=10, pady=6, sticky="ew")
             if not is_placeholder:
-                scene_label.bind("<Double-Button-1>", lambda _e, s=scene_text: self.obs_workflow_switch_scene(s))
+                label.bind("<Double-Button-1>", lambda _e, s=scene_text: self.obs_workflow_switch_scene(s))
                 row_frame.bind("<Double-Button-1>", lambda _e, s=scene_text: self.obs_workflow_switch_scene(s))
+                ctk.CTkButton(row_frame, text="STAR" if is_fav else "ADD", width=58, fg_color=GOLD if is_fav else "#333333", text_color="#111111" if is_fav else "#D9C58C", hover_color=GOLD_DARK, command=lambda s=scene_text, f=is_fav: self.obs_workflow_remove_scene_favorite(s) if f else self.obs_workflow_add_scene_favorite(s)).grid(row=0, column=1, padx=(4, 4), pady=6)
+                ctk.CTkButton(row_frame, text="SWITCH", width=80, fg_color=GOLD if not is_current else "#333333", text_color="#111111" if not is_current else "#AAAAAA", hover_color=GOLD_DARK, command=lambda s=scene_text: self.obs_workflow_switch_scene(s)).grid(row=0, column=2, padx=(4, 8), pady=6)
 
-            if not is_placeholder:
-                is_fav = scene_text in getattr(self, "scene_favorites", [])
-                ctk.CTkButton(
-                    row_frame,
-                    text="STAR" if is_fav else "ADD",
-                    width=58,
-                    fg_color=GOLD if is_fav else "#333333",
-                    text_color="#111111" if is_fav else "#D9C58C",
-                    hover_color=GOLD_DARK,
-                    command=lambda s=scene_text, f=is_fav: self.obs_workflow_remove_scene_favorite(s) if f else self.obs_workflow_add_scene_favorite(s)
-                ).grid(row=0, column=1, padx=(4, 4), pady=6)
+        right_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        right_box.grid(row=2, column=1, sticky="nsew", padx=(7, 0), pady=0)
+        right_box.grid_columnconfigure(0, weight=1)
+        right_box.grid_rowconfigure(2, weight=1)
+        ctk.CTkLabel(right_box, text="Current Scene Control", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 6), sticky="w")
 
-                ctk.CTkButton(
-                    row_frame,
-                    text="SWITCH",
-                    width=80,
-                    fg_color=GOLD if not is_current else "#333333",
-                    text_color="#111111" if not is_current else "#AAAAAA",
-                    hover_color=GOLD_DARK,
-                    command=lambda s=scene_text: self.obs_workflow_switch_scene(s)
-                ).grid(row=0, column=2, padx=(4, 8), pady=6)
+        current_health = self.obs_workflow_current_scene_health()
+        if current_health:
+            scene_health_text = "Overlay Ready" if current_health.get("ok") else f"Overlay Missing: {len(current_health.get('missing', []))}"
+            scene_health_color = "#8FE6A0" if current_health.get("ok") else "#F0C06A"
+        else:
+            scene_health_text = "Overlay Health not scanned"
+            scene_health_color = "#777777"
 
-        sources_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
-        sources_box.grid(row=3, column=1, sticky="nsew", padx=(7, 0), pady=0)
-        sources_box.grid_columnconfigure(0, weight=1)
-        sources_box.grid_rowconfigure(1, weight=1)
+        summary = ctk.CTkFrame(right_box, fg_color="#0B0B0B", corner_radius=12)
+        summary.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 10))
+        summary.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(summary, text=current_scene, text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold"), anchor="w").grid(row=0, column=0, padx=12, pady=(10, 2), sticky="ew")
+        ctk.CTkLabel(summary, text=scene_health_text, text_color=scene_health_color, anchor="w").grid(row=1, column=0, padx=12, pady=(0, 10), sticky="ew")
 
-        ctk.CTkLabel(sources_box, text="Sources / Current Scene", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
-        sources_list = ctk.CTkScrollableFrame(sources_box, fg_color="#0B0B0B", corner_radius=12)
-        sources_list.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
+        sources_list = ctk.CTkScrollableFrame(right_box, fg_color="#0B0B0B", corner_radius=12)
+        sources_list.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
         sources_list.grid_columnconfigure(0, weight=1)
         self.obs_source_row_widgets = {}
+
         for idx, source in enumerate(state.sources or ["No source cache yet"]):
             if isinstance(source, dict):
                 source_name = source.get("name", "")
                 enabled = bool(source.get("enabled", False))
-                label_text = ("✓ " if enabled else "✗ ") + source_name
-                label_color = "#8FE6A0" if enabled else "#F08A8A"
                 row_frame = ctk.CTkFrame(sources_list, fg_color="#0B0B0B", corner_radius=8)
                 row_frame.grid(row=idx, column=0, padx=6, pady=3, sticky="ew")
                 row_frame.grid_columnconfigure(0, weight=1)
-
-                source_label = ctk.CTkLabel(row_frame, text=label_text, text_color=label_color, anchor="w")
+                source_label = ctk.CTkLabel(row_frame, text=("✓ " if enabled else "✗ ") + source_name, text_color="#8FE6A0" if enabled else "#F08A8A", anchor="w")
                 source_label.grid(row=0, column=0, padx=10, pady=6, sticky="ew")
-
-                show_btn = ctk.CTkButton(
-                    row_frame,
-                    text="SHOW",
-                    width=64,
-                    fg_color=GOLD if not enabled else "#333333",
-                    text_color="#111111" if not enabled else "#AAAAAA",
-                    hover_color=GOLD_DARK,
-                    command=lambda s=source_name: self.obs_workflow_set_source_visibility(s, True)
-                )
+                show_btn = ctk.CTkButton(row_frame, text="SHOW", width=64, fg_color=GOLD if not enabled else "#333333", text_color="#111111" if not enabled else "#AAAAAA", hover_color=GOLD_DARK, command=lambda s=source_name: self.obs_workflow_set_source_visibility(s, True))
                 show_btn.grid(row=0, column=1, padx=(4, 4), pady=6)
-
-                hide_btn = ctk.CTkButton(
-                    row_frame,
-                    text="HIDE",
-                    width=64,
-                    fg_color="#5A1F1F" if enabled else "#333333",
-                    text_color="#FFFFFF" if enabled else "#AAAAAA",
-                    hover_color="#7A2A2A",
-                    command=lambda s=source_name: self.obs_workflow_set_source_visibility(s, False)
-                )
+                hide_btn = ctk.CTkButton(row_frame, text="HIDE", width=64, fg_color="#5A1F1F" if enabled else "#333333", text_color="#FFFFFF" if enabled else "#AAAAAA", hover_color="#7A2A2A", command=lambda s=source_name: self.obs_workflow_set_source_visibility(s, False))
                 hide_btn.grid(row=0, column=2, padx=(4, 8), pady=6)
-
-                self.obs_source_row_widgets[source_name] = {
-                    "label": source_label,
-                    "show_btn": show_btn,
-                    "hide_btn": hide_btn,
-                }
+                self.obs_source_row_widgets[source_name] = {"label": source_label, "show_btn": show_btn, "hide_btn": hide_btn}
             else:
                 ctk.CTkLabel(sources_list, text=str(source), text_color=TEXT, anchor="w").grid(row=idx, column=0, padx=10, pady=5, sticky="ew")
 
         bottom = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
-        bottom.grid(row=4, column=0, columnspan=2, sticky="ew", padx=0, pady=(14, 0))
-        bottom.grid_columnconfigure((0, 1, 2), weight=1)
-
+        bottom.grid(row=3, column=0, columnspan=2, sticky="ew", padx=0, pady=(14, 0))
+        bottom.grid_columnconfigure(0, weight=1)
         last = state.last_command or "No command yet"
         if state.last_command_time:
             last = f"{last}  ({state.last_command_time})"
-        ctk.CTkLabel(bottom, text=f"Last Command: {last}", text_color="#BCA870", anchor="w").grid(row=0, column=0, columnspan=3, padx=18, pady=(14, 6), sticky="ew")
-
-        if state.last_error:
-            ctk.CTkLabel(bottom, text=f"Last Error: {state.last_error}", text_color="#F08A8A", anchor="w").grid(row=1, column=0, columnspan=3, padx=18, pady=(0, 6), sticky="ew")
-            base_row = 2
-        else:
-            base_row = 1
-
-        history_text = "\n".join(getattr(state, "banner_history", [])[-6:]) if getattr(state, "banner_history", []) else "No banner history yet."
-        event_text = "\n".join(getattr(state, "obs_events", [])[-6:]) if getattr(state, "obs_events", []) else "No OBS events yet."
-        log_text = "\n".join(state.log[-6:]) if state.log else "No workflow log yet."
-
-        ctk.CTkLabel(bottom, text="Banner History", text_color=GOLD, anchor="w", font=ctk.CTkFont(size=14, weight="bold")).grid(row=base_row, column=0, padx=18, pady=(4, 2), sticky="ew")
-        ctk.CTkLabel(bottom, text=history_text, text_color="#BCA870", justify="left", anchor="w").grid(row=base_row + 1, column=0, padx=18, pady=(0, 14), sticky="ew")
-
-        ctk.CTkLabel(bottom, text="OBS Events", text_color=GOLD, anchor="w", font=ctk.CTkFont(size=14, weight="bold")).grid(row=base_row, column=1, padx=18, pady=(4, 2), sticky="ew")
-        ctk.CTkLabel(bottom, text=event_text, text_color="#AAAAAA", justify="left", anchor="w").grid(row=base_row + 1, column=1, padx=18, pady=(0, 14), sticky="ew")
-
-        ctk.CTkLabel(bottom, text="Workflow Log", text_color=GOLD, anchor="w", font=ctk.CTkFont(size=14, weight="bold")).grid(row=base_row, column=2, padx=18, pady=(4, 2), sticky="ew")
-        ctk.CTkLabel(bottom, text=log_text, text_color="#888888", justify="left", anchor="w").grid(row=base_row + 1, column=2, padx=18, pady=(0, 14), sticky="ew")
+        ctk.CTkLabel(bottom, text=f"Last Command: {last}", text_color="#BCA870", anchor="w").grid(row=0, column=0, padx=18, pady=(14, 4), sticky="ew")
+        activity = "\n".join(self.obs_workflow_recent_activity()) or "No recent activity yet."
+        ctk.CTkLabel(bottom, text="Recent Activity", text_color=GOLD, font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid(row=1, column=0, padx=18, pady=(4, 2), sticky="ew")
+        ctk.CTkLabel(bottom, text=activity, text_color="#888888", justify="left", anchor="w").grid(row=2, column=0, padx=18, pady=(0, 14), sticky="ew")
 
 
     def show_settings_page(self):

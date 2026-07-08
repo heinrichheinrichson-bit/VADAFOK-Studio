@@ -1,15 +1,17 @@
-# VADAFOK Studio 2.11.5
+# VADAFOK Studio 2.12.0
 
 ## Neu
 
-Recursive OBS Scene Scanner.
+OBS Workflow Dashboard.
 
-- Overlay Health prüft jetzt auch Quellen innerhalb von OBS-Gruppen.
-- Log zeigt `Overlay Recursive Found`.
-- Ziel: VADAFOK Overlay auch dann erkennen, wenn es gruppiert/verschachtelt ist.
+- Statuskarten
+- große Favoritenbuttons
+- kompakter Overlay Health Status
+- Current Scene Control
+- Recent Activity
 
 ## Installation
 
-Direkt über v2.11.4.3 installieren.
+Direkt über v2.11.5 installieren.
 
 Noch nicht Git speichern, erst testen.
