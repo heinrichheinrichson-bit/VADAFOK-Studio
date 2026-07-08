@@ -240,6 +240,95 @@ class OBSController:
                 })
         return sources
 
+
+    def scene_has_source(self, scene_name, source_name):
+        """Check if a scene already contains a source by visible source name."""
+        target = str(source_name or "").strip()
+        if not target:
+            return False
+        try:
+            for item in self.get_scene_sources_recursive(scene_name):
+                if str(item.get("name", "")).strip() == target:
+                    return True
+        except Exception:
+            try:
+                for item in self.get_scene_sources(scene_name):
+                    if str(item.get("name", "")).strip() == target:
+                        return True
+            except Exception:
+                pass
+        return False
+
+    def add_existing_source_to_scene(self, scene_name, source_name, enabled=True):
+        """Add an existing OBS source/input to a scene as a scene item, best effort."""
+        client = self._require_connected()
+        scene_name = str(scene_name or "").strip()
+        source_name = str(source_name or "").strip()
+        if not scene_name or not source_name:
+            raise RuntimeError("Scene oder Source fehlt.")
+
+        # obsws-python commonly exposes create_scene_item(sceneName, sourceName, sceneItemEnabled)
+        attempts = [
+            lambda: client.create_scene_item(scene_name, source_name, bool(enabled)),
+            lambda: client.create_scene_item(scene_name=scene_name, source_name=source_name, scene_item_enabled=bool(enabled)),
+            lambda: client.create_scene_item(sceneName=scene_name, sourceName=source_name, sceneItemEnabled=bool(enabled)),
+            lambda: client.create_scene_item(scene_name, source_name),
+        ]
+
+        last_error = None
+        for attempt in attempts:
+            try:
+                attempt()
+                return True
+            except Exception as e:
+                last_error = e
+
+        raise RuntimeError(f"Quelle '{source_name}' konnte nicht zu Szene '{scene_name}' hinzugefügt werden: {last_error}")
+
+    def install_overlay_sources(self, source_scene, target_scene, required_sources):
+        """Install missing existing VADAFOK sources into one target scene."""
+        source_scene = str(source_scene or "").strip()
+        target_scene = str(target_scene or "").strip()
+        required_sources = [str(x).strip() for x in required_sources if str(x).strip()]
+
+        if not source_scene:
+            raise RuntimeError("Keine Source Scene gewählt.")
+        if not target_scene:
+            raise RuntimeError("Keine Ziel-Szene gewählt.")
+
+        installed = []
+        skipped = []
+        errors = []
+
+        # Verify source scene has the source somewhere before attempting install.
+        source_names = []
+        try:
+            source_names = [item.get("name", "") for item in self.get_scene_sources_recursive(source_scene)]
+        except Exception:
+            source_names = [item.get("name", "") for item in self.get_scene_sources(source_scene)]
+
+        for source_name in required_sources:
+            if source_name not in source_names:
+                skipped.append(f"{source_name} (not in source scene)")
+                continue
+
+            if self.scene_has_source(target_scene, source_name):
+                skipped.append(f"{source_name} (already exists)")
+                continue
+
+            try:
+                self.add_existing_source_to_scene(target_scene, source_name, enabled=True)
+                installed.append(source_name)
+            except Exception as e:
+                errors.append(f"{source_name}: {e}")
+
+        return {
+            "target_scene": target_scene,
+            "installed": installed,
+            "skipped": skipped,
+            "errors": errors,
+        }
+
     def get_scene_sources_recursive(self, scene_name="", max_depth=3):
         """Return scene sources including best-effort group/nested scene contents."""
         scene = str(scene_name or "").strip()

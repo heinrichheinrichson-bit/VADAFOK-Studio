@@ -1,14 +1,14 @@
-# VADAFOK Studio 2.12.2
+# VADAFOK Studio 2.12.3
 
 ## Neu
 
-Overlay Installer Preparation.
+Overlay Installer.
 
-- Overlay Installer Karte
-- Source Scene Dropdown
-- Select Missing
-- Ziel-Szenen auswählen
-- Install Selected ist vorbereitet, aber noch nicht aktiv
+- INSTALL SELECTED ist aktiv
+- nutzt Source Scene als Vorlage
+- ergänzt fehlende VADAFOK Quellen in Ziel-Szenen
+- löscht/überschreibt nichts
+- Health Scan nach Installation
 
 ## Test
 
@@ -16,6 +16,6 @@ Siehe `docs/RELEASE_CHECKLIST.md`.
 
 ## Installation
 
-Direkt über v2.12.1 installieren.
+Direkt über v2.12.2 installieren.
 
 Noch nicht Git speichern, erst testen.

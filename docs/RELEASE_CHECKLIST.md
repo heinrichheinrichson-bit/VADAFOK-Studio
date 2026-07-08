@@ -1,28 +1,32 @@
 # Release Checklist
 
-## v2.12.2 Testliste
+## v2.12.3 Testliste
 
-### Grundtest
+### Vorbereitung
 - [ ] Programm startet
-- [ ] Version zeigt 2.12.2
-- [ ] OBS Workflow Dashboard öffnet
+- [ ] Version zeigt 2.12.3
+- [ ] OBS verbinden
+- [ ] Overlay Health SCAN ausführen
+- [ ] Source Scene wählen, die vollständig grün/ready ist
+- [ ] SELECT MISSING klicken
 
-### Overlay Installer Prep
-- [ ] Overlay Installer Karte sichtbar
-- [ ] Source Scene Dropdown sichtbar
-- [ ] Source Scene kann gewählt werden
-- [ ] Nach Overlay Health SCAN werden Ziel-Szenen angezeigt
-- [ ] SELECT MISSING markiert Szenen mit fehlendem Overlay
-- [ ] CLEAR löscht Auswahl
-- [ ] Klick auf einzelne Szene toggelt Auswahl
-- [ ] INSTALL SELECTED zeigt Hinweis auf v2.12.3
+### Installer
+- [ ] INSTALL SELECTED klicken
+- [ ] Bestätigungsdialog erscheint
+- [ ] Installation ausführen
+- [ ] Abschlussdialog erscheint
+- [ ] Workflow/Activity zeigt Overlay Install Einträge
+- [ ] Overlay Health wird danach aktualisiert
+- [ ] Mindestens eine Ziel-Szene wird ready/grün
+
+### Sicherheit
+- [ ] Keine Quellen wurden gelöscht
+- [ ] Bereits vorhandene Quellen wurden nicht doppelt angelegt
+- [ ] Live Card funktioniert in neu installierter Szene
 
 ### Regression
-- [ ] Connect funktioniert
-- [ ] Disconnect funktioniert
-- [ ] Reconnect funktioniert
-- [ ] Scene Favorites funktionieren
 - [ ] Scene Switch funktioniert
+- [ ] Scene Favorites funktionieren
 - [ ] Source SHOW/HIDE funktioniert ohne Flackern
-- [ ] Overlay Health SCAN funktioniert
+- [ ] Connect / Disconnect / Reconnect funktioniert
 - [ ] Live Card SHOW/HIDE funktioniert

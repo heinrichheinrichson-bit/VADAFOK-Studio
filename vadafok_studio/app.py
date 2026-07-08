@@ -33,7 +33,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.12.2")
+        self.wm_title("VADAFOK Studio 2.12.3")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -177,7 +177,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.12.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.12.3", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -5728,8 +5728,83 @@ class VadafokStudio(ctk.CTk):
         self.obs_workflow_mark_command("Overlay Installer selection cleared")
         self.show_obs_workflow_page()
 
-    def obs_workflow_overlay_installer_placeholder(self):
-        messagebox.showinfo("Overlay Installer", "Install Selected kommt in v2.12.3. Diese Version bereitet Auswahl und Workflow vor.")
+    def obs_workflow_overlay_installer_install_selected(self):
+        if not self.ensure_obs_ready():
+            return
+
+        source_scene = str(getattr(self.obs_workflow_state, "overlay_installer_source_scene", "") or "").strip()
+        targets = list(getattr(self.obs_workflow_state, "overlay_installer_selected_scenes", []) or [])
+        required = self.obs_workflow_required_overlay_sources()
+
+        if not source_scene or source_scene == "No scenes loaded":
+            messagebox.showinfo("Overlay Installer", "Bitte zuerst eine Source Scene wählen.")
+            return
+
+        if not targets:
+            messagebox.showinfo("Overlay Installer", "Bitte zuerst Ziel-Szenen auswählen.")
+            return
+
+        if not required:
+            messagebox.showinfo("Overlay Installer", "Keine VADAFOK Overlay-Quellen konfiguriert.")
+            return
+
+        confirm = messagebox.askyesno(
+            "Overlay Installer",
+            f"Overlay aus '{source_scene}' in {len(targets)} Szene(n) installieren?\n\nEs werden nur fehlende Quellen ergänzt. Bestehende Quellen werden nicht gelöscht oder überschrieben."
+        )
+        if not confirm:
+            return
+
+        successes = 0
+        total_installed = 0
+        total_errors = 0
+        summaries = []
+
+        for target in targets:
+            try:
+                result = self.obs.install_overlay_sources(source_scene, target, required)
+                installed = result.get("installed", [])
+                errors = result.get("errors", [])
+                skipped = result.get("skipped", [])
+
+                if installed or not errors:
+                    successes += 1
+                total_installed += len(installed)
+                total_errors += len(errors)
+
+                summary = f"{target}: +{len(installed)} installed, {len(skipped)} skipped, {len(errors)} error(s)"
+                summaries.append(summary)
+                self.obs_workflow_log(f"Overlay Install: {summary}")
+
+                if hasattr(self.obs_workflow_state, "add_event"):
+                    self.obs_workflow_state.add_event(f"Overlay Install: {summary}")
+
+            except Exception as e:
+                total_errors += 1
+                summaries.append(f"{target}: ERROR {e}")
+                self.obs_workflow_log(f"Overlay Install ERROR [{target}]: {e}")
+
+        self.obs_workflow_mark_command(
+            f"Overlay Install: {successes}/{len(targets)} scene(s), {total_installed} source(s), {total_errors} error(s)"
+        )
+
+        # Rescan to update dashboard.
+        try:
+            self.obs_workflow_scan_overlay_health(silent=True)
+        except Exception as e:
+            self.obs_workflow_log(f"Overlay Health rescan after install failed: {e}")
+
+        details = "\n".join(summaries[:12])
+        if len(summaries) > 12:
+            details += f"\n... and {len(summaries) - 12} more"
+
+        messagebox.showinfo(
+            "Overlay Installer",
+            f"Install abgeschlossen.\n\nSzenen: {successes}/{len(targets)}\nQuellen installiert: {total_installed}\nFehler: {total_errors}\n\n{details}"
+        )
+
+        self.show_obs_workflow_page()
+
 
     def show_obs_workflow_page(self):
         self.set_active("OBS Workflow")
@@ -5847,7 +5922,7 @@ class VadafokStudio(ctk.CTk):
         btn_row.grid(row=1, column=3, sticky="e", padx=18, pady=(0, 8))
         ctk.CTkButton(btn_row, text="SELECT MISSING", fg_color="#333333", hover_color="#444444", command=self.obs_workflow_overlay_installer_select_missing).pack(side="left", padx=4)
         ctk.CTkButton(btn_row, text="CLEAR", fg_color="#333333", hover_color="#444444", command=self.obs_workflow_overlay_installer_clear_selection).pack(side="left", padx=4)
-        ctk.CTkButton(btn_row, text="INSTALL SELECTED", fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.obs_workflow_overlay_installer_placeholder).pack(side="left", padx=4)
+        ctk.CTkButton(btn_row, text="INSTALL SELECTED", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.obs_workflow_overlay_installer_install_selected).pack(side="left", padx=4)
 
         target_area = ctk.CTkScrollableFrame(installer_box, fg_color="#0B0B0B", corner_radius=12, height=95)
         target_area.grid(row=2, column=0, columnspan=4, sticky="ew", padx=18, pady=(0, 14))

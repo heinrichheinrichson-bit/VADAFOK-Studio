@@ -1,15 +1,16 @@
 # CHANGELOG
 
-## v2.12.2 - Overlay Installer Preparation
+## v2.12.3 - Overlay Installer
 
 ### Added
-- Overlay Installer preparation card in OBS Workflow Dashboard.
-- Source Scene selector.
-- Target scene selection list based on Overlay Health results.
-- SELECT MISSING button.
-- CLEAR button.
-- INSTALL SELECTED placeholder for v2.12.3.
+- INSTALL SELECTED is now active.
+- Installer uses selected Source Scene as overlay template.
+- Installer adds only missing configured VADAFOK sources to selected target scenes.
+- Existing sources are not deleted, overwritten, or duplicated.
+- Per-scene install summary is written to the workflow log.
+- Overlay Health is rescanned after installation.
 
-### Notes
-- This version does not install or modify OBS scenes yet.
-- It prepares the workflow and selection state for the real installer.
+### Safety
+- Confirmation dialog before modifying OBS scenes.
+- Scene-by-scene error handling.
+- Only configured VADAFOK overlay source names are installed.

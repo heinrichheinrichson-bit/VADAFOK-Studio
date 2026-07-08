@@ -1,18 +1,18 @@
 # VADAFOK Studio – Roadmap
 
-Aktueller Teststand: **v2.12.2**
+Aktueller Teststand: **v2.12.3**
 
 ## In Test
-### v2.12.2 – Overlay Installer Preparation
-- Source Scene auswählen
-- fehlende Szenen auswählen
-- Installationsworkflow vorbereiten
+### v2.12.3 – Overlay Installer
+- Overlay aus Source Scene in Ziel-Szenen installieren
+- nur fehlende Quellen ergänzen
+- Health Rescan nach Installation
 
 ## Nächste Schritte
-### v2.12.3 – Overlay Installer
-- Overlay von Source Scene in Ziel-Szenen installieren
-- Fix Selected
-
-### v2.12.4 – Installer Safety
+### v2.12.4 – Installer Safety / Polish
 - Preview
-- Undo / restore plan
+- bessere Erfolgsliste
+- Undo-Idee prüfen
+
+### v2.13 – Silent Director
+- Szene + Banner + Source Aktionen kombinieren
