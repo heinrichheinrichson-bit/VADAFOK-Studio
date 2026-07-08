@@ -1,16 +1,12 @@
 # CHANGELOG
 
-## v2.12.3 - Overlay Installer
+## v2.13.0.1 - Silent Director RUN Fix
 
-### Added
-- INSTALL SELECTED is now active.
-- Installer uses selected Source Scene as overlay template.
-- Installer adds only missing configured VADAFOK sources to selected target scenes.
-- Existing sources are not deleted, overwritten, or duplicated.
-- Per-scene install summary is written to the workflow log.
-- Overlay Health is rescanned after installation.
+### Fixed
+- RUN / RUN PRESET no longer accesses destroyed Live Card text widgets.
+- Empty presets now show a clear info message instead of appearing to do nothing.
+- Scene switching from Silent Director uses the OBS controller directly.
 
 ### Safety
-- Confirmation dialog before modifying OBS scenes.
-- Scene-by-scene error handling.
-- Only configured VADAFOK overlay source names are installed.
+- Banner execution from Silent Director is temporarily queued/logged only.
+- Engine-level banner execution returns in v2.13.1 with a proper Preset Editor path.

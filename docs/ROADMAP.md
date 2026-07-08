@@ -1,18 +1,24 @@
 # VADAFOK Studio – Roadmap
 
-Aktueller Teststand: **v2.12.3**
+Aktueller Teststand: **v2.13.0**
 
 ## In Test
-### v2.12.3 – Overlay Installer
-- Overlay aus Source Scene in Ziel-Szenen installieren
-- nur fehlende Quellen ergänzen
-- Health Rescan nach Installation
+### v2.13.0 – Silent Director Foundation
+- Preset-Seite
+- gespeicherte Director Presets
+- RUN Preset Foundation
 
 ## Nächste Schritte
-### v2.12.4 – Installer Safety / Polish
-- Preview
-- bessere Erfolgsliste
-- Undo-Idee prüfen
+### v2.13.1 – Preset Editor
+- Szene im Preset auswählen
+- Banner Text bearbeiten
+- Show Banner Toggle
+- Save Preset
 
-### v2.13 – Silent Director
-- Szene + Banner + Source Aktionen kombinieren
+### v2.13.2 – Source Steps
+- Sources im Preset hinzufügen
+- Show/Hide Source Steps
+
+### v2.13.3 – Timers
+- Delay/Auto-Hide
+- einfache Sequenzen

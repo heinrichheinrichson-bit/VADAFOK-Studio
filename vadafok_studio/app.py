@@ -20,6 +20,7 @@ from .core import batch_engine
 from .core import text_library_engine
 from .core import obs_workflow
 from .core import scene_favorites
+from .core import silent_director
 from .core.banner_profiles import load_banner_profiles, save_banner_profiles, ensure_profile, has_profile, profile_count, reset_profile_style
 
 GOLD = "#D6A43A"
@@ -33,7 +34,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.12.3")
+        self.wm_title("VADAFOK Studio 2.13.0.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -104,6 +105,9 @@ class VadafokStudio(ctk.CTk):
         self.obs = OBSController()
         self.obs_workflow_state = obs_workflow.OBSWorkflowState()
         self.scene_favorites = scene_favorites.load_favorites()
+        self.silent_director_presets = silent_director.load_presets()
+        self.silent_director_selected = ctk.StringVar(value=self.silent_director_presets[0]['name'] if self.silent_director_presets else '')
+        self.silent_director_new_name = ctk.StringVar(value='')
         self.hide_timer = None
         self.quick_window = None
         self.thumbnail_refs = []
@@ -177,7 +181,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.12.3", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.13.0.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -189,6 +193,7 @@ class VadafokStudio(ctk.CTk):
             ("Quick Cards", self.show_quick_cards),
             ("OBS Connection", self.show_obs_page),
             ("OBS Workflow", self.show_obs_workflow_page),
+            ("Silent Director", self.show_silent_director_page),
             ("Settings", self.show_settings_page),
         ]
         for name, cmd in pages:
@@ -5806,6 +5811,222 @@ class VadafokStudio(ctk.CTk):
         self.show_obs_workflow_page()
 
 
+
+    def silent_director_reload(self):
+        try:
+            self.silent_director_presets = silent_director.load_presets()
+        except Exception:
+            self.silent_director_presets = []
+        if self.silent_director_presets and (not self.silent_director_selected.get()):
+            self.silent_director_selected.set(self.silent_director_presets[0]["name"])
+        return self.silent_director_presets
+
+    def silent_director_get_selected_preset(self):
+        name = self.silent_director_selected.get()
+        for preset in self.silent_director_presets:
+            if preset.get("name") == name:
+                return preset
+        return self.silent_director_presets[0] if self.silent_director_presets else None
+
+    def silent_director_create_preset(self):
+        name = self.silent_director_new_name.get().strip()
+        if not name:
+            messagebox.showinfo("Silent Director", "Please enter a preset name.")
+            return
+        scene = getattr(self.obs_workflow_state, "current_scene", "") if hasattr(self, "obs_workflow_state") else ""
+        self.silent_director_presets = silent_director.add_preset(name, scene=scene, banner_text="", show_banner=False)
+        self.silent_director_selected.set(name)
+        self.silent_director_new_name.set("")
+        self.show_silent_director_page()
+
+    def silent_director_delete_selected(self):
+        preset = self.silent_director_get_selected_preset()
+        if not preset:
+            return
+        name = preset.get("name", "")
+        if not messagebox.askyesno("Silent Director", f"Delete preset '{name}'?"):
+            return
+        self.silent_director_presets = silent_director.delete_preset(name)
+        self.silent_director_selected.set(self.silent_director_presets[0]["name"] if self.silent_director_presets else "")
+        self.show_silent_director_page()
+
+    def silent_director_run_preset(self, preset=None):
+        if preset is None:
+            preset = self.silent_director_get_selected_preset()
+        if not preset:
+            messagebox.showinfo("Silent Director", "No preset selected.")
+            return
+
+        name = preset.get("name", "Untitled")
+        scene = str(preset.get("scene", "") or "").strip()
+        banner_text = str(preset.get("banner_text", "") or "").strip()
+        show_banner = bool(preset.get("show_banner", False))
+        show_sources = list(preset.get("show_sources", []) or [])
+        hide_sources = list(preset.get("hide_sources", []) or [])
+
+        has_action = bool(scene or show_sources or hide_sources or (show_banner and banner_text))
+        if not has_action:
+            messagebox.showinfo(
+                "Silent Director",
+                f"Preset '{name}' enthält noch keine ausführbaren Aktionen.\n\nDer Preset Editor kommt in v2.13.1."
+            )
+            return
+
+        if not self.ensure_obs_ready():
+            return
+
+        try:
+            actions_done = []
+
+            if scene:
+                # Direct OBS switch, without relying on destroyed page widgets.
+                self.obs.switch_scene(scene)
+                self.obs_workflow_state.current_scene = scene
+                self.obs_workflow_state.last_scene_switch = scene
+                try:
+                    self.obs_workflow_state.last_scene_switch_time = self.obs_workflow_state.now()
+                except Exception:
+                    self.obs_workflow_state.last_scene_switch_time = ""
+                actions_done.append(f"Scene -> {scene}")
+
+            for source_name in show_sources:
+                try:
+                    self.obs_workflow_set_source_visibility(source_name, True)
+                    actions_done.append(f"SHOW Source -> {source_name}")
+                except Exception as e:
+                    self.obs_workflow_log(f"Silent Director source show error [{source_name}]: {e}")
+
+            for source_name in hide_sources:
+                try:
+                    self.obs_workflow_set_source_visibility(source_name, False)
+                    actions_done.append(f"HIDE Source -> {source_name}")
+                except Exception as e:
+                    self.obs_workflow_log(f"Silent Director source hide error [{source_name}]: {e}")
+
+            # Banner execution is intentionally disabled in 2.13.0.1 to avoid
+            # coupling the Director to Live Card page widgets. It returns in
+            # v2.13.1 through a proper engine-level path.
+            if show_banner and banner_text:
+                self.obs_workflow_log(f"Silent Director banner queued for future engine path: {banner_text}")
+                actions_done.append("Banner queued (engine path in v2.13.1)")
+
+            if hasattr(self.obs_workflow_state, "add_event"):
+                self.obs_workflow_state.add_event(f"Silent Director: {name}")
+            self.obs_workflow_mark_command(f"Silent Director: {name}")
+
+            detail = "\\n".join(actions_done) if actions_done else "No action executed."
+            messagebox.showinfo("Silent Director", f"Preset '{name}' executed.\\n\\n{detail}")
+
+            # Reopen dashboard if a scene changed, so status cards update cleanly.
+            if scene:
+                self.obs_workflow_refresh(silent=True)
+                self.show_obs_workflow_page()
+
+        except Exception as e:
+            self.obs_workflow_log(f"SILENT DIRECTOR ERROR: {e}")
+            messagebox.showerror("Silent Director", str(e))
+
+
+    def show_silent_director_page(self):
+        self.set_active("Silent Director")
+        self.clear_main()
+        self.page_title("Silent Director")
+
+        self.silent_director_reload()
+
+        outer = ctk.CTkFrame(self.main, fg_color=DARK)
+        outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
+        outer.grid_columnconfigure(0, weight=2)
+        outer.grid_columnconfigure(1, weight=3)
+        outer.grid_rowconfigure(0, weight=1)
+
+        left = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
+        left.grid_columnconfigure(0, weight=1)
+        left.grid_rowconfigure(2, weight=1)
+
+        ctk.CTkLabel(left, text="Director Presets", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+
+        create = ctk.CTkFrame(left, fg_color="#0B0B0B", corner_radius=12)
+        create.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 10))
+        create.grid_columnconfigure(0, weight=1)
+        ctk.CTkEntry(create, textvariable=self.silent_director_new_name, placeholder_text="New preset name").grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        ctk.CTkButton(create, text="ADD", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.silent_director_create_preset).grid(row=0, column=1, padx=(0, 10), pady=10)
+
+        preset_list = ctk.CTkScrollableFrame(left, fg_color="#0B0B0B", corner_radius=12)
+        preset_list.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
+        preset_list.grid_columnconfigure(0, weight=1)
+
+        if not self.silent_director_presets:
+            ctk.CTkLabel(preset_list, text="No presets yet.", text_color="#777777").grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        else:
+            for idx, preset in enumerate(self.silent_director_presets):
+                name = preset.get("name", "Untitled")
+                selected = name == self.silent_director_selected.get()
+                row = ctk.CTkFrame(preset_list, fg_color="#171717" if selected else "transparent", corner_radius=8)
+                row.grid(row=idx, column=0, padx=6, pady=4, sticky="ew")
+                row.grid_columnconfigure(0, weight=1)
+                ctk.CTkButton(
+                    row,
+                    text=name,
+                    anchor="w",
+                    fg_color="transparent",
+                    hover_color="#2C2C2C",
+                    text_color=GOLD if selected else TEXT,
+                    command=lambda n=name: (self.silent_director_selected.set(n), self.show_silent_director_page())
+                ).grid(row=0, column=0, sticky="ew", padx=6, pady=6)
+                ctk.CTkButton(
+                    row,
+                    text="RUN",
+                    width=64,
+                    fg_color=GOLD,
+                    text_color="#111111",
+                    hover_color=GOLD_DARK,
+                    command=lambda p=preset: self.silent_director_run_preset(p)
+                ).grid(row=0, column=1, padx=(4, 8), pady=6)
+
+        right = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
+        right.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
+        right.grid_columnconfigure(0, weight=1)
+
+        preset = self.silent_director_get_selected_preset()
+        if not preset:
+            ctk.CTkLabel(right, text="No preset selected.", text_color="#777777").grid(row=0, column=0, padx=18, pady=18, sticky="w")
+            return
+
+        ctk.CTkLabel(right, text=preset.get("name", "Untitled"), text_color=GOLD, font=ctk.CTkFont(size=22, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+
+        details = ctk.CTkFrame(right, fg_color="#0B0B0B", corner_radius=12)
+        details.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 12))
+        details.grid_columnconfigure(1, weight=1)
+
+        rows = [
+            ("Scene", preset.get("scene") or "No scene set"),
+            ("Banner Text", preset.get("banner_text") or "No banner text"),
+            ("Show Banner", "Yes" if preset.get("show_banner") else "No"),
+            ("Show Sources", ", ".join(preset.get("show_sources", [])) or "-"),
+            ("Hide Sources", ", ".join(preset.get("hide_sources", [])) or "-"),
+        ]
+
+        for i, (label, value) in enumerate(rows):
+            ctk.CTkLabel(details, text=label, text_color="#888888").grid(row=i, column=0, padx=12, pady=6, sticky="w")
+            ctk.CTkLabel(details, text=value, text_color=TEXT, wraplength=650, justify="left").grid(row=i, column=1, padx=12, pady=6, sticky="w")
+
+        actions = ctk.CTkFrame(right, fg_color="transparent")
+        actions.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 18))
+        ctk.CTkButton(actions, text="RUN PRESET", height=46, fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=lambda: self.silent_director_run_preset()).pack(side="left", padx=4)
+        ctk.CTkButton(actions, text="DELETE", height=46, fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.silent_director_delete_selected).pack(side="left", padx=4)
+
+        help_box = ctk.CTkFrame(right, fg_color="#0B0B0B", corner_radius=12)
+        help_box.grid(row=3, column=0, sticky="ew", padx=18, pady=(0, 18))
+        ctk.CTkLabel(
+            help_box,
+            text="v2.13.0.1 Foundation Fix: RUN is safe from every page. Presets without actions show a hint. Visual editing and engine-level banner execution come in v2.13.1.",
+            text_color="#888888",
+            justify="left",
+            wraplength=760
+        ).pack(anchor="w", padx=12, pady=12)
+
     def show_obs_workflow_page(self):
         self.set_active("OBS Workflow")
         self.clear_main()
@@ -5857,6 +6078,7 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkButton(buttons, text="RECONNECT", fg_color="#333333", hover_color="#444444", command=self.obs_workflow_connect).pack(side="left", padx=4)
         ctk.CTkButton(buttons, text="DISCONNECT", fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.obs_workflow_disconnect).pack(side="left", padx=4)
         ctk.CTkButton(buttons, text="REFRESH", fg_color="#333333", hover_color="#444444", command=self.obs_workflow_refresh).pack(side="left", padx=4)
+        ctk.CTkButton(buttons, text="DIRECTOR", fg_color="#333333", hover_color="#444444", command=self.show_silent_director_page).pack(side="left", padx=4)
 
         fav_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         fav_box.grid(row=1, column=0, sticky="ew", padx=(0, 7), pady=(0, 14))

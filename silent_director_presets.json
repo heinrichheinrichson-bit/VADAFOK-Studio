@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Gameplay",
+    "scene": "",
+    "banner_text": "Back to the adventure.",
+    "show_banner": false,
+    "show_sources": [],
+    "hide_sources": []
+  },
+  {
+    "name": "Pause",
+    "scene": "",
+    "banner_text": "One moment, please...",
+    "show_banner": true,
+    "show_sources": [],
+    "hide_sources": []
+  },
+  {
+    "name": "Boss Fight",
+    "scene": "",
+    "banner_text": "This could get ugly...",
+    "show_banner": true,
+    "show_sources": [],
+    "hide_sources": []
+  }
+]

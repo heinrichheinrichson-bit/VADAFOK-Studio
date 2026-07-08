@@ -1,6 +1,6 @@
 # Known Issues
 
-## v2.12.3
-- Installer depends on OBS websocket support for creating scene items.
-- Position/transform of copied scene items is not yet matched to the source scene.
-- Undo is not implemented yet.
+## v2.13.0.1
+- Silent Director banner execution is intentionally disabled until v2.13.1.
+- Presets are not fully editable in the UI yet.
+- Timers and sounds are not implemented yet.

@@ -1,14 +1,12 @@
-# VADAFOK Studio 2.12.3
+# VADAFOK Studio 2.13.0.1
 
-## Neu
+## Fix
 
-Overlay Installer.
+Silent Director RUN Fix.
 
-- INSTALL SELECTED ist aktiv
-- nutzt Source Scene als Vorlage
-- ergänzt fehlende VADAFOK Quellen in Ziel-Szenen
-- löscht/überschreibt nichts
-- Health Scan nach Installation
+- RUN greift nicht mehr auf zerstörte Live-Card-Textboxen zu.
+- Leere Presets zeigen einen Hinweis.
+- `invalid command name` sollte behoben sein.
 
 ## Test
 
@@ -16,6 +14,6 @@ Siehe `docs/RELEASE_CHECKLIST.md`.
 
 ## Installation
 
-Direkt über v2.12.2 installieren.
+Direkt über v2.13.0 installieren.
 
 Noch nicht Git speichern, erst testen.
