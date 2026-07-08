@@ -1,17 +1,21 @@
-# VADAFOK Studio 2.12.0
+# VADAFOK Studio 2.12.1
 
 ## Neu
 
-OBS Workflow Dashboard.
+Quick Scene Controls.
 
-- Statuskarten
-- große Favoritenbuttons
-- kompakter Overlay Health Status
-- Current Scene Control
-- Recent Activity
+- Last Switch Karte
+- größere Quick-Favorite-Buttons
+- LIVE Scene Markierung
+- Current Scene Control verbessert
+- Recent Activity besser lesbar
+
+## Test
+
+Siehe `docs/RELEASE_CHECKLIST.md`.
 
 ## Installation
 
-Direkt über v2.11.5 installieren.
+Direkt über v2.12.0 installieren.
 
 Noch nicht Git speichern, erst testen.

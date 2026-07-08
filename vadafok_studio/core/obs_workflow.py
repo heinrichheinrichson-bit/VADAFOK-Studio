@@ -13,6 +13,8 @@ class OBSWorkflowState:
         self.last_command_time: str = ""
         self.last_banner_text: str = ""
         self.last_banner_action: str = ""
+        self.last_scene_switch: str = ""
+        self.last_scene_switch_time: str = ""
         self.banner_count: int = 0
         self.scenes: List[str] = []
         self.current_scene: str = ""
@@ -70,6 +72,8 @@ class OBSWorkflowState:
             "last_command_time": self.last_command_time,
             "last_banner_text": self.last_banner_text,
             "last_banner_action": self.last_banner_action,
+            "last_scene_switch": self.last_scene_switch,
+            "last_scene_switch_time": self.last_scene_switch_time,
             "banner_count": self.banner_count,
             "scenes": list(self.scenes),
             "current_scene": self.current_scene,

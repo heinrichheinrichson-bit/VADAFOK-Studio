@@ -1,14 +1,23 @@
 # CHANGELOG
 
-## v2.12.0 - OBS Workflow Dashboard
+## v2.12.1 - Quick Scene Controls
 
 ### Added
-- New dashboard-style OBS Workflow layout.
-- Top status cards.
-- Quick Scene Favorites as large buttons.
-- Compact Overlay Health summary.
-- Current Scene Control panel.
-- Recent Activity feed.
+- Last Switch dashboard card.
+- Last Scene Switch line in Current Scene Control.
+- Last scene switch is stored in OBS workflow state.
 
 ### Improved
-- OBS Workflow now feels more like a live control dashboard.
+- Quick Scene Favorite buttons are larger and more dashboard-like.
+- Current scene is highlighted as `LIVE`.
+- Current Scene Control is more prominent.
+- Recent Activity uses compact labels:
+  - OBS
+  - SCENE
+  - CARD
+  - SOURCE
+  - HEALTH
+
+### Notes
+- OBS logic is unchanged.
+- This is a dashboard/control polish version.

@@ -33,7 +33,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.12.0")
+        self.wm_title("VADAFOK Studio 2.12.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -177,7 +177,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.12.0", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.12.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -5390,6 +5390,11 @@ class VadafokStudio(ctk.CTk):
         try:
             self.obs.switch_scene(scene_name)
             self.obs_workflow_state.current_scene = scene_name
+            self.obs_workflow_state.last_scene_switch = scene_name
+            try:
+                self.obs_workflow_state.last_scene_switch_time = self.obs_workflow_state.now()
+            except Exception:
+                self.obs_workflow_state.last_scene_switch_time = ""
             if hasattr(self.obs_workflow_state, "add_event"):
                 self.obs_workflow_state.add_event(f"Scene switched: {scene_name}")
             self.obs_workflow_mark_command(f"Scene switched: {scene_name}")
@@ -5661,6 +5666,26 @@ class VadafokStudio(ctk.CTk):
         return cleaned[-8:]
 
 
+
+    def obs_workflow_format_activity(self, text):
+        text = str(text or "").strip()
+        icon = "•"
+        label = text
+
+        lower = text.lower()
+        if "scene switched" in lower:
+            icon = "SCENE"
+        elif "show live card" in lower or "hide live card" in lower:
+            icon = "CARD"
+        elif "show source" in lower or "hide source" in lower:
+            icon = "SOURCE"
+        elif "connected" in lower or "disconnect" in lower:
+            icon = "OBS"
+        elif "overlay" in lower:
+            icon = "HEALTH"
+
+        return f"{icon}  {label}"
+
     def show_obs_workflow_page(self):
         self.set_active("OBS Workflow")
         self.clear_main()
@@ -5696,7 +5721,7 @@ class VadafokStudio(ctk.CTk):
             ("OBS", "CONNECTED" if connected else "DISCONNECTED", "#8FE6A0" if connected else "#F08A8A"),
             ("Current Scene", current_scene, GOLD),
             ("Connected Since", getattr(state, "connected_since", "") or "-", "#BCA870"),
-            ("Banner Commands", str(getattr(state, "banner_count", 0)), "#BCA870"),
+            ("Last Switch", (getattr(state, "last_scene_switch", "") or "-") + (f"  {getattr(state, 'last_scene_switch_time', '')}" if getattr(state, "last_scene_switch_time", "") else ""), "#BCA870"),
         ]
 
         for col, (title, value, color) in enumerate(cards):
@@ -5724,7 +5749,7 @@ class VadafokStudio(ctk.CTk):
         else:
             for fav_scene in self.scene_favorites:
                 ctk.CTkButton(
-                    fav_area, text=fav_scene, height=42,
+                    fav_area, text=f"SCENE  {fav_scene}", height=54, width=170,
                     fg_color=GOLD if fav_scene == current_scene else "#171717",
                     text_color="#111111" if fav_scene == current_scene else "#D9C58C",
                     hover_color=GOLD_DARK,
@@ -5759,7 +5784,7 @@ class VadafokStudio(ctk.CTk):
             row_frame = ctk.CTkFrame(scenes_list, fg_color="#171717" if is_current else "transparent", corner_radius=8)
             row_frame.grid(row=idx, column=0, padx=6, pady=3, sticky="ew")
             row_frame.grid_columnconfigure(0, weight=1)
-            label = ctk.CTkLabel(row_frame, text=(f"▶ {scene_text}" if is_current else scene_text), text_color=GOLD if is_current else TEXT, anchor="w")
+            label = ctk.CTkLabel(row_frame, text=(f"● LIVE  {scene_text}" if is_current else scene_text), text_color="#8FE6A0" if is_current else TEXT, anchor="w")
             label.grid(row=0, column=0, padx=10, pady=6, sticky="ew")
             if not is_placeholder:
                 label.bind("<Double-Button-1>", lambda _e, s=scene_text: self.obs_workflow_switch_scene(s))
@@ -5784,8 +5809,12 @@ class VadafokStudio(ctk.CTk):
         summary = ctk.CTkFrame(right_box, fg_color="#0B0B0B", corner_radius=12)
         summary.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 10))
         summary.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(summary, text=current_scene, text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold"), anchor="w").grid(row=0, column=0, padx=12, pady=(10, 2), sticky="ew")
-        ctk.CTkLabel(summary, text=scene_health_text, text_color=scene_health_color, anchor="w").grid(row=1, column=0, padx=12, pady=(0, 10), sticky="ew")
+        ctk.CTkLabel(summary, text=f"LIVE SCENE  {current_scene}", text_color="#8FE6A0", font=ctk.CTkFont(size=22, weight="bold"), anchor="w").grid(row=0, column=0, padx=12, pady=(10, 2), sticky="ew")
+        ctk.CTkLabel(summary, text=scene_health_text, text_color=scene_health_color, anchor="w").grid(row=1, column=0, padx=12, pady=(0, 2), sticky="ew")
+        last_switch_label = f"Last Scene Switch: {getattr(state, 'last_scene_switch', '-')}"
+        if getattr(state, "last_scene_switch_time", ""):
+            last_switch_label += f" at {state.last_scene_switch_time}"
+        ctk.CTkLabel(summary, text=last_switch_label, text_color="#888888", anchor="w").grid(row=2, column=0, padx=12, pady=(0, 10), sticky="ew")
 
         sources_list = ctk.CTkScrollableFrame(right_box, fg_color="#0B0B0B", corner_radius=12)
         sources_list.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
