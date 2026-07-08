@@ -22,5 +22,13 @@
     "show_banner": true,
     "show_sources": [],
     "hide_sources": []
+  },
+  {
+    "name": "new test 1",
+    "scene": "Cam - Normal",
+    "banner_text": "hallo test",
+    "show_banner": false,
+    "show_sources": [],
+    "hide_sources": []
   }
 ]

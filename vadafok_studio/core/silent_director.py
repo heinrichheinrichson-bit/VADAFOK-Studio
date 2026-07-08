@@ -90,3 +90,19 @@ def delete_preset(name: str) -> List[Dict[str, Any]]:
     presets = [p for p in load_presets() if p.get("name") != name]
     save_presets(presets)
     return presets
+
+
+def update_preset(old_name: str, updated: Dict[str, Any]) -> List[Dict[str, Any]]:
+    presets = load_presets()
+    old_name = str(old_name or "").strip()
+    normalized = normalize_preset(updated)
+    replaced = False
+    for idx, preset in enumerate(presets):
+        if preset.get("name") == old_name:
+            presets[idx] = normalized
+            replaced = True
+            break
+    if not replaced:
+        presets.append(normalized)
+    save_presets(presets)
+    return presets

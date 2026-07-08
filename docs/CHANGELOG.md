@@ -1,12 +1,16 @@
 # CHANGELOG
 
-## v2.13.0.1 - Silent Director RUN Fix
+## v2.13.1 - Silent Director Preset Editor
 
-### Fixed
-- RUN / RUN PRESET no longer accesses destroyed Live Card text widgets.
-- Empty presets now show a clear info message instead of appearing to do nothing.
-- Scene switching from Silent Director uses the OBS controller directly.
+### Added
+- Preset Editor UI.
+- Edit preset name.
+- Scene dropdown from OBS scene cache.
+- Banner Text editor.
+- Show Banner checkbox.
+- SAVE button writes to `silent_director_presets.json`.
+- RUN PRESET uses saved scene/banner values.
 
-### Safety
-- Banner execution from Silent Director is temporarily queued/logged only.
-- Engine-level banner execution returns in v2.13.1 with a proper Preset Editor path.
+### Notes
+- Source step editing comes in v2.13.2.
+- Timers and sounds are not implemented yet.
