@@ -34,7 +34,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.13.2")
+        self.wm_title("VADAFOK Studio 2.13.3")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -115,6 +115,11 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_action_scene = ctk.StringVar(value='')
         self.silent_director_action_source = ctk.StringVar(value='')
         self.silent_director_action_text = ctk.StringVar(value='')
+        self.director_status_var = ctk.StringVar(value="READY")
+        self.director_current_action_var = ctk.StringVar(value="-")
+        self.director_progress_var = ctk.StringVar(value="0 / 0")
+        self.director_stop_requested = False
+        self.director_log_entries = []
         self.hide_timer = None
         self.quick_window = None
         self.thumbnail_refs = []
@@ -188,7 +193,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.13.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.13.3", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -952,6 +957,10 @@ class VadafokStudio(ctk.CTk):
         self.editor_drag_mode = None
         self.editor_drag_start = None
         self.editor_drag_original = None
+
+    def show_live_card_page(self):
+        """Compatibility alias used by Silent Director."""
+        return self.show_live_card()
 
     def show_live_card(self):
         self.set_active("Live Card")
@@ -5857,6 +5866,59 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_selected.set(self.silent_director_presets[0]["name"] if self.silent_director_presets else "")
         self.show_silent_director_page()
 
+
+    def director_log_add(self, message):
+        try:
+            stamp = datetime.datetime.now().strftime("%H:%M:%S")
+        except Exception:
+            stamp = ""
+        entry = f"{stamp}  {message}" if stamp else str(message)
+        if not hasattr(self, "director_log_entries"):
+            self.director_log_entries = []
+        self.director_log_entries.append(entry)
+        self.director_log_entries = self.director_log_entries[-200:]
+        try:
+            self.obs_workflow_log(f"Director: {message}")
+        except Exception:
+            pass
+
+    def director_set_status(self, status, current="-", progress=""):
+        try:
+            self.director_status_var.set(status)
+        except Exception:
+            pass
+        try:
+            self.director_current_action_var.set(current or "-")
+        except Exception:
+            pass
+        if progress:
+            try:
+                self.director_progress_var.set(progress)
+            except Exception:
+                pass
+        try:
+            self.update_idletasks()
+        except Exception:
+            pass
+
+    def director_request_stop(self):
+        self.director_stop_requested = True
+        self.director_set_status("STOPPING", "Stop requested", self.director_progress_var.get())
+        self.director_log_add("STOP requested")
+
+    def director_action_label(self, action):
+        action_type = action.get("type", "")
+        if action_type == "switch_scene":
+            return f"Switch Scene -> {action.get('scene', '')}"
+        if action_type == "show_banner":
+            return f"Show Banner -> {action.get('text', '')}"
+        if action_type == "show_source":
+            return f"Show Source -> {action.get('source', '')}"
+        if action_type == "hide_source":
+            return f"Hide Source -> {action.get('source', '')}"
+        return str(action_type or "Action")
+
+
     def silent_director_run_preset(self, preset=None):
         if preset is None:
             preset = self.silent_director_get_selected_preset()
@@ -5867,7 +5929,6 @@ class VadafokStudio(ctk.CTk):
         name = preset.get("name", "Untitled")
         actions = list(preset.get("actions", []) or [])
 
-        # Legacy fallback for older/simple presets.
         if not actions:
             scene = str(preset.get("scene", "") or "").strip()
             banner_text = str(preset.get("banner_text", "") or "").strip()
@@ -5885,20 +5946,33 @@ class VadafokStudio(ctk.CTk):
                 actions.append({"type": "hide_source", "scene": "", "text": "", "source": source})
 
         if not actions:
-            messagebox.showinfo(
-                "Silent Director",
-                f"Preset '{name}' enthält noch keine ausführbaren Aktionen."
-            )
+            self.director_set_status("READY", "No actions", "0 / 0")
+            messagebox.showinfo("Silent Director", f"Preset '{name}' enthält noch keine ausführbaren Aktionen.")
             return
 
         if not self.ensure_obs_ready():
+            self.director_set_status("ERROR", "OBS not connected", "0 / 0")
             return
+
+        self.director_stop_requested = False
+        total = len(actions)
+        self.director_set_status("RUNNING", f"Preset: {name}", f"0 / {total}")
+        self.director_log_add(f"RUN Preset '{name}' started ({total} action(s))")
 
         try:
             actions_done = []
 
-            for action in actions:
+            for idx, action in enumerate(actions, start=1):
+                if self.director_stop_requested:
+                    self.director_set_status("STOPPED", "Stopped by user", f"{idx-1} / {total}")
+                    self.director_log_add("STOPPED by user")
+                    self.show_silent_director_page()
+                    return
+
                 action_type = action.get("type", "")
+                label = self.director_action_label(action)
+                self.director_set_status("RUNNING", label, f"{idx} / {total}")
+                self.director_log_add(f"{idx}/{total} {label}")
 
                 if action_type == "switch_scene":
                     scene = str(action.get("scene", "")).strip()
@@ -5928,6 +6002,7 @@ class VadafokStudio(ctk.CTk):
                             actions_done.append(f"Banner -> {text}")
                         except Exception as e:
                             self.obs_workflow_log(f"Silent Director banner error: {e}")
+                            self.director_log_add(f"ERROR banner: {e}")
 
                 elif action_type == "show_source":
                     source = str(action.get("source", "")).strip()
@@ -5944,16 +6019,21 @@ class VadafokStudio(ctk.CTk):
             if hasattr(self.obs_workflow_state, "add_event"):
                 self.obs_workflow_state.add_event(f"Silent Director: {name}")
             self.obs_workflow_mark_command(f"Silent Director: {name}")
-
-            detail = "\n".join(actions_done) if actions_done else "No action executed."
-            messagebox.showinfo("Silent Director", f"Preset '{name}' executed.\n\n{detail}")
+            self.director_set_status("FINISHED", "Finished", f"{total} / {total}")
+            self.director_log_add(f"FINISHED Preset '{name}'")
 
             try:
                 self.obs_workflow_refresh(silent=True)
             except Exception:
                 pass
+            try:
+                self.show_silent_director_page()
+            except Exception:
+                pass
 
         except Exception as e:
+            self.director_set_status("ERROR", str(e), self.director_progress_var.get())
+            self.director_log_add(f"ERROR {e}")
             self.obs_workflow_log(f"SILENT DIRECTOR ERROR: {e}")
             messagebox.showerror("Silent Director", str(e))
 
@@ -6104,7 +6184,7 @@ class VadafokStudio(ctk.CTk):
         right = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         right.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
         right.grid_columnconfigure(0, weight=1)
-        right.grid_rowconfigure(1, weight=1)
+        right.grid_rowconfigure(2, weight=1)
 
         preset = self.silent_director_get_selected_preset()
         if not preset:
@@ -6115,8 +6195,23 @@ class VadafokStudio(ctk.CTk):
 
         ctk.CTkLabel(right, text="Action Editor", text_color=GOLD, font=ctk.CTkFont(size=22, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
 
+        monitor = ctk.CTkFrame(right, fg_color="#0B0B0B", corner_radius=12)
+        monitor.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 12))
+        monitor.grid_columnconfigure(1, weight=1)
+
+        status = self.director_status_var.get() if hasattr(self, "director_status_var") else "READY"
+        status_color = "#8FE6A0" if status in ("READY", "FINISHED") else ("#F0C06A" if status in ("RUNNING", "WAITING", "STOPPING") else ("#F08A8A" if status == "ERROR" else "#888888"))
+
+        ctk.CTkLabel(monitor, text="Director Monitor", text_color=GOLD, font=ctk.CTkFont(size=16, weight="bold")).grid(row=0, column=0, columnspan=2, padx=12, pady=(10, 4), sticky="w")
+        ctk.CTkLabel(monitor, text="Status", text_color="#888888").grid(row=1, column=0, padx=12, pady=3, sticky="w")
+        ctk.CTkLabel(monitor, textvariable=self.director_status_var, text_color=status_color, font=ctk.CTkFont(size=14, weight="bold")).grid(row=1, column=1, padx=12, pady=3, sticky="w")
+        ctk.CTkLabel(monitor, text="Current Action", text_color="#888888").grid(row=2, column=0, padx=12, pady=3, sticky="w")
+        ctk.CTkLabel(monitor, textvariable=self.director_current_action_var, text_color=TEXT, wraplength=650, justify="left").grid(row=2, column=1, padx=12, pady=3, sticky="w")
+        ctk.CTkLabel(monitor, text="Progress", text_color="#888888").grid(row=3, column=0, padx=12, pady=(3, 10), sticky="w")
+        ctk.CTkLabel(monitor, textvariable=self.director_progress_var, text_color="#BCA870").grid(row=3, column=1, padx=12, pady=(3, 10), sticky="w")
+
         editor = ctk.CTkScrollableFrame(right, fg_color="#0B0B0B", corner_radius=12)
-        editor.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 12))
+        editor.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 12))
         editor.grid_columnconfigure(1, weight=1)
 
         ctk.CTkLabel(editor, text="Name", text_color="#888888").grid(row=0, column=0, padx=12, pady=(14, 6), sticky="w")
@@ -6190,10 +6285,19 @@ class VadafokStudio(ctk.CTk):
 
         ctk.CTkButton(add_box, text="+ ADD ACTION", height=42, fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.silent_director_add_action).grid(row=5, column=1, padx=12, pady=(8, 14), sticky="e")
 
+        
+        log_box = ctk.CTkFrame(right, fg_color="#0B0B0B", corner_radius=12)
+        log_box.grid(row=3, column=0, sticky="ew", padx=18, pady=(0, 12))
+        log_box.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(log_box, text="Director Log", text_color=GOLD, font=ctk.CTkFont(size=16, weight="bold")).grid(row=0, column=0, padx=12, pady=(10, 4), sticky="w")
+        log_text = "\n".join(getattr(self, "director_log_entries", [])[-8:]) or "No Director run yet."
+        ctk.CTkLabel(log_box, text=log_text, text_color="#888888", justify="left", anchor="w", wraplength=760).grid(row=1, column=0, padx=12, pady=(0, 12), sticky="ew")
+
         actions_bar = ctk.CTkFrame(right, fg_color="transparent")
-        actions_bar.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 18))
+        actions_bar.grid(row=4, column=0, sticky="ew", padx=18, pady=(0, 18))
         ctk.CTkButton(actions_bar, text="SAVE", height=46, fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.silent_director_save_selected).pack(side="left", padx=4)
         ctk.CTkButton(actions_bar, text="RUN PRESET", height=46, fg_color="#333333", hover_color="#444444", command=lambda: self.silent_director_run_preset()).pack(side="left", padx=4)
+        ctk.CTkButton(actions_bar, text="STOP PRESET", height=46, fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.director_request_stop).pack(side="left", padx=4)
         ctk.CTkButton(actions_bar, text="DELETE", height=46, fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.silent_director_delete_selected).pack(side="left", padx=4)
 
 
@@ -6465,18 +6569,7 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkLabel(self.quick_window, text="Quick Caption", font=ctk.CTkFont(size=20, weight="bold"), text_color=GOLD).pack(anchor="w", padx=16, pady=(14, 4))
         entry = ctk.CTkTextbox(self.quick_window, height=70, font=ctk.CTkFont(size=18), fg_color="#050505", border_color=GOLD_DARK, border_width=1)
         entry.pack(fill="both", expand=True, padx=16, pady=8)
-        def _focus():
-            try:
-                self.quick_window.lift()
-                self.quick_window.focus_force()
-                entry.focus_force()
-                entry.focus_set()
-                entry.mark_set("insert","end")
-            except Exception:
-                pass
-        self.quick_window.after(50,_focus)
-        self.quick_window.after(150,_focus)
-        self.quick_window.after(300,_focus)
+        entry.focus_set()
         def send(_event=None):
             text = entry.get("1.0", "end").strip()
             if text:

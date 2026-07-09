@@ -1,19 +1,12 @@
 # CHANGELOG
 
-## v2.13.2 - Silent Director Action Editor
+## v2.13.3 - Silent Director Professional
 
-### Added
-- Action list per Silent Director preset.
-- Add Action panel.
-- Action types:
-  - switch_scene
-  - show_banner
-  - show_source
-  - hide_source
-- Delete action.
-- RUN PRESET executes actions from top to bottom.
-- Old presets are automatically migrated to the new `actions` structure.
+- Added Director Monitor with status.
+- Added Current Action display.
+- Added Progress display.
+- Added Director Log with timestamps.
+- Added STOP PRESET button.
+- Log limited to latest 200 entries.
 
-### Notes
-- Reordering actions comes later.
-- Timers, delays, and sounds are not implemented yet.
+No F8, OBS, Caption Engine, Banner Engine, or Live Card behavior changes.

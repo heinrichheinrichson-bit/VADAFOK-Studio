@@ -1,12 +1,25 @@
 [
   {
     "name": "Gameplay",
-    "scene": "",
+    "scene": "VADAFOK Test",
     "banner_text": "Back to the adventure.",
     "show_banner": false,
     "show_sources": [],
     "hide_sources": [],
-    "actions": []
+    "actions": [
+      {
+        "type": "switch_scene",
+        "scene": "VADAFOK Test",
+        "text": "",
+        "source": ""
+      },
+      {
+        "type": "show_banner",
+        "scene": "",
+        "text": "fuck you",
+        "source": ""
+      }
+    ]
   },
   {
     "name": "Pause",
