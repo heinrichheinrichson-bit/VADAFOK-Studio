@@ -6465,7 +6465,18 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkLabel(self.quick_window, text="Quick Caption", font=ctk.CTkFont(size=20, weight="bold"), text_color=GOLD).pack(anchor="w", padx=16, pady=(14, 4))
         entry = ctk.CTkTextbox(self.quick_window, height=70, font=ctk.CTkFont(size=18), fg_color="#050505", border_color=GOLD_DARK, border_width=1)
         entry.pack(fill="both", expand=True, padx=16, pady=8)
-        entry.focus_set()
+        def _focus():
+            try:
+                self.quick_window.lift()
+                self.quick_window.focus_force()
+                entry.focus_force()
+                entry.focus_set()
+                entry.mark_set("insert","end")
+            except Exception:
+                pass
+        self.quick_window.after(50,_focus)
+        self.quick_window.after(150,_focus)
+        self.quick_window.after(300,_focus)
         def send(_event=None):
             text = entry.get("1.0", "end").strip()
             if text:
