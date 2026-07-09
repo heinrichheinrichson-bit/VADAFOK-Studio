@@ -1,14 +1,13 @@
 # Release Checklist
 
-## v2.13.6 Testliste
+## v2.13.7.1 Testliste
 
-- [ ] Version zeigt 2.13.6
+- [ ] Version zeigt 2.13.7.1
 - [ ] F8 funktioniert weiterhin
 - [ ] Silent Director öffnet
-- [ ] Director Monitor sichtbar
-- [ ] Progressbar sichtbar
 - [ ] RUN PRESET funktioniert weiterhin
 - [ ] Banner + Text erscheinen weiterhin
-- [ ] Director Log schreibt Einträge
-- [ ] STOP Button sichtbar
-- [ ] OBS Workflow / Scene Switch kurz prüfen
+- [ ] UI bleibt im Silent Director
+- [ ] Kein Wechsel zu Live Card
+- [ ] Kein komplettes Wegblinken nach Ablauf
+- [ ] Director Log / Progress aktualisieren sich

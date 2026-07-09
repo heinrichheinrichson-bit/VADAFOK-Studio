@@ -34,7 +34,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.13.6")
+        self.wm_title("VADAFOK Studio 2.13.7.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -121,6 +121,7 @@ class VadafokStudio(ctk.CTk):
         self.director_progress_percent_var = ctk.DoubleVar(value=0.0)
         self.director_stop_requested = False
         self.director_log_entries = []
+        self.director_log_text_var = ctk.StringVar(value="No Director run yet.")
         self.hide_timer = None
         self.quick_window = None
         self.thumbnail_refs = []
@@ -194,7 +195,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.13.6", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.13.7.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -5879,6 +5880,11 @@ class VadafokStudio(ctk.CTk):
         self.director_log_entries.append(entry)
         self.director_log_entries = self.director_log_entries[-200:]
         try:
+            if hasattr(self, "director_log_text_var"):
+                self.director_log_text_var.set("\n".join(self.director_log_entries[-10:]) or "No Director run yet.")
+        except Exception:
+            pass
+        try:
             self.obs_workflow_log(f"Director: {message}")
         except Exception:
             pass
@@ -5924,6 +5930,77 @@ class VadafokStudio(ctk.CTk):
             return f"Hide Source -> {action.get('source', '')}"
         return str(action_type or "Action")
 
+
+
+    def silent_director_show_banner_direct(self, text):
+        """Show a banner from Silent Director without switching to the Live Card page."""
+        if not self.ensure_obs_ready():
+            return False
+
+        text = str(text or "").strip()
+        if not text:
+            return False
+
+        try:
+            scene = self.current_scene()
+            selected_banner_path = self.config_data.get("selected_banner_path", "")
+
+            if self.caption_engine.get() == "smart_png":
+                png = self.render_smart_caption(text)
+                self.obs.set_image_file(self.caption_render_source.get().strip(), png)
+
+                try:
+                    self.obs.enable_source(scene, self.caption_text.get().strip(), False)
+                except Exception:
+                    pass
+                try:
+                    self.obs.enable_source(scene, self.caption_render_source.get().strip(), True)
+                except Exception:
+                    pass
+            else:
+                if selected_banner_path:
+                    self.obs.set_image_file(self.caption_banner_source.get().strip(), selected_banner_path)
+
+                self.obs.set_text(self.caption_text.get().strip(), text)
+
+                try:
+                    self.obs.enable_source(scene, self.caption_render_source.get().strip(), False)
+                except Exception:
+                    pass
+                try:
+                    self.obs.enable_source(scene, self.caption_text.get().strip(), True)
+                except Exception:
+                    pass
+
+            try:
+                self.obs.enable_source(scene, self.caption_group.get().strip(), True)
+            except Exception:
+                pass
+
+            if self.hide_timer:
+                self.hide_timer.cancel()
+            seconds = max(1, int(self.duration.get()))
+            self.hide_timer = threading.Timer(seconds, lambda: self.after(0, self.hide_card))
+            self.hide_timer.daemon = True
+            self.hide_timer.start()
+
+            try:
+                self.obs_workflow_banner_action("SHOW Director Banner", text)
+            except Exception:
+                pass
+
+            return True
+
+        except Exception as e:
+            try:
+                self.obs_workflow_log(f"Silent Director direct banner error: {e}")
+            except Exception:
+                pass
+            try:
+                self.director_log_add(f"ERROR banner direct: {e}")
+            except Exception:
+                pass
+            return False
 
     def silent_director_run_preset(self, preset=None):
         if preset is None:
@@ -5972,7 +6049,6 @@ class VadafokStudio(ctk.CTk):
                 if self.director_stop_requested:
                     self.director_set_status("STOPPED", "Stopped by user", f"{idx-1} / {total}")
                     self.director_log_add("STOPPED by user")
-                    self.show_silent_director_page()
                     return
 
                 action_type = action.get("type", "")
@@ -5996,16 +6072,11 @@ class VadafokStudio(ctk.CTk):
                     text = str(action.get("text", "")).strip()
                     if text:
                         try:
-                            self.show_live_card_page()
-                            if hasattr(self, "message_box"):
-                                self.message_box.delete("1.0", "end")
-                                self.message_box.insert("1.0", text)
-                            try:
-                                self.update_preview()
-                            except Exception:
-                                pass
-                            self.show_card()
-                            actions_done.append(f"Banner -> {text}")
+                            ok = self.silent_director_show_banner_direct(text)
+                            if ok:
+                                actions_done.append(f"Banner -> {text}")
+                            else:
+                                actions_done.append(f"Banner failed -> {text}")
                         except Exception as e:
                             self.obs_workflow_log(f"Silent Director banner error: {e}")
                             self.director_log_add(f"ERROR banner: {e}")
@@ -6032,10 +6103,7 @@ class VadafokStudio(ctk.CTk):
                 self.obs_workflow_refresh(silent=True)
             except Exception:
                 pass
-            try:
-                self.show_silent_director_page()
-            except Exception:
-                pass
+            # No full page redraw here; textvariables update the monitor live.
 
         except Exception as e:
             self.director_set_status("ERROR", str(e), self.director_progress_var.get())
@@ -6301,8 +6369,11 @@ class VadafokStudio(ctk.CTk):
         log_box.grid(row=3, column=0, sticky="ew", padx=18, pady=(0, 12))
         log_box.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(log_box, text="Director Log", text_color=GOLD, font=ctk.CTkFont(size=16, weight="bold")).grid(row=0, column=0, padx=12, pady=(10, 4), sticky="w")
-        log_text = "\n".join(getattr(self, "director_log_entries", [])[-10:]) or "No Director run yet."
-        ctk.CTkLabel(log_box, text=log_text, text_color="#888888", justify="left", anchor="w", wraplength=760).grid(row=1, column=0, padx=12, pady=(0, 12), sticky="ew")
+        try:
+            self.director_log_text_var.set("\n".join(getattr(self, "director_log_entries", [])[-10:]) or "No Director run yet.")
+        except Exception:
+            pass
+        ctk.CTkLabel(log_box, textvariable=self.director_log_text_var, text_color="#888888", justify="left", anchor="w", wraplength=760).grid(row=1, column=0, padx=12, pady=(0, 12), sticky="ew")
 
         actions_bar = ctk.CTkFrame(right, fg_color="transparent")
         actions_bar.grid(row=4, column=0, sticky="ew", padx=18, pady=(0, 18))

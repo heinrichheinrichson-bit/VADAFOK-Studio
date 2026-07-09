@@ -1,16 +1,10 @@
-# VADAFOK Studio 2.13.6
+# VADAFOK Studio 2.13.7.1
 
-Silent Director Polish.
+Director Stay On Page.
 
-Basis: v2.13.5
+Fix:
+- RUN PRESET bleibt im Silent Director.
+- show_banner springt nicht mehr zur Live Card Seite.
+- Banner + Text werden weiter an OBS gesendet.
 
-Verbessert:
-- visuelle Progressbar
-- Director Log
-- STOP Button
-
-Nicht geändert:
-- F8
-- OBS
-- Banner
-- Caption Engine
+Basis: v2.13.7
