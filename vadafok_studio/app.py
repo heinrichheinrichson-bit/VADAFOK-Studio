@@ -34,7 +34,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.13.5")
+        self.wm_title("VADAFOK Studio 2.13.6")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -118,6 +118,7 @@ class VadafokStudio(ctk.CTk):
         self.director_status_var = ctk.StringVar(value="READY")
         self.director_current_action_var = ctk.StringVar(value="-")
         self.director_progress_var = ctk.StringVar(value="0 / 0")
+        self.director_progress_percent_var = ctk.DoubleVar(value=0.0)
         self.director_stop_requested = False
         self.director_log_entries = []
         self.hide_timer = None
@@ -193,7 +194,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.13.5", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.13.6", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -5896,6 +5897,11 @@ class VadafokStudio(ctk.CTk):
                 self.director_progress_var.set(progress)
             except Exception:
                 pass
+            try:
+                done, total = [float(x.strip()) for x in str(progress).split("/")]
+                self.director_progress_percent_var.set(0.0 if total <= 0 else max(0.0, min(1.0, done / total)))
+            except Exception:
+                pass
         try:
             self.update_idletasks()
         except Exception:
@@ -6209,6 +6215,11 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkLabel(monitor, textvariable=self.director_current_action_var, text_color=TEXT, wraplength=650, justify="left").grid(row=2, column=1, padx=12, pady=3, sticky="w")
         ctk.CTkLabel(monitor, text="Progress", text_color="#888888").grid(row=3, column=0, padx=12, pady=(3, 10), sticky="w")
         ctk.CTkLabel(monitor, textvariable=self.director_progress_var, text_color="#BCA870").grid(row=3, column=1, padx=12, pady=(3, 10), sticky="w")
+        try:
+            progress_bar = ctk.CTkProgressBar(monitor, variable=self.director_progress_percent_var, height=12)
+            progress_bar.grid(row=4, column=0, columnspan=2, sticky="ew", padx=12, pady=(0, 12))
+        except Exception:
+            pass
 
         editor = ctk.CTkScrollableFrame(right, fg_color="#0B0B0B", corner_radius=12)
         editor.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 12))
@@ -6290,14 +6301,14 @@ class VadafokStudio(ctk.CTk):
         log_box.grid(row=3, column=0, sticky="ew", padx=18, pady=(0, 12))
         log_box.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(log_box, text="Director Log", text_color=GOLD, font=ctk.CTkFont(size=16, weight="bold")).grid(row=0, column=0, padx=12, pady=(10, 4), sticky="w")
-        log_text = "\n".join(getattr(self, "director_log_entries", [])[-8:]) or "No Director run yet."
+        log_text = "\n".join(getattr(self, "director_log_entries", [])[-10:]) or "No Director run yet."
         ctk.CTkLabel(log_box, text=log_text, text_color="#888888", justify="left", anchor="w", wraplength=760).grid(row=1, column=0, padx=12, pady=(0, 12), sticky="ew")
 
         actions_bar = ctk.CTkFrame(right, fg_color="transparent")
         actions_bar.grid(row=4, column=0, sticky="ew", padx=18, pady=(0, 18))
         ctk.CTkButton(actions_bar, text="SAVE", height=46, fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.silent_director_save_selected).pack(side="left", padx=4)
         ctk.CTkButton(actions_bar, text="RUN PRESET", height=46, fg_color="#333333", hover_color="#444444", command=lambda: self.silent_director_run_preset()).pack(side="left", padx=4)
-        ctk.CTkButton(actions_bar, text="STOP PRESET", height=46, fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.director_request_stop).pack(side="left", padx=4)
+        ctk.CTkButton(actions_bar, text="STOP", height=46, fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.director_request_stop).pack(side="left", padx=4)
         ctk.CTkButton(actions_bar, text="DELETE", height=46, fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.silent_director_delete_selected).pack(side="left", padx=4)
 
 

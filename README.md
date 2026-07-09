@@ -1,11 +1,16 @@
-# VADAFOK Studio 2.13.5
+# VADAFOK Studio 2.13.6
 
-Merge Stable Director + F8 Fix.
+Silent Director Polish.
 
-Basis:
-- v2.13.3 RUN PRESET funktioniert
+Basis: v2.13.5
 
-Übernommen:
-- v2.13.4 F8 Autofocus
+Verbessert:
+- visuelle Progressbar
+- Director Log
+- STOP Button
 
-Keine weiteren Änderungen.
+Nicht geändert:
+- F8
+- OBS
+- Banner
+- Caption Engine
