@@ -1,17 +1,12 @@
 # Release Checklist
 
-## v2.13.3 Testliste
+## v2.13.5 Testliste
 
-- [ ] Programm startet
-- [ ] Version zeigt 2.13.3
-- [ ] Silent Director öffnet
-- [ ] Director Monitor sichtbar
-- [ ] RUN PRESET aktualisiert Status
-- [ ] Current Action wird angezeigt
-- [ ] Progress zeigt z. B. 1 / 3
-- [ ] Director Log schreibt Einträge
-- [ ] STOP PRESET Button vorhanden
-- [ ] F8 funktioniert weiterhin
-- [ ] OBS Workflow öffnet
-- [ ] Scene Switch funktioniert weiterhin
-- [ ] Live Card funktioniert weiterhin
+- [ ] Version zeigt 2.13.5
+- [ ] F8 drücken
+- [ ] Nicht klicken
+- [ ] Sofort tippen
+- [ ] ENTER sendet wie in v2.13.4
+- [ ] RUN PRESET funktioniert wie in v2.13.3
+- [ ] Banner + Text erscheinen bei RUN PRESET
+- [ ] Director Log / Progress sichtbar

@@ -34,7 +34,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.13.3")
+        self.wm_title("VADAFOK Studio 2.13.5")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -193,7 +193,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.13.3", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.13.5", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -6559,28 +6559,100 @@ class VadafokStudio(ctk.CTk):
             self.update_render_preview()
 
     def open_quick_caption(self):
+        def focus_quick_caption():
+            try:
+                if self.quick_window and self.quick_window.winfo_exists():
+                    self.quick_window.lift()
+                    self.quick_window.focus_force()
+            except Exception:
+                pass
+            try:
+                if hasattr(self, "quick_caption_entry") and self.quick_caption_entry is not None:
+                    self.quick_caption_entry.focus_force()
+                    self.quick_caption_entry.focus_set()
+                    self.quick_caption_entry.mark_set("insert", "end")
+                    self.quick_caption_entry.see("end")
+            except Exception:
+                pass
+
         if self.quick_window and self.quick_window.winfo_exists():
-            self.quick_window.focus()
+            focus_quick_caption()
+            try:
+                self.quick_window.after(50, focus_quick_caption)
+                self.quick_window.after(150, focus_quick_caption)
+            except Exception:
+                pass
             return
+
         self.quick_window = ctk.CTkToplevel(self)
         self.quick_window.title("Quick Caption")
         self.quick_window.geometry("520x190")
         self.quick_window.attributes("-topmost", True)
-        ctk.CTkLabel(self.quick_window, text="Quick Caption", font=ctk.CTkFont(size=20, weight="bold"), text_color=GOLD).pack(anchor="w", padx=16, pady=(14, 4))
-        entry = ctk.CTkTextbox(self.quick_window, height=70, font=ctk.CTkFont(size=18), fg_color="#050505", border_color=GOLD_DARK, border_width=1)
+
+        ctk.CTkLabel(
+            self.quick_window,
+            text="Quick Caption",
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color=GOLD
+        ).pack(anchor="w", padx=16, pady=(14, 4))
+
+        entry = ctk.CTkTextbox(
+            self.quick_window,
+            height=70,
+            font=ctk.CTkFont(size=18),
+            fg_color="#050505",
+            border_color=GOLD_DARK,
+            border_width=1
+        )
         entry.pack(fill="both", expand=True, padx=16, pady=8)
-        entry.focus_set()
+
+        self.quick_caption_entry = entry
+
+        try:
+            self.quick_window.after_idle(focus_quick_caption)
+            self.quick_window.after(1, focus_quick_caption)
+            self.quick_window.after(50, focus_quick_caption)
+            self.quick_window.after(150, focus_quick_caption)
+            self.quick_window.after(300, focus_quick_caption)
+            self.after(350, focus_quick_caption)
+        except Exception:
+            pass
+
         def send(_event=None):
             text = entry.get("1.0", "end").strip()
             if text:
-                self.quick_window.destroy()
+                try:
+                    self.quick_window.destroy()
+                except Exception:
+                    pass
                 self.quick_window = None
+                self.quick_caption_entry = None
+
                 self.show_live_card()
                 self.set_message(text)
                 self.show_card()
             return "break"
+
+        def close_window():
+            try:
+                self.quick_caption_entry = None
+                self.quick_window.destroy()
+            except Exception:
+                pass
+            self.quick_window = None
+
         entry.bind("<Return>", send)
-        ctk.CTkButton(self.quick_window, text="SHOW", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=send).pack(fill="x", padx=16, pady=(0, 14))
+        entry.bind("<Escape>", lambda _event=None: (close_window(), "break"))
+        self.quick_window.protocol("WM_DELETE_WINDOW", close_window)
+
+        ctk.CTkButton(
+            self.quick_window,
+            text="SHOW",
+            fg_color=GOLD,
+            text_color="#111111",
+            hover_color=GOLD_DARK,
+            command=send
+        ).pack(fill="x", padx=16, pady=(0, 14))
 
 
     def ensure_obs_ready(self):

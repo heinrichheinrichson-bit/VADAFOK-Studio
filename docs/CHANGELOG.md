@@ -1,12 +1,15 @@
 # CHANGELOG
 
-## v2.13.3 - Silent Director Professional
+## v2.13.5 - Merge Stable Director + F8 Fix
 
-- Added Director Monitor with status.
-- Added Current Action display.
-- Added Progress display.
-- Added Director Log with timestamps.
-- Added STOP PRESET button.
-- Log limited to latest 200 entries.
+### Merged
+- Base: v2.13.3 with working RUN PRESET.
+- Added: F8 autofocus fix from v2.13.4.
 
-No F8, OBS, Caption Engine, Banner Engine, or Live Card behavior changes.
+### Fixed
+- F8 Quick Caption focuses directly into the text field.
+
+### Preserved
+- RUN PRESET behavior from v2.13.3.
+- Director Log / Progress behavior from v2.13.3.
+- OBS / Banner / Caption Engine unchanged.
