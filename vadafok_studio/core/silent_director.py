@@ -50,6 +50,7 @@ def normalize_action(action: Dict[str, Any]) -> Dict[str, Any]:
         "scene": str(action.get("scene", "")).strip(),
         "text": str(action.get("text", "")).strip(),
         "source": str(action.get("source", "")).strip(),
+        "seconds": str(action.get("seconds", "")).strip(),
     }
 
 
@@ -190,6 +191,31 @@ def delete_action(preset_name: str, index: int) -> List[Dict[str, Any]]:
             actions = preset.setdefault("actions", [])
             if 0 <= index < len(actions):
                 del actions[index]
+            break
+    save_presets(presets)
+    return presets
+
+
+def update_action(preset_name: str, index: int, action: Dict[str, Any]) -> List[Dict[str, Any]]:
+    presets = load_presets()
+    for preset in presets:
+        if preset.get("name") == preset_name:
+            actions = preset.setdefault("actions", [])
+            if 0 <= index < len(actions):
+                actions[index] = normalize_action(action)
+            break
+    save_presets(presets)
+    return presets
+
+
+def move_action(preset_name: str, index: int, direction: int) -> List[Dict[str, Any]]:
+    presets = load_presets()
+    for preset in presets:
+        if preset.get("name") == preset_name:
+            actions = preset.setdefault("actions", [])
+            new_index = index + direction
+            if 0 <= index < len(actions) and 0 <= new_index < len(actions):
+                actions[index], actions[new_index] = actions[new_index], actions[index]
             break
     save_presets(presets)
     return presets

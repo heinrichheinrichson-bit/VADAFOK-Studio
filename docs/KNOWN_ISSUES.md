@@ -1,4 +1,5 @@
 # Known Issues
 
-## v2.13.8.2
-- Scene list/source list are not rebuilt after a switch; use REFRESH only when the underlying OBS scene structure changes.
+## v2.14.1.1
+- WAIT executes on the main UI thread while processing events in short intervals.
+- Very long waits are supported up to 300 seconds.

@@ -1,10 +1,10 @@
-# VADAFOK Studio 2.13.8.2
+# VADAFOK Studio 2.14.1.1
 
-OBS Workflow No Flicker.
+WAIT Runtime + Local Action Refresh.
 
-Fix:
-- Scene Switch aktualisiert nur Statusfelder.
-- Kein kompletter Neuaufbau der OBS-Workflow-Seite.
-- Favoriten-Markierung aktualisiert sich live.
-
-Basis: v2.13.7.1 / Commit 80a2f8a
+Neu:
+- WAIT wird wirklich ausgeführt
+- WAITING Status
+- Countdown
+- STOP während WAIT
+- kein kompletter Seiten-Refresh beim Bearbeiten/Verschieben/Löschen

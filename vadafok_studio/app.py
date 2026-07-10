@@ -1,3 +1,4 @@
+import time
 
 import os
 import tkinter as tk
@@ -34,7 +35,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.13.8.2")
+        self.wm_title("VADAFOK Studio 2.14.1.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -115,6 +116,10 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_action_scene = ctk.StringVar(value='')
         self.silent_director_action_source = ctk.StringVar(value='')
         self.silent_director_action_text = ctk.StringVar(value='')
+        self.silent_director_wait_seconds = ctk.StringVar(value="5")
+        self.silent_director_edit_index = None
+        self.silent_director_action_button_text = ctk.StringVar(value="+ ADD ACTION")
+        self.silent_director_dynamic_frames = {}
         self.director_status_var = ctk.StringVar(value="READY")
         self.director_current_action_var = ctk.StringVar(value="-")
         self.director_progress_var = ctk.StringVar(value="0 / 0")
@@ -198,7 +203,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.13.8.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.14.1.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -5969,6 +5974,8 @@ class VadafokStudio(ctk.CTk):
             return f"Show Source -> {action.get('source', '')}"
         if action_type == "hide_source":
             return f"Hide Source -> {action.get('source', '')}"
+        if action_type == "wait":
+            return f"WAIT -> {action.get('seconds', '5')} s"
         return str(action_type or "Action")
 
 
@@ -6122,6 +6129,51 @@ class VadafokStudio(ctk.CTk):
                             self.obs_workflow_log(f"Silent Director banner error: {e}")
                             self.director_log_add(f"ERROR banner: {e}")
 
+                elif action_type == "wait":
+                    raw_seconds = str(action.get("seconds", "5") or "5").strip().replace(",", ".")
+                    try:
+                        seconds = float(raw_seconds)
+                    except Exception:
+                        seconds = 5.0
+                    seconds = max(0.1, min(300.0, seconds))
+
+                    self.director_set_status(
+                        "WAITING",
+                        f"WAIT {seconds:g} s",
+                        f"{idx} / {total}"
+                    )
+                    self.director_log_add(f"WAIT {seconds:g} s")
+
+                    deadline = time.monotonic() + seconds
+                    while time.monotonic() < deadline:
+                        if self.director_stop_requested:
+                            self.director_set_status(
+                                "STOPPED",
+                                "Stopped during WAIT",
+                                f"{idx-1} / {total}"
+                            )
+                            self.director_log_add("STOPPED during WAIT")
+                            return
+
+                        remaining = max(0.0, deadline - time.monotonic())
+                        self.director_current_action_var.set(
+                            f"WAIT {remaining:.1f} s"
+                        )
+
+                        try:
+                            self.update()
+                        except Exception:
+                            pass
+                        time.sleep(0.05)
+
+                    self.director_log_add("WAIT finished")
+                    actions_done.append(f"WAIT -> {seconds:g} s")
+                    self.director_set_status(
+                        "RUNNING",
+                        label,
+                        f"{idx} / {total}"
+                    )
+
                 elif action_type == "show_source":
                     source = str(action.get("source", "")).strip()
                     if source:
@@ -6210,42 +6262,238 @@ class VadafokStudio(ctk.CTk):
                 values.append(name)
         return [""] + values
 
+    def silent_director_normalize_wait_seconds(self):
+        raw = str(self.silent_director_wait_seconds.get() or "").strip().replace(",", ".")
+        try:
+            value = float(raw)
+        except Exception:
+            value = 5.0
+        value = max(0.1, min(300.0, value))
+        if value.is_integer():
+            return str(int(value))
+        return f"{value:.2f}".rstrip("0").rstrip(".")
+
+    def silent_director_update_action_fields(self, *_args):
+        action_type = str(self.silent_director_action_type.get() or "").strip()
+        frames = getattr(self, "silent_director_dynamic_frames", {}) or {}
+        for frame in frames.values():
+            try:
+                frame.grid_remove()
+            except Exception:
+                pass
+
+        key = {
+            "switch_scene": "scene",
+            "show_banner": "banner",
+            "show_source": "source",
+            "hide_source": "source",
+            "wait": "wait",
+        }.get(action_type)
+
+        if key in frames:
+            try:
+                frames[key].grid()
+            except Exception:
+                pass
+
+    def silent_director_cancel_action_edit(self):
+        self.silent_director_edit_index = None
+        self.silent_director_action_button_text.set("+ ADD ACTION")
+        self.silent_director_action_type.set("switch_scene")
+        self.silent_director_action_scene.set("")
+        self.silent_director_action_source.set("")
+        self.silent_director_action_text.set("")
+        self.silent_director_wait_seconds.set("5")
+        self.silent_director_update_action_fields()
+
+    def silent_director_edit_action(self, index):
+        preset = self.silent_director_get_selected_preset()
+        if not preset:
+            return
+        actions = list(preset.get("actions", []) or [])
+        if not (0 <= index < len(actions)):
+            return
+
+        action = actions[index]
+        self.silent_director_edit_index = index
+        self.silent_director_action_button_text.set("UPDATE ACTION")
+        self.silent_director_action_type.set(str(action.get("type", "switch_scene")))
+        self.silent_director_action_scene.set(str(action.get("scene", "")))
+        self.silent_director_action_source.set(str(action.get("source", "")))
+        self.silent_director_action_text.set(str(action.get("text", "")))
+        self.silent_director_wait_seconds.set(str(action.get("seconds", "5") or "5"))
+        self.silent_director_update_action_fields()
+
+    def silent_director_move_action(self, index, direction):
+        preset = self.silent_director_get_selected_preset()
+        if not preset:
+            return
+        self.silent_director_presets = silent_director.move_action(
+            preset.get("name", ""), index, direction
+        )
+        self.silent_director_edit_index = None
+        self.silent_director_action_button_text.set("+ ADD ACTION")
+        self.obs_workflow_mark_command("Silent Director action moved")
+        self.silent_director_render_actions_list()
+
+    def silent_director_render_actions_list(self):
+        frame = getattr(self, "silent_director_actions_frame", None)
+        if frame is None:
+            return
+
+        for child in frame.winfo_children():
+            child.destroy()
+
+        preset = self.silent_director_get_selected_preset()
+        if not preset:
+            return
+
+        actions = list(preset.get("actions", []) or [])
+        if not actions:
+            ctk.CTkLabel(
+                frame,
+                text="No actions yet. Add one below.",
+                text_color="#777777"
+            ).grid(row=0, column=0, padx=12, pady=8, sticky="w")
+            return
+
+        for idx, action in enumerate(actions):
+            action_type = action.get("type", "")
+            if action_type == "switch_scene":
+                title = f"{idx+1}. SWITCH SCENE"
+                detail = action.get("scene", "")
+            elif action_type == "show_banner":
+                title = f"{idx+1}. SHOW BANNER"
+                detail = action.get("text", "")
+            elif action_type == "show_source":
+                title = f"{idx+1}. SHOW SOURCE"
+                detail = action.get("source", "")
+            elif action_type == "hide_source":
+                title = f"{idx+1}. HIDE SOURCE"
+                detail = action.get("source", "")
+            elif action_type == "wait":
+                title = f"{idx+1}. WAIT"
+                detail = f"{action.get('seconds', '5')} seconds"
+            else:
+                title = f"{idx+1}. {action_type}"
+                detail = ""
+
+            row = ctk.CTkFrame(frame, fg_color="#171717", corner_radius=10)
+            row.grid(row=idx, column=0, sticky="ew", padx=0, pady=5)
+            row.grid_columnconfigure(0, weight=1)
+
+            ctk.CTkButton(
+                row,
+                text=title,
+                anchor="w",
+                fg_color="transparent",
+                hover_color="#242424",
+                text_color=GOLD,
+                font=ctk.CTkFont(size=14, weight="bold"),
+                command=lambda i=idx: self.silent_director_edit_action(i)
+            ).grid(row=0, column=0, padx=8, pady=(6, 2), sticky="ew")
+
+            ctk.CTkLabel(
+                row,
+                text=detail or "-",
+                text_color=TEXT,
+                anchor="w",
+                wraplength=520
+            ).grid(row=1, column=0, padx=12, pady=(0, 8), sticky="ew")
+
+            controls = ctk.CTkFrame(row, fg_color="transparent")
+            controls.grid(row=0, column=1, rowspan=2, padx=8, pady=6)
+
+            ctk.CTkButton(
+                controls, text="EDIT", width=54,
+                fg_color="#333333", hover_color="#444444",
+                command=lambda i=idx: self.silent_director_edit_action(i)
+            ).grid(row=0, column=0, padx=2, pady=2)
+
+            ctk.CTkButton(
+                controls, text="▲", width=36,
+                fg_color="#333333", hover_color="#444444",
+                command=lambda i=idx: self.silent_director_move_action(i, -1)
+            ).grid(row=0, column=1, padx=2, pady=2)
+
+            ctk.CTkButton(
+                controls, text="▼", width=36,
+                fg_color="#333333", hover_color="#444444",
+                command=lambda i=idx: self.silent_director_move_action(i, 1)
+            ).grid(row=0, column=2, padx=2, pady=2)
+
+            ctk.CTkButton(
+                controls, text="DELETE", width=68,
+                fg_color="#5A1F1F", hover_color="#7A2A2A",
+                command=lambda i=idx: self.silent_director_delete_action(i)
+            ).grid(row=1, column=0, columnspan=3, padx=2, pady=2, sticky="ew")
+
     def silent_director_add_action(self):
         preset = self.silent_director_get_selected_preset()
         if not preset:
             return
 
         action_type = self.silent_director_action_type.get()
-        action = {"type": action_type, "scene": "", "text": "", "source": ""}
+        action = {
+            "type": action_type,
+            "scene": "",
+            "text": "",
+            "source": "",
+            "seconds": "",
+        }
 
         if action_type == "switch_scene":
             action["scene"] = self.silent_director_action_scene.get().strip()
             if not action["scene"]:
                 messagebox.showinfo("Silent Director", "Bitte eine Szene wählen.")
                 return
+
         elif action_type == "show_banner":
             action["text"] = self.silent_director_action_text.get().strip()
             if not action["text"]:
                 messagebox.showinfo("Silent Director", "Bitte einen Bannertext eingeben.")
                 return
+
         elif action_type in ("show_source", "hide_source"):
             action["source"] = self.silent_director_action_source.get().strip()
             if not action["source"]:
                 messagebox.showinfo("Silent Director", "Bitte eine Source wählen.")
                 return
 
-        self.silent_director_presets = silent_director.add_action(preset.get("name", ""), action)
+        elif action_type == "wait":
+            action["seconds"] = self.silent_director_normalize_wait_seconds()
+
+        if self.silent_director_edit_index is None:
+            self.silent_director_presets = silent_director.add_action(
+                preset.get("name", ""), action
+            )
+            command_text = f"Silent Director action added: {action_type}"
+        else:
+            self.silent_director_presets = silent_director.update_action(
+                preset.get("name", ""),
+                self.silent_director_edit_index,
+                action,
+            )
+            command_text = f"Silent Director action updated: {action_type}"
+
+        self.silent_director_edit_index = None
+        self.silent_director_action_button_text.set("+ ADD ACTION")
         self.silent_director_action_text.set("")
-        self.obs_workflow_mark_command(f"Silent Director action added: {action_type}")
-        self.show_silent_director_page()
+        self.silent_director_wait_seconds.set("5")
+        self.obs_workflow_mark_command(command_text)
+        self.silent_director_cancel_action_edit()
+        self.silent_director_render_actions_list()
+
 
     def silent_director_delete_action(self, index):
         preset = self.silent_director_get_selected_preset()
         if not preset:
             return
         self.silent_director_presets = silent_director.delete_action(preset.get("name", ""), index)
+        self.silent_director_edit_index = None
+        self.silent_director_action_button_text.set("+ ADD ACTION")
         self.obs_workflow_mark_command("Silent Director action deleted")
-        self.show_silent_director_page()
+        self.silent_director_render_actions_list()
 
     def show_silent_director_page(self):
         self.set_active("Silent Director")
@@ -6349,63 +6597,135 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkCheckBox(editor, text="Show legacy banner", variable=self.silent_director_editor_show_banner, fg_color=GOLD, hover_color=GOLD_DARK).grid(row=3, column=1, padx=12, pady=6, sticky="w")
 
         # Action list
-        ctk.CTkLabel(editor, text="Actions", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=4, column=0, columnspan=2, padx=12, pady=(18, 8), sticky="w")
+        ctk.CTkLabel(
+            editor,
+            text="Actions",
+            text_color=GOLD,
+            font=ctk.CTkFont(size=18, weight="bold")
+        ).grid(row=4, column=0, columnspan=2, padx=12, pady=(18, 8), sticky="w")
 
-        actions = list(preset.get("actions", []) or [])
-        if not actions:
-            ctk.CTkLabel(editor, text="No actions yet. Add one below.", text_color="#777777").grid(row=5, column=0, columnspan=2, padx=12, pady=6, sticky="w")
-            action_row_start = 6
-        else:
-            action_row_start = 5
-            for idx, action in enumerate(actions):
-                action_type = action.get("type", "")
-                if action_type == "switch_scene":
-                    title = f"{idx+1}. SWITCH SCENE"
-                    detail = action.get("scene", "")
-                elif action_type == "show_banner":
-                    title = f"{idx+1}. SHOW BANNER"
-                    detail = action.get("text", "")
-                elif action_type == "show_source":
-                    title = f"{idx+1}. SHOW SOURCE"
-                    detail = action.get("source", "")
-                elif action_type == "hide_source":
-                    title = f"{idx+1}. HIDE SOURCE"
-                    detail = action.get("source", "")
-                else:
-                    title = f"{idx+1}. {action_type}"
-                    detail = ""
+        self.silent_director_actions_frame = ctk.CTkFrame(
+            editor,
+            fg_color="transparent"
+        )
+        self.silent_director_actions_frame.grid(
+            row=5, column=0, columnspan=2,
+            sticky="ew", padx=12, pady=(0, 6)
+        )
+        self.silent_director_actions_frame.grid_columnconfigure(0, weight=1)
+        self.silent_director_render_actions_list()
 
-                row = ctk.CTkFrame(editor, fg_color="#171717", corner_radius=10)
-                row.grid(row=action_row_start + idx, column=0, columnspan=2, sticky="ew", padx=12, pady=5)
-                row.grid_columnconfigure(0, weight=1)
-                ctk.CTkLabel(row, text=title, text_color=GOLD, font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid(row=0, column=0, padx=12, pady=(8, 2), sticky="ew")
-                ctk.CTkLabel(row, text=detail or "-", text_color=TEXT, anchor="w", wraplength=620).grid(row=1, column=0, padx=12, pady=(0, 8), sticky="ew")
-                ctk.CTkButton(row, text="DELETE", width=72, fg_color="#5A1F1F", hover_color="#7A2A2A", command=lambda i=idx: self.silent_director_delete_action(i)).grid(row=0, column=1, rowspan=2, padx=10, pady=8)
+        action_row_start = 6
 
-            action_row_start += len(actions)
-
-        # Add action panel
+        # Add / Edit action panel
         add_box = ctk.CTkFrame(editor, fg_color="#111111", corner_radius=12)
         add_box.grid(row=action_row_start + 1, column=0, columnspan=2, sticky="ew", padx=12, pady=(16, 12))
         add_box.grid_columnconfigure(1, weight=1)
 
-        ctk.CTkLabel(add_box, text="Add Action", text_color=GOLD, font=ctk.CTkFont(size=16, weight="bold")).grid(row=0, column=0, columnspan=2, padx=12, pady=(12, 6), sticky="w")
+        ctk.CTkLabel(
+            add_box, text="Add / Edit Action", text_color=GOLD,
+            font=ctk.CTkFont(size=16, weight="bold")
+        ).grid(row=0, column=0, columnspan=2, padx=12, pady=(12, 6), sticky="w")
 
-        ctk.CTkLabel(add_box, text="Type", text_color="#888888").grid(row=1, column=0, padx=12, pady=6, sticky="w")
-        ctk.CTkOptionMenu(add_box, values=["switch_scene", "show_banner", "show_source", "hide_source"], variable=self.silent_director_action_type, fg_color="#333333", button_color="#444444", button_hover_color="#555555").grid(row=1, column=1, padx=12, pady=6, sticky="ew")
+        ctk.CTkLabel(add_box, text="Type", text_color="#888888").grid(
+            row=1, column=0, padx=12, pady=6, sticky="w"
+        )
 
-        ctk.CTkLabel(add_box, text="Scene", text_color="#888888").grid(row=2, column=0, padx=12, pady=6, sticky="w")
-        ctk.CTkOptionMenu(add_box, values=scene_values, variable=self.silent_director_action_scene, fg_color="#333333", button_color="#444444", button_hover_color="#555555").grid(row=2, column=1, padx=12, pady=6, sticky="ew")
+        ctk.CTkOptionMenu(
+            add_box,
+            values=["switch_scene", "show_banner", "show_source", "hide_source", "wait"],
+            variable=self.silent_director_action_type,
+            command=self.silent_director_update_action_fields,
+            fg_color="#333333",
+            button_color="#444444",
+            button_hover_color="#555555"
+        ).grid(row=1, column=1, padx=12, pady=6, sticky="ew")
 
-        ctk.CTkLabel(add_box, text="Source", text_color="#888888").grid(row=3, column=0, padx=12, pady=6, sticky="w")
-        ctk.CTkOptionMenu(add_box, values=self.silent_director_source_values(), variable=self.silent_director_action_source, fg_color="#333333", button_color="#444444", button_hover_color="#555555").grid(row=3, column=1, padx=12, pady=6, sticky="ew")
+        self.silent_director_dynamic_frames = {}
 
-        ctk.CTkLabel(add_box, text="Banner Text", text_color="#888888").grid(row=4, column=0, padx=12, pady=6, sticky="w")
-        ctk.CTkEntry(add_box, textvariable=self.silent_director_action_text, placeholder_text="Text for Show Banner action").grid(row=4, column=1, padx=12, pady=6, sticky="ew")
+        scene_frame = ctk.CTkFrame(add_box, fg_color="transparent")
+        scene_frame.grid(row=2, column=0, columnspan=2, sticky="ew")
+        scene_frame.grid_columnconfigure(1, weight=1)
+        ctk.CTkLabel(scene_frame, text="Scene", text_color="#888888").grid(
+            row=0, column=0, padx=12, pady=6, sticky="w"
+        )
+        ctk.CTkOptionMenu(
+            scene_frame,
+            values=scene_values,
+            variable=self.silent_director_action_scene,
+            fg_color="#333333",
+            button_color="#444444",
+            button_hover_color="#555555"
+        ).grid(row=0, column=1, padx=12, pady=6, sticky="ew")
+        self.silent_director_dynamic_frames["scene"] = scene_frame
 
-        ctk.CTkButton(add_box, text="+ ADD ACTION", height=42, fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.silent_director_add_action).grid(row=5, column=1, padx=12, pady=(8, 14), sticky="e")
+        source_frame = ctk.CTkFrame(add_box, fg_color="transparent")
+        source_frame.grid(row=2, column=0, columnspan=2, sticky="ew")
+        source_frame.grid_columnconfigure(1, weight=1)
+        ctk.CTkLabel(source_frame, text="Source", text_color="#888888").grid(
+            row=0, column=0, padx=12, pady=6, sticky="w"
+        )
+        ctk.CTkOptionMenu(
+            source_frame,
+            values=self.silent_director_source_values(),
+            variable=self.silent_director_action_source,
+            fg_color="#333333",
+            button_color="#444444",
+            button_hover_color="#555555"
+        ).grid(row=0, column=1, padx=12, pady=6, sticky="ew")
+        self.silent_director_dynamic_frames["source"] = source_frame
 
-        
+        banner_frame = ctk.CTkFrame(add_box, fg_color="transparent")
+        banner_frame.grid(row=2, column=0, columnspan=2, sticky="ew")
+        banner_frame.grid_columnconfigure(1, weight=1)
+        ctk.CTkLabel(banner_frame, text="Banner Text", text_color="#888888").grid(
+            row=0, column=0, padx=12, pady=6, sticky="w"
+        )
+        ctk.CTkEntry(
+            banner_frame,
+            textvariable=self.silent_director_action_text,
+            placeholder_text="Text for Show Banner action"
+        ).grid(row=0, column=1, padx=12, pady=6, sticky="ew")
+        self.silent_director_dynamic_frames["banner"] = banner_frame
+
+        wait_frame = ctk.CTkFrame(add_box, fg_color="transparent")
+        wait_frame.grid(row=2, column=0, columnspan=2, sticky="ew")
+        wait_frame.grid_columnconfigure(1, weight=1)
+        ctk.CTkLabel(wait_frame, text="Duration (Sekunden)", text_color="#888888").grid(
+            row=0, column=0, padx=12, pady=6, sticky="w"
+        )
+        ctk.CTkEntry(
+            wait_frame,
+            textvariable=self.silent_director_wait_seconds,
+            placeholder_text="5"
+        ).grid(row=0, column=1, padx=12, pady=6, sticky="ew")
+        self.silent_director_dynamic_frames["wait"] = wait_frame
+
+        button_row = ctk.CTkFrame(add_box, fg_color="transparent")
+        button_row.grid(row=3, column=0, columnspan=2, sticky="ew", padx=12, pady=(8, 14))
+        button_row.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkButton(
+            button_row,
+            textvariable=self.silent_director_action_button_text,
+            height=42,
+            fg_color=GOLD,
+            text_color="#111111",
+            hover_color=GOLD_DARK,
+            command=self.silent_director_add_action
+        ).grid(row=0, column=0, sticky="ew", padx=(0, 6))
+
+        ctk.CTkButton(
+            button_row,
+            text="CANCEL EDIT",
+            height=42,
+            fg_color="#333333",
+            hover_color="#444444",
+            command=self.silent_director_cancel_action_edit
+        ).grid(row=0, column=1, padx=(6, 0))
+
+        self.silent_director_update_action_fields()
+
         log_box = ctk.CTkFrame(right, fg_color="#0B0B0B", corner_radius=12)
         log_box.grid(row=3, column=0, sticky="ew", padx=18, pady=(0, 12))
         log_box.grid_columnconfigure(0, weight=1)

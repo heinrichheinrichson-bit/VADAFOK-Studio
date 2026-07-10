@@ -11,13 +11,22 @@
         "type": "switch_scene",
         "scene": "VADAFOK Test",
         "text": "",
-        "source": ""
+        "source": "",
+        "seconds": ""
+      },
+      {
+        "type": "wait",
+        "scene": "",
+        "text": "",
+        "source": "",
+        "seconds": "7"
       },
       {
         "type": "show_banner",
         "scene": "",
-        "text": "fuck you",
-        "source": ""
+        "text": "whats up !!!!!!!!!",
+        "source": "",
+        "seconds": ""
       }
     ]
   },
@@ -33,7 +42,8 @@
         "type": "show_banner",
         "scene": "",
         "text": "One moment, please...",
-        "source": ""
+        "source": "",
+        "seconds": ""
       }
     ]
   },
@@ -49,7 +59,8 @@
         "type": "show_banner",
         "scene": "",
         "text": "This could get ugly...",
-        "source": ""
+        "source": "",
+        "seconds": ""
       }
     ]
   },
@@ -65,25 +76,29 @@
         "type": "switch_scene",
         "scene": "Cam - Normal",
         "text": "",
-        "source": ""
+        "source": "",
+        "seconds": ""
       },
       {
         "type": "switch_scene",
         "scene": "Cam - Normal",
         "text": "",
-        "source": ""
+        "source": "",
+        "seconds": ""
       },
       {
         "type": "show_banner",
         "scene": "",
         "text": "test test test silent diector actions",
-        "source": ""
+        "source": "",
+        "seconds": ""
       },
       {
         "type": "hide_source",
         "scene": "",
         "text": "",
-        "source": "Theatre Red (Frame)"
+        "source": "Theatre Red (Frame)",
+        "seconds": ""
       }
     ]
   }
