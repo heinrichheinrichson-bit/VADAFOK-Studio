@@ -1,14 +1,17 @@
 # CHANGELOG
 
-## v2.13.7.1 - Director Stay On Page
+## v2.13.8.2 - OBS Workflow No Flicker
 
 ### Fixed
-- RUN PRESET no longer switches the UI to the Live Card module for show_banner.
-- Silent Director now sends banner text directly to OBS using the existing render/OBS pipeline.
-- Silent Director stays visible during and after preset execution.
+- Scene Switch no longer rebuilds the complete OBS Workflow page.
+- Current Scene card updates through a StringVar.
+- Last Switch card updates through a StringVar.
+- Favorite scene button highlighting updates without page reload.
+- OBS Workflow stays visible and stable during scene changes.
 
 ### Preserved
-- F8 behavior from v2.13.7.
-- RUN PRESET action behavior.
+- F8 behavior.
+- Silent Director RUN PRESET behavior.
 - Banner + Text output.
-- OBS / Caption Engine unchanged except direct use of existing methods.
+- Live Card behavior.
+- OBS / Caption Engine logic unchanged.

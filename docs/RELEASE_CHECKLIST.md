@@ -1,13 +1,19 @@
 # Release Checklist
 
-## v2.13.7.1 Testliste
+## v2.13.8.2 Testliste
 
-- [ ] Version zeigt 2.13.7.1
-- [ ] F8 funktioniert weiterhin
-- [ ] Silent Director öffnet
-- [ ] RUN PRESET funktioniert weiterhin
-- [ ] Banner + Text erscheinen weiterhin
-- [ ] UI bleibt im Silent Director
-- [ ] Kein Wechsel zu Live Card
-- [ ] Kein komplettes Wegblinken nach Ablauf
-- [ ] Director Log / Progress aktualisieren sich
+### OBS Workflow
+- [ ] Version zeigt 2.13.8.2
+- [ ] OBS Workflow öffnen
+- [ ] Mehrfach SWITCH bei verschiedenen Szenen drücken
+- [ ] Seite blinkt nicht komplett weg
+- [ ] Current Scene aktualisiert sich
+- [ ] Last Switch aktualisiert sich
+- [ ] Favoriten-Markierung aktualisiert sich
+
+### Regression
+- [ ] F8 funktioniert
+- [ ] Silent Director RUN PRESET funktioniert
+- [ ] Banner + Text erscheinen
+- [ ] Live Card funktioniert
+- [ ] Show/Hide Source funktioniert

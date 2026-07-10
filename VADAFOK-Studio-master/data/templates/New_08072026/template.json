@@ -1,0 +1,49 @@
+{
+  "name": "New 08.07.2026",
+  "background": "background.png",
+  "fields": [
+    {
+      "name": "date",
+      "x": 129,
+      "y": 917,
+      "width": 687,
+      "height": 106,
+      "font_family": "Bebas Neue",
+      "font_size": 110,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true,
+      "id": "d70e6bc0-fe2a-4128-a515-14adc9de74c7"
+    },
+    {
+      "name": "game",
+      "x": 127,
+      "y": 1391,
+      "width": 687,
+      "height": 106,
+      "font_family": "Bebas Neue",
+      "font_size": 110,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true,
+      "id": "47c54127-6ce1-441a-91e8-665e39c03b11"
+    },
+    {
+      "name": "time",
+      "x": 128,
+      "y": 1152,
+      "width": 687,
+      "height": 106,
+      "font_family": "Bebas Neue",
+      "font_size": 110,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true,
+      "id": "832be875-2cf4-46df-94af-1d5233846894"
+    }
+  ],
+  "groups": []
+}

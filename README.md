@@ -1,10 +1,10 @@
-# VADAFOK Studio 2.13.7.1
+# VADAFOK Studio 2.13.8.2
 
-Director Stay On Page.
+OBS Workflow No Flicker.
 
 Fix:
-- RUN PRESET bleibt im Silent Director.
-- show_banner springt nicht mehr zur Live Card Seite.
-- Banner + Text werden weiter an OBS gesendet.
+- Scene Switch aktualisiert nur Statusfelder.
+- Kein kompletter Neuaufbau der OBS-Workflow-Seite.
+- Favoriten-Markierung aktualisiert sich live.
 
-Basis: v2.13.7
+Basis: v2.13.7.1 / Commit 80a2f8a

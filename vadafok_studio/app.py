@@ -34,7 +34,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.13.7.1")
+        self.wm_title("VADAFOK Studio 2.13.8.2")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -122,6 +122,9 @@ class VadafokStudio(ctk.CTk):
         self.director_stop_requested = False
         self.director_log_entries = []
         self.director_log_text_var = ctk.StringVar(value="No Director run yet.")
+        self.obs_workflow_current_scene_var = ctk.StringVar(value="Unknown")
+        self.obs_workflow_last_switch_var = ctk.StringVar(value="-")
+        self.obs_workflow_favorite_buttons = {}
         self.hide_timer = None
         self.quick_window = None
         self.thumbnail_refs = []
@@ -195,7 +198,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.13.7.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.13.8.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -5402,6 +5405,42 @@ class VadafokStudio(ctk.CTk):
         self.obs_workflow_log(f"Scene favorite removed: {scene_name}")
         self.show_obs_workflow_page()
 
+    def obs_workflow_update_scene_ui(self):
+        """Update OBS Workflow scene indicators without rebuilding the full page."""
+        state = getattr(self, "obs_workflow_state", None)
+        if state is None:
+            return
+
+        current_scene = getattr(state, "current_scene", "") or "Unknown"
+        last_switch = getattr(state, "last_scene_switch", "") or "-"
+        last_time = getattr(state, "last_scene_switch_time", "") or ""
+        last_text = last_switch + (f"  {last_time}" if last_time else "")
+
+        try:
+            self.obs_workflow_current_scene_var.set(current_scene)
+        except Exception:
+            pass
+        try:
+            self.obs_workflow_last_switch_var.set(last_text)
+        except Exception:
+            pass
+
+        try:
+            buttons = getattr(self, "obs_workflow_favorite_buttons", {}) or {}
+            for scene_name, button in buttons.items():
+                is_current = scene_name == current_scene
+                button.configure(
+                    fg_color=GOLD if is_current else "#171717",
+                    text_color="#111111" if is_current else "#D9C58C",
+                )
+        except Exception:
+            pass
+
+        try:
+            self.update_idletasks()
+        except Exception:
+            pass
+
     def obs_workflow_switch_scene(self, scene_name):
         scene_name = str(scene_name or "").strip()
         if not scene_name or scene_name == "No scene cache yet":
@@ -5418,17 +5457,19 @@ class VadafokStudio(ctk.CTk):
                 self.obs_workflow_state.last_scene_switch_time = self.obs_workflow_state.now()
             except Exception:
                 self.obs_workflow_state.last_scene_switch_time = ""
+
             if hasattr(self.obs_workflow_state, "add_event"):
                 self.obs_workflow_state.add_event(f"Scene switched: {scene_name}")
             self.obs_workflow_mark_command(f"Scene switched: {scene_name}")
-            self.obs_workflow_refresh(silent=True)
-            self.show_obs_workflow_page()
+
+            # Lightweight update only: do not rebuild the whole OBS Workflow page.
+            self.obs_workflow_update_scene_ui()
+
         except Exception as e:
             self.obs_workflow_state.last_error = str(e)
             self.obs_workflow_log(f"SCENE SWITCH ERROR: {e}")
             messagebox.showerror("Scene Switch", str(e))
-            self.show_obs_workflow_page()
-
+            # Keep the current page visible even on error.
 
 
     def obs_workflow_refresh_sources_only(self):
@@ -6415,6 +6456,14 @@ class VadafokStudio(ctk.CTk):
         top.grid_columnconfigure((0, 1, 2, 3), weight=1)
 
         current_scene = getattr(state, "current_scene", "") or "Unknown"
+        try:
+            self.obs_workflow_current_scene_var.set(current_scene)
+            last_switch = getattr(state, "last_scene_switch", "") or "-"
+            last_time = getattr(state, "last_scene_switch_time", "") or ""
+            self.obs_workflow_last_switch_var.set(last_switch + (f"  {last_time}" if last_time else ""))
+        except Exception:
+            pass
+
         cards = [
             ("OBS", "CONNECTED" if connected else "DISCONNECTED", "#8FE6A0" if connected else "#F08A8A"),
             ("Current Scene", current_scene, GOLD),
@@ -6426,7 +6475,27 @@ class VadafokStudio(ctk.CTk):
             card = ctk.CTkFrame(top, fg_color="#0B0B0B", corner_radius=14)
             card.grid(row=0, column=col, sticky="ew", padx=8, pady=14)
             ctk.CTkLabel(card, text=title, text_color="#888888").pack(anchor="w", padx=14, pady=(10, 2))
-            ctk.CTkLabel(card, text=value, text_color=color, font=ctk.CTkFont(size=18, weight="bold")).pack(anchor="w", padx=14, pady=(0, 12))
+            if title == "Current Scene":
+                ctk.CTkLabel(
+                    card,
+                    textvariable=self.obs_workflow_current_scene_var,
+                    text_color=color,
+                    font=ctk.CTkFont(size=18, weight="bold")
+                ).pack(anchor="w", padx=14, pady=(0, 12))
+            elif title == "Last Switch":
+                ctk.CTkLabel(
+                    card,
+                    textvariable=self.obs_workflow_last_switch_var,
+                    text_color=color,
+                    font=ctk.CTkFont(size=18, weight="bold")
+                ).pack(anchor="w", padx=14, pady=(0, 12))
+            else:
+                ctk.CTkLabel(
+                    card,
+                    text=value,
+                    text_color=color,
+                    font=ctk.CTkFont(size=18, weight="bold")
+                ).pack(anchor="w", padx=14, pady=(0, 12))
 
         buttons = ctk.CTkFrame(top, fg_color="transparent")
         buttons.grid(row=1, column=0, columnspan=4, sticky="e", padx=10, pady=(0, 12))
@@ -6443,17 +6512,27 @@ class VadafokStudio(ctk.CTk):
         fav_area = ctk.CTkFrame(fav_box, fg_color="transparent")
         fav_area.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 14))
 
+        try:
+            self.obs_workflow_favorite_buttons = {}
+        except Exception:
+            pass
+
         if not getattr(self, "scene_favorites", []):
             ctk.CTkLabel(fav_area, text="No favorites yet. Add scenes below.", text_color="#777777").pack(side="left")
         else:
             for fav_scene in self.scene_favorites:
-                ctk.CTkButton(
+                fav_button = ctk.CTkButton(
                     fav_area, text=f"SCENE  {fav_scene}", height=54, width=170,
                     fg_color=GOLD if fav_scene == current_scene else "#171717",
                     text_color="#111111" if fav_scene == current_scene else "#D9C58C",
                     hover_color=GOLD_DARK,
                     command=lambda s=fav_scene: self.obs_workflow_switch_scene(s)
-                ).pack(side="left", padx=4, pady=4)
+                )
+                fav_button.pack(side="left", padx=4, pady=4)
+                try:
+                    self.obs_workflow_favorite_buttons[fav_scene] = fav_button
+                except Exception:
+                    pass
 
         health_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         health_box.grid(row=1, column=1, sticky="ew", padx=(7, 0), pady=(0, 14))
