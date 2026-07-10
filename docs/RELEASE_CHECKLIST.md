@@ -1,23 +1,21 @@
 # Release Checklist
 
-## v2.14.3.1 Testliste
+## v2.14.3.2 Testliste
 
-- [ ] Version shows 2.14.3.1
-- [ ] Full timeline cards are visible
-- [ ] No isolated badge-only display
-- [ ] Scene cards are gold
-- [ ] WAIT cards are blue
-- [ ] Banner cards are green
-- [ ] Source cards are orange/red
-- [ ] Connector lines and arrows are visible
-- [ ] EDIT / UPDATE / DELETE work
-- [ ] MOVE UP / MOVE DOWN work
-- [ ] Drag & Drop works
-- [ ] Drop target remains visible
-- [ ] WAIT countdown unchanged
-- [ ] Progress x/y unchanged
-- [ ] Progress bar unchanged
+- [ ] Version shows 2.14.3.2
+- [ ] Open OBS Workflow
+- [ ] Click SWITCH on another scene
+- [ ] OBS switches immediately
+- [ ] New scene becomes green immediately
+- [ ] Previous scene loses green immediately
+- [ ] Current Scene card updates immediately
+- [ ] Last Switch card updates immediately
+- [ ] Current Scene Control updates immediately
+- [ ] Double-click scene switch behaves the same
+- [ ] No module change required
+- [ ] No full-page flicker
+- [ ] Silent Director Timeline works
+- [ ] WAIT countdown works
 - [ ] F8 works
 - [ ] Banner + Text work
-- [ ] OBS Workflow does not flicker
 - [ ] Live Card works

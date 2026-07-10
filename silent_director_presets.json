@@ -27,6 +27,27 @@
         "text": "whats up !!!!!!!!!",
         "source": "",
         "seconds": ""
+      },
+      {
+        "type": "wait",
+        "scene": "",
+        "text": "",
+        "source": "",
+        "seconds": "10"
+      },
+      {
+        "type": "switch_scene",
+        "scene": "Cam - VHS Retro",
+        "text": "",
+        "source": "",
+        "seconds": ""
+      },
+      {
+        "type": "show_banner",
+        "scene": "",
+        "text": "letzter szenen wechsel",
+        "source": "",
+        "seconds": ""
       }
     ]
   },

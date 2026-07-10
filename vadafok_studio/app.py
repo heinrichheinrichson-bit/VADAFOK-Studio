@@ -35,7 +35,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.14.3.1")
+        self.wm_title("VADAFOK Studio 2.14.3.2")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -134,6 +134,9 @@ class VadafokStudio(ctk.CTk):
         self.obs_workflow_current_scene_var = ctk.StringVar(value="Unknown")
         self.obs_workflow_last_switch_var = ctk.StringVar(value="-")
         self.obs_workflow_favorite_buttons = {}
+        self.obs_workflow_live_scene_var = ctk.StringVar(value="LIVE SCENE  Unknown")
+        self.obs_workflow_last_scene_control_var = ctk.StringVar(value="Last Scene Switch: -")
+        self.obs_workflow_scene_rows = {}
         self.hide_timer = None
         self.quick_window = None
         self.thumbnail_refs = []
@@ -207,7 +210,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.14.3.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.14.3.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -5432,25 +5435,53 @@ class VadafokStudio(ctk.CTk):
         current_scene = getattr(state, "current_scene", "") or "Unknown"
         last_switch = getattr(state, "last_scene_switch", "") or "-"
         last_time = getattr(state, "last_scene_switch_time", "") or ""
+
         last_text = last_switch + (f"  {last_time}" if last_time else "")
+        last_control = f"Last Scene Switch: {last_switch}"
+        if last_time:
+            last_control += f" at {last_time}"
 
         try:
             self.obs_workflow_current_scene_var.set(current_scene)
-        except Exception:
-            pass
-        try:
             self.obs_workflow_last_switch_var.set(last_text)
+            self.obs_workflow_live_scene_var.set(f"LIVE SCENE  {current_scene}")
+            self.obs_workflow_last_scene_control_var.set(last_control)
         except Exception:
             pass
 
         try:
             buttons = getattr(self, "obs_workflow_favorite_buttons", {}) or {}
             for scene_name, button in buttons.items():
-                is_current = scene_name == current_scene
+                active = scene_name == current_scene
                 button.configure(
-                    fg_color=GOLD if is_current else "#171717",
-                    text_color="#111111" if is_current else "#D9C58C",
+                    fg_color=GOLD if active else "#171717",
+                    text_color="#111111" if active else "#D9C58C",
                 )
+        except Exception:
+            pass
+
+        try:
+            rows = getattr(self, "obs_workflow_scene_rows", {}) or {}
+            for scene_name, widgets in rows.items():
+                active = scene_name == current_scene
+                row = widgets.get("row")
+                label = widgets.get("label")
+                switch = widgets.get("switch")
+
+                if row is not None:
+                    row.configure(
+                        fg_color="#171717" if active else "transparent",
+                    )
+                if label is not None:
+                    label.configure(
+                        text=f"● LIVE  {scene_name}" if active else scene_name,
+                        text_color="#8FE6A0" if active else TEXT,
+                    )
+                if switch is not None:
+                    switch.configure(
+                        fg_color="#333333" if active else GOLD,
+                        text_color="#AAAAAA" if active else "#111111",
+                    )
         except Exception:
             pass
 
@@ -5458,6 +5489,7 @@ class VadafokStudio(ctk.CTk):
             self.update_idletasks()
         except Exception:
             pass
+
 
     def obs_workflow_switch_scene(self, scene_name):
         scene_name = str(scene_name or "").strip()
@@ -5480,7 +5512,13 @@ class VadafokStudio(ctk.CTk):
                 self.obs_workflow_state.add_event(f"Scene switched: {scene_name}")
             self.obs_workflow_mark_command(f"Scene switched: {scene_name}")
 
-            # Lightweight update only: do not rebuild the whole OBS Workflow page.
+            try:
+                active_scene = self.current_scene()
+                if active_scene:
+                    self.obs_workflow_state.current_scene = active_scene
+            except Exception:
+                pass
+
             self.obs_workflow_update_scene_ui()
 
         except Exception as e:
@@ -7266,21 +7304,61 @@ class VadafokStudio(ctk.CTk):
         scenes_list.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
         scenes_list.grid_columnconfigure(0, weight=1)
 
+        self.obs_workflow_scene_rows = {}
+
         for idx, scene in enumerate(state.scenes or ["No scene cache yet"]):
             scene_text = str(scene)
             is_placeholder = scene_text == "No scene cache yet"
             is_current = scene_text == current_scene and not is_placeholder
             is_fav = scene_text in getattr(self, "scene_favorites", [])
-            row_frame = ctk.CTkFrame(scenes_list, fg_color="#171717" if is_current else "transparent", corner_radius=8)
+
+            row_frame = ctk.CTkFrame(
+                scenes_list,
+                fg_color="#171717" if is_current else "transparent",
+                corner_radius=8
+            )
             row_frame.grid(row=idx, column=0, padx=6, pady=3, sticky="ew")
             row_frame.grid_columnconfigure(0, weight=1)
-            label = ctk.CTkLabel(row_frame, text=(f"● LIVE  {scene_text}" if is_current else scene_text), text_color="#8FE6A0" if is_current else TEXT, anchor="w")
+
+            label = ctk.CTkLabel(
+                row_frame,
+                text=(f"● LIVE  {scene_text}" if is_current else scene_text),
+                text_color="#8FE6A0" if is_current else TEXT,
+                anchor="w"
+            )
             label.grid(row=0, column=0, padx=10, pady=6, sticky="ew")
+
             if not is_placeholder:
                 label.bind("<Double-Button-1>", lambda _e, s=scene_text: self.obs_workflow_switch_scene(s))
                 row_frame.bind("<Double-Button-1>", lambda _e, s=scene_text: self.obs_workflow_switch_scene(s))
-                ctk.CTkButton(row_frame, text="STAR" if is_fav else "ADD", width=58, fg_color=GOLD if is_fav else "#333333", text_color="#111111" if is_fav else "#D9C58C", hover_color=GOLD_DARK, command=lambda s=scene_text, f=is_fav: self.obs_workflow_remove_scene_favorite(s) if f else self.obs_workflow_add_scene_favorite(s)).grid(row=0, column=1, padx=(4, 4), pady=6)
-                ctk.CTkButton(row_frame, text="SWITCH", width=80, fg_color=GOLD if not is_current else "#333333", text_color="#111111" if not is_current else "#AAAAAA", hover_color=GOLD_DARK, command=lambda s=scene_text: self.obs_workflow_switch_scene(s)).grid(row=0, column=2, padx=(4, 8), pady=6)
+
+                favorite_btn = ctk.CTkButton(
+                    row_frame,
+                    text="STAR" if is_fav else "ADD",
+                    width=58,
+                    fg_color=GOLD if is_fav else "#333333",
+                    text_color="#111111" if is_fav else "#D9C58C",
+                    hover_color=GOLD_DARK,
+                    command=lambda s=scene_text, f=is_fav: self.obs_workflow_remove_scene_favorite(s) if f else self.obs_workflow_add_scene_favorite(s)
+                )
+                favorite_btn.grid(row=0, column=1, padx=(4, 4), pady=6)
+
+                switch_btn = ctk.CTkButton(
+                    row_frame,
+                    text="SWITCH",
+                    width=80,
+                    fg_color=GOLD if not is_current else "#333333",
+                    text_color="#111111" if not is_current else "#AAAAAA",
+                    hover_color=GOLD_DARK,
+                    command=lambda s=scene_text: self.obs_workflow_switch_scene(s)
+                )
+                switch_btn.grid(row=0, column=2, padx=(4, 8), pady=6)
+
+                self.obs_workflow_scene_rows[scene_text] = {
+                    "row": row_frame,
+                    "label": label,
+                    "switch": switch_btn,
+                }
 
         right_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         right_box.grid(row=3, column=1, sticky="nsew", padx=(7, 0), pady=0)
@@ -7299,12 +7377,34 @@ class VadafokStudio(ctk.CTk):
         summary = ctk.CTkFrame(right_box, fg_color="#0B0B0B", corner_radius=12)
         summary.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 10))
         summary.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(summary, text=f"LIVE SCENE  {current_scene}", text_color="#8FE6A0", font=ctk.CTkFont(size=22, weight="bold"), anchor="w").grid(row=0, column=0, padx=12, pady=(10, 2), sticky="ew")
-        ctk.CTkLabel(summary, text=scene_health_text, text_color=scene_health_color, anchor="w").grid(row=1, column=0, padx=12, pady=(0, 2), sticky="ew")
+
+        self.obs_workflow_live_scene_var.set(f"LIVE SCENE  {current_scene}")
         last_switch_label = f"Last Scene Switch: {getattr(state, 'last_scene_switch', '-')}"
         if getattr(state, "last_scene_switch_time", ""):
             last_switch_label += f" at {state.last_scene_switch_time}"
-        ctk.CTkLabel(summary, text=last_switch_label, text_color="#888888", anchor="w").grid(row=2, column=0, padx=12, pady=(0, 10), sticky="ew")
+        self.obs_workflow_last_scene_control_var.set(last_switch_label)
+
+        ctk.CTkLabel(
+            summary,
+            textvariable=self.obs_workflow_live_scene_var,
+            text_color="#8FE6A0",
+            font=ctk.CTkFont(size=22, weight="bold"),
+            anchor="w"
+        ).grid(row=0, column=0, padx=12, pady=(10, 2), sticky="ew")
+
+        ctk.CTkLabel(
+            summary,
+            text=scene_health_text,
+            text_color=scene_health_color,
+            anchor="w"
+        ).grid(row=1, column=0, padx=12, pady=(0, 2), sticky="ew")
+
+        ctk.CTkLabel(
+            summary,
+            textvariable=self.obs_workflow_last_scene_control_var,
+            text_color="#888888",
+            anchor="w"
+        ).grid(row=2, column=0, padx=12, pady=(0, 10), sticky="ew")
 
         sources_list = ctk.CTkScrollableFrame(right_box, fg_color="#0B0B0B", corner_radius=12)
         sources_list.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))

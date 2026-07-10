@@ -1,5 +1,4 @@
 # Known Issues
 
-## v2.14.3.1
-- Timeline badges use short text labels for maximum Windows compatibility.
-- No runtime logic was changed.
+## v2.14.3.2
+- REFRESH is still required only when OBS scenes or sources are structurally added or removed.

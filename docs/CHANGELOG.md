@@ -1,25 +1,19 @@
 # CHANGELOG
 
-## v2.14.3.1 - Timeline View Repair
+## v2.14.3.2 - OBS Workflow Live Refresh
 
 ### Fixed
-- Rebuilt Timeline View directly on stable v2.14.2 action cards.
-- Removed fragile absolute/place-based timeline positioning.
-- Timeline cards now use grid-only layout.
-- Full cards, controls and details remain visible.
-
-### Added
-- Type-specific timeline colors.
-- Compact badges.
-- Connector lines and arrows.
-- Step numbers and summaries.
+- Active scene row turns green immediately after SWITCH or double-click.
+- Previous scene loses its green state immediately.
+- Current Scene card updates immediately.
+- Last Switch card updates immediately.
+- Current Scene Control updates immediately.
+- SWITCH button states update immediately.
+- No module change or full page rebuild is required.
 
 ### Preserved
+- Immediate OBS scene switching.
+- Timeline View.
+- WAIT countdown and progress.
 - Drag & Drop.
-- Drop position indicator.
-- MOVE UP / MOVE DOWN.
-- EDIT / UPDATE / DELETE.
-- WAIT countdown with tenths.
-- Progress x/y and progress bar.
-- STOP during WAIT.
-- F8, Banner + Text, OBS Workflow and Live Card.
+- F8, Banner + Text and Live Card.
