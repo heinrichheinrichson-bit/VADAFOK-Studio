@@ -1,23 +1,22 @@
 # CHANGELOG
 
-## v2.14.1.1 - WAIT Runtime + Local Action Refresh
-
-### Fixed
-- ADD ACTION no longer rebuilds the entire Silent Director page.
-- UPDATE ACTION no longer rebuilds the entire page.
-- MOVE UP / MOVE DOWN refresh only the action list.
-- DELETE refreshes only the action list.
+## v2.14.2 - Action Drag & Drop
 
 ### Added
-- WAIT is now executed during RUN PRESET.
-- WAIT status changes to WAITING.
-- Remaining time is displayed live.
-- Director Log records WAIT start and finish.
-- STOP interrupts an active WAIT.
+- Dedicated drag handle on every action.
+- Dragged action is clearly highlighted.
+- Gold insertion line shows the exact drop location.
+- Target position is displayed as `DROP HERE — POSITION X`.
+- New order is saved immediately on release.
+- MOVE UP / MOVE DOWN remain available as fallback.
 
 ### Preserved
+- WAIT countdown with seconds and tenths.
+- Current Action countdown.
+- Progress `x / y`.
+- Existing progress bar.
+- STOP during WAIT.
 - F8.
-- RUN PRESET.
 - Banner + Text.
 - OBS Workflow no-flicker fix.
 - Live Card.

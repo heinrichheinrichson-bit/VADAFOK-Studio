@@ -219,3 +219,29 @@ def move_action(preset_name: str, index: int, direction: int) -> List[Dict[str, 
             break
     save_presets(presets)
     return presets
+
+
+def move_action_to(preset_name: str, from_index: int, insert_index: int) -> List[Dict[str, Any]]:
+    """Move one action to a visible insertion position (0..len(actions))."""
+    presets = load_presets()
+    for preset in presets:
+        if preset.get("name") != preset_name:
+            continue
+
+        actions = preset.setdefault("actions", [])
+        if not (0 <= from_index < len(actions)):
+            break
+
+        insert_index = max(0, min(len(actions), int(insert_index)))
+        action = actions.pop(from_index)
+
+        # Insertion positions are calculated before removal.
+        if insert_index > from_index:
+            insert_index -= 1
+
+        insert_index = max(0, min(len(actions), insert_index))
+        actions.insert(insert_index, action)
+        break
+
+    save_presets(presets)
+    return presets

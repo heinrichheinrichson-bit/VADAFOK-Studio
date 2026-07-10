@@ -1,5 +1,6 @@
 # Known Issues
 
-## v2.14.1.1
-- WAIT executes on the main UI thread while processing events in short intervals.
-- Very long waits are supported up to 300 seconds.
+## v2.14.2
+- Dragging is intentionally started only from the dedicated DRAG handle.
+- This prevents accidental dragging while editing or pressing action buttons.
+- Arrow buttons remain available as a reliable fallback.

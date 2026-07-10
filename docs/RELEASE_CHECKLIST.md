@@ -1,25 +1,33 @@
 # Release Checklist
 
-## v2.14.1.1 Testliste
+## v2.14.2 Testliste
 
-### No Refresh
-- [ ] ADD ACTION does not reload the whole page
-- [ ] UPDATE ACTION does not reload the whole page
-- [ ] MOVE UP / MOVE DOWN does not reload the whole page
-- [ ] DELETE does not reload the whole page
+### Drag & Drop
+- [ ] Version shows 2.14.2
+- [ ] Each action has a DRAG handle
+- [ ] Hold the DRAG handle and move the mouse
+- [ ] Dragged action is highlighted
+- [ ] Gold insertion line is visible
+- [ ] Target position text is visible
+- [ ] Release saves the new order
+- [ ] Order stays after selecting another preset and returning
+- [ ] Drag to first position works
+- [ ] Drag to middle position works
+- [ ] Drag to final position works
 
-### WAIT
-- [ ] Add WAIT with 3 seconds
-- [ ] RUN PRESET
-- [ ] Status shows WAITING
-- [ ] Countdown/remaining time changes
-- [ ] Next action starts after 3 seconds
-- [ ] Log shows WAIT and WAIT finished
-- [ ] STOP during WAIT aborts the preset
+### Existing Controls
+- [ ] MOVE UP still works
+- [ ] MOVE DOWN still works
+- [ ] EDIT / UPDATE works
+- [ ] DELETE works
+- [ ] CANCEL EDIT works
 
 ### Regression
+- [ ] WAIT countdown with tenths is unchanged
+- [ ] Progress x/y is unchanged
+- [ ] Progress bar is unchanged
+- [ ] STOP during WAIT works
 - [ ] F8 works
 - [ ] Banner + Text work
-- [ ] Scene Switch works
 - [ ] OBS Workflow does not flicker
 - [ ] Live Card works

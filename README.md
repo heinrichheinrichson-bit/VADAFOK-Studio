@@ -1,10 +1,16 @@
-# VADAFOK Studio 2.14.1.1
+# VADAFOK Studio 2.14.2
 
-WAIT Runtime + Local Action Refresh.
+Action Drag & Drop.
 
 Neu:
-- WAIT wird wirklich ausgeführt
-- WAITING Status
-- Countdown
-- STOP während WAIT
-- kein kompletter Seiten-Refresh beim Bearbeiten/Verschieben/Löschen
+- DRAG-Griff pro Action
+- hervorgehobene gezogene Action
+- goldene Einfügelinie
+- sichtbare Zielposition
+- Speichern beim Loslassen
+
+Unverändert:
+- WAIT-Countdown
+- Progress x/y
+- Fortschrittsbalken
+- Pfeil-Buttons

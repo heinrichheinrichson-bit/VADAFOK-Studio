@@ -35,7 +35,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.14.1.1")
+        self.wm_title("VADAFOK Studio 2.14.2")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -120,6 +120,10 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_edit_index = None
         self.silent_director_action_button_text = ctk.StringVar(value="+ ADD ACTION")
         self.silent_director_dynamic_frames = {}
+        self.silent_director_drag_index = None
+        self.silent_director_drop_index = None
+        self.silent_director_action_rows = []
+        self.silent_director_drag_active = False
         self.director_status_var = ctk.StringVar(value="READY")
         self.director_current_action_var = ctk.StringVar(value="-")
         self.director_progress_var = ctk.StringVar(value="0 / 0")
@@ -203,7 +207,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.14.1.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.14.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -237,6 +241,15 @@ class VadafokStudio(ctk.CTk):
             b.configure(fg_color=GOLD if active else "transparent", text_color="#111111" if active else TEXT)
 
     def clear_main(self):
+        if getattr(self, "silent_director_drag_active", False):
+            try:
+                self.unbind_all("<B1-Motion>")
+                self.unbind_all("<ButtonRelease-1>")
+            except Exception:
+                pass
+            self.silent_director_drag_active = False
+            self.silent_director_drag_index = None
+            self.silent_director_drop_index = None
         if hasattr(self, "main"):
             self.main.destroy()
         self.main = ctk.CTkFrame(self, fg_color=DARK, corner_radius=0)
@@ -6336,6 +6349,92 @@ class VadafokStudio(ctk.CTk):
         self.obs_workflow_mark_command("Silent Director action moved")
         self.silent_director_render_actions_list()
 
+    def silent_director_drag_start(self, event, index):
+        """Begin dragging an action by its dedicated drag handle."""
+        self.silent_director_drag_index = index
+        self.silent_director_drop_index = index
+        self.silent_director_drag_active = True
+
+        try:
+            self.bind_all("<B1-Motion>", self.silent_director_drag_motion)
+            self.bind_all("<ButtonRelease-1>", self.silent_director_drag_release)
+        except Exception:
+            pass
+
+        self.silent_director_render_actions_list()
+        return "break"
+
+    def silent_director_drag_motion(self, event):
+        if not self.silent_director_drag_active:
+            return
+
+        rows = list(getattr(self, "silent_director_action_rows", []) or [])
+        if not rows:
+            return
+
+        pointer_y = event.y_root
+        drop_index = len(rows)
+
+        for idx, row in enumerate(rows):
+            try:
+                top = row.winfo_rooty()
+                height = max(1, row.winfo_height())
+                center = top + (height / 2)
+            except Exception:
+                continue
+
+            if pointer_y < center:
+                drop_index = idx
+                break
+
+        if drop_index != self.silent_director_drop_index:
+            self.silent_director_drop_index = drop_index
+            self.silent_director_render_actions_list()
+
+        return "break"
+
+    def silent_director_drag_release(self, _event=None):
+        if not self.silent_director_drag_active:
+            return
+
+        from_index = self.silent_director_drag_index
+        insert_index = self.silent_director_drop_index
+
+        self.silent_director_drag_active = False
+        self.silent_director_drag_index = None
+        self.silent_director_drop_index = None
+
+        try:
+            self.unbind_all("<B1-Motion>")
+            self.unbind_all("<ButtonRelease-1>")
+        except Exception:
+            pass
+
+        preset = self.silent_director_get_selected_preset()
+        if preset and from_index is not None and insert_index is not None:
+            self.silent_director_presets = silent_director.move_action_to(
+                preset.get("name", ""),
+                from_index,
+                insert_index,
+            )
+            self.silent_director_edit_index = None
+            self.silent_director_action_button_text.set("+ ADD ACTION")
+            self.obs_workflow_mark_command("Silent Director action reordered by drag and drop")
+
+        self.silent_director_render_actions_list()
+        return "break"
+
+    def silent_director_drag_cancel(self):
+        self.silent_director_drag_active = False
+        self.silent_director_drag_index = None
+        self.silent_director_drop_index = None
+        try:
+            self.unbind_all("<B1-Motion>")
+            self.unbind_all("<ButtonRelease-1>")
+        except Exception:
+            pass
+        self.silent_director_render_actions_list()
+
     def silent_director_render_actions_list(self):
         frame = getattr(self, "silent_director_actions_frame", None)
         if frame is None:
@@ -6343,6 +6442,8 @@ class VadafokStudio(ctk.CTk):
 
         for child in frame.winfo_children():
             child.destroy()
+
+        self.silent_director_action_rows = []
 
         preset = self.silent_director_get_selected_preset()
         if not preset:
@@ -6357,7 +6458,43 @@ class VadafokStudio(ctk.CTk):
             ).grid(row=0, column=0, padx=12, pady=8, sticky="w")
             return
 
+        drag_active = bool(getattr(self, "silent_director_drag_active", False))
+        drag_index = getattr(self, "silent_director_drag_index", None)
+        drop_index = getattr(self, "silent_director_drop_index", None)
+
+        grid_row = 0
+
         for idx, action in enumerate(actions):
+            if drag_active and drop_index == idx:
+                indicator = ctk.CTkFrame(
+                    frame,
+                    fg_color=GOLD,
+                    height=6,
+                    corner_radius=3
+                )
+                indicator.grid(
+                    row=grid_row,
+                    column=0,
+                    sticky="ew",
+                    padx=8,
+                    pady=(4, 2)
+                )
+                indicator.grid_propagate(False)
+
+                ctk.CTkLabel(
+                    frame,
+                    text=f"DROP HERE — POSITION {idx + 1}",
+                    text_color=GOLD,
+                    font=ctk.CTkFont(size=11, weight="bold")
+                ).grid(
+                    row=grid_row + 1,
+                    column=0,
+                    sticky="w",
+                    padx=12,
+                    pady=(0, 3)
+                )
+                grid_row += 2
+
             action_type = action.get("type", "")
             if action_type == "switch_scene":
                 title = f"{idx+1}. SWITCH SCENE"
@@ -6378,9 +6515,41 @@ class VadafokStudio(ctk.CTk):
                 title = f"{idx+1}. {action_type}"
                 detail = ""
 
-            row = ctk.CTkFrame(frame, fg_color="#171717", corner_radius=10)
-            row.grid(row=idx, column=0, sticky="ew", padx=0, pady=5)
-            row.grid_columnconfigure(0, weight=1)
+            is_dragged = drag_active and idx == drag_index
+
+            row = ctk.CTkFrame(
+                frame,
+                fg_color="#3A2A0D" if is_dragged else "#171717",
+                corner_radius=10,
+                border_color=GOLD if is_dragged else "#171717",
+                border_width=2 if is_dragged else 0
+            )
+            row.grid(row=grid_row, column=0, sticky="ew", padx=0, pady=5)
+            row.grid_columnconfigure(1, weight=1)
+            self.silent_director_action_rows.append(row)
+
+            drag_handle = ctk.CTkLabel(
+                row,
+                text="☰\nDRAG",
+                width=52,
+                text_color=GOLD if not is_dragged else "#111111",
+                fg_color=GOLD_DARK if not is_dragged else GOLD,
+                corner_radius=8,
+                cursor="fleur",
+                font=ctk.CTkFont(size=11, weight="bold")
+            )
+            drag_handle.grid(
+                row=0,
+                column=0,
+                rowspan=2,
+                padx=(7, 3),
+                pady=7,
+                sticky="ns"
+            )
+            drag_handle.bind(
+                "<ButtonPress-1>",
+                lambda event, i=idx: self.silent_director_drag_start(event, i)
+            )
 
             ctk.CTkButton(
                 row,
@@ -6391,18 +6560,18 @@ class VadafokStudio(ctk.CTk):
                 text_color=GOLD,
                 font=ctk.CTkFont(size=14, weight="bold"),
                 command=lambda i=idx: self.silent_director_edit_action(i)
-            ).grid(row=0, column=0, padx=8, pady=(6, 2), sticky="ew")
+            ).grid(row=0, column=1, padx=8, pady=(6, 2), sticky="ew")
 
             ctk.CTkLabel(
                 row,
                 text=detail or "-",
                 text_color=TEXT,
                 anchor="w",
-                wraplength=520
-            ).grid(row=1, column=0, padx=12, pady=(0, 8), sticky="ew")
+                wraplength=470
+            ).grid(row=1, column=1, padx=12, pady=(0, 8), sticky="ew")
 
             controls = ctk.CTkFrame(row, fg_color="transparent")
-            controls.grid(row=0, column=1, rowspan=2, padx=8, pady=6)
+            controls.grid(row=0, column=2, rowspan=2, padx=8, pady=6)
 
             ctk.CTkButton(
                 controls, text="EDIT", width=54,
@@ -6427,6 +6596,38 @@ class VadafokStudio(ctk.CTk):
                 fg_color="#5A1F1F", hover_color="#7A2A2A",
                 command=lambda i=idx: self.silent_director_delete_action(i)
             ).grid(row=1, column=0, columnspan=3, padx=2, pady=2, sticky="ew")
+
+            grid_row += 1
+
+        if drag_active and drop_index == len(actions):
+            indicator = ctk.CTkFrame(
+                frame,
+                fg_color=GOLD,
+                height=6,
+                corner_radius=3
+            )
+            indicator.grid(
+                row=grid_row,
+                column=0,
+                sticky="ew",
+                padx=8,
+                pady=(4, 2)
+            )
+            indicator.grid_propagate(False)
+
+            ctk.CTkLabel(
+                frame,
+                text=f"DROP HERE — POSITION {len(actions) + 1}",
+                text_color=GOLD,
+                font=ctk.CTkFont(size=11, weight="bold")
+            ).grid(
+                row=grid_row + 1,
+                column=0,
+                sticky="w",
+                padx=12,
+                pady=(0, 3)
+            )
+
 
     def silent_director_add_action(self):
         preset = self.silent_director_get_selected_preset()
