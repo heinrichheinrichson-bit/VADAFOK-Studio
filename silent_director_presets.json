@@ -8,20 +8,6 @@
     "hide_sources": [],
     "actions": [
       {
-        "type": "switch_scene",
-        "scene": "VADAFOK Test",
-        "text": "",
-        "source": "",
-        "seconds": ""
-      },
-      {
-        "type": "wait",
-        "scene": "",
-        "text": "",
-        "source": "",
-        "seconds": "7"
-      },
-      {
         "type": "show_banner",
         "scene": "",
         "text": "whats up !!!!!!!!!",
@@ -48,6 +34,20 @@
         "text": "letzter szenen wechsel",
         "source": "",
         "seconds": ""
+      },
+      {
+        "type": "switch_scene",
+        "scene": "VADAFOK Test",
+        "text": "",
+        "source": "",
+        "seconds": ""
+      },
+      {
+        "type": "wait",
+        "scene": "",
+        "text": "",
+        "source": "",
+        "seconds": "7"
       }
     ]
   },

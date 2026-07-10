@@ -35,7 +35,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.14.3.2")
+        self.wm_title("VADAFOK Studio 2.14.4")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -210,7 +210,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.14.3.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.14.4", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -6375,6 +6375,38 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_wait_seconds.set(str(action.get("seconds", "5") or "5"))
         self.silent_director_update_action_fields()
 
+    def silent_director_duplicate_action(self, index):
+        preset = self.silent_director_get_selected_preset()
+        if not preset:
+            return
+
+        actions = list(preset.get("actions", []) or [])
+        if not (0 <= index < len(actions)):
+            return
+
+        self.silent_director_presets = silent_director.duplicate_action(
+            preset.get("name", ""),
+            index
+        )
+
+        # Select the new copy immediately for fast editing.
+        self.silent_director_edit_index = index + 1
+        self.silent_director_action_button_text.set("UPDATE ACTION")
+
+        updated_preset = self.silent_director_get_selected_preset()
+        updated_actions = list(updated_preset.get("actions", []) or []) if updated_preset else []
+        if 0 <= index + 1 < len(updated_actions):
+            action = updated_actions[index + 1]
+            self.silent_director_action_type.set(str(action.get("type", "switch_scene")))
+            self.silent_director_action_scene.set(str(action.get("scene", "")))
+            self.silent_director_action_source.set(str(action.get("source", "")))
+            self.silent_director_action_text.set(str(action.get("text", "")))
+            self.silent_director_wait_seconds.set(str(action.get("seconds", "5") or "5"))
+            self.silent_director_update_action_fields()
+
+        self.obs_workflow_mark_command("Silent Director action duplicated")
+        self.silent_director_render_actions_list()
+
     def silent_director_move_action(self, index, direction):
         preset = self.silent_director_get_selected_preset()
         if not preset:
@@ -6726,12 +6758,21 @@ class VadafokStudio(ctk.CTk):
 
             ctk.CTkButton(
                 controls,
+                text="DUP",
+                width=48,
+                fg_color="#2D4B3A",
+                hover_color="#3B624C",
+                command=lambda i=idx: self.silent_director_duplicate_action(i)
+            ).grid(row=0, column=1, padx=2, pady=2)
+
+            ctk.CTkButton(
+                controls,
                 text="▲",
                 width=36,
                 fg_color="#333333",
                 hover_color="#444444",
                 command=lambda i=idx: self.silent_director_move_action(i, -1)
-            ).grid(row=0, column=1, padx=2, pady=2)
+            ).grid(row=0, column=2, padx=2, pady=2)
 
             ctk.CTkButton(
                 controls,
@@ -6740,7 +6781,7 @@ class VadafokStudio(ctk.CTk):
                 fg_color="#333333",
                 hover_color="#444444",
                 command=lambda i=idx: self.silent_director_move_action(i, 1)
-            ).grid(row=0, column=2, padx=2, pady=2)
+            ).grid(row=0, column=3, padx=2, pady=2)
 
             ctk.CTkButton(
                 controls,
@@ -6752,7 +6793,7 @@ class VadafokStudio(ctk.CTk):
             ).grid(
                 row=1,
                 column=0,
-                columnspan=3,
+                columnspan=4,
                 padx=2,
                 pady=2,
                 sticky="ew"
@@ -6988,6 +7029,13 @@ class VadafokStudio(ctk.CTk):
             add_box, text="Add / Edit Action", text_color=GOLD,
             font=ctk.CTkFont(size=16, weight="bold")
         ).grid(row=0, column=0, columnspan=2, padx=12, pady=(12, 6), sticky="w")
+
+        ctk.CTkLabel(
+            add_box,
+            text="DUP erstellt direkt darunter eine bearbeitbare Kopie.",
+            text_color="#777777",
+            font=ctk.CTkFont(size=11)
+        ).grid(row=0, column=1, padx=12, pady=(12, 6), sticky="e")
 
         ctk.CTkLabel(add_box, text="Type", text_color="#888888").grid(
             row=1, column=0, padx=12, pady=6, sticky="w"

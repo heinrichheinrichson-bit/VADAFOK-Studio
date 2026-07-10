@@ -245,3 +245,23 @@ def move_action_to(preset_name: str, from_index: int, insert_index: int) -> List
 
     save_presets(presets)
     return presets
+
+
+def duplicate_action(preset_name: str, index: int) -> List[Dict[str, Any]]:
+    """Duplicate an action directly below its original and return updated presets."""
+    presets = load_presets()
+
+    for preset in presets:
+        if preset.get("name") != preset_name:
+            continue
+
+        actions = preset.setdefault("actions", [])
+        if not (0 <= index < len(actions)):
+            break
+
+        source = normalize_action(dict(actions[index]))
+        actions.insert(index + 1, source)
+        break
+
+    save_presets(presets)
+    return presets

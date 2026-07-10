@@ -1,19 +1,20 @@
 # CHANGELOG
 
-## v2.14.3.2 - OBS Workflow Live Refresh
+## v2.14.4 - Duplicate Action & Productivity
 
-### Fixed
-- Active scene row turns green immediately after SWITCH or double-click.
-- Previous scene loses its green state immediately.
-- Current Scene card updates immediately.
-- Last Switch card updates immediately.
-- Current Scene Control updates immediately.
-- SWITCH button states update immediately.
-- No module change or full page rebuild is required.
+### Added
+- New DUP button on every timeline action.
+- A duplicate is inserted directly below the original.
+- The new copy is selected automatically.
+- The editor is filled with the duplicated values.
+- UPDATE ACTION is ready immediately for quick changes.
 
 ### Preserved
-- Immediate OBS scene switching.
 - Timeline View.
-- WAIT countdown and progress.
-- Drag & Drop.
+- Drag & Drop and drop indicators.
+- MOVE UP / MOVE DOWN.
+- EDIT / UPDATE / DELETE.
+- WAIT countdown with tenths.
+- Progress x/y and progress bar.
+- OBS Workflow live refresh.
 - F8, Banner + Text and Live Card.

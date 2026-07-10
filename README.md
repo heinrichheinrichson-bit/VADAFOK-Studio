@@ -1,11 +1,12 @@
-# VADAFOK Studio 2.14.3.2
+# VADAFOK Studio 2.14.4
 
-OBS Workflow Live Refresh.
+Duplicate Action & Productivity.
 
-Fix:
-- aktive Szene sofort grün
-- Current Scene sofort aktuell
-- Last Switch sofort aktuell
-- Current Scene Control sofort aktuell
-- kein Modulwechsel nötig
-- kein kompletter Seiten-Refresh
+Neu:
+- DUP Button pro Action
+- Kopie direkt unter dem Original
+- Kopie sofort ausgewählt
+- Werte direkt im Editor
+- sofortiges UPDATE ACTION möglich
+
+Basis: v2.14.3.2
