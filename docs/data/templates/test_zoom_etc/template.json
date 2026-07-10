@@ -1,0 +1,60 @@
+{
+  "name": "test zoom etc",
+  "background": "background.png",
+  "fields": [
+    {
+      "name": "game",
+      "x": 152,
+      "y": 914,
+      "width": 641,
+      "height": 110,
+      "font_family": "Bebas Neue",
+      "font_size": 110,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true,
+      "id": "edadb019-b6d4-4ef6-ac91-dd199a52f477"
+    },
+    {
+      "name": "game_copy",
+      "x": 156,
+      "y": 1155,
+      "width": 641,
+      "height": 110,
+      "font_family": "Bebas Neue",
+      "font_size": 110,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true,
+      "id": "8fd430a3-8cde-4d36-ae7a-200d309b8664"
+    },
+    {
+      "name": "game_copy_copy",
+      "x": 142,
+      "y": 1389,
+      "width": 641,
+      "height": 110,
+      "font_family": "Bebas Neue",
+      "font_size": 110,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true,
+      "id": "9a605630-6070-451c-8995-b75c9c99f605"
+    }
+  ],
+  "groups": [
+    {
+      "id": "55aa6069-a443-4b5a-825c-4d7224825f5f",
+      "name": "Group",
+      "field_ids": [
+        "edadb019-b6d4-4ef6-ac91-dd199a52f477",
+        "8fd430a3-8cde-4d36-ae7a-200d309b8664"
+      ],
+      "locked": false,
+      "hidden": false
+    }
+  ]
+}

@@ -1,16 +1,10 @@
-# VADAFOK Studio 2.14.2
+# VADAFOK Studio 2.14.3.1
 
-Action Drag & Drop.
+Timeline View Repair.
 
-Neu:
-- DRAG-Griff pro Action
-- hervorgehobene gezogene Action
-- goldene Einfügelinie
-- sichtbare Zielposition
-- Speichern beim Loslassen
+Basis: stable v2.14.2 / Commit 408f162.
 
-Unverändert:
-- WAIT-Countdown
-- Progress x/y
-- Fortschrittsbalken
-- Pfeil-Buttons
+Fix:
+- grid-only Timeline layout
+- complete action cards remain visible
+- colors, badges, connectors and controls

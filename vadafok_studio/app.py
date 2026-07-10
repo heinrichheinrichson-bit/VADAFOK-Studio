@@ -35,7 +35,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.14.2")
+        self.wm_title("VADAFOK Studio 2.14.3.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -207,7 +207,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.14.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.14.3.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -6435,6 +6435,61 @@ class VadafokStudio(ctk.CTk):
             pass
         self.silent_director_render_actions_list()
 
+    def silent_director_timeline_style(self, action_type):
+        styles = {
+            "switch_scene": {
+                "badge": "SC",
+                "title": "SWITCH SCENE",
+                "accent": "#D6B35A",
+                "card": "#201D15",
+            },
+            "show_banner": {
+                "badge": "BN",
+                "title": "SHOW BANNER",
+                "accent": "#77C98A",
+                "card": "#162019",
+            },
+            "show_source": {
+                "badge": "ON",
+                "title": "SHOW SOURCE",
+                "accent": "#E29A55",
+                "card": "#241B14",
+            },
+            "hide_source": {
+                "badge": "OFF",
+                "title": "HIDE SOURCE",
+                "accent": "#D77777",
+                "card": "#241616",
+            },
+            "wait": {
+                "badge": "TM",
+                "title": "WAIT",
+                "accent": "#6EA6E8",
+                "card": "#16202C",
+            },
+        }
+        return styles.get(
+            str(action_type or "").strip(),
+            {
+                "badge": "AC",
+                "title": str(action_type or "ACTION").upper(),
+                "accent": "#AAAAAA",
+                "card": "#1B1B1B",
+            },
+        )
+
+    def silent_director_timeline_detail(self, action):
+        action_type = str(action.get("type", "") or "").strip()
+        if action_type == "switch_scene":
+            return str(action.get("scene", "") or "-")
+        if action_type == "show_banner":
+            return str(action.get("text", "") or "-")
+        if action_type in ("show_source", "hide_source"):
+            return str(action.get("source", "") or "-")
+        if action_type == "wait":
+            return f"{action.get('seconds', '5')} Sekunden"
+        return "-"
+
     def silent_director_render_actions_list(self):
         frame = getattr(self, "silent_director_actions_frame", None)
         if frame is None:
@@ -6476,8 +6531,8 @@ class VadafokStudio(ctk.CTk):
                     row=grid_row,
                     column=0,
                     sticky="ew",
-                    padx=8,
-                    pady=(4, 2)
+                    padx=12,
+                    pady=(5, 2)
                 )
                 indicator.grid_propagate(False)
 
@@ -6490,50 +6545,71 @@ class VadafokStudio(ctk.CTk):
                     row=grid_row + 1,
                     column=0,
                     sticky="w",
-                    padx=12,
+                    padx=16,
                     pady=(0, 3)
                 )
                 grid_row += 2
 
-            action_type = action.get("type", "")
-            if action_type == "switch_scene":
-                title = f"{idx+1}. SWITCH SCENE"
-                detail = action.get("scene", "")
-            elif action_type == "show_banner":
-                title = f"{idx+1}. SHOW BANNER"
-                detail = action.get("text", "")
-            elif action_type == "show_source":
-                title = f"{idx+1}. SHOW SOURCE"
-                detail = action.get("source", "")
-            elif action_type == "hide_source":
-                title = f"{idx+1}. HIDE SOURCE"
-                detail = action.get("source", "")
-            elif action_type == "wait":
-                title = f"{idx+1}. WAIT"
-                detail = f"{action.get('seconds', '5')} seconds"
-            else:
-                title = f"{idx+1}. {action_type}"
-                detail = ""
-
+            action_type = str(action.get("type", "") or "").strip()
+            style = self.silent_director_timeline_style(action_type)
+            detail = self.silent_director_timeline_detail(action)
             is_dragged = drag_active and idx == drag_index
 
-            row = ctk.CTkFrame(
-                frame,
-                fg_color="#3A2A0D" if is_dragged else "#171717",
-                corner_radius=10,
-                border_color=GOLD if is_dragged else "#171717",
-                border_width=2 if is_dragged else 0
+            item = ctk.CTkFrame(frame, fg_color="transparent")
+            item.grid(row=grid_row, column=0, sticky="ew", padx=0, pady=0)
+            item.grid_columnconfigure(1, weight=1)
+
+            rail = ctk.CTkFrame(item, fg_color="transparent", width=54)
+            rail.grid(row=0, column=0, sticky="ns", padx=(2, 8), pady=0)
+            rail.grid_columnconfigure(0, weight=1)
+
+            badge = ctk.CTkLabel(
+                rail,
+                text=style["badge"],
+                width=38,
+                height=38,
+                fg_color=style["accent"],
+                text_color="#111111",
+                corner_radius=19,
+                font=ctk.CTkFont(size=11, weight="bold")
             )
-            row.grid(row=grid_row, column=0, sticky="ew", padx=0, pady=5)
-            row.grid_columnconfigure(1, weight=1)
-            self.silent_director_action_rows.append(row)
+            badge.grid(row=0, column=0, pady=(10, 4))
+
+            if idx < len(actions) - 1:
+                connector = ctk.CTkFrame(
+                    rail,
+                    fg_color=style["accent"],
+                    width=3,
+                    height=26,
+                    corner_radius=1
+                )
+                connector.grid(row=1, column=0, pady=(0, 0))
+                connector.grid_propagate(False)
+
+                ctk.CTkLabel(
+                    rail,
+                    text="▼",
+                    text_color=style["accent"],
+                    font=ctk.CTkFont(size=12, weight="bold")
+                ).grid(row=2, column=0, pady=(0, 2))
+
+            card = ctk.CTkFrame(
+                item,
+                fg_color=style["accent"] if is_dragged else style["card"],
+                corner_radius=12,
+                border_color=style["accent"],
+                border_width=2 if is_dragged else 1
+            )
+            card.grid(row=0, column=1, sticky="ew", pady=6)
+            card.grid_columnconfigure(1, weight=1)
+            self.silent_director_action_rows.append(card)
 
             drag_handle = ctk.CTkLabel(
-                row,
+                card,
                 text="☰\nDRAG",
                 width=52,
-                text_color=GOLD if not is_dragged else "#111111",
-                fg_color=GOLD_DARK if not is_dragged else GOLD,
+                text_color="#111111" if is_dragged else style["accent"],
+                fg_color=style["accent"] if is_dragged else "#101010",
                 corner_radius=8,
                 cursor="fleur",
                 font=ctk.CTkFont(size=11, weight="bold")
@@ -6541,9 +6617,9 @@ class VadafokStudio(ctk.CTk):
             drag_handle.grid(
                 row=0,
                 column=0,
-                rowspan=2,
-                padx=(7, 3),
-                pady=7,
+                rowspan=3,
+                padx=(8, 6),
+                pady=8,
                 sticky="ns"
             )
             drag_handle.bind(
@@ -6552,50 +6628,97 @@ class VadafokStudio(ctk.CTk):
             )
 
             ctk.CTkButton(
-                row,
-                text=title,
+                card,
+                text=f"{idx + 1}. {style['title']}",
                 anchor="w",
                 fg_color="transparent",
-                hover_color="#242424",
-                text_color=GOLD,
-                font=ctk.CTkFont(size=14, weight="bold"),
+                hover_color="#2A2A2A" if not is_dragged else style["accent"],
+                text_color=style["accent"] if not is_dragged else "#111111",
+                font=ctk.CTkFont(size=15, weight="bold"),
                 command=lambda i=idx: self.silent_director_edit_action(i)
-            ).grid(row=0, column=1, padx=8, pady=(6, 2), sticky="ew")
+            ).grid(
+                row=0,
+                column=1,
+                padx=(6, 8),
+                pady=(8, 0),
+                sticky="ew"
+            )
 
             ctk.CTkLabel(
-                row,
-                text=detail or "-",
-                text_color=TEXT,
+                card,
+                text=detail,
+                text_color=TEXT if not is_dragged else "#111111",
                 anchor="w",
-                wraplength=470
-            ).grid(row=1, column=1, padx=12, pady=(0, 8), sticky="ew")
+                justify="left",
+                wraplength=470,
+                font=ctk.CTkFont(size=13)
+            ).grid(
+                row=1,
+                column=1,
+                padx=(12, 8),
+                pady=(2, 2),
+                sticky="ew"
+            )
 
-            controls = ctk.CTkFrame(row, fg_color="transparent")
-            controls.grid(row=0, column=2, rowspan=2, padx=8, pady=6)
+            ctk.CTkLabel(
+                card,
+                text=f"Timeline step {idx + 1} of {len(actions)}",
+                text_color="#7E7E7E" if not is_dragged else "#222222",
+                anchor="w",
+                font=ctk.CTkFont(size=10)
+            ).grid(
+                row=2,
+                column=1,
+                padx=(12, 8),
+                pady=(0, 8),
+                sticky="ew"
+            )
+
+            controls = ctk.CTkFrame(card, fg_color="transparent")
+            controls.grid(row=0, column=2, rowspan=3, padx=8, pady=7)
 
             ctk.CTkButton(
-                controls, text="EDIT", width=54,
-                fg_color="#333333", hover_color="#444444",
+                controls,
+                text="EDIT",
+                width=54,
+                fg_color="#333333",
+                hover_color="#444444",
                 command=lambda i=idx: self.silent_director_edit_action(i)
             ).grid(row=0, column=0, padx=2, pady=2)
 
             ctk.CTkButton(
-                controls, text="▲", width=36,
-                fg_color="#333333", hover_color="#444444",
+                controls,
+                text="▲",
+                width=36,
+                fg_color="#333333",
+                hover_color="#444444",
                 command=lambda i=idx: self.silent_director_move_action(i, -1)
             ).grid(row=0, column=1, padx=2, pady=2)
 
             ctk.CTkButton(
-                controls, text="▼", width=36,
-                fg_color="#333333", hover_color="#444444",
+                controls,
+                text="▼",
+                width=36,
+                fg_color="#333333",
+                hover_color="#444444",
                 command=lambda i=idx: self.silent_director_move_action(i, 1)
             ).grid(row=0, column=2, padx=2, pady=2)
 
             ctk.CTkButton(
-                controls, text="DELETE", width=68,
-                fg_color="#5A1F1F", hover_color="#7A2A2A",
+                controls,
+                text="DELETE",
+                width=68,
+                fg_color="#5A1F1F",
+                hover_color="#7A2A2A",
                 command=lambda i=idx: self.silent_director_delete_action(i)
-            ).grid(row=1, column=0, columnspan=3, padx=2, pady=2, sticky="ew")
+            ).grid(
+                row=1,
+                column=0,
+                columnspan=3,
+                padx=2,
+                pady=2,
+                sticky="ew"
+            )
 
             grid_row += 1
 
@@ -6610,8 +6733,8 @@ class VadafokStudio(ctk.CTk):
                 row=grid_row,
                 column=0,
                 sticky="ew",
-                padx=8,
-                pady=(4, 2)
+                padx=12,
+                pady=(5, 2)
             )
             indicator.grid_propagate(False)
 
@@ -6624,7 +6747,7 @@ class VadafokStudio(ctk.CTk):
                 row=grid_row + 1,
                 column=0,
                 sticky="w",
-                padx=12,
+                padx=16,
                 pady=(0, 3)
             )
 

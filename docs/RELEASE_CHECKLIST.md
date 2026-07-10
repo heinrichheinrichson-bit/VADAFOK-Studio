@@ -1,32 +1,22 @@
 # Release Checklist
 
-## v2.14.2 Testliste
+## v2.14.3.1 Testliste
 
-### Drag & Drop
-- [ ] Version shows 2.14.2
-- [ ] Each action has a DRAG handle
-- [ ] Hold the DRAG handle and move the mouse
-- [ ] Dragged action is highlighted
-- [ ] Gold insertion line is visible
-- [ ] Target position text is visible
-- [ ] Release saves the new order
-- [ ] Order stays after selecting another preset and returning
-- [ ] Drag to first position works
-- [ ] Drag to middle position works
-- [ ] Drag to final position works
-
-### Existing Controls
-- [ ] MOVE UP still works
-- [ ] MOVE DOWN still works
-- [ ] EDIT / UPDATE works
-- [ ] DELETE works
-- [ ] CANCEL EDIT works
-
-### Regression
-- [ ] WAIT countdown with tenths is unchanged
-- [ ] Progress x/y is unchanged
-- [ ] Progress bar is unchanged
-- [ ] STOP during WAIT works
+- [ ] Version shows 2.14.3.1
+- [ ] Full timeline cards are visible
+- [ ] No isolated badge-only display
+- [ ] Scene cards are gold
+- [ ] WAIT cards are blue
+- [ ] Banner cards are green
+- [ ] Source cards are orange/red
+- [ ] Connector lines and arrows are visible
+- [ ] EDIT / UPDATE / DELETE work
+- [ ] MOVE UP / MOVE DOWN work
+- [ ] Drag & Drop works
+- [ ] Drop target remains visible
+- [ ] WAIT countdown unchanged
+- [ ] Progress x/y unchanged
+- [ ] Progress bar unchanged
 - [ ] F8 works
 - [ ] Banner + Text work
 - [ ] OBS Workflow does not flicker

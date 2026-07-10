@@ -1,22 +1,25 @@
 # CHANGELOG
 
-## v2.14.2 - Action Drag & Drop
+## v2.14.3.1 - Timeline View Repair
+
+### Fixed
+- Rebuilt Timeline View directly on stable v2.14.2 action cards.
+- Removed fragile absolute/place-based timeline positioning.
+- Timeline cards now use grid-only layout.
+- Full cards, controls and details remain visible.
 
 ### Added
-- Dedicated drag handle on every action.
-- Dragged action is clearly highlighted.
-- Gold insertion line shows the exact drop location.
-- Target position is displayed as `DROP HERE — POSITION X`.
-- New order is saved immediately on release.
-- MOVE UP / MOVE DOWN remain available as fallback.
+- Type-specific timeline colors.
+- Compact badges.
+- Connector lines and arrows.
+- Step numbers and summaries.
 
 ### Preserved
-- WAIT countdown with seconds and tenths.
-- Current Action countdown.
-- Progress `x / y`.
-- Existing progress bar.
+- Drag & Drop.
+- Drop position indicator.
+- MOVE UP / MOVE DOWN.
+- EDIT / UPDATE / DELETE.
+- WAIT countdown with tenths.
+- Progress x/y and progress bar.
 - STOP during WAIT.
-- F8.
-- Banner + Text.
-- OBS Workflow no-flicker fix.
-- Live Card.
+- F8, Banner + Text, OBS Workflow and Live Card.
