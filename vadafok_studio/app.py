@@ -35,7 +35,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.15.3")
+        self.wm_title("VADAFOK Studio 2.15.4")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -216,7 +216,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.15.3", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.15.4", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -7064,6 +7064,50 @@ class VadafokStudio(ctk.CTk):
         self.obs_workflow_mark_command("Silent Director action deleted")
         self.silent_director_render_actions_list()
 
+    def silent_director_preset_stats(self, preset):
+        """Return action count and planned duration from WAIT actions."""
+        actions = list((preset or {}).get("actions", []) or [])
+        total_seconds = 0.0
+
+        for action in actions:
+            if str(action.get("type", "") or "").strip() != "wait":
+                continue
+            raw = str(action.get("seconds", "0") or "0").strip().replace(",", ".")
+            try:
+                total_seconds += max(0.0, float(raw))
+            except Exception:
+                pass
+
+        return len(actions), total_seconds
+
+    def silent_director_format_duration(self, total_seconds):
+        try:
+            total_seconds = max(0.0, float(total_seconds))
+        except Exception:
+            total_seconds = 0.0
+
+        if total_seconds < 60:
+            if total_seconds.is_integer():
+                return f"{int(total_seconds)} s"
+            return f"{total_seconds:.1f} s"
+
+        minutes = int(total_seconds // 60)
+        seconds = total_seconds - (minutes * 60)
+
+        if seconds <= 0:
+            return f"{minutes} min"
+        if seconds.is_integer():
+            return f"{minutes} min {int(seconds)} s"
+        return f"{minutes} min {seconds:.1f} s"
+
+    def silent_director_preset_stats_text(self, preset):
+        action_count, total_seconds = self.silent_director_preset_stats(preset)
+        action_word = "Action" if action_count == 1 else "Actions"
+        return (
+            f"{action_count} {action_word}  •  "
+            f"Gesamtdauer {self.silent_director_format_duration(total_seconds)}"
+        )
+
     def show_silent_director_page(self):
         self.set_active("Silent Director")
         self.clear_main()
@@ -7100,23 +7144,67 @@ class VadafokStudio(ctk.CTk):
             for idx, preset in enumerate(self.silent_director_presets):
                 name = preset.get("name", "Untitled")
                 selected = name == self.silent_director_selected.get()
-                row = ctk.CTkFrame(preset_list, fg_color="#171717" if selected else "transparent", corner_radius=8)
+                row = ctk.CTkFrame(
+                    preset_list,
+                    fg_color="#171717" if selected else "transparent",
+                    corner_radius=8
+                )
                 row.grid(row=idx, column=0, padx=6, pady=4, sticky="ew")
                 row.grid_columnconfigure(0, weight=1)
+
                 ctk.CTkButton(
-                    row, text=name, anchor="w", fg_color="transparent", hover_color="#2C2C2C",
+                    row,
+                    text=name,
+                    anchor="w",
+                    fg_color="transparent",
+                    hover_color="#2C2C2C",
                     text_color=GOLD if selected else TEXT,
-                    command=lambda n=name: (self.silent_director_selected.set(n), self.show_silent_director_page())
-                ).grid(row=0, column=0, sticky="ew", padx=6, pady=6)
+                    command=lambda n=name: (
+                        self.silent_director_selected.set(n),
+                        self.show_silent_director_page()
+                    )
+                ).grid(
+                    row=0,
+                    column=0,
+                    sticky="ew",
+                    padx=6,
+                    pady=(5, 0)
+                )
+
+                ctk.CTkLabel(
+                    row,
+                    text=self.silent_director_preset_stats_text(preset),
+                    text_color="#888888",
+                    anchor="w",
+                    font=ctk.CTkFont(size=11)
+                ).grid(
+                    row=1,
+                    column=0,
+                    sticky="ew",
+                    padx=14,
+                    pady=(0, 6)
+                )
+
                 ctk.CTkButton(
-                    row, text="RUN", width=64, fg_color=GOLD, text_color="#111111",
-                    hover_color=GOLD_DARK, command=lambda p=preset: self.silent_director_run_preset(p)
-                ).grid(row=0, column=1, padx=(4, 8), pady=6)
+                    row,
+                    text="RUN",
+                    width=64,
+                    fg_color=GOLD,
+                    text_color="#111111",
+                    hover_color=GOLD_DARK,
+                    command=lambda p=preset: self.silent_director_run_preset(p)
+                ).grid(
+                    row=0,
+                    column=1,
+                    rowspan=2,
+                    padx=(4, 8),
+                    pady=6
+                )
 
         right = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         right.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
         right.grid_columnconfigure(0, weight=1)
-        right.grid_rowconfigure(2, weight=1)
+        right.grid_rowconfigure(3, weight=1)
 
         preset = self.silent_director_get_selected_preset()
         if not preset:
@@ -7125,10 +7213,77 @@ class VadafokStudio(ctk.CTk):
 
         self.silent_director_load_editor(preset)
 
-        ctk.CTkLabel(right, text="Action Editor", text_color=GOLD, font=ctk.CTkFont(size=22, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+        ctk.CTkLabel(
+            right,
+            text="Action Editor",
+            text_color=GOLD,
+            font=ctk.CTkFont(size=22, weight="bold")
+        ).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+
+        stats_actions, stats_seconds = self.silent_director_preset_stats(preset)
+
+        stats_bar = ctk.CTkFrame(
+            right,
+            fg_color="#111111",
+            corner_radius=12,
+            border_color="#2A2110",
+            border_width=1
+        )
+        stats_bar.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 10))
+        stats_bar.grid_columnconfigure(1, weight=1)
+        stats_bar.grid_columnconfigure(3, weight=1)
+
+        ctk.CTkLabel(
+            stats_bar,
+            text="PRESET",
+            text_color="#777777",
+            font=ctk.CTkFont(size=11, weight="bold")
+        ).grid(row=0, column=0, padx=(12, 6), pady=(9, 2), sticky="w")
+
+        ctk.CTkLabel(
+            stats_bar,
+            text=str(preset.get("name", "Untitled")),
+            text_color=TEXT,
+            font=ctk.CTkFont(size=14, weight="bold")
+        ).grid(row=1, column=0, padx=(12, 16), pady=(0, 10), sticky="w")
+
+        ctk.CTkLabel(
+            stats_bar,
+            text="ACTIONS",
+            text_color="#777777",
+            font=ctk.CTkFont(size=11, weight="bold")
+        ).grid(row=0, column=1, padx=6, pady=(9, 2), sticky="w")
+
+        ctk.CTkLabel(
+            stats_bar,
+            text=str(stats_actions),
+            text_color=GOLD,
+            font=ctk.CTkFont(size=16, weight="bold")
+        ).grid(row=1, column=1, padx=6, pady=(0, 10), sticky="w")
+
+        ctk.CTkLabel(
+            stats_bar,
+            text="GESAMTDAUER",
+            text_color="#777777",
+            font=ctk.CTkFont(size=11, weight="bold")
+        ).grid(row=0, column=2, padx=6, pady=(9, 2), sticky="w")
+
+        ctk.CTkLabel(
+            stats_bar,
+            text=self.silent_director_format_duration(stats_seconds),
+            text_color="#6EA6E8",
+            font=ctk.CTkFont(size=16, weight="bold")
+        ).grid(row=1, column=2, padx=6, pady=(0, 10), sticky="w")
+
+        ctk.CTkLabel(
+            stats_bar,
+            text="Berechnet aus WAIT-Actions",
+            text_color="#666666",
+            font=ctk.CTkFont(size=10)
+        ).grid(row=1, column=3, padx=(12, 12), pady=(0, 10), sticky="e")
 
         monitor = ctk.CTkFrame(right, fg_color="#0B0B0B", corner_radius=12)
-        monitor.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 12))
+        monitor.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 12))
         monitor.grid_columnconfigure(1, weight=1)
 
         status = self.director_status_var.get() if hasattr(self, "director_status_var") else "READY"
@@ -7148,7 +7303,7 @@ class VadafokStudio(ctk.CTk):
             pass
 
         editor = ctk.CTkScrollableFrame(right, fg_color="#0B0B0B", corner_radius=12)
-        editor.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 12))
+        editor.grid(row=3, column=0, sticky="nsew", padx=18, pady=(0, 12))
         editor.grid_columnconfigure(1, weight=1)
 
         ctk.CTkLabel(editor, text="Name", text_color="#888888").grid(row=0, column=0, padx=12, pady=(14, 6), sticky="w")
@@ -7303,7 +7458,7 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_update_action_fields()
 
         log_box = ctk.CTkFrame(right, fg_color="#0B0B0B", corner_radius=12)
-        log_box.grid(row=3, column=0, sticky="ew", padx=18, pady=(0, 12))
+        log_box.grid(row=4, column=0, sticky="ew", padx=18, pady=(0, 12))
         log_box.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(log_box, text="Director Log", text_color=GOLD, font=ctk.CTkFont(size=16, weight="bold")).grid(row=0, column=0, padx=12, pady=(10, 4), sticky="w")
         try:
@@ -7313,7 +7468,7 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkLabel(log_box, textvariable=self.director_log_text_var, text_color="#888888", justify="left", anchor="w", wraplength=760).grid(row=1, column=0, padx=12, pady=(0, 12), sticky="ew")
 
         actions_bar = ctk.CTkFrame(right, fg_color="transparent")
-        actions_bar.grid(row=4, column=0, sticky="ew", padx=18, pady=(0, 18))
+        actions_bar.grid(row=5, column=0, sticky="ew", padx=18, pady=(0, 18))
         ctk.CTkButton(actions_bar, text="SAVE", height=46, fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.silent_director_save_selected).pack(side="left", padx=4)
         ctk.CTkButton(actions_bar, text="RUN PRESET", height=46, fg_color="#333333", hover_color="#444444", command=lambda: self.silent_director_run_preset()).pack(side="left", padx=4)
         ctk.CTkButton(actions_bar, text="STOP", height=46, fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.director_request_stop).pack(side="left", padx=4)

@@ -1,13 +1,11 @@
-# VADAFOK Studio 2.15.3
+# VADAFOK Studio 2.15.4
 
-Director Runtime Highlight.
+Preset-Gesamtdauer & Action-Anzahl.
 
 Neu:
-- aktuell laufende Timeline-Action wird markiert
-- goldener Rahmen
-- RUN Badge
-- RUNNING NOW Anzeige
-- automatische Markierung der nächsten Action
-- Bereinigung bei Finish, Stop und Error
+- Action-Anzahl pro Preset
+- geplante Gesamtdauer pro Preset
+- Statistikleiste im ausgewählten Preset
+- Dauerberechnung aus WAIT-Actions
 
-Basis: v2.15.2
+Basis: v2.15.3

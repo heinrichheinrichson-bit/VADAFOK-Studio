@@ -1,5 +1,5 @@
 # Known Issues
 
-## v2.15.3
-- Very fast actions may only be highlighted briefly.
-- WAIT actions provide the clearest visible runtime highlight.
+## v2.15.4
+- Total duration currently represents planned WAIT time.
+- Immediate actions such as Scene Switch and Banner are treated as zero-duration.

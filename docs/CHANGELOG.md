@@ -1,19 +1,19 @@
 # CHANGELOG
 
-## v2.15.3 - Director Runtime Highlight
+## v2.15.4 - Preset Duration & Action Count
 
 ### Added
-- The currently running timeline action is highlighted live.
-- Active card receives a bright gold border.
-- Active badge changes to `RUN`.
-- Timeline step label changes to `▶ RUNNING NOW`.
-- Highlight moves to the next action during preset execution.
-- Highlight clears on FINISHED, STOPPED and ERROR.
+- Every preset shows its action count.
+- Every preset shows its planned total duration.
+- Selected preset has a dedicated statistics bar.
+- Duration is calculated from all WAIT actions.
+- Seconds are formatted automatically as seconds or minutes.
 
 ### Preserved
-- WAIT countdown with seconds and tenths.
+- Director Runtime Highlight.
+- WAIT countdown with tenths.
 - Progress x/y and progress bar.
-- Existing Drag & Drop behavior.
+- Drag & Drop.
 - Timeline View and DUP/EDIT/UPDATE/DELETE.
 - OBS Workflow live refresh.
 - F8, Banner + Text and Live Card.
