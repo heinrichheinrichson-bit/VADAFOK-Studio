@@ -35,7 +35,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.15.2")
+        self.wm_title("VADAFOK Studio 2.15.3")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -134,6 +134,8 @@ class VadafokStudio(ctk.CTk):
         self.director_progress_percent_var = ctk.DoubleVar(value=0.0)
         self.director_stop_requested = False
         self.director_log_entries = []
+        self.director_active_action_index = None
+        self.director_action_card_widgets = {}
         self.director_log_text_var = ctk.StringVar(value="No Director run yet.")
         self.obs_workflow_current_scene_var = ctk.StringVar(value="Unknown")
         self.obs_workflow_last_switch_var = ctk.StringVar(value="-")
@@ -214,7 +216,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.15.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.15.3", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -5970,6 +5972,65 @@ class VadafokStudio(ctk.CTk):
         self.show_silent_director_page()
 
 
+    def director_set_active_action(self, index=None):
+        """Highlight the currently running timeline action without rebuilding the page."""
+        self.director_active_action_index = index
+
+        widgets_map = getattr(self, "director_action_card_widgets", {}) or {}
+        for action_index, widgets in widgets_map.items():
+            style = widgets.get("style", {})
+            active = index is not None and action_index == index
+
+            card = widgets.get("card")
+            title = widgets.get("title")
+            badge = widgets.get("badge")
+            runtime = widgets.get("runtime")
+
+            try:
+                if card is not None:
+                    card.configure(
+                        fg_color="#3A321A" if active else style.get("card", "#1B1B1B"),
+                        border_color="#F5D76E" if active else style.get("accent", GOLD),
+                        border_width=3 if active else 1,
+                    )
+            except Exception:
+                pass
+
+            try:
+                if title is not None:
+                    title.configure(
+                        text_color="#FFF2A8" if active else style.get("accent", GOLD)
+                    )
+            except Exception:
+                pass
+
+            try:
+                if badge is not None:
+                    badge.configure(
+                        text="RUN" if active else style.get("badge", "AC"),
+                        fg_color="#F5D76E" if active else style.get("accent", GOLD),
+                        text_color="#111111",
+                    )
+            except Exception:
+                pass
+
+            try:
+                if runtime is not None:
+                    runtime.configure(
+                        text="▶ RUNNING NOW" if active else widgets.get("step_text", ""),
+                        text_color="#FFF2A8" if active else "#7E7E7E",
+                    )
+            except Exception:
+                pass
+
+        try:
+            self.update_idletasks()
+        except Exception:
+            pass
+
+    def director_clear_active_action(self):
+        self.director_set_active_action(None)
+
     def director_log_add(self, message):
         try:
             stamp = datetime.datetime.now().strftime("%H:%M:%S")
@@ -6141,6 +6202,7 @@ class VadafokStudio(ctk.CTk):
             return
 
         self.director_stop_requested = False
+        self.director_clear_active_action()
         total = len(actions)
         self.director_set_status("RUNNING", f"Preset: {name}", f"0 / {total}")
         self.director_log_add(f"RUN Preset '{name}' started ({total} action(s))")
@@ -6152,10 +6214,12 @@ class VadafokStudio(ctk.CTk):
                 if self.director_stop_requested:
                     self.director_set_status("STOPPED", "Stopped by user", f"{idx-1} / {total}")
                     self.director_log_add("STOPPED by user")
+                    self.director_clear_active_action()
                     return
 
                 action_type = action.get("type", "")
                 label = self.director_action_label(action)
+                self.director_set_active_action(idx - 1)
                 self.director_set_status("RUNNING", label, f"{idx} / {total}")
                 self.director_log_add(f"{idx}/{total} {label}")
 
@@ -6208,6 +6272,7 @@ class VadafokStudio(ctk.CTk):
                                 f"{idx-1} / {total}"
                             )
                             self.director_log_add("STOPPED during WAIT")
+                            self.director_clear_active_action()
                             return
 
                         remaining = max(0.0, deadline - time.monotonic())
@@ -6246,6 +6311,7 @@ class VadafokStudio(ctk.CTk):
             self.obs_workflow_mark_command(f"Silent Director: {name}")
             self.director_set_status("FINISHED", "Finished", f"{total} / {total}")
             self.director_log_add(f"FINISHED Preset '{name}'")
+            self.director_clear_active_action()
 
             try:
                 self.obs_workflow_refresh(silent=True)
@@ -6254,6 +6320,7 @@ class VadafokStudio(ctk.CTk):
             # No full page redraw here; textvariables update the monitor live.
 
         except Exception as e:
+            self.director_clear_active_action()
             self.director_set_status("ERROR", str(e), self.director_progress_var.get())
             self.director_log_add(f"ERROR {e}")
             self.obs_workflow_log(f"SILENT DIRECTOR ERROR: {e}")
@@ -6710,6 +6777,7 @@ class VadafokStudio(ctk.CTk):
             child.destroy()
 
         self.silent_director_action_rows = []
+        self.director_action_card_widgets = {}
 
         preset = self.silent_director_get_selected_preset()
         if not preset:
@@ -6809,7 +6877,7 @@ class VadafokStudio(ctk.CTk):
                 lambda event, i=idx: self.silent_director_drag_start(event, i)
             )
 
-            ctk.CTkButton(
+            title_button = ctk.CTkButton(
                 card,
                 text=f"{idx + 1}. {style['title']}",
                 anchor="w",
@@ -6842,9 +6910,10 @@ class VadafokStudio(ctk.CTk):
                 sticky="ew"
             )
 
-            ctk.CTkLabel(
+            step_text = f"Timeline step {idx + 1} of {len(actions)}"
+            runtime_label = ctk.CTkLabel(
                 card,
-                text=f"Timeline step {idx + 1} of {len(actions)}",
+                text=step_text,
                 text_color="#7E7E7E" if not is_dragged else "#222222",
                 anchor="w",
                 font=ctk.CTkFont(size=10)
@@ -6855,6 +6924,15 @@ class VadafokStudio(ctk.CTk):
                 pady=(0, 8),
                 sticky="ew"
             )
+
+            self.director_action_card_widgets[idx] = {
+                "card": card,
+                "title": title_button,
+                "badge": badge,
+                "runtime": runtime_label,
+                "style": dict(style),
+                "step_text": step_text,
+            }
 
             controls = ctk.CTkFrame(card, fg_color="transparent")
             controls.grid(row=0, column=2, rowspan=3, padx=8, pady=7)
@@ -6912,6 +6990,12 @@ class VadafokStudio(ctk.CTk):
             )
 
             grid_row += 1
+
+        self.director_set_active_action(
+            getattr(self, "director_active_action_index", None)
+        )
+
+
 
     def silent_director_add_action(self):
         preset = self.silent_director_get_selected_preset()

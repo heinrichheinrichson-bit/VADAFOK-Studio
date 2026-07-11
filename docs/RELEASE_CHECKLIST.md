@@ -1,20 +1,24 @@
 # Release Checklist
 
-## v2.15.2 Testliste
+## v2.15.3 Testliste
 
-- [ ] Version shows 2.15.2
-- [ ] Drag from DRAG handle
-- [ ] Timeline stays completely still
-- [ ] Dragged card has gold border
-- [ ] Gold line is visible
-- [ ] DROP HERE POSITION is visible
-- [ ] Indicator follows first/middle/final position
-- [ ] Release saves the order
-- [ ] ESC cancels drag
-- [ ] DUP works
-- [ ] EDIT / UPDATE works
-- [ ] WAIT countdown unchanged
-- [ ] Progress unchanged
+### Runtime Highlight
+- [ ] Version shows 2.15.3
+- [ ] RUN PRESET highlights the first action
+- [ ] Badge changes to RUN
+- [ ] Card shows RUNNING NOW
+- [ ] Highlight moves to each next action
+- [ ] WAIT card stays highlighted during countdown
+- [ ] Highlight clears after FINISHED
+- [ ] Highlight clears after STOP
+- [ ] Highlight clears after ERROR
+
+### Regression
+- [ ] WAIT countdown with tenths unchanged
+- [ ] Progress x/y unchanged
+- [ ] Progress bar unchanged
+- [ ] Drag & Drop still works
+- [ ] DUP / EDIT / UPDATE / DELETE work
 - [ ] OBS Workflow live refresh works
 - [ ] F8 works
 - [ ] Banner + Text work
