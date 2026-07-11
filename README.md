@@ -1,12 +1,10 @@
-# VADAFOK Studio 2.14.4
+# VADAFOK Studio 2.15.2
 
-Duplicate Action & Productivity.
+Floating Drop Indicator.
+
+Basis: stable v2.14.4.
 
 Neu:
-- DUP Button pro Action
-- Kopie direkt unter dem Original
-- Kopie sofort ausgewählt
-- Werte direkt im Editor
-- sofortiges UPDATE ACTION möglich
-
-Basis: v2.14.3.2
+- Timeline bleibt beim Ziehen unverändert
+- goldene Linie + DROP HERE als separates Overlay
+- nur ein Neuaufbau nach Loslassen

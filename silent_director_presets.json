@@ -8,9 +8,9 @@
     "hide_sources": [],
     "actions": [
       {
-        "type": "show_banner",
-        "scene": "",
-        "text": "whats up !!!!!!!!!",
+        "type": "switch_scene",
+        "scene": "Cam - VHS Retro",
+        "text": "",
         "source": "",
         "seconds": ""
       },
@@ -22,11 +22,18 @@
         "seconds": "10"
       },
       {
-        "type": "switch_scene",
-        "scene": "Cam - VHS Retro",
-        "text": "",
+        "type": "show_banner",
+        "scene": "",
+        "text": "whats up !!!!!!!!!",
         "source": "",
         "seconds": ""
+      },
+      {
+        "type": "wait",
+        "scene": "",
+        "text": "",
+        "source": "",
+        "seconds": "7"
       },
       {
         "type": "show_banner",
@@ -41,13 +48,6 @@
         "text": "",
         "source": "",
         "seconds": ""
-      },
-      {
-        "type": "wait",
-        "scene": "",
-        "text": "",
-        "source": "",
-        "seconds": "7"
       }
     ]
   },

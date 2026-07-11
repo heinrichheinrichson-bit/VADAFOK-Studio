@@ -1,19 +1,20 @@
 # CHANGELOG
 
-## v2.14.4 - Duplicate Action & Productivity
+## v2.15.2 - Floating Drop Indicator
 
-### Added
-- New DUP button on every timeline action.
-- A duplicate is inserted directly below the original.
-- The new copy is selected automatically.
-- The editor is filled with the duplicated values.
-- UPDATE ACTION is ready immediately for quick changes.
+### Rebuilt from stable v2.14.4
+- Timeline is never rebuilt during mouse movement.
+- Gold drop line and DROP HERE text use a separate floating overlay.
+- Overlay follows the target position without changing timeline layout.
+- Dragged card receives a gold border.
+- Order is saved on release.
+- Timeline rebuilds exactly once after release.
+- ESC cancels the drag.
 
 ### Preserved
 - Timeline View.
-- Drag & Drop and drop indicators.
+- DUP, EDIT, UPDATE and DELETE.
 - MOVE UP / MOVE DOWN.
-- EDIT / UPDATE / DELETE.
 - WAIT countdown with tenths.
 - Progress x/y and progress bar.
 - OBS Workflow live refresh.

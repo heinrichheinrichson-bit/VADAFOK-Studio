@@ -1,5 +1,5 @@
 # Known Issues
 
-## v2.14.4
-- Duplicate uses the existing normalized action format.
-- The duplicated action is intentionally selected for immediate editing.
+## v2.15.2
+- The drop indicator is a temporary top-level overlay and disappears immediately after release.
+- Timeline is rebuilt once after a successful drop.

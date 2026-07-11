@@ -35,7 +35,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.14.4")
+        self.wm_title("VADAFOK Studio 2.15.2")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -124,6 +124,10 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_drop_index = None
         self.silent_director_action_rows = []
         self.silent_director_drag_active = False
+        self.silent_director_drop_overlay = None
+        self.silent_director_drop_overlay_label = None
+        self.silent_director_dragged_card = None
+        self.silent_director_drag_target = None
         self.director_status_var = ctk.StringVar(value="READY")
         self.director_current_action_var = ctk.StringVar(value="-")
         self.director_progress_var = ctk.StringVar(value="0 / 0")
@@ -210,7 +214,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.14.4", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.15.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -6420,90 +6424,227 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_render_actions_list()
 
     def silent_director_drag_start(self, event, index):
-        """Begin dragging an action by its dedicated drag handle."""
+        """Start drag without rebuilding the timeline."""
+        rows = list(getattr(self, "silent_director_action_rows", []) or [])
+        if not (0 <= index < len(rows)):
+            return "break"
+
         self.silent_director_drag_index = index
         self.silent_director_drop_index = index
+        self.silent_director_drag_target = index
         self.silent_director_drag_active = True
+        self.silent_director_dragged_card = rows[index]
+
+        try:
+            self.silent_director_dragged_card.configure(
+                border_width=3,
+                border_color=GOLD
+            )
+        except Exception:
+            pass
+
+        self.silent_director_show_floating_drop_indicator(index)
 
         try:
             self.bind_all("<B1-Motion>", self.silent_director_drag_motion)
             self.bind_all("<ButtonRelease-1>", self.silent_director_drag_release)
+            self.bind_all("<Escape>", lambda _e: self.silent_director_drag_cancel())
         except Exception:
             pass
 
-        self.silent_director_render_actions_list()
         return "break"
 
-    def silent_director_drag_motion(self, event):
-        if not self.silent_director_drag_active:
-            return
 
+    def silent_director_drag_target_from_y(self, y_root):
         rows = list(getattr(self, "silent_director_action_rows", []) or [])
         if not rows:
-            return
-
-        pointer_y = event.y_root
-        drop_index = len(rows)
+            return None
 
         for idx, row in enumerate(rows):
             try:
-                top = row.winfo_rooty()
-                height = max(1, row.winfo_height())
-                center = top + (height / 2)
+                center = row.winfo_rooty() + (row.winfo_height() / 2)
             except Exception:
                 continue
+            if y_root < center:
+                return idx
 
-            if pointer_y < center:
-                drop_index = idx
-                break
+        return len(rows)
 
-        if drop_index != self.silent_director_drop_index:
-            self.silent_director_drop_index = drop_index
-            self.silent_director_render_actions_list()
+
+    def silent_director_show_floating_drop_indicator(self, target_index):
+        """Show a separate floating overlay so the timeline never needs redrawing."""
+        rows = list(getattr(self, "silent_director_action_rows", []) or [])
+        frame = getattr(self, "silent_director_actions_frame", None)
+        if not rows or frame is None or target_index is None:
+            return
+
+        target_index = max(0, min(len(rows), int(target_index)))
+
+        try:
+            frame.update_idletasks()
+
+            x = frame.winfo_rootx() + 12
+            width = max(240, frame.winfo_width() - 24)
+
+            if target_index < len(rows):
+                y = rows[target_index].winfo_rooty() - 8
+            else:
+                last = rows[-1]
+                y = last.winfo_rooty() + last.winfo_height() + 2
+
+            if self.silent_director_drop_overlay is None:
+                overlay = ctk.CTkToplevel(self)
+                overlay.overrideredirect(True)
+                overlay.attributes("-topmost", True)
+                try:
+                    overlay.attributes("-alpha", 0.97)
+                except Exception:
+                    pass
+
+                body = ctk.CTkFrame(
+                    overlay,
+                    fg_color="#111111",
+                    border_color=GOLD,
+                    border_width=1,
+                    corner_radius=7
+                )
+                body.pack(fill="both", expand=True)
+
+                line = ctk.CTkFrame(
+                    body,
+                    fg_color=GOLD,
+                    height=6,
+                    corner_radius=3
+                )
+                line.pack(fill="x", padx=6, pady=(5, 1))
+                line.pack_propagate(False)
+
+                label = ctk.CTkLabel(
+                    body,
+                    text="",
+                    text_color=GOLD,
+                    font=ctk.CTkFont(size=11, weight="bold")
+                )
+                label.pack(anchor="w", padx=8, pady=(0, 5))
+
+                self.silent_director_drop_overlay = overlay
+                self.silent_director_drop_overlay_label = label
+
+            self.silent_director_drop_overlay_label.configure(
+                text=f"DROP HERE — POSITION {target_index + 1}"
+            )
+            self.silent_director_drop_overlay.geometry(
+                f"{width}x42+{x}+{max(0, int(y))}"
+            )
+            self.silent_director_drop_overlay.deiconify()
+            self.silent_director_drop_overlay.lift()
+        except Exception:
+            pass
+
+
+    def silent_director_hide_floating_drop_indicator(self):
+        overlay = getattr(self, "silent_director_drop_overlay", None)
+        if overlay is not None:
+            try:
+                overlay.destroy()
+            except Exception:
+                pass
+        self.silent_director_drop_overlay = None
+        self.silent_director_drop_overlay_label = None
+
+
+    def silent_director_drag_motion(self, event):
+        if not self.silent_director_drag_active:
+            return "break"
+
+        target = self.silent_director_drag_target_from_y(
+            getattr(event, "y_root", 0)
+        )
+        if target is None:
+            return "break"
+
+        if target != self.silent_director_drag_target:
+            self.silent_director_drag_target = target
+            self.silent_director_drop_index = target
+            self.silent_director_show_floating_drop_indicator(target)
 
         return "break"
 
-    def silent_director_drag_release(self, _event=None):
-        if not self.silent_director_drag_active:
-            return
 
-        from_index = self.silent_director_drag_index
-        insert_index = self.silent_director_drop_index
+    def silent_director_drag_release(self, event=None):
+        if not self.silent_director_drag_active:
+            return "break"
+
+        source_index = self.silent_director_drag_index
+        target_index = self.silent_director_drag_target
+
+        if target_index is None and event is not None:
+            target_index = self.silent_director_drag_target_from_y(
+                getattr(event, "y_root", 0)
+            )
 
         self.silent_director_drag_active = False
         self.silent_director_drag_index = None
         self.silent_director_drop_index = None
+        self.silent_director_drag_target = None
 
         try:
             self.unbind_all("<B1-Motion>")
             self.unbind_all("<ButtonRelease-1>")
+            self.unbind_all("<Escape>")
         except Exception:
             pass
 
+        self.silent_director_hide_floating_drop_indicator()
+
+        try:
+            if self.silent_director_dragged_card is not None:
+                self.silent_director_dragged_card.configure(border_width=1)
+        except Exception:
+            pass
+        self.silent_director_dragged_card = None
+
         preset = self.silent_director_get_selected_preset()
-        if preset and from_index is not None and insert_index is not None:
+        if preset and source_index is not None and target_index is not None:
             self.silent_director_presets = silent_director.move_action_to(
                 preset.get("name", ""),
-                from_index,
-                insert_index,
+                source_index,
+                target_index,
             )
             self.silent_director_edit_index = None
             self.silent_director_action_button_text.set("+ ADD ACTION")
-            self.obs_workflow_mark_command("Silent Director action reordered by drag and drop")
+            self.obs_workflow_mark_command(
+                "Silent Director action reordered by drag and drop"
+            )
 
+        # Exactly one rebuild after release.
         self.silent_director_render_actions_list()
         return "break"
+
 
     def silent_director_drag_cancel(self):
         self.silent_director_drag_active = False
         self.silent_director_drag_index = None
         self.silent_director_drop_index = None
+        self.silent_director_drag_target = None
+
         try:
             self.unbind_all("<B1-Motion>")
             self.unbind_all("<ButtonRelease-1>")
+            self.unbind_all("<Escape>")
         except Exception:
             pass
-        self.silent_director_render_actions_list()
+
+        self.silent_director_hide_floating_drop_indicator()
+
+        try:
+            if self.silent_director_dragged_card is not None:
+                self.silent_director_dragged_card.configure(border_width=1)
+        except Exception:
+            pass
+        self.silent_director_dragged_card = None
+        return "break"
+
 
     def silent_director_timeline_style(self, action_type):
         styles = {
@@ -6590,40 +6731,11 @@ class VadafokStudio(ctk.CTk):
         grid_row = 0
 
         for idx, action in enumerate(actions):
-            if drag_active and drop_index == idx:
-                indicator = ctk.CTkFrame(
-                    frame,
-                    fg_color=GOLD,
-                    height=6,
-                    corner_radius=3
-                )
-                indicator.grid(
-                    row=grid_row,
-                    column=0,
-                    sticky="ew",
-                    padx=12,
-                    pady=(5, 2)
-                )
-                indicator.grid_propagate(False)
-
-                ctk.CTkLabel(
-                    frame,
-                    text=f"DROP HERE — POSITION {idx + 1}",
-                    text_color=GOLD,
-                    font=ctk.CTkFont(size=11, weight="bold")
-                ).grid(
-                    row=grid_row + 1,
-                    column=0,
-                    sticky="w",
-                    padx=16,
-                    pady=(0, 3)
-                )
-                grid_row += 2
 
             action_type = str(action.get("type", "") or "").strip()
             style = self.silent_director_timeline_style(action_type)
             detail = self.silent_director_timeline_detail(action)
-            is_dragged = drag_active and idx == drag_index
+            is_dragged = False
 
             item = ctk.CTkFrame(frame, fg_color="transparent")
             item.grid(row=grid_row, column=0, sticky="ew", padx=0, pady=0)
@@ -6800,36 +6912,6 @@ class VadafokStudio(ctk.CTk):
             )
 
             grid_row += 1
-
-        if drag_active and drop_index == len(actions):
-            indicator = ctk.CTkFrame(
-                frame,
-                fg_color=GOLD,
-                height=6,
-                corner_radius=3
-            )
-            indicator.grid(
-                row=grid_row,
-                column=0,
-                sticky="ew",
-                padx=12,
-                pady=(5, 2)
-            )
-            indicator.grid_propagate(False)
-
-            ctk.CTkLabel(
-                frame,
-                text=f"DROP HERE — POSITION {len(actions) + 1}",
-                text_color=GOLD,
-                font=ctk.CTkFont(size=11, weight="bold")
-            ).grid(
-                row=grid_row + 1,
-                column=0,
-                sticky="w",
-                padx=16,
-                pady=(0, 3)
-            )
-
 
     def silent_director_add_action(self):
         preset = self.silent_director_get_selected_preset()
