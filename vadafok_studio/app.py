@@ -35,7 +35,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.15.4")
+        self.wm_title("VADAFOK Studio 2.15.5")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -216,7 +216,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.15.4", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.15.5", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -5960,6 +5960,32 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_new_name.set("")
         self.show_silent_director_page()
 
+    def silent_director_duplicate_preset(self, preset=None):
+        preset = preset or self.silent_director_get_selected_preset()
+        if not preset:
+            return
+
+        original_name = str(preset.get("name", "") or "").strip()
+        self.silent_director_presets = silent_director.duplicate_preset(original_name)
+
+        new_name = None
+        original_found = False
+        for item in self.silent_director_presets:
+            item_name = str(item.get("name", "") or "").strip()
+            if original_found:
+                new_name = item_name
+                break
+            if item_name == original_name:
+                original_found = True
+
+        if new_name:
+            self.silent_director_selected.set(new_name)
+
+        self.silent_director_edit_index = None
+        self.silent_director_action_button_text.set("+ ADD ACTION")
+        self.obs_workflow_mark_command(f"Silent Director preset duplicated: {original_name}")
+        self.show_silent_director_page()
+
     def silent_director_delete_selected(self):
         preset = self.silent_director_get_selected_preset()
         if not preset:
@@ -7185,21 +7211,28 @@ class VadafokStudio(ctk.CTk):
                     pady=(0, 6)
                 )
 
+                preset_controls = ctk.CTkFrame(row, fg_color="transparent")
+                preset_controls.grid(row=0, column=1, rowspan=2, padx=(4, 8), pady=6)
+
                 ctk.CTkButton(
-                    row,
+                    preset_controls,
                     text="RUN",
-                    width=64,
+                    width=58,
                     fg_color=GOLD,
                     text_color="#111111",
                     hover_color=GOLD_DARK,
                     command=lambda p=preset: self.silent_director_run_preset(p)
-                ).grid(
-                    row=0,
-                    column=1,
-                    rowspan=2,
-                    padx=(4, 8),
-                    pady=6
-                )
+                ).grid(row=0, column=0, padx=2, pady=2)
+
+                ctk.CTkButton(
+                    preset_controls,
+                    text="DUP",
+                    width=48,
+                    fg_color="#2D4B3A",
+                    text_color="#D9F6E2",
+                    hover_color="#3B624C",
+                    command=lambda p=preset: self.silent_director_duplicate_preset(p)
+                ).grid(row=1, column=0, padx=2, pady=2)
 
         right = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         right.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
@@ -7470,6 +7503,14 @@ class VadafokStudio(ctk.CTk):
         actions_bar = ctk.CTkFrame(right, fg_color="transparent")
         actions_bar.grid(row=5, column=0, sticky="ew", padx=18, pady=(0, 18))
         ctk.CTkButton(actions_bar, text="SAVE", height=46, fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.silent_director_save_selected).pack(side="left", padx=4)
+        ctk.CTkButton(
+            actions_bar,
+            text="DUPLICATE PRESET",
+            height=46,
+            fg_color="#2D4B3A",
+            hover_color="#3B624C",
+            command=lambda: self.silent_director_duplicate_preset()
+        ).pack(side="left", padx=4)
         ctk.CTkButton(actions_bar, text="RUN PRESET", height=46, fg_color="#333333", hover_color="#444444", command=lambda: self.silent_director_run_preset()).pack(side="left", padx=4)
         ctk.CTkButton(actions_bar, text="STOP", height=46, fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.director_request_stop).pack(side="left", padx=4)
         ctk.CTkButton(actions_bar, text="DELETE", height=46, fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.silent_director_delete_selected).pack(side="left", padx=4)

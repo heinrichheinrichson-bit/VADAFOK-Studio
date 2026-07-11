@@ -265,3 +265,26 @@ def duplicate_action(preset_name: str, index: int) -> List[Dict[str, Any]]:
 
     save_presets(presets)
     return presets
+
+
+def duplicate_preset(preset_name: str) -> List[Dict[str, Any]]:
+    presets = load_presets()
+    source = next((p for p in presets if p.get("name") == preset_name), None)
+    if source is None:
+        return presets
+
+    existing = {str(p.get("name", "")).strip() for p in presets}
+    base = str(source.get("name", "Preset")).strip() or "Preset"
+    candidate = f"{base} Copy"
+    number = 2
+    while candidate in existing:
+        candidate = f"{base} Copy {number}"
+        number += 1
+
+    duplicate = {
+        "name": candidate,
+        "actions": [normalize_action(dict(a)) for a in list(source.get("actions", []) or [])],
+    }
+    presets.insert(presets.index(source) + 1, duplicate)
+    save_presets(presets)
+    return presets

@@ -1,11 +1,5 @@
-# VADAFOK Studio 2.15.4
+# VADAFOK Studio 2.15.5
 
-Preset-Gesamtdauer & Action-Anzahl.
+Duplicate Preset.
 
-Neu:
-- Action-Anzahl pro Preset
-- geplante Gesamtdauer pro Preset
-- Statistikleiste im ausgewählten Preset
-- Dauerberechnung aus WAIT-Actions
-
-Basis: v2.15.3
+Basis: v2.15.4

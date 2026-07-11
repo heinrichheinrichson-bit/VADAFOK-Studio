@@ -1,19 +1,11 @@
 # CHANGELOG
 
-## v2.15.4 - Preset Duration & Action Count
+## v2.15.5 - Duplicate Preset
 
 ### Added
-- Every preset shows its action count.
-- Every preset shows its planned total duration.
-- Selected preset has a dedicated statistics bar.
-- Duration is calculated from all WAIT actions.
-- Seconds are formatted automatically as seconds or minutes.
-
-### Preserved
-- Director Runtime Highlight.
-- WAIT countdown with tenths.
-- Progress x/y and progress bar.
-- Drag & Drop.
-- Timeline View and DUP/EDIT/UPDATE/DELETE.
-- OBS Workflow live refresh.
-- F8, Banner + Text and Live Card.
+- DUP button for every preset.
+- DUPLICATE PRESET button for the selected preset.
+- Copy is inserted directly below the original.
+- Copy is selected automatically.
+- Actions and all values are copied independently.
+- Automatic names: Copy, Copy 2, Copy 3.
