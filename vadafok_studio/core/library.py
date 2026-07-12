@@ -22,6 +22,96 @@ def file_kind(path: Path):
         return "sound"
     return "file"
 
+def scan_library_section(project_folder: str, section: str):
+    """Scan only one selected top-level Library section."""
+    base = Path(project_folder) if project_folder else None
+    section = str(section or "").strip()
+
+    if not base or not base.exists() or section not in ROOT_FOLDERS:
+        return []
+
+    items = []
+    root = base / section
+
+    if root.exists():
+        for path in root.rglob("*"):
+            if not path.is_file():
+                continue
+            if path.suffix.lower() not in IMAGE_EXTS and path.suffix.lower() not in SOUND_EXTS:
+                continue
+
+            relative_parts = path.relative_to(root).parts
+            category = relative_parts[0] if len(relative_parts) > 1 else "(Root)"
+            items.append(
+                LibraryItem(
+                    path=path,
+                    name=path.name,
+                    section=section,
+                    category=category,
+                    relative=str(path.relative_to(base)),
+                    kind=file_kind(path),
+                )
+            )
+
+    # Preserve the old behavior for loose files in the project root.
+    if section in {"Scene Cards", "Sounds"}:
+        for path in base.glob("*"):
+            if not path.is_file():
+                continue
+
+            suffix = path.suffix.lower()
+            is_matching = (
+                section == "Scene Cards" and suffix in IMAGE_EXTS
+            ) or (
+                section == "Sounds" and suffix in SOUND_EXTS
+            )
+            if not is_matching:
+                continue
+
+            items.append(
+                LibraryItem(
+                    path=path,
+                    name=path.name,
+                    section=section,
+                    category="(Root)",
+                    relative=str(path.relative_to(base)),
+                    kind=file_kind(path),
+                )
+            )
+
+    return sorted(
+        items,
+        key=lambda item: (
+            item.category.lower(),
+            item.name.lower(),
+        ),
+    )
+
+
+def library_section_exists(project_folder: str, section: str):
+    """Cheap folder availability check without loading images."""
+    base = Path(project_folder) if project_folder else None
+    if not base or not base.exists():
+        return False
+
+    if (base / section).exists():
+        return True
+
+    if section == "Scene Cards":
+        return any(
+            path.is_file() and path.suffix.lower() in IMAGE_EXTS
+            for path in base.glob("*")
+        )
+
+    if section == "Sounds":
+        return any(
+            path.is_file() and path.suffix.lower() in SOUND_EXTS
+            for path in base.glob("*")
+        )
+
+    return False
+
+
 def scan_library(project_folder: str):
     base = Path(project_folder) if project_folder else None
     if not base or not base.exists():

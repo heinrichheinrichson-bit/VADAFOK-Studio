@@ -1,10 +1,12 @@
-# v2.15.9 Testliste
+# v2.16.1 Testliste
 
-- Existing presets display an AUTO icon.
-- Gameplay preset shows GME automatically.
-- Pause/BRB preset shows BRB automatically.
-- Select a manual icon and SAVE.
-- Restart and verify icon remains.
-- Duplicate a preset and verify icon is copied.
-- Favorite preset uses gold icon badge.
-- Check search, favorites, RUN, WAIT, Runtime Highlight, Drag & Drop, OBS Workflow, F8 and Live Card.
+- Open Library and verify that no images load immediately.
+- Folder overview appears quickly.
+- Open Banners and verify only banner files load.
+- Return with FOLDERS.
+- Open Live Cards, Scene Cards and Templates.
+- Test Search inside one folder.
+- Test Favorites inside one folder.
+- Test REFRESH FOLDER.
+- Select an asset and use preview/actions.
+- Reopen Library and verify folder overview appears again.

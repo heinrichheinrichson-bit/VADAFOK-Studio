@@ -1,30 +1,23 @@
 # CHANGELOG
 
-## v2.15.9 - Preset Icons
+## v2.16.1 - Library Folder First
 
 ### Added
-- Compact icon badge for every preset.
-- AUTO mode selects an icon from the preset name.
-- Manual icon choices:
-  - PRE
-  - GME
-  - BRB
-  - MIC
-  - MUS
-  - LIVE
-  - IN
-  - OUT
-  - TST
-- Icon can be changed in the preset editor.
-- Icon is stored permanently.
-- Duplicated presets preserve their icon.
-- Favorite presets use a gold icon badge.
+- Library opens with a lightweight folder overview.
+- No asset images or thumbnails are loaded when entering the module.
+- Files load only after selecting one folder.
+- Folder cards for Library, Live Cards, Scene Cards, Banners, Templates, Fonts, Sounds and Projects.
+- FOLDERS button returns to the overview.
+- REFRESH FOLDER reloads only the current folder.
+- Search and Favorites operate only inside the current folder.
+
+### Performance
+- Removed the automatic full-library scan on page open.
+- Removed automatic loading of all thumbnails.
+- The module now scales much better with large asset collections.
 
 ### Preserved
-- Preset Search and Favorites.
-- Duplicate Preset.
-- Preset statistics.
-- Runtime Highlight.
-- WAIT, Progress, Timeline and Drag & Drop.
-- OBS Workflow live refresh.
-- F8, Banner + Text and Live Card.
+- Asset selection and preview.
+- Favorites and tags.
+- Caption Banner, Scene Card and Live Card actions.
+- Open Folder and Copy Path.

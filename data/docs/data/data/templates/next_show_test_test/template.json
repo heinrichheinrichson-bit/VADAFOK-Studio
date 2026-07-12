@@ -1,0 +1,60 @@
+{
+  "name": "next show test test",
+  "background": "background.png",
+  "fields": [
+    {
+      "name": "date",
+      "x": 252,
+      "y": 924,
+      "width": 456,
+      "height": 96,
+      "font_family": "Bebas Neue",
+      "font_size": 90,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true,
+      "id": "a7f6e879-dfb7-4c43-a0d2-1180140509f3"
+    },
+    {
+      "name": "game",
+      "x": 130,
+      "y": 1399,
+      "width": 673,
+      "height": 100,
+      "font_family": "Bebas Neue",
+      "font_size": 110,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true,
+      "id": "82d618a5-a85c-4cb8-b2df-92ee8737b00e"
+    },
+    {
+      "name": "time",
+      "x": 300,
+      "y": 1154,
+      "width": 360,
+      "height": 100,
+      "font_family": "Bebas Neue",
+      "font_size": 90,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true,
+      "id": "2ac1494c-6669-41c0-a63d-7bb487768671"
+    }
+  ],
+  "groups": [
+    {
+      "id": "7ba96057-6a9a-4876-886f-845adb4c03ea",
+      "name": "22234",
+      "field_ids": [
+        "82d618a5-a85c-4cb8-b2df-92ee8737b00e",
+        "2ac1494c-6669-41c0-a63d-7bb487768671"
+      ],
+      "locked": false,
+      "hidden": false
+    }
+  ]
+}

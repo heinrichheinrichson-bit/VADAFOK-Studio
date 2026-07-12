@@ -1,5 +1,8 @@
-# VADAFOK Studio 2.15.9
+# VADAFOK Studio 2.16.1
 
-Preset Icons.
+Library Folder First.
 
-Basis: v2.15.8
+The Library no longer loads all assets on entry.
+Choose a folder first; only that folder is scanned and rendered.
+
+Basis: v2.15.9

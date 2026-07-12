@@ -1,0 +1,49 @@
+{
+  "name": "Default Stream Plan",
+  "background": "background.png",
+  "fields": [
+    {
+      "name": "date",
+      "x": 120,
+      "y": 80,
+      "width": 420,
+      "height": 90,
+      "font_family": "Bebas Neue",
+      "font_size": 90,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true,
+      "id": "66b17c74-f1f6-4c3f-9ed2-3504e59fc9dd"
+    },
+    {
+      "name": "game",
+      "x": 120,
+      "y": 190,
+      "width": 900,
+      "height": 120,
+      "font_family": "Bebas Neue",
+      "font_size": 110,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true,
+      "id": "c5efcff0-e6ad-45ba-a54d-953a51fed1b2"
+    },
+    {
+      "name": "time",
+      "x": 120,
+      "y": 340,
+      "width": 360,
+      "height": 90,
+      "font_family": "Bebas Neue",
+      "font_size": 90,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true,
+      "id": "394eaa3e-ca29-4133-97e3-b5304ebefd9a"
+    }
+  ],
+  "groups": []
+}

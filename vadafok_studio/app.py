@@ -9,7 +9,7 @@ from tkinter import messagebox, simpledialog, filedialog, simpledialog
 from PIL import Image
 
 from .core.config import TEMPLATE_PROFILES_PATH, load_config, save_config, load_favorites, save_favorites, load_asset_meta, save_asset_meta, EXPORT_DIR, load_json, save_json, CARD_VALUES_PATH
-from .core.library import scan_library, ROOT_FOLDERS, guessed_tags
+from .core.library import scan_library, scan_library_section, library_section_exists, ROOT_FOLDERS, guessed_tags
 from .core.obs_controller import OBSController
 from .core.caption_renderer import render_caption_png
 from .core.template_store import list_templates, load_template, save_template, create_template, set_background_from_file, background_path, import_legacy_templates, delete_template, duplicate_template, rename_template, set_default_template, get_default_template, ensure_background_file, template_dir
@@ -35,7 +35,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.15.9")
+        self.wm_title("VADAFOK Studio 2.16.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -220,7 +220,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.15.9", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.16.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -273,10 +273,170 @@ class VadafokStudio(ctk.CTk):
     def page_title(self, text):
         ctk.CTkLabel(self.main, text=text, font=ctk.CTkFont(size=28, weight="bold"), text_color=GOLD).grid(row=0, column=0, padx=28, pady=(24, 12), sticky="w")
 
+    def open_library_section(self, section):
+        """Open one Library folder and load only its files."""
+        section = str(section or "").strip()
+
+        if section in {"", "Folder Overview"}:
+            self.library_section.set("Folder Overview")
+            self.library_items = []
+            self.selected_item = None
+            self.render_library_grid()
+            return
+
+        if section not in ROOT_FOLDERS:
+            return
+
+        self.library_section.set(section)
+        self.selected_item = None
+        self.library_items = scan_library_section(
+            self.project_folder.get(),
+            section,
+        )
+        self.render_library_grid()
+
+    def library_section_changed(self, section):
+        self.open_library_section(section)
+
+    def show_library_folder_overview(self):
+        self.open_library_section("Folder Overview")
+
+    def render_library_folder_overview(self):
+        """Render folder choices without scanning or decoding thumbnails."""
+        if not hasattr(self, "library_grid"):
+            return
+
+        for widget in self.library_grid.winfo_children():
+            widget.destroy()
+
+        self.thumbnail_refs = []
+        self.library_info.configure(
+            text=(
+                f"Projektordner: {self.project_folder.get() or '(nicht gesetzt)'}    "
+                "Bitte zuerst einen Ordner auswählen."
+            )
+        )
+
+        intro = ctk.CTkFrame(
+            self.library_grid,
+            fg_color="#111111",
+            corner_radius=12,
+            border_color="#3A2A0D",
+            border_width=1,
+        )
+        intro.grid(
+            row=0,
+            column=0,
+            columnspan=3,
+            padx=12,
+            pady=(12, 6),
+            sticky="ew",
+        )
+        intro.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkLabel(
+            intro,
+            text="Library Folder",
+            text_color=GOLD,
+            font=ctk.CTkFont(size=20, weight="bold"),
+        ).grid(row=0, column=0, padx=16, pady=(14, 3), sticky="w")
+
+        ctk.CTkLabel(
+            intro,
+            text=(
+                "Wähle zuerst einen Ordner. Erst danach lädt VADAFOK "
+                "die Dateien und Vorschaubilder dieses Ordners."
+            ),
+            text_color="#BCA870",
+            wraplength=760,
+            justify="left",
+        ).grid(row=1, column=0, padx=16, pady=(0, 14), sticky="w")
+
+        cols = 3
+        for index, section in enumerate(ROOT_FOLDERS):
+            row, column = divmod(index, cols)
+            available = library_section_exists(
+                self.project_folder.get(),
+                section,
+            )
+
+            card = ctk.CTkFrame(
+                self.library_grid,
+                fg_color="#171717" if available else "#101010",
+                corner_radius=12,
+                border_color=GOLD if available else "#252525",
+                border_width=1,
+            )
+            card.grid(
+                row=row + 1,
+                column=column,
+                padx=10,
+                pady=10,
+                sticky="nsew",
+            )
+            card.grid_columnconfigure(0, weight=1)
+
+            badge = {
+                "Library": "LIB",
+                "Live Cards": "LIVE",
+                "Scene Cards": "SCN",
+                "Banners": "BNR",
+                "Templates": "TPL",
+                "Fonts": "FNT",
+                "Sounds": "SND",
+                "Projects": "PRJ",
+            }.get(section, "DIR")
+
+            ctk.CTkLabel(
+                card,
+                text=badge,
+                width=54,
+                height=38,
+                fg_color=GOLD if available else "#333333",
+                text_color="#111111" if available else "#777777",
+                corner_radius=9,
+                font=ctk.CTkFont(size=11, weight="bold"),
+            ).grid(row=0, column=0, padx=14, pady=(14, 6))
+
+            ctk.CTkLabel(
+                card,
+                text=section,
+                text_color=TEXT if available else "#777777",
+                font=ctk.CTkFont(size=16, weight="bold"),
+            ).grid(row=1, column=0, padx=14, pady=(0, 3))
+
+            ctk.CTkLabel(
+                card,
+                text="Ordner öffnen" if available else "Nicht gefunden",
+                text_color="#BCA870" if available else "#666666",
+                font=ctk.CTkFont(size=11),
+            ).grid(row=2, column=0, padx=14, pady=(0, 8))
+
+            button = ctk.CTkButton(
+                card,
+                text="OPEN",
+                height=34,
+                fg_color=GOLD if available else "#333333",
+                text_color="#111111" if available else "#777777",
+                hover_color=GOLD_DARK if available else "#333333",
+                state="normal" if available else "disabled",
+                command=lambda selected=section: self.open_library_section(selected),
+            )
+            button.grid(row=3, column=0, padx=14, pady=(0, 14), sticky="ew")
+
+        for column in range(cols):
+            self.library_grid.grid_columnconfigure(column, weight=1)
+
     def show_library(self):
         self.set_active("Library")
         self.clear_main()
         self.page_title("Library")
+
+        # Opening the module must remain fast: do not scan the whole library.
+        self.library_items = []
+        self.selected_item = None
+        self.library_section.set("Folder Overview")
+
         outer = ctk.CTkFrame(self.main, fg_color=DARK)
         outer.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
         outer.grid_columnconfigure(0, weight=3)
@@ -290,32 +450,149 @@ class VadafokStudio(ctk.CTk):
 
         top = ctk.CTkFrame(left, fg_color="transparent")
         top.grid(row=0, column=0, sticky="ew", padx=18, pady=(18, 8))
-        top.grid_columnconfigure(3, weight=1)
-        ctk.CTkLabel(top, text="Section", text_color="#BCA870").grid(row=0, column=0, padx=(0, 8))
-        ctk.CTkOptionMenu(top, values=["All"] + ROOT_FOLDERS, variable=self.library_section, fg_color="#1A1A1A", button_color=GOLD_DARK, command=lambda _: self.render_library_grid()).grid(row=0, column=1, sticky="w")
-        ctk.CTkCheckBox(top, text="Favorites", variable=self.favorite_filter, text_color="#BCA870", command=self.render_library_grid).grid(row=0, column=2, padx=(18, 8))
-        entry = ctk.CTkEntry(top, textvariable=self.search_text, placeholder_text="Suche nach Datei, Kategorie oder Tag...")
-        entry.grid(row=0, column=3, sticky="ew")
-        entry.bind("<KeyRelease>", lambda e: self.render_library_grid())
-        ctk.CTkButton(top, text="REFRESH", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.reload_library).grid(row=0, column=4, padx=(12, 0))
+        top.grid_columnconfigure(4, weight=1)
 
-        self.library_info = ctk.CTkLabel(left, text="", text_color="#D9C58C", anchor="w", justify="left")
-        self.library_info.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 8))
-        self.library_grid = ctk.CTkScrollableFrame(left, fg_color="#0B0B0B", corner_radius=12)
-        self.library_grid.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
+        ctk.CTkButton(
+            top,
+            text="FOLDERS",
+            width=88,
+            fg_color="#333333",
+            hover_color="#444444",
+            command=self.show_library_folder_overview,
+        ).grid(row=0, column=0, padx=(0, 8))
+
+        ctk.CTkLabel(
+            top,
+            text="Folder",
+            text_color="#BCA870",
+        ).grid(row=0, column=1, padx=(0, 8))
+
+        ctk.CTkOptionMenu(
+            top,
+            values=["Folder Overview"] + ROOT_FOLDERS,
+            variable=self.library_section,
+            fg_color="#1A1A1A",
+            button_color=GOLD_DARK,
+            command=self.library_section_changed,
+        ).grid(row=0, column=2, sticky="w")
+
+        ctk.CTkCheckBox(
+            top,
+            text="Favorites",
+            variable=self.favorite_filter,
+            text_color="#BCA870",
+            command=self.render_library_grid,
+        ).grid(row=0, column=3, padx=(18, 8))
+
+        entry = ctk.CTkEntry(
+            top,
+            textvariable=self.search_text,
+            placeholder_text="Suche im geöffneten Ordner...",
+        )
+        entry.grid(row=0, column=4, sticky="ew")
+        entry.bind("<KeyRelease>", lambda _event: self.render_library_grid())
+
+        ctk.CTkButton(
+            top,
+            text="REFRESH FOLDER",
+            fg_color=GOLD,
+            text_color="#111111",
+            hover_color=GOLD_DARK,
+            command=self.reload_library,
+        ).grid(row=0, column=5, padx=(12, 0))
+
+        self.library_info = ctk.CTkLabel(
+            left,
+            text="",
+            text_color="#D9C58C",
+            anchor="w",
+            justify="left",
+        )
+        self.library_info.grid(
+            row=1,
+            column=0,
+            sticky="ew",
+            padx=18,
+            pady=(0, 8),
+        )
+
+        self.library_grid = ctk.CTkScrollableFrame(
+            left,
+            fg_color="#0B0B0B",
+            corner_radius=12,
+        )
+        self.library_grid.grid(
+            row=2,
+            column=0,
+            sticky="nsew",
+            padx=18,
+            pady=(0, 18),
+        )
 
         right = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         right.grid(row=0, column=1, sticky="nsew", padx=(12, 0))
         right.grid_columnconfigure(0, weight=1)
         right.grid_rowconfigure(1, weight=1)
-        ctk.CTkLabel(right, text="Selection", font=ctk.CTkFont(size=18, weight="bold"), text_color=GOLD).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
-        self.selection_preview = ctk.CTkFrame(right, fg_color="#050505", corner_radius=12, border_color="#3A2A0D", border_width=1)
-        self.selection_preview.grid(row=1, column=0, padx=18, pady=8, sticky="nsew")
-        self.selection_name = ctk.CTkLabel(right, text="Noch nichts ausgewählt", text_color=TEXT, wraplength=300, justify="left")
-        self.selection_name.grid(row=2, column=0, padx=18, pady=(8, 4), sticky="w")
-        self.selection_meta = ctk.CTkLabel(right, text="", text_color="#BCA870", wraplength=300, justify="left")
-        self.selection_meta.grid(row=3, column=0, padx=18, pady=(0, 12), sticky="w")
-        ctk.CTkLabel(right, text="Actions", font=ctk.CTkFont(size=16, weight="bold"), text_color=GOLD).grid(row=4, column=0, padx=18, pady=(6, 4), sticky="w")
+
+        ctk.CTkLabel(
+            right,
+            text="Selection",
+            font=ctk.CTkFont(size=18, weight="bold"),
+            text_color=GOLD,
+        ).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+
+        self.selection_preview = ctk.CTkFrame(
+            right,
+            fg_color="#050505",
+            corner_radius=12,
+            border_color="#3A2A0D",
+            border_width=1,
+        )
+        self.selection_preview.grid(
+            row=1,
+            column=0,
+            padx=18,
+            pady=8,
+            sticky="nsew",
+        )
+
+        self.selection_name = ctk.CTkLabel(
+            right,
+            text="Noch nichts ausgewählt",
+            text_color=TEXT,
+            wraplength=300,
+            justify="left",
+        )
+        self.selection_name.grid(
+            row=2,
+            column=0,
+            padx=18,
+            pady=(8, 4),
+            sticky="w",
+        )
+
+        self.selection_meta = ctk.CTkLabel(
+            right,
+            text="Wähle links zuerst einen Ordner.",
+            text_color="#BCA870",
+            wraplength=300,
+            justify="left",
+        )
+        self.selection_meta.grid(
+            row=3,
+            column=0,
+            padx=18,
+            pady=(0, 12),
+            sticky="w",
+        )
+
+        ctk.CTkLabel(
+            right,
+            text="Actions",
+            font=ctk.CTkFont(size=16, weight="bold"),
+            text_color=GOLD,
+        ).grid(row=4, column=0, padx=18, pady=(6, 4), sticky="w")
+
         actions = [
             ("SHOW / USE", self.default_selected_action, GOLD),
             ("USE AS CAPTION BANNER", self.use_selected_as_caption_banner, "#4A3913"),
@@ -325,14 +602,41 @@ class VadafokStudio(ctk.CTk):
             ("OPEN FOLDER", self.open_selected_folder, "#222222"),
             ("COPY PATH", self.copy_selected_path, "#222222"),
         ]
-        for i, (text, cmd, color) in enumerate(actions, start=5):
-            ctk.CTkButton(right, text=text, fg_color=color, text_color="#111111" if color == GOLD else TEXT, hover_color=GOLD_DARK if color in [GOLD, "#4A3913"] else "#444444", command=cmd).grid(row=i, column=0, padx=18, pady=4, sticky="ew")
 
-        self.reload_library()
+        for index, (text, command, color) in enumerate(actions, start=5):
+            ctk.CTkButton(
+                right,
+                text=text,
+                fg_color=color,
+                text_color="#111111" if color == GOLD else TEXT,
+                hover_color=GOLD_DARK if color in [GOLD, "#4A3913"] else "#444444",
+                command=command,
+            ).grid(
+                row=index,
+                column=0,
+                padx=18,
+                pady=4,
+                sticky="ew",
+            )
+
+        self.render_library_folder_overview()
+
 
     def reload_library(self):
-        self.library_items = scan_library(self.project_folder.get())
+        section = str(self.library_section.get() or "").strip()
+
+        if section in {"", "All", "Folder Overview"}:
+            self.library_items = []
+            self.render_library_folder_overview()
+            return
+
+        self.library_items = scan_library_section(
+            self.project_folder.get(),
+            section,
+        )
+        self.selected_item = None
         self.render_library_grid()
+
 
     def item_key(self, item): return item.relative
     def item_is_favorite(self, item): return self.item_key(item) in self.asset_meta.get("favorites", [])
@@ -341,41 +645,156 @@ class VadafokStudio(ctk.CTk):
         return list(dict.fromkeys(stored + guessed_tags(item)))
 
     def render_library_grid(self):
-        if not hasattr(self, "library_grid"): return
-        for w in self.library_grid.winfo_children(): w.destroy()
-        self.thumbnail_refs = []
-        section = self.library_section.get()
-        query = self.search_text.get().strip().lower()
-        items = self.library_items
-        if section != "All": items = [i for i in items if i.section == section]
-        if self.favorite_filter.get(): items = [i for i in items if self.item_is_favorite(i)]
-        if query:
-            items = [i for i in items if query in i.name.lower() or query in i.category.lower() or query in i.relative.lower() or any(query in t.lower() for t in self.item_tags(i))]
-        self.library_info.configure(text=f"Projektordner: {self.project_folder.get() or '(nicht gesetzt)'}    Treffer: {len(items)}    Gesamt: {len(self.library_items)}")
-        if not items:
-            ctk.CTkLabel(self.library_grid, text="Keine Treffer. Prüfe Projektordner, Filter oder Suche.", text_color="#BCA870").grid(row=0, column=0, padx=18, pady=18, sticky="w")
+        if not hasattr(self, "library_grid"):
             return
+
+        section = str(self.library_section.get() or "").strip()
+        if section in {"", "All", "Folder Overview"}:
+            self.render_library_folder_overview()
+            return
+
+        for widget in self.library_grid.winfo_children():
+            widget.destroy()
+
+        self.thumbnail_refs = []
+        query = self.search_text.get().strip().lower()
+        items = list(self.library_items)
+
+        if self.favorite_filter.get():
+            items = [
+                item for item in items
+                if self.item_is_favorite(item)
+            ]
+
+        if query:
+            items = [
+                item for item in items
+                if query in item.name.lower()
+                or query in item.category.lower()
+                or query in item.relative.lower()
+                or any(
+                    query in tag.lower()
+                    for tag in self.item_tags(item)
+                )
+            ]
+
+        self.library_info.configure(
+            text=(
+                f"Ordner: {section}    "
+                f"Treffer: {len(items)}    "
+                f"Dateien im Ordner: {len(self.library_items)}"
+            )
+        )
+
+        if not items:
+            ctk.CTkLabel(
+                self.library_grid,
+                text=(
+                    "Keine Treffer in diesem Ordner. "
+                    "Prüfe Suche, Favoritenfilter oder Projektordner."
+                ),
+                text_color="#BCA870",
+            ).grid(
+                row=0,
+                column=0,
+                padx=18,
+                pady=18,
+                sticky="w",
+            )
+            return
+
         cols = 4
-        for idx, item in enumerate(items):
-            r, c = divmod(idx, cols)
-            border = GOLD if self.selected_item and self.item_key(self.selected_item) == self.item_key(item) else "#151515"
-            card = ctk.CTkFrame(self.library_grid, fg_color="#151515", corner_radius=10, border_color=border, border_width=2)
-            card.grid(row=r, column=c, padx=10, pady=10, sticky="nsew")
+        for index, item in enumerate(items):
+            row, column = divmod(index, cols)
+
+            border = (
+                GOLD
+                if self.selected_item
+                and self.item_key(self.selected_item) == self.item_key(item)
+                else "#151515"
+            )
+
+            card = ctk.CTkFrame(
+                self.library_grid,
+                fg_color="#151515",
+                corner_radius=10,
+                border_color=border,
+                border_width=2,
+            )
+            card.grid(
+                row=row,
+                column=column,
+                padx=10,
+                pady=10,
+                sticky="nsew",
+            )
+
             star = "⭐ " if self.item_is_favorite(item) else ""
-            prof = " ✓" if item.section == "Banners" and has_profile(self.banner_profiles, self.item_key(item)) else ""
-            ctk.CTkLabel(card, text=star + item.section + prof, text_color=GOLD if star else "#BCA870", font=ctk.CTkFont(size=12)).pack(anchor="w", padx=10, pady=(8, 0))
-            img_label = self.make_thumb_label(card, item.path)
-            img_label.pack(padx=10, pady=(6, 6))
-            for widget in [card, img_label]:
-                widget.bind("<Button-1>", lambda e, it=item: self.select_library_item(it))
-                widget.bind("<Double-Button-1>", lambda e, it=item: self.library_item_double_click(it))
-            name_label = ctk.CTkLabel(card, text=item.name, text_color=TEXT, wraplength=210, justify="center")
+            profile = (
+                " ✓"
+                if item.section == "Banners"
+                and has_profile(self.banner_profiles, self.item_key(item))
+                else ""
+            )
+
+            ctk.CTkLabel(
+                card,
+                text=star + item.section + profile,
+                text_color=GOLD if star else "#BCA870",
+                font=ctk.CTkFont(size=12),
+            ).pack(anchor="w", padx=10, pady=(8, 0))
+
+            image_label = self.make_thumb_label(card, item.path)
+            image_label.pack(padx=10, pady=(6, 6))
+
+            for widget in [card, image_label]:
+                widget.bind(
+                    "<Button-1>",
+                    lambda _event, selected=item: self.select_library_item(selected),
+                )
+                widget.bind(
+                    "<Double-Button-1>",
+                    lambda _event, selected=item: self.library_item_double_click(selected),
+                )
+
+            name_label = ctk.CTkLabel(
+                card,
+                text=item.name,
+                text_color=TEXT,
+                wraplength=210,
+                justify="center",
+            )
             name_label.pack(padx=10, pady=(0, 2))
-            for widget in [name_label]:
-                widget.bind("<Button-1>", lambda e, it=item: self.select_library_item(it))
-                widget.bind("<Double-Button-1>", lambda e, it=item: self.library_item_double_click(it))
-            ctk.CTkLabel(card, text=item.category, text_color="#BCA870", wraplength=210, justify="center", font=ctk.CTkFont(size=12)).pack(padx=10, pady=(0, 4))
-            ctk.CTkLabel(card, text=", ".join(self.item_tags(item)[:4]), text_color="#8F8058", wraplength=210, justify="center", font=ctk.CTkFont(size=11)).pack(padx=10, pady=(0, 10))
+            name_label.bind(
+                "<Button-1>",
+                lambda _event, selected=item: self.select_library_item(selected),
+            )
+            name_label.bind(
+                "<Double-Button-1>",
+                lambda _event, selected=item: self.library_item_double_click(selected),
+            )
+
+            ctk.CTkLabel(
+                card,
+                text=item.category,
+                text_color="#BCA870",
+                wraplength=210,
+                justify="center",
+                font=ctk.CTkFont(size=12),
+            ).pack(padx=10, pady=(0, 4))
+
+            ctk.CTkLabel(
+                card,
+                text=", ".join(self.item_tags(item)[:4]),
+                text_color="#8F8058",
+                wraplength=210,
+                justify="center",
+                font=ctk.CTkFont(size=11),
+            ).pack(padx=10, pady=(0, 10))
+
+        for column in range(cols):
+            self.library_grid.grid_columnconfigure(column, weight=1)
+
 
     def make_thumb_label(self, parent, path):
         try:
