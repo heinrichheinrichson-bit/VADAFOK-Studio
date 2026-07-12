@@ -1,5 +1,5 @@
 # Known Issues
 
-## v2.15.6
-- Search filters preset names only.
-- Selecting a preset still uses the existing Silent Director page refresh path.
+## v2.15.8
+- Toggling a favorite refreshes the Silent Director page once.
+- Favorites are metadata, not physical folders.

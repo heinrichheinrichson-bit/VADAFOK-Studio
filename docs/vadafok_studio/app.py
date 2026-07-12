@@ -35,7 +35,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.14.2")
+        self.wm_title("VADAFOK Studio 2.15.6")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -109,6 +109,8 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_presets = silent_director.load_presets()
         self.silent_director_selected = ctk.StringVar(value=self.silent_director_presets[0]['name'] if self.silent_director_presets else '')
         self.silent_director_new_name = ctk.StringVar(value='')
+        self.silent_director_search_var = ctk.StringVar(value='')
+        self.silent_director_preset_list_frame = None
         self.silent_director_editor_name = ctk.StringVar(value='')
         self.silent_director_editor_scene = ctk.StringVar(value='')
         self.silent_director_editor_show_banner = ctk.BooleanVar(value=False)
@@ -124,16 +126,25 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_drop_index = None
         self.silent_director_action_rows = []
         self.silent_director_drag_active = False
+        self.silent_director_drop_overlay = None
+        self.silent_director_drop_overlay_label = None
+        self.silent_director_dragged_card = None
+        self.silent_director_drag_target = None
         self.director_status_var = ctk.StringVar(value="READY")
         self.director_current_action_var = ctk.StringVar(value="-")
         self.director_progress_var = ctk.StringVar(value="0 / 0")
         self.director_progress_percent_var = ctk.DoubleVar(value=0.0)
         self.director_stop_requested = False
         self.director_log_entries = []
+        self.director_active_action_index = None
+        self.director_action_card_widgets = {}
         self.director_log_text_var = ctk.StringVar(value="No Director run yet.")
         self.obs_workflow_current_scene_var = ctk.StringVar(value="Unknown")
         self.obs_workflow_last_switch_var = ctk.StringVar(value="-")
         self.obs_workflow_favorite_buttons = {}
+        self.obs_workflow_live_scene_var = ctk.StringVar(value="LIVE SCENE  Unknown")
+        self.obs_workflow_last_scene_control_var = ctk.StringVar(value="Last Scene Switch: -")
+        self.obs_workflow_scene_rows = {}
         self.hide_timer = None
         self.quick_window = None
         self.thumbnail_refs = []
@@ -207,7 +218,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.14.2", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.15.6", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -5432,25 +5443,53 @@ class VadafokStudio(ctk.CTk):
         current_scene = getattr(state, "current_scene", "") or "Unknown"
         last_switch = getattr(state, "last_scene_switch", "") or "-"
         last_time = getattr(state, "last_scene_switch_time", "") or ""
+
         last_text = last_switch + (f"  {last_time}" if last_time else "")
+        last_control = f"Last Scene Switch: {last_switch}"
+        if last_time:
+            last_control += f" at {last_time}"
 
         try:
             self.obs_workflow_current_scene_var.set(current_scene)
-        except Exception:
-            pass
-        try:
             self.obs_workflow_last_switch_var.set(last_text)
+            self.obs_workflow_live_scene_var.set(f"LIVE SCENE  {current_scene}")
+            self.obs_workflow_last_scene_control_var.set(last_control)
         except Exception:
             pass
 
         try:
             buttons = getattr(self, "obs_workflow_favorite_buttons", {}) or {}
             for scene_name, button in buttons.items():
-                is_current = scene_name == current_scene
+                active = scene_name == current_scene
                 button.configure(
-                    fg_color=GOLD if is_current else "#171717",
-                    text_color="#111111" if is_current else "#D9C58C",
+                    fg_color=GOLD if active else "#171717",
+                    text_color="#111111" if active else "#D9C58C",
                 )
+        except Exception:
+            pass
+
+        try:
+            rows = getattr(self, "obs_workflow_scene_rows", {}) or {}
+            for scene_name, widgets in rows.items():
+                active = scene_name == current_scene
+                row = widgets.get("row")
+                label = widgets.get("label")
+                switch = widgets.get("switch")
+
+                if row is not None:
+                    row.configure(
+                        fg_color="#171717" if active else "transparent",
+                    )
+                if label is not None:
+                    label.configure(
+                        text=f"● LIVE  {scene_name}" if active else scene_name,
+                        text_color="#8FE6A0" if active else TEXT,
+                    )
+                if switch is not None:
+                    switch.configure(
+                        fg_color="#333333" if active else GOLD,
+                        text_color="#AAAAAA" if active else "#111111",
+                    )
         except Exception:
             pass
 
@@ -5458,6 +5497,7 @@ class VadafokStudio(ctk.CTk):
             self.update_idletasks()
         except Exception:
             pass
+
 
     def obs_workflow_switch_scene(self, scene_name):
         scene_name = str(scene_name or "").strip()
@@ -5480,7 +5520,13 @@ class VadafokStudio(ctk.CTk):
                 self.obs_workflow_state.add_event(f"Scene switched: {scene_name}")
             self.obs_workflow_mark_command(f"Scene switched: {scene_name}")
 
-            # Lightweight update only: do not rebuild the whole OBS Workflow page.
+            try:
+                active_scene = self.current_scene()
+                if active_scene:
+                    self.obs_workflow_state.current_scene = active_scene
+            except Exception:
+                pass
+
             self.obs_workflow_update_scene_ui()
 
         except Exception as e:
@@ -5916,6 +5962,32 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_new_name.set("")
         self.show_silent_director_page()
 
+    def silent_director_duplicate_preset(self, preset=None):
+        preset = preset or self.silent_director_get_selected_preset()
+        if not preset:
+            return
+
+        original_name = str(preset.get("name", "") or "").strip()
+        self.silent_director_presets = silent_director.duplicate_preset(original_name)
+
+        new_name = None
+        original_found = False
+        for item in self.silent_director_presets:
+            item_name = str(item.get("name", "") or "").strip()
+            if original_found:
+                new_name = item_name
+                break
+            if item_name == original_name:
+                original_found = True
+
+        if new_name:
+            self.silent_director_selected.set(new_name)
+
+        self.silent_director_edit_index = None
+        self.silent_director_action_button_text.set("+ ADD ACTION")
+        self.obs_workflow_mark_command(f"Silent Director preset duplicated: {original_name}")
+        self.show_silent_director_page()
+
     def silent_director_delete_selected(self):
         preset = self.silent_director_get_selected_preset()
         if not preset:
@@ -5927,6 +5999,65 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_selected.set(self.silent_director_presets[0]["name"] if self.silent_director_presets else "")
         self.show_silent_director_page()
 
+
+    def director_set_active_action(self, index=None):
+        """Highlight the currently running timeline action without rebuilding the page."""
+        self.director_active_action_index = index
+
+        widgets_map = getattr(self, "director_action_card_widgets", {}) or {}
+        for action_index, widgets in widgets_map.items():
+            style = widgets.get("style", {})
+            active = index is not None and action_index == index
+
+            card = widgets.get("card")
+            title = widgets.get("title")
+            badge = widgets.get("badge")
+            runtime = widgets.get("runtime")
+
+            try:
+                if card is not None:
+                    card.configure(
+                        fg_color="#3A321A" if active else style.get("card", "#1B1B1B"),
+                        border_color="#F5D76E" if active else style.get("accent", GOLD),
+                        border_width=3 if active else 1,
+                    )
+            except Exception:
+                pass
+
+            try:
+                if title is not None:
+                    title.configure(
+                        text_color="#FFF2A8" if active else style.get("accent", GOLD)
+                    )
+            except Exception:
+                pass
+
+            try:
+                if badge is not None:
+                    badge.configure(
+                        text="RUN" if active else style.get("badge", "AC"),
+                        fg_color="#F5D76E" if active else style.get("accent", GOLD),
+                        text_color="#111111",
+                    )
+            except Exception:
+                pass
+
+            try:
+                if runtime is not None:
+                    runtime.configure(
+                        text="▶ RUNNING NOW" if active else widgets.get("step_text", ""),
+                        text_color="#FFF2A8" if active else "#7E7E7E",
+                    )
+            except Exception:
+                pass
+
+        try:
+            self.update_idletasks()
+        except Exception:
+            pass
+
+    def director_clear_active_action(self):
+        self.director_set_active_action(None)
 
     def director_log_add(self, message):
         try:
@@ -6099,6 +6230,7 @@ class VadafokStudio(ctk.CTk):
             return
 
         self.director_stop_requested = False
+        self.director_clear_active_action()
         total = len(actions)
         self.director_set_status("RUNNING", f"Preset: {name}", f"0 / {total}")
         self.director_log_add(f"RUN Preset '{name}' started ({total} action(s))")
@@ -6110,10 +6242,12 @@ class VadafokStudio(ctk.CTk):
                 if self.director_stop_requested:
                     self.director_set_status("STOPPED", "Stopped by user", f"{idx-1} / {total}")
                     self.director_log_add("STOPPED by user")
+                    self.director_clear_active_action()
                     return
 
                 action_type = action.get("type", "")
                 label = self.director_action_label(action)
+                self.director_set_active_action(idx - 1)
                 self.director_set_status("RUNNING", label, f"{idx} / {total}")
                 self.director_log_add(f"{idx}/{total} {label}")
 
@@ -6166,6 +6300,7 @@ class VadafokStudio(ctk.CTk):
                                 f"{idx-1} / {total}"
                             )
                             self.director_log_add("STOPPED during WAIT")
+                            self.director_clear_active_action()
                             return
 
                         remaining = max(0.0, deadline - time.monotonic())
@@ -6204,6 +6339,7 @@ class VadafokStudio(ctk.CTk):
             self.obs_workflow_mark_command(f"Silent Director: {name}")
             self.director_set_status("FINISHED", "Finished", f"{total} / {total}")
             self.director_log_add(f"FINISHED Preset '{name}'")
+            self.director_clear_active_action()
 
             try:
                 self.obs_workflow_refresh(silent=True)
@@ -6212,6 +6348,7 @@ class VadafokStudio(ctk.CTk):
             # No full page redraw here; textvariables update the monitor live.
 
         except Exception as e:
+            self.director_clear_active_action()
             self.director_set_status("ERROR", str(e), self.director_progress_var.get())
             self.director_log_add(f"ERROR {e}")
             self.obs_workflow_log(f"SILENT DIRECTOR ERROR: {e}")
@@ -6337,6 +6474,38 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_wait_seconds.set(str(action.get("seconds", "5") or "5"))
         self.silent_director_update_action_fields()
 
+    def silent_director_duplicate_action(self, index):
+        preset = self.silent_director_get_selected_preset()
+        if not preset:
+            return
+
+        actions = list(preset.get("actions", []) or [])
+        if not (0 <= index < len(actions)):
+            return
+
+        self.silent_director_presets = silent_director.duplicate_action(
+            preset.get("name", ""),
+            index
+        )
+
+        # Select the new copy immediately for fast editing.
+        self.silent_director_edit_index = index + 1
+        self.silent_director_action_button_text.set("UPDATE ACTION")
+
+        updated_preset = self.silent_director_get_selected_preset()
+        updated_actions = list(updated_preset.get("actions", []) or []) if updated_preset else []
+        if 0 <= index + 1 < len(updated_actions):
+            action = updated_actions[index + 1]
+            self.silent_director_action_type.set(str(action.get("type", "switch_scene")))
+            self.silent_director_action_scene.set(str(action.get("scene", "")))
+            self.silent_director_action_source.set(str(action.get("source", "")))
+            self.silent_director_action_text.set(str(action.get("text", "")))
+            self.silent_director_wait_seconds.set(str(action.get("seconds", "5") or "5"))
+            self.silent_director_update_action_fields()
+
+        self.obs_workflow_mark_command("Silent Director action duplicated")
+        self.silent_director_render_actions_list()
+
     def silent_director_move_action(self, index, direction):
         preset = self.silent_director_get_selected_preset()
         if not preset:
@@ -6350,90 +6519,282 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_render_actions_list()
 
     def silent_director_drag_start(self, event, index):
-        """Begin dragging an action by its dedicated drag handle."""
+        """Start drag without rebuilding the timeline."""
+        rows = list(getattr(self, "silent_director_action_rows", []) or [])
+        if not (0 <= index < len(rows)):
+            return "break"
+
         self.silent_director_drag_index = index
         self.silent_director_drop_index = index
+        self.silent_director_drag_target = index
         self.silent_director_drag_active = True
+        self.silent_director_dragged_card = rows[index]
+
+        try:
+            self.silent_director_dragged_card.configure(
+                border_width=3,
+                border_color=GOLD
+            )
+        except Exception:
+            pass
+
+        self.silent_director_show_floating_drop_indicator(index)
 
         try:
             self.bind_all("<B1-Motion>", self.silent_director_drag_motion)
             self.bind_all("<ButtonRelease-1>", self.silent_director_drag_release)
+            self.bind_all("<Escape>", lambda _e: self.silent_director_drag_cancel())
         except Exception:
             pass
 
-        self.silent_director_render_actions_list()
         return "break"
 
-    def silent_director_drag_motion(self, event):
-        if not self.silent_director_drag_active:
-            return
 
+    def silent_director_drag_target_from_y(self, y_root):
         rows = list(getattr(self, "silent_director_action_rows", []) or [])
         if not rows:
-            return
-
-        pointer_y = event.y_root
-        drop_index = len(rows)
+            return None
 
         for idx, row in enumerate(rows):
             try:
-                top = row.winfo_rooty()
-                height = max(1, row.winfo_height())
-                center = top + (height / 2)
+                center = row.winfo_rooty() + (row.winfo_height() / 2)
             except Exception:
                 continue
+            if y_root < center:
+                return idx
 
-            if pointer_y < center:
-                drop_index = idx
-                break
+        return len(rows)
 
-        if drop_index != self.silent_director_drop_index:
-            self.silent_director_drop_index = drop_index
-            self.silent_director_render_actions_list()
+
+    def silent_director_show_floating_drop_indicator(self, target_index):
+        """Show a separate floating overlay so the timeline never needs redrawing."""
+        rows = list(getattr(self, "silent_director_action_rows", []) or [])
+        frame = getattr(self, "silent_director_actions_frame", None)
+        if not rows or frame is None or target_index is None:
+            return
+
+        target_index = max(0, min(len(rows), int(target_index)))
+
+        try:
+            frame.update_idletasks()
+
+            x = frame.winfo_rootx() + 12
+            width = max(240, frame.winfo_width() - 24)
+
+            if target_index < len(rows):
+                y = rows[target_index].winfo_rooty() - 8
+            else:
+                last = rows[-1]
+                y = last.winfo_rooty() + last.winfo_height() + 2
+
+            if self.silent_director_drop_overlay is None:
+                overlay = ctk.CTkToplevel(self)
+                overlay.overrideredirect(True)
+                overlay.attributes("-topmost", True)
+                try:
+                    overlay.attributes("-alpha", 0.97)
+                except Exception:
+                    pass
+
+                body = ctk.CTkFrame(
+                    overlay,
+                    fg_color="#111111",
+                    border_color=GOLD,
+                    border_width=1,
+                    corner_radius=7
+                )
+                body.pack(fill="both", expand=True)
+
+                line = ctk.CTkFrame(
+                    body,
+                    fg_color=GOLD,
+                    height=6,
+                    corner_radius=3
+                )
+                line.pack(fill="x", padx=6, pady=(5, 1))
+                line.pack_propagate(False)
+
+                label = ctk.CTkLabel(
+                    body,
+                    text="",
+                    text_color=GOLD,
+                    font=ctk.CTkFont(size=11, weight="bold")
+                )
+                label.pack(anchor="w", padx=8, pady=(0, 5))
+
+                self.silent_director_drop_overlay = overlay
+                self.silent_director_drop_overlay_label = label
+
+            self.silent_director_drop_overlay_label.configure(
+                text=f"DROP HERE — POSITION {target_index + 1}"
+            )
+            self.silent_director_drop_overlay.geometry(
+                f"{width}x42+{x}+{max(0, int(y))}"
+            )
+            self.silent_director_drop_overlay.deiconify()
+            self.silent_director_drop_overlay.lift()
+        except Exception:
+            pass
+
+
+    def silent_director_hide_floating_drop_indicator(self):
+        overlay = getattr(self, "silent_director_drop_overlay", None)
+        if overlay is not None:
+            try:
+                overlay.destroy()
+            except Exception:
+                pass
+        self.silent_director_drop_overlay = None
+        self.silent_director_drop_overlay_label = None
+
+
+    def silent_director_drag_motion(self, event):
+        if not self.silent_director_drag_active:
+            return "break"
+
+        target = self.silent_director_drag_target_from_y(
+            getattr(event, "y_root", 0)
+        )
+        if target is None:
+            return "break"
+
+        if target != self.silent_director_drag_target:
+            self.silent_director_drag_target = target
+            self.silent_director_drop_index = target
+            self.silent_director_show_floating_drop_indicator(target)
 
         return "break"
 
-    def silent_director_drag_release(self, _event=None):
-        if not self.silent_director_drag_active:
-            return
 
-        from_index = self.silent_director_drag_index
-        insert_index = self.silent_director_drop_index
+    def silent_director_drag_release(self, event=None):
+        if not self.silent_director_drag_active:
+            return "break"
+
+        source_index = self.silent_director_drag_index
+        target_index = self.silent_director_drag_target
+
+        if target_index is None and event is not None:
+            target_index = self.silent_director_drag_target_from_y(
+                getattr(event, "y_root", 0)
+            )
 
         self.silent_director_drag_active = False
         self.silent_director_drag_index = None
         self.silent_director_drop_index = None
+        self.silent_director_drag_target = None
 
         try:
             self.unbind_all("<B1-Motion>")
             self.unbind_all("<ButtonRelease-1>")
+            self.unbind_all("<Escape>")
         except Exception:
             pass
 
+        self.silent_director_hide_floating_drop_indicator()
+
+        try:
+            if self.silent_director_dragged_card is not None:
+                self.silent_director_dragged_card.configure(border_width=1)
+        except Exception:
+            pass
+        self.silent_director_dragged_card = None
+
         preset = self.silent_director_get_selected_preset()
-        if preset and from_index is not None and insert_index is not None:
+        if preset and source_index is not None and target_index is not None:
             self.silent_director_presets = silent_director.move_action_to(
                 preset.get("name", ""),
-                from_index,
-                insert_index,
+                source_index,
+                target_index,
             )
             self.silent_director_edit_index = None
             self.silent_director_action_button_text.set("+ ADD ACTION")
-            self.obs_workflow_mark_command("Silent Director action reordered by drag and drop")
+            self.obs_workflow_mark_command(
+                "Silent Director action reordered by drag and drop"
+            )
 
+        # Exactly one rebuild after release.
         self.silent_director_render_actions_list()
         return "break"
+
 
     def silent_director_drag_cancel(self):
         self.silent_director_drag_active = False
         self.silent_director_drag_index = None
         self.silent_director_drop_index = None
+        self.silent_director_drag_target = None
+
         try:
             self.unbind_all("<B1-Motion>")
             self.unbind_all("<ButtonRelease-1>")
+            self.unbind_all("<Escape>")
         except Exception:
             pass
-        self.silent_director_render_actions_list()
+
+        self.silent_director_hide_floating_drop_indicator()
+
+        try:
+            if self.silent_director_dragged_card is not None:
+                self.silent_director_dragged_card.configure(border_width=1)
+        except Exception:
+            pass
+        self.silent_director_dragged_card = None
+        return "break"
+
+
+    def silent_director_timeline_style(self, action_type):
+        styles = {
+            "switch_scene": {
+                "badge": "SC",
+                "title": "SWITCH SCENE",
+                "accent": "#D6B35A",
+                "card": "#201D15",
+            },
+            "show_banner": {
+                "badge": "BN",
+                "title": "SHOW BANNER",
+                "accent": "#77C98A",
+                "card": "#162019",
+            },
+            "show_source": {
+                "badge": "ON",
+                "title": "SHOW SOURCE",
+                "accent": "#E29A55",
+                "card": "#241B14",
+            },
+            "hide_source": {
+                "badge": "OFF",
+                "title": "HIDE SOURCE",
+                "accent": "#D77777",
+                "card": "#241616",
+            },
+            "wait": {
+                "badge": "TM",
+                "title": "WAIT",
+                "accent": "#6EA6E8",
+                "card": "#16202C",
+            },
+        }
+        return styles.get(
+            str(action_type or "").strip(),
+            {
+                "badge": "AC",
+                "title": str(action_type or "ACTION").upper(),
+                "accent": "#AAAAAA",
+                "card": "#1B1B1B",
+            },
+        )
+
+    def silent_director_timeline_detail(self, action):
+        action_type = str(action.get("type", "") or "").strip()
+        if action_type == "switch_scene":
+            return str(action.get("scene", "") or "-")
+        if action_type == "show_banner":
+            return str(action.get("text", "") or "-")
+        if action_type in ("show_source", "hide_source"):
+            return str(action.get("source", "") or "-")
+        if action_type == "wait":
+            return f"{action.get('seconds', '5')} Sekunden"
+        return "-"
 
     def silent_director_render_actions_list(self):
         frame = getattr(self, "silent_director_actions_frame", None)
@@ -6444,6 +6805,7 @@ class VadafokStudio(ctk.CTk):
             child.destroy()
 
         self.silent_director_action_rows = []
+        self.director_action_card_widgets = {}
 
         preset = self.silent_director_get_selected_preset()
         if not preset:
@@ -6465,75 +6827,67 @@ class VadafokStudio(ctk.CTk):
         grid_row = 0
 
         for idx, action in enumerate(actions):
-            if drag_active and drop_index == idx:
-                indicator = ctk.CTkFrame(
-                    frame,
-                    fg_color=GOLD,
-                    height=6,
-                    corner_radius=3
+
+            action_type = str(action.get("type", "") or "").strip()
+            style = self.silent_director_timeline_style(action_type)
+            detail = self.silent_director_timeline_detail(action)
+            is_dragged = False
+
+            item = ctk.CTkFrame(frame, fg_color="transparent")
+            item.grid(row=grid_row, column=0, sticky="ew", padx=0, pady=0)
+            item.grid_columnconfigure(1, weight=1)
+
+            rail = ctk.CTkFrame(item, fg_color="transparent", width=54)
+            rail.grid(row=0, column=0, sticky="ns", padx=(2, 8), pady=0)
+            rail.grid_columnconfigure(0, weight=1)
+
+            badge = ctk.CTkLabel(
+                rail,
+                text=style["badge"],
+                width=38,
+                height=38,
+                fg_color=style["accent"],
+                text_color="#111111",
+                corner_radius=19,
+                font=ctk.CTkFont(size=11, weight="bold")
+            )
+            badge.grid(row=0, column=0, pady=(10, 4))
+
+            if idx < len(actions) - 1:
+                connector = ctk.CTkFrame(
+                    rail,
+                    fg_color=style["accent"],
+                    width=3,
+                    height=26,
+                    corner_radius=1
                 )
-                indicator.grid(
-                    row=grid_row,
-                    column=0,
-                    sticky="ew",
-                    padx=8,
-                    pady=(4, 2)
-                )
-                indicator.grid_propagate(False)
+                connector.grid(row=1, column=0, pady=(0, 0))
+                connector.grid_propagate(False)
 
                 ctk.CTkLabel(
-                    frame,
-                    text=f"DROP HERE — POSITION {idx + 1}",
-                    text_color=GOLD,
-                    font=ctk.CTkFont(size=11, weight="bold")
-                ).grid(
-                    row=grid_row + 1,
-                    column=0,
-                    sticky="w",
-                    padx=12,
-                    pady=(0, 3)
-                )
-                grid_row += 2
+                    rail,
+                    text="▼",
+                    text_color=style["accent"],
+                    font=ctk.CTkFont(size=12, weight="bold")
+                ).grid(row=2, column=0, pady=(0, 2))
 
-            action_type = action.get("type", "")
-            if action_type == "switch_scene":
-                title = f"{idx+1}. SWITCH SCENE"
-                detail = action.get("scene", "")
-            elif action_type == "show_banner":
-                title = f"{idx+1}. SHOW BANNER"
-                detail = action.get("text", "")
-            elif action_type == "show_source":
-                title = f"{idx+1}. SHOW SOURCE"
-                detail = action.get("source", "")
-            elif action_type == "hide_source":
-                title = f"{idx+1}. HIDE SOURCE"
-                detail = action.get("source", "")
-            elif action_type == "wait":
-                title = f"{idx+1}. WAIT"
-                detail = f"{action.get('seconds', '5')} seconds"
-            else:
-                title = f"{idx+1}. {action_type}"
-                detail = ""
-
-            is_dragged = drag_active and idx == drag_index
-
-            row = ctk.CTkFrame(
-                frame,
-                fg_color="#3A2A0D" if is_dragged else "#171717",
-                corner_radius=10,
-                border_color=GOLD if is_dragged else "#171717",
-                border_width=2 if is_dragged else 0
+            card = ctk.CTkFrame(
+                item,
+                fg_color=style["accent"] if is_dragged else style["card"],
+                corner_radius=12,
+                border_color=style["accent"],
+                border_width=2 if is_dragged else 1
             )
-            row.grid(row=grid_row, column=0, sticky="ew", padx=0, pady=5)
-            row.grid_columnconfigure(1, weight=1)
-            self.silent_director_action_rows.append(row)
+            card.grid(row=0, column=1, sticky="ew", pady=6)
+            card.grid_columnconfigure(1, weight=1)
+            self.silent_director_action_rows.append(card)
 
             drag_handle = ctk.CTkLabel(
-                row,
+                card,
                 text="☰\nDRAG",
                 width=52,
-                text_color=GOLD if not is_dragged else "#111111",
-                fg_color=GOLD_DARK if not is_dragged else GOLD,
+                text_color="#111111" if is_dragged else style["accent"],
+                fg_color=style["accent"] if is_dragged else "#101010",
                 corner_radius=8,
                 cursor="fleur",
                 font=ctk.CTkFont(size=11, weight="bold")
@@ -6541,9 +6895,9 @@ class VadafokStudio(ctk.CTk):
             drag_handle.grid(
                 row=0,
                 column=0,
-                rowspan=2,
-                padx=(7, 3),
-                pady=7,
+                rowspan=3,
+                padx=(8, 6),
+                pady=8,
                 sticky="ns"
             )
             drag_handle.bind(
@@ -6551,82 +6905,124 @@ class VadafokStudio(ctk.CTk):
                 lambda event, i=idx: self.silent_director_drag_start(event, i)
             )
 
-            ctk.CTkButton(
-                row,
-                text=title,
+            title_button = ctk.CTkButton(
+                card,
+                text=f"{idx + 1}. {style['title']}",
                 anchor="w",
                 fg_color="transparent",
-                hover_color="#242424",
-                text_color=GOLD,
-                font=ctk.CTkFont(size=14, weight="bold"),
+                hover_color="#2A2A2A" if not is_dragged else style["accent"],
+                text_color=style["accent"] if not is_dragged else "#111111",
+                font=ctk.CTkFont(size=15, weight="bold"),
                 command=lambda i=idx: self.silent_director_edit_action(i)
-            ).grid(row=0, column=1, padx=8, pady=(6, 2), sticky="ew")
+            ).grid(
+                row=0,
+                column=1,
+                padx=(6, 8),
+                pady=(8, 0),
+                sticky="ew"
+            )
 
             ctk.CTkLabel(
-                row,
-                text=detail or "-",
-                text_color=TEXT,
+                card,
+                text=detail,
+                text_color=TEXT if not is_dragged else "#111111",
                 anchor="w",
-                wraplength=470
-            ).grid(row=1, column=1, padx=12, pady=(0, 8), sticky="ew")
+                justify="left",
+                wraplength=470,
+                font=ctk.CTkFont(size=13)
+            ).grid(
+                row=1,
+                column=1,
+                padx=(12, 8),
+                pady=(2, 2),
+                sticky="ew"
+            )
 
-            controls = ctk.CTkFrame(row, fg_color="transparent")
-            controls.grid(row=0, column=2, rowspan=2, padx=8, pady=6)
+            step_text = f"Timeline step {idx + 1} of {len(actions)}"
+            runtime_label = ctk.CTkLabel(
+                card,
+                text=step_text,
+                text_color="#7E7E7E" if not is_dragged else "#222222",
+                anchor="w",
+                font=ctk.CTkFont(size=10)
+            ).grid(
+                row=2,
+                column=1,
+                padx=(12, 8),
+                pady=(0, 8),
+                sticky="ew"
+            )
+
+            self.director_action_card_widgets[idx] = {
+                "card": card,
+                "title": title_button,
+                "badge": badge,
+                "runtime": runtime_label,
+                "style": dict(style),
+                "step_text": step_text,
+            }
+
+            controls = ctk.CTkFrame(card, fg_color="transparent")
+            controls.grid(row=0, column=2, rowspan=3, padx=8, pady=7)
 
             ctk.CTkButton(
-                controls, text="EDIT", width=54,
-                fg_color="#333333", hover_color="#444444",
+                controls,
+                text="EDIT",
+                width=54,
+                fg_color="#333333",
+                hover_color="#444444",
                 command=lambda i=idx: self.silent_director_edit_action(i)
             ).grid(row=0, column=0, padx=2, pady=2)
 
             ctk.CTkButton(
-                controls, text="▲", width=36,
-                fg_color="#333333", hover_color="#444444",
-                command=lambda i=idx: self.silent_director_move_action(i, -1)
+                controls,
+                text="DUP",
+                width=48,
+                fg_color="#2D4B3A",
+                hover_color="#3B624C",
+                command=lambda i=idx: self.silent_director_duplicate_action(i)
             ).grid(row=0, column=1, padx=2, pady=2)
 
             ctk.CTkButton(
-                controls, text="▼", width=36,
-                fg_color="#333333", hover_color="#444444",
-                command=lambda i=idx: self.silent_director_move_action(i, 1)
+                controls,
+                text="▲",
+                width=36,
+                fg_color="#333333",
+                hover_color="#444444",
+                command=lambda i=idx: self.silent_director_move_action(i, -1)
             ).grid(row=0, column=2, padx=2, pady=2)
 
             ctk.CTkButton(
-                controls, text="DELETE", width=68,
-                fg_color="#5A1F1F", hover_color="#7A2A2A",
+                controls,
+                text="▼",
+                width=36,
+                fg_color="#333333",
+                hover_color="#444444",
+                command=lambda i=idx: self.silent_director_move_action(i, 1)
+            ).grid(row=0, column=3, padx=2, pady=2)
+
+            ctk.CTkButton(
+                controls,
+                text="DELETE",
+                width=68,
+                fg_color="#5A1F1F",
+                hover_color="#7A2A2A",
                 command=lambda i=idx: self.silent_director_delete_action(i)
-            ).grid(row=1, column=0, columnspan=3, padx=2, pady=2, sticky="ew")
+            ).grid(
+                row=1,
+                column=0,
+                columnspan=4,
+                padx=2,
+                pady=2,
+                sticky="ew"
+            )
 
             grid_row += 1
 
-        if drag_active and drop_index == len(actions):
-            indicator = ctk.CTkFrame(
-                frame,
-                fg_color=GOLD,
-                height=6,
-                corner_radius=3
-            )
-            indicator.grid(
-                row=grid_row,
-                column=0,
-                sticky="ew",
-                padx=8,
-                pady=(4, 2)
-            )
-            indicator.grid_propagate(False)
+        self.director_set_active_action(
+            getattr(self, "director_active_action_index", None)
+        )
 
-            ctk.CTkLabel(
-                frame,
-                text=f"DROP HERE — POSITION {len(actions) + 1}",
-                text_color=GOLD,
-                font=ctk.CTkFont(size=11, weight="bold")
-            ).grid(
-                row=grid_row + 1,
-                column=0,
-                sticky="w",
-                padx=12,
-                pady=(0, 3)
-            )
 
 
     def silent_director_add_action(self):
@@ -6696,6 +7092,159 @@ class VadafokStudio(ctk.CTk):
         self.obs_workflow_mark_command("Silent Director action deleted")
         self.silent_director_render_actions_list()
 
+    def silent_director_preset_stats(self, preset):
+        """Return action count and planned duration from WAIT actions."""
+        actions = list((preset or {}).get("actions", []) or [])
+        total_seconds = 0.0
+
+        for action in actions:
+            if str(action.get("type", "") or "").strip() != "wait":
+                continue
+            raw = str(action.get("seconds", "0") or "0").strip().replace(",", ".")
+            try:
+                total_seconds += max(0.0, float(raw))
+            except Exception:
+                pass
+
+        return len(actions), total_seconds
+
+    def silent_director_format_duration(self, total_seconds):
+        try:
+            total_seconds = max(0.0, float(total_seconds))
+        except Exception:
+            total_seconds = 0.0
+
+        if total_seconds < 60:
+            if total_seconds.is_integer():
+                return f"{int(total_seconds)} s"
+            return f"{total_seconds:.1f} s"
+
+        minutes = int(total_seconds // 60)
+        seconds = total_seconds - (minutes * 60)
+
+        if seconds <= 0:
+            return f"{minutes} min"
+        if seconds.is_integer():
+            return f"{minutes} min {int(seconds)} s"
+        return f"{minutes} min {seconds:.1f} s"
+
+    def silent_director_preset_stats_text(self, preset):
+        action_count, total_seconds = self.silent_director_preset_stats(preset)
+        action_word = "Action" if action_count == 1 else "Actions"
+        return (
+            f"{action_count} {action_word}  •  "
+            f"Gesamtdauer {self.silent_director_format_duration(total_seconds)}"
+        )
+
+    def silent_director_filtered_presets(self):
+        query = str(self.silent_director_search_var.get() or "").strip().casefold()
+        presets = list(self.silent_director_presets or [])
+        if not query:
+            return presets
+        return [
+            preset for preset in presets
+            if query in str(preset.get("name", "") or "").casefold()
+        ]
+
+    def silent_director_clear_search(self):
+        self.silent_director_search_var.set("")
+        self.silent_director_render_filtered_presets()
+
+    def silent_director_render_filtered_presets(self, *_args):
+        preset_list = getattr(self, "silent_director_preset_list_frame", None)
+        if preset_list is None:
+            return
+
+        for child in preset_list.winfo_children():
+            child.destroy()
+
+        filtered = self.silent_director_filtered_presets()
+        query = str(self.silent_director_search_var.get() or "").strip()
+
+        if not filtered:
+            message = "No matching presets." if query else "No presets yet."
+            ctk.CTkLabel(
+                preset_list,
+                text=message,
+                text_color="#777777"
+            ).grid(row=0, column=0, padx=10, pady=(12, 4), sticky="w")
+            if query:
+                ctk.CTkButton(
+                    preset_list,
+                    text="CLEAR SEARCH",
+                    width=120,
+                    fg_color="#333333",
+                    hover_color="#444444",
+                    command=self.silent_director_clear_search
+                ).grid(row=1, column=0, padx=10, pady=(4, 12), sticky="w")
+            return
+
+        if query:
+            ctk.CTkLabel(
+                preset_list,
+                text=f"{len(filtered)} Treffer",
+                text_color="#777777",
+                font=ctk.CTkFont(size=11)
+            ).grid(row=0, column=0, padx=10, pady=(8, 2), sticky="w")
+            row_offset = 1
+        else:
+            row_offset = 0
+
+        for idx, preset in enumerate(filtered):
+            name = preset.get("name", "Untitled")
+            selected = name == self.silent_director_selected.get()
+            row = ctk.CTkFrame(
+                preset_list,
+                fg_color="#171717" if selected else "transparent",
+                corner_radius=8
+            )
+            row.grid(row=idx + row_offset, column=0, padx=6, pady=4, sticky="ew")
+            row.grid_columnconfigure(0, weight=1)
+
+            ctk.CTkButton(
+                row,
+                text=name,
+                anchor="w",
+                fg_color="transparent",
+                hover_color="#2C2C2C",
+                text_color=GOLD if selected else TEXT,
+                command=lambda n=name: (
+                    self.silent_director_selected.set(n),
+                    self.show_silent_director_page()
+                )
+            ).grid(row=0, column=0, sticky="ew", padx=6, pady=(5, 0))
+
+            ctk.CTkLabel(
+                row,
+                text=self.silent_director_preset_stats_text(preset),
+                text_color="#888888",
+                anchor="w",
+                font=ctk.CTkFont(size=11)
+            ).grid(row=1, column=0, sticky="ew", padx=14, pady=(0, 6))
+
+            preset_controls = ctk.CTkFrame(row, fg_color="transparent")
+            preset_controls.grid(row=0, column=1, rowspan=2, padx=(4, 8), pady=6)
+
+            ctk.CTkButton(
+                preset_controls,
+                text="RUN",
+                width=58,
+                fg_color=GOLD,
+                text_color="#111111",
+                hover_color=GOLD_DARK,
+                command=lambda p=preset: self.silent_director_run_preset(p)
+            ).grid(row=0, column=0, padx=2, pady=2)
+
+            ctk.CTkButton(
+                preset_controls,
+                text="DUP",
+                width=48,
+                fg_color="#2D4B3A",
+                text_color="#D9F6E2",
+                hover_color="#3B624C",
+                command=lambda p=preset: self.silent_director_duplicate_preset(p)
+            ).grid(row=1, column=0, padx=2, pady=2)
+
     def show_silent_director_page(self):
         self.set_active("Silent Director")
         self.clear_main()
@@ -6712,43 +7261,50 @@ class VadafokStudio(ctk.CTk):
         left = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         left.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
         left.grid_columnconfigure(0, weight=1)
-        left.grid_rowconfigure(2, weight=1)
+        left.grid_rowconfigure(3, weight=1)
 
         ctk.CTkLabel(left, text="Director Presets", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
 
+        search_bar = ctk.CTkFrame(left, fg_color="#0B0B0B", corner_radius=12)
+        search_bar.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 8))
+        search_bar.grid_columnconfigure(0, weight=1)
+
+        search_entry = ctk.CTkEntry(
+            search_bar,
+            textvariable=self.silent_director_search_var,
+            placeholder_text="Preset suchen..."
+        )
+        search_entry.grid(row=0, column=0, padx=(10, 6), pady=10, sticky="ew")
+        search_entry.bind(
+            "<KeyRelease>",
+            self.silent_director_render_filtered_presets
+        )
+
+        ctk.CTkButton(
+            search_bar,
+            text="X",
+            width=38,
+            fg_color="#333333",
+            hover_color="#444444",
+            command=self.silent_director_clear_search
+        ).grid(row=0, column=1, padx=(0, 10), pady=10)
+
         create = ctk.CTkFrame(left, fg_color="#0B0B0B", corner_radius=12)
-        create.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 10))
+        create.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 10))
         create.grid_columnconfigure(0, weight=1)
         ctk.CTkEntry(create, textvariable=self.silent_director_new_name, placeholder_text="New preset name").grid(row=0, column=0, padx=10, pady=10, sticky="ew")
         ctk.CTkButton(create, text="ADD", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.silent_director_create_preset).grid(row=0, column=1, padx=(0, 10), pady=10)
 
         preset_list = ctk.CTkScrollableFrame(left, fg_color="#0B0B0B", corner_radius=12)
-        preset_list.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
+        preset_list.grid(row=3, column=0, sticky="nsew", padx=18, pady=(0, 18))
         preset_list.grid_columnconfigure(0, weight=1)
-
-        if not self.silent_director_presets:
-            ctk.CTkLabel(preset_list, text="No presets yet.", text_color="#777777").grid(row=0, column=0, padx=10, pady=10, sticky="w")
-        else:
-            for idx, preset in enumerate(self.silent_director_presets):
-                name = preset.get("name", "Untitled")
-                selected = name == self.silent_director_selected.get()
-                row = ctk.CTkFrame(preset_list, fg_color="#171717" if selected else "transparent", corner_radius=8)
-                row.grid(row=idx, column=0, padx=6, pady=4, sticky="ew")
-                row.grid_columnconfigure(0, weight=1)
-                ctk.CTkButton(
-                    row, text=name, anchor="w", fg_color="transparent", hover_color="#2C2C2C",
-                    text_color=GOLD if selected else TEXT,
-                    command=lambda n=name: (self.silent_director_selected.set(n), self.show_silent_director_page())
-                ).grid(row=0, column=0, sticky="ew", padx=6, pady=6)
-                ctk.CTkButton(
-                    row, text="RUN", width=64, fg_color=GOLD, text_color="#111111",
-                    hover_color=GOLD_DARK, command=lambda p=preset: self.silent_director_run_preset(p)
-                ).grid(row=0, column=1, padx=(4, 8), pady=6)
+        self.silent_director_preset_list_frame = preset_list
+        self.silent_director_render_filtered_presets()
 
         right = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         right.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
         right.grid_columnconfigure(0, weight=1)
-        right.grid_rowconfigure(2, weight=1)
+        right.grid_rowconfigure(3, weight=1)
 
         preset = self.silent_director_get_selected_preset()
         if not preset:
@@ -6757,10 +7313,77 @@ class VadafokStudio(ctk.CTk):
 
         self.silent_director_load_editor(preset)
 
-        ctk.CTkLabel(right, text="Action Editor", text_color=GOLD, font=ctk.CTkFont(size=22, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+        ctk.CTkLabel(
+            right,
+            text="Action Editor",
+            text_color=GOLD,
+            font=ctk.CTkFont(size=22, weight="bold")
+        ).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+
+        stats_actions, stats_seconds = self.silent_director_preset_stats(preset)
+
+        stats_bar = ctk.CTkFrame(
+            right,
+            fg_color="#111111",
+            corner_radius=12,
+            border_color="#2A2110",
+            border_width=1
+        )
+        stats_bar.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 10))
+        stats_bar.grid_columnconfigure(1, weight=1)
+        stats_bar.grid_columnconfigure(3, weight=1)
+
+        ctk.CTkLabel(
+            stats_bar,
+            text="PRESET",
+            text_color="#777777",
+            font=ctk.CTkFont(size=11, weight="bold")
+        ).grid(row=0, column=0, padx=(12, 6), pady=(9, 2), sticky="w")
+
+        ctk.CTkLabel(
+            stats_bar,
+            text=str(preset.get("name", "Untitled")),
+            text_color=TEXT,
+            font=ctk.CTkFont(size=14, weight="bold")
+        ).grid(row=1, column=0, padx=(12, 16), pady=(0, 10), sticky="w")
+
+        ctk.CTkLabel(
+            stats_bar,
+            text="ACTIONS",
+            text_color="#777777",
+            font=ctk.CTkFont(size=11, weight="bold")
+        ).grid(row=0, column=1, padx=6, pady=(9, 2), sticky="w")
+
+        ctk.CTkLabel(
+            stats_bar,
+            text=str(stats_actions),
+            text_color=GOLD,
+            font=ctk.CTkFont(size=16, weight="bold")
+        ).grid(row=1, column=1, padx=6, pady=(0, 10), sticky="w")
+
+        ctk.CTkLabel(
+            stats_bar,
+            text="GESAMTDAUER",
+            text_color="#777777",
+            font=ctk.CTkFont(size=11, weight="bold")
+        ).grid(row=0, column=2, padx=6, pady=(9, 2), sticky="w")
+
+        ctk.CTkLabel(
+            stats_bar,
+            text=self.silent_director_format_duration(stats_seconds),
+            text_color="#6EA6E8",
+            font=ctk.CTkFont(size=16, weight="bold")
+        ).grid(row=1, column=2, padx=6, pady=(0, 10), sticky="w")
+
+        ctk.CTkLabel(
+            stats_bar,
+            text="Berechnet aus WAIT-Actions",
+            text_color="#666666",
+            font=ctk.CTkFont(size=10)
+        ).grid(row=1, column=3, padx=(12, 12), pady=(0, 10), sticky="e")
 
         monitor = ctk.CTkFrame(right, fg_color="#0B0B0B", corner_radius=12)
-        monitor.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 12))
+        monitor.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 12))
         monitor.grid_columnconfigure(1, weight=1)
 
         status = self.director_status_var.get() if hasattr(self, "director_status_var") else "READY"
@@ -6780,7 +7403,7 @@ class VadafokStudio(ctk.CTk):
             pass
 
         editor = ctk.CTkScrollableFrame(right, fg_color="#0B0B0B", corner_radius=12)
-        editor.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 12))
+        editor.grid(row=3, column=0, sticky="nsew", padx=18, pady=(0, 12))
         editor.grid_columnconfigure(1, weight=1)
 
         ctk.CTkLabel(editor, text="Name", text_color="#888888").grid(row=0, column=0, padx=12, pady=(14, 6), sticky="w")
@@ -6827,6 +7450,13 @@ class VadafokStudio(ctk.CTk):
             add_box, text="Add / Edit Action", text_color=GOLD,
             font=ctk.CTkFont(size=16, weight="bold")
         ).grid(row=0, column=0, columnspan=2, padx=12, pady=(12, 6), sticky="w")
+
+        ctk.CTkLabel(
+            add_box,
+            text="DUP erstellt direkt darunter eine bearbeitbare Kopie.",
+            text_color="#777777",
+            font=ctk.CTkFont(size=11)
+        ).grid(row=0, column=1, padx=12, pady=(12, 6), sticky="e")
 
         ctk.CTkLabel(add_box, text="Type", text_color="#888888").grid(
             row=1, column=0, padx=12, pady=6, sticky="w"
@@ -6928,7 +7558,7 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_update_action_fields()
 
         log_box = ctk.CTkFrame(right, fg_color="#0B0B0B", corner_radius=12)
-        log_box.grid(row=3, column=0, sticky="ew", padx=18, pady=(0, 12))
+        log_box.grid(row=4, column=0, sticky="ew", padx=18, pady=(0, 12))
         log_box.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(log_box, text="Director Log", text_color=GOLD, font=ctk.CTkFont(size=16, weight="bold")).grid(row=0, column=0, padx=12, pady=(10, 4), sticky="w")
         try:
@@ -6938,8 +7568,16 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkLabel(log_box, textvariable=self.director_log_text_var, text_color="#888888", justify="left", anchor="w", wraplength=760).grid(row=1, column=0, padx=12, pady=(0, 12), sticky="ew")
 
         actions_bar = ctk.CTkFrame(right, fg_color="transparent")
-        actions_bar.grid(row=4, column=0, sticky="ew", padx=18, pady=(0, 18))
+        actions_bar.grid(row=5, column=0, sticky="ew", padx=18, pady=(0, 18))
         ctk.CTkButton(actions_bar, text="SAVE", height=46, fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.silent_director_save_selected).pack(side="left", padx=4)
+        ctk.CTkButton(
+            actions_bar,
+            text="DUPLICATE PRESET",
+            height=46,
+            fg_color="#2D4B3A",
+            hover_color="#3B624C",
+            command=lambda: self.silent_director_duplicate_preset()
+        ).pack(side="left", padx=4)
         ctk.CTkButton(actions_bar, text="RUN PRESET", height=46, fg_color="#333333", hover_color="#444444", command=lambda: self.silent_director_run_preset()).pack(side="left", padx=4)
         ctk.CTkButton(actions_bar, text="STOP", height=46, fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.director_request_stop).pack(side="left", padx=4)
         ctk.CTkButton(actions_bar, text="DELETE", height=46, fg_color="#5A1F1F", hover_color="#7A2A2A", command=self.silent_director_delete_selected).pack(side="left", padx=4)
@@ -7143,21 +7781,61 @@ class VadafokStudio(ctk.CTk):
         scenes_list.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
         scenes_list.grid_columnconfigure(0, weight=1)
 
+        self.obs_workflow_scene_rows = {}
+
         for idx, scene in enumerate(state.scenes or ["No scene cache yet"]):
             scene_text = str(scene)
             is_placeholder = scene_text == "No scene cache yet"
             is_current = scene_text == current_scene and not is_placeholder
             is_fav = scene_text in getattr(self, "scene_favorites", [])
-            row_frame = ctk.CTkFrame(scenes_list, fg_color="#171717" if is_current else "transparent", corner_radius=8)
+
+            row_frame = ctk.CTkFrame(
+                scenes_list,
+                fg_color="#171717" if is_current else "transparent",
+                corner_radius=8
+            )
             row_frame.grid(row=idx, column=0, padx=6, pady=3, sticky="ew")
             row_frame.grid_columnconfigure(0, weight=1)
-            label = ctk.CTkLabel(row_frame, text=(f"● LIVE  {scene_text}" if is_current else scene_text), text_color="#8FE6A0" if is_current else TEXT, anchor="w")
+
+            label = ctk.CTkLabel(
+                row_frame,
+                text=(f"● LIVE  {scene_text}" if is_current else scene_text),
+                text_color="#8FE6A0" if is_current else TEXT,
+                anchor="w"
+            )
             label.grid(row=0, column=0, padx=10, pady=6, sticky="ew")
+
             if not is_placeholder:
                 label.bind("<Double-Button-1>", lambda _e, s=scene_text: self.obs_workflow_switch_scene(s))
                 row_frame.bind("<Double-Button-1>", lambda _e, s=scene_text: self.obs_workflow_switch_scene(s))
-                ctk.CTkButton(row_frame, text="STAR" if is_fav else "ADD", width=58, fg_color=GOLD if is_fav else "#333333", text_color="#111111" if is_fav else "#D9C58C", hover_color=GOLD_DARK, command=lambda s=scene_text, f=is_fav: self.obs_workflow_remove_scene_favorite(s) if f else self.obs_workflow_add_scene_favorite(s)).grid(row=0, column=1, padx=(4, 4), pady=6)
-                ctk.CTkButton(row_frame, text="SWITCH", width=80, fg_color=GOLD if not is_current else "#333333", text_color="#111111" if not is_current else "#AAAAAA", hover_color=GOLD_DARK, command=lambda s=scene_text: self.obs_workflow_switch_scene(s)).grid(row=0, column=2, padx=(4, 8), pady=6)
+
+                favorite_btn = ctk.CTkButton(
+                    row_frame,
+                    text="STAR" if is_fav else "ADD",
+                    width=58,
+                    fg_color=GOLD if is_fav else "#333333",
+                    text_color="#111111" if is_fav else "#D9C58C",
+                    hover_color=GOLD_DARK,
+                    command=lambda s=scene_text, f=is_fav: self.obs_workflow_remove_scene_favorite(s) if f else self.obs_workflow_add_scene_favorite(s)
+                )
+                favorite_btn.grid(row=0, column=1, padx=(4, 4), pady=6)
+
+                switch_btn = ctk.CTkButton(
+                    row_frame,
+                    text="SWITCH",
+                    width=80,
+                    fg_color=GOLD if not is_current else "#333333",
+                    text_color="#111111" if not is_current else "#AAAAAA",
+                    hover_color=GOLD_DARK,
+                    command=lambda s=scene_text: self.obs_workflow_switch_scene(s)
+                )
+                switch_btn.grid(row=0, column=2, padx=(4, 8), pady=6)
+
+                self.obs_workflow_scene_rows[scene_text] = {
+                    "row": row_frame,
+                    "label": label,
+                    "switch": switch_btn,
+                }
 
         right_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         right_box.grid(row=3, column=1, sticky="nsew", padx=(7, 0), pady=0)
@@ -7176,12 +7854,34 @@ class VadafokStudio(ctk.CTk):
         summary = ctk.CTkFrame(right_box, fg_color="#0B0B0B", corner_radius=12)
         summary.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 10))
         summary.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(summary, text=f"LIVE SCENE  {current_scene}", text_color="#8FE6A0", font=ctk.CTkFont(size=22, weight="bold"), anchor="w").grid(row=0, column=0, padx=12, pady=(10, 2), sticky="ew")
-        ctk.CTkLabel(summary, text=scene_health_text, text_color=scene_health_color, anchor="w").grid(row=1, column=0, padx=12, pady=(0, 2), sticky="ew")
+
+        self.obs_workflow_live_scene_var.set(f"LIVE SCENE  {current_scene}")
         last_switch_label = f"Last Scene Switch: {getattr(state, 'last_scene_switch', '-')}"
         if getattr(state, "last_scene_switch_time", ""):
             last_switch_label += f" at {state.last_scene_switch_time}"
-        ctk.CTkLabel(summary, text=last_switch_label, text_color="#888888", anchor="w").grid(row=2, column=0, padx=12, pady=(0, 10), sticky="ew")
+        self.obs_workflow_last_scene_control_var.set(last_switch_label)
+
+        ctk.CTkLabel(
+            summary,
+            textvariable=self.obs_workflow_live_scene_var,
+            text_color="#8FE6A0",
+            font=ctk.CTkFont(size=22, weight="bold"),
+            anchor="w"
+        ).grid(row=0, column=0, padx=12, pady=(10, 2), sticky="ew")
+
+        ctk.CTkLabel(
+            summary,
+            text=scene_health_text,
+            text_color=scene_health_color,
+            anchor="w"
+        ).grid(row=1, column=0, padx=12, pady=(0, 2), sticky="ew")
+
+        ctk.CTkLabel(
+            summary,
+            textvariable=self.obs_workflow_last_scene_control_var,
+            text_color="#888888",
+            anchor="w"
+        ).grid(row=2, column=0, padx=12, pady=(0, 10), sticky="ew")
 
         sources_list = ctk.CTkScrollableFrame(right_box, fg_color="#0B0B0B", corner_radius=12)
         sources_list.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))

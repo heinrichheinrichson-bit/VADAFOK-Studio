@@ -105,6 +105,7 @@ def normalize_preset(preset: Dict[str, Any]) -> Dict[str, Any]:
 
     return {
         "name": str(preset.get("name", "")).strip() or "Untitled",
+        "favorite": bool(preset.get("favorite", False)),
         "scene": scene,
         "banner_text": banner_text,
         "show_banner": show_banner,
@@ -283,6 +284,12 @@ def duplicate_preset(preset_name: str) -> List[Dict[str, Any]]:
 
     duplicate = {
         "name": candidate,
+        "favorite": bool(source.get("favorite", False)),
+        "scene": str(source.get("scene", "") or ""),
+        "banner_text": str(source.get("banner_text", "") or ""),
+        "show_banner": bool(source.get("show_banner", False)),
+        "show_sources": list(source.get("show_sources", []) or []),
+        "hide_sources": list(source.get("hide_sources", []) or []),
         "actions": [normalize_action(dict(a)) for a in list(source.get("actions", []) or [])],
     }
     presets.insert(presets.index(source) + 1, duplicate)

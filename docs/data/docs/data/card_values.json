@@ -1,0 +1,71 @@
+{
+  "New Template 2": {
+    "date": "04.07.2026",
+    "game": "Resident Evil 2 Remake",
+    "time": "20:00 Uhr"
+  },
+  "Default Stream Plan": {
+    "date": "04.07.2026",
+    "game": "resident evil 2",
+    "time": "20:000"
+  },
+  "New Template": {
+    "date": "04.07.2026",
+    "game": "Resident  Evil 2",
+    "time": "20:00"
+  },
+  "New Template 7": {
+    "date": "04.07.2026",
+    "game": "Resident Evil 2",
+    "time": "20:15"
+  },
+  "Test": {
+    "date": "2026-10-07",
+    "game": "finale",
+    "time": "19:00"
+  },
+  "next show test test": {
+    "date": "05.07.2026",
+    "game": "Resident Evil 2",
+    "time": "22:00"
+  },
+  "now showing": {
+    "time": "22:00",
+    "game": "Resident evil 2",
+    "date": "06.07.2026",
+    "time_copy": "20:00",
+    "game_copy": "Super MArio 64",
+    "date_copy": "07.07.2026"
+  },
+  "this week": {
+    "date": "06.07.2026",
+    "game": "Resident Evil 2 (Remake)",
+    "time": "20.00",
+    "date 2": "08.07.2026.",
+    "time 2": "16:00",
+    "game 2": "Super Mario 64",
+    "date 3": "10.07.2026",
+    "Time 3": "16:00"
+  },
+  "next show copy test": {
+    "222222": "5555",
+    "field_1": "455555",
+    "222222_copy": "77777",
+    "field_1_copy": "66666"
+  },
+  "zoom test 3": {
+    "time": "18:00",
+    "date": "05.07.2026",
+    "game": "resident evil 2"
+  },
+  "zoom test 2": {
+    "game": "resi 2",
+    "date": "222222",
+    "time": "22222"
+  },
+  "New 08.07.2026": {
+    "date": "08.07.2026",
+    "game": "Super mario 64",
+    "time": "16:00"
+  }
+}

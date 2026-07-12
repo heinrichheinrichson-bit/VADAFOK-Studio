@@ -35,7 +35,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.15.6")
+        self.wm_title("VADAFOK Studio 2.15.8")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -110,6 +110,7 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_selected = ctk.StringVar(value=self.silent_director_presets[0]['name'] if self.silent_director_presets else '')
         self.silent_director_new_name = ctk.StringVar(value='')
         self.silent_director_search_var = ctk.StringVar(value='')
+        self.silent_director_favorites_only = ctk.BooleanVar(value=False)
         self.silent_director_preset_list_frame = None
         self.silent_director_editor_name = ctk.StringVar(value='')
         self.silent_director_editor_scene = ctk.StringVar(value='')
@@ -218,7 +219,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.15.6", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.15.8", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -7136,15 +7137,51 @@ class VadafokStudio(ctk.CTk):
             f"Gesamtdauer {self.silent_director_format_duration(total_seconds)}"
         )
 
+    def silent_director_toggle_favorite(self, preset):
+        if not preset:
+            return
+
+        preset_name = str(preset.get("name", "") or "")
+        for item in self.silent_director_presets:
+            if str(item.get("name", "") or "") == preset_name:
+                item["favorite"] = not bool(item.get("favorite", False))
+                break
+
+        silent_director.save_presets(self.silent_director_presets)
+        self.obs_workflow_mark_command(
+            f"Silent Director preset favorite toggled: {preset_name}"
+        )
+        self.show_silent_director_page()
+
+    def silent_director_toggle_favorites_filter(self):
+        self.silent_director_favorites_only.set(
+            not bool(self.silent_director_favorites_only.get())
+        )
+        self.show_silent_director_page()
+
     def silent_director_filtered_presets(self):
         query = str(self.silent_director_search_var.get() or "").strip().casefold()
         presets = list(self.silent_director_presets or [])
-        if not query:
-            return presets
-        return [
-            preset for preset in presets
-            if query in str(preset.get("name", "") or "").casefold()
-        ]
+
+        if bool(self.silent_director_favorites_only.get()):
+            presets = [
+                preset for preset in presets
+                if bool(preset.get("favorite", False))
+            ]
+
+        if query:
+            presets = [
+                preset for preset in presets
+                if query in str(preset.get("name", "") or "").casefold()
+            ]
+
+        return sorted(
+            presets,
+            key=lambda preset: (
+                not bool(preset.get("favorite", False)),
+                str(preset.get("name", "") or "").casefold(),
+            ),
+        )
 
     def silent_director_clear_search(self):
         self.silent_director_search_var.set("")
@@ -7193,13 +7230,27 @@ class VadafokStudio(ctk.CTk):
         for idx, preset in enumerate(filtered):
             name = preset.get("name", "Untitled")
             selected = name == self.silent_director_selected.get()
+            is_favorite = bool(preset.get("favorite", False))
+
             row = ctk.CTkFrame(
                 preset_list,
-                fg_color="#171717" if selected else "transparent",
-                corner_radius=8
+                fg_color="#241F12" if is_favorite else ("#171717" if selected else "transparent"),
+                corner_radius=8,
+                border_color=GOLD if is_favorite else "#171717",
+                border_width=1 if is_favorite else 0
             )
             row.grid(row=idx + row_offset, column=0, padx=6, pady=4, sticky="ew")
-            row.grid_columnconfigure(0, weight=1)
+            row.grid_columnconfigure(1, weight=1)
+
+            ctk.CTkButton(
+                row,
+                text="★" if is_favorite else "☆",
+                width=38,
+                fg_color="transparent",
+                hover_color="#2C2C2C",
+                text_color=GOLD if is_favorite else "#777777",
+                command=lambda p=preset: self.silent_director_toggle_favorite(p)
+            ).grid(row=0, column=0, rowspan=2, padx=(6, 2), pady=6)
 
             ctk.CTkButton(
                 row,
@@ -7207,12 +7258,12 @@ class VadafokStudio(ctk.CTk):
                 anchor="w",
                 fg_color="transparent",
                 hover_color="#2C2C2C",
-                text_color=GOLD if selected else TEXT,
+                text_color=GOLD if selected or is_favorite else TEXT,
                 command=lambda n=name: (
                     self.silent_director_selected.set(n),
                     self.show_silent_director_page()
                 )
-            ).grid(row=0, column=0, sticky="ew", padx=6, pady=(5, 0))
+            ).grid(row=0, column=1, sticky="ew", padx=6, pady=(5, 0))
 
             ctk.CTkLabel(
                 row,
@@ -7220,10 +7271,10 @@ class VadafokStudio(ctk.CTk):
                 text_color="#888888",
                 anchor="w",
                 font=ctk.CTkFont(size=11)
-            ).grid(row=1, column=0, sticky="ew", padx=14, pady=(0, 6))
+            ).grid(row=1, column=1, sticky="ew", padx=14, pady=(0, 6))
 
             preset_controls = ctk.CTkFrame(row, fg_color="transparent")
-            preset_controls.grid(row=0, column=1, rowspan=2, padx=(4, 8), pady=6)
+            preset_controls.grid(row=0, column=2, rowspan=2, padx=(4, 8), pady=6)
 
             ctk.CTkButton(
                 preset_controls,
@@ -7287,7 +7338,17 @@ class VadafokStudio(ctk.CTk):
             fg_color="#333333",
             hover_color="#444444",
             command=self.silent_director_clear_search
-        ).grid(row=0, column=1, padx=(0, 10), pady=10)
+        ).grid(row=0, column=1, padx=(0, 4), pady=10)
+
+        ctk.CTkButton(
+            search_bar,
+            text="★ FAVORITES",
+            width=108,
+            fg_color=GOLD if self.silent_director_favorites_only.get() else "#333333",
+            text_color="#111111" if self.silent_director_favorites_only.get() else "#D9C58C",
+            hover_color=GOLD_DARK,
+            command=self.silent_director_toggle_favorites_filter
+        ).grid(row=0, column=2, padx=(0, 10), pady=10)
 
         create = ctk.CTkFrame(left, fg_color="#0B0B0B", corner_radius=12)
         create.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 10))

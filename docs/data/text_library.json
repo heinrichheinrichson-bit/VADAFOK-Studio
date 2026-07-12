@@ -1,0 +1,55 @@
+{
+  "Chat": [
+    "CHAT WAS RIGHT.",
+    "Danke für den Hinweis!",
+    "Gute Idee.",
+    "Das probiere ich gleich aus.",
+    "hello guys :)",
+    "hellooooooo"
+  ],
+  "Gameplay": [
+    "Das war knapp...",
+    "Ich habe da ein ganz schlechtes Gefühl.",
+    "Vielleicht war das keine gute Idee.",
+    "Natürlich war das eine Falle.",
+    "CHAT WAS RIGHT."
+  ],
+  "Humor": [
+    "Das war exakt so geplant.",
+    "Niemand hat etwas gesehen.",
+    "Wir ignorieren diesen Moment einfach.",
+    "Professionelles Gameplay."
+  ],
+  "Gefahr": [
+    "Etwas stimmt hier nicht.",
+    "Die Stimmung wird unangenehm.",
+    "Ich sollte jetzt besser vorsichtig sein.",
+    "Gute Idee.",
+    "CHAT WAS RIGHT."
+  ],
+  "Boss": [
+    "Der eigentliche Kampf beginnt jetzt.",
+    "Ein würdiger Gegner.",
+    "Jetzt zählt jeder Fehler."
+  ],
+  "Pause": [
+    "Kurze Pause.",
+    "Bin gleich zurück.",
+    "Einen Moment bitte."
+  ],
+  "Intertitle": [
+    "Und so nahm das Unheil seinen Lauf.",
+    "Ein neuer Abschnitt der Reise.",
+    "Später, an einem deutlich schlechteren Ort..."
+  ],
+  "chat": [
+    "hello chat :)"
+  ],
+  "thanks": [
+    "thanks"
+  ],
+  "about me": [
+    "I'm not taliking. Just simple silent gameplay",
+    "i will answer per intertitles :)"
+  ]
+}

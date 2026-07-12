@@ -1,22 +1,20 @@
 # CHANGELOG
 
-## v2.14.2 - Action Drag & Drop
+## v2.15.6 - Preset Search
 
 ### Added
-- Dedicated drag handle on every action.
-- Dragged action is clearly highlighted.
-- Gold insertion line shows the exact drop location.
-- Target position is displayed as `DROP HERE — POSITION X`.
-- New order is saved immediately on release.
-- MOVE UP / MOVE DOWN remain available as fallback.
+- Search field above the Silent Director preset list.
+- Presets filter immediately by name while typing.
+- Search is case-insensitive.
+- X button clears the search.
+- Result count is shown while filtering.
+- Empty results show a clear message.
 
 ### Preserved
-- WAIT countdown with seconds and tenths.
-- Current Action countdown.
-- Progress `x / y`.
-- Existing progress bar.
-- STOP during WAIT.
-- F8.
-- Banner + Text.
-- OBS Workflow no-flicker fix.
-- Live Card.
+- Duplicate Preset and preset statistics.
+- Director Runtime Highlight.
+- WAIT countdown and progress.
+- Timeline View and Drag & Drop.
+- Action DUP/EDIT/UPDATE/DELETE.
+- OBS Workflow live refresh.
+- F8, Banner + Text and Live Card.

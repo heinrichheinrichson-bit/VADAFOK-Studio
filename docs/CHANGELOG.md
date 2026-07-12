@@ -1,20 +1,22 @@
 # CHANGELOG
 
-## v2.15.6 - Preset Search
+## v2.15.8 - Preset Favorites & Pinning
 
 ### Added
-- Search field above the Silent Director preset list.
-- Presets filter immediately by name while typing.
-- Search is case-insensitive.
-- X button clears the search.
-- Result count is shown while filtering.
-- Empty results show a clear message.
+- Star button on every preset.
+- Favorites are pinned to the top.
+- Favorites receive a gold highlight.
+- `★ FAVORITES` shows only starred presets.
+- Search works together with the favorites filter.
+- Favorite state is stored permanently.
+- Duplicated presets preserve favorite state.
 
 ### Preserved
-- Duplicate Preset and preset statistics.
-- Director Runtime Highlight.
-- WAIT countdown and progress.
-- Timeline View and Drag & Drop.
-- Action DUP/EDIT/UPDATE/DELETE.
+- Preset Search.
+- Duplicate Preset.
+- Preset statistics.
+- Runtime Highlight.
+- WAIT, Progress and Timeline.
+- Drag & Drop.
 - OBS Workflow live refresh.
 - F8, Banner + Text and Live Card.

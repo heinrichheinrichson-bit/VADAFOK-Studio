@@ -1,0 +1,46 @@
+{
+  "format": "VADAFOK_BATCH_PROJECT",
+  "version": 1,
+  "items": [
+    {
+      "template": "Test",
+      "output_name": "card_Test",
+      "profile": "Broadcast PNG",
+      "values": {
+        "date": "2026-07-07",
+        "game": "Halbfinale",
+        "time": "18:00"
+      }
+    },
+    {
+      "template": "Test",
+      "output_name": "card_Test",
+      "profile": "Broadcast PNG",
+      "values": {
+        "date": "2026-07-07",
+        "game": "Halbfinale",
+        "time": "18:00"
+      }
+    },
+    {
+      "template": "Test",
+      "output_name": "card_001",
+      "profile": "Broadcast PNG",
+      "values": {
+        "date": "2026-07-06",
+        "game": "Finale",
+        "time": "20:00"
+      }
+    },
+    {
+      "template": "Test",
+      "output_name": "card_002",
+      "profile": "Broadcast PNG",
+      "values": {
+        "date": "2026-07-07",
+        "game": "Halbfinale",
+        "time": "18:00"
+      }
+    }
+  ]
+}

@@ -9,8 +9,22 @@
     "actions": [
       {
         "type": "switch_scene",
-        "scene": "VADAFOK Test",
+        "scene": "Cam - VHS Retro",
         "text": "",
+        "source": "",
+        "seconds": ""
+      },
+      {
+        "type": "wait",
+        "scene": "",
+        "text": "",
+        "source": "",
+        "seconds": "10"
+      },
+      {
+        "type": "show_banner",
+        "scene": "",
+        "text": "whats up !!!!!!!!!",
         "source": "",
         "seconds": ""
       },
@@ -24,7 +38,198 @@
       {
         "type": "show_banner",
         "scene": "",
+        "text": "letzter szenen wechsel",
+        "source": "",
+        "seconds": ""
+      },
+      {
+        "type": "wait",
+        "scene": "",
+        "text": "",
+        "source": "",
+        "seconds": "100"
+      },
+      {
+        "type": "switch_scene",
+        "scene": "VADAFOK Test",
+        "text": "",
+        "source": "",
+        "seconds": ""
+      }
+    ]
+  },
+  {
+    "name": "Gameplay Copy",
+    "scene": "Cam - VHS Retro",
+    "banner_text": "whats up !!!!!!!!!",
+    "show_banner": true,
+    "show_sources": [],
+    "hide_sources": [],
+    "actions": [
+      {
+        "type": "switch_scene",
+        "scene": "Cam - VHS Retro",
+        "text": "",
+        "source": "",
+        "seconds": ""
+      },
+      {
+        "type": "wait",
+        "scene": "",
+        "text": "",
+        "source": "",
+        "seconds": "10"
+      },
+      {
+        "type": "show_banner",
+        "scene": "",
         "text": "whats up !!!!!!!!!",
+        "source": "",
+        "seconds": ""
+      },
+      {
+        "type": "wait",
+        "scene": "",
+        "text": "",
+        "source": "",
+        "seconds": "7"
+      },
+      {
+        "type": "show_banner",
+        "scene": "",
+        "text": "letzter szenen wechsel",
+        "source": "",
+        "seconds": ""
+      },
+      {
+        "type": "wait",
+        "scene": "",
+        "text": "",
+        "source": "",
+        "seconds": "30"
+      },
+      {
+        "type": "switch_scene",
+        "scene": "VADAFOK Test",
+        "text": "",
+        "source": "",
+        "seconds": ""
+      }
+    ]
+  },
+  {
+    "name": "Gameplay Copy Copy 2",
+    "scene": "Cam - VHS Retro",
+    "banner_text": "whats up !!!!!!!!!",
+    "show_banner": true,
+    "show_sources": [],
+    "hide_sources": [],
+    "actions": [
+      {
+        "type": "switch_scene",
+        "scene": "Cam - VHS Retro",
+        "text": "",
+        "source": "",
+        "seconds": ""
+      },
+      {
+        "type": "wait",
+        "scene": "",
+        "text": "",
+        "source": "",
+        "seconds": "10"
+      },
+      {
+        "type": "show_banner",
+        "scene": "",
+        "text": "whats up !!!!!!!!!",
+        "source": "",
+        "seconds": ""
+      },
+      {
+        "type": "wait",
+        "scene": "",
+        "text": "",
+        "source": "",
+        "seconds": "7"
+      },
+      {
+        "type": "show_banner",
+        "scene": "",
+        "text": "letzter szenen wechsel",
+        "source": "",
+        "seconds": ""
+      },
+      {
+        "type": "wait",
+        "scene": "",
+        "text": "",
+        "source": "",
+        "seconds": "30"
+      },
+      {
+        "type": "switch_scene",
+        "scene": "VADAFOK Test",
+        "text": "",
+        "source": "",
+        "seconds": ""
+      }
+    ]
+  },
+  {
+    "name": "Gameplay Copy Copy",
+    "scene": "Cam - VHS Retro",
+    "banner_text": "whats up !!!!!!!!!",
+    "show_banner": true,
+    "show_sources": [],
+    "hide_sources": [],
+    "actions": [
+      {
+        "type": "switch_scene",
+        "scene": "Cam - VHS Retro",
+        "text": "",
+        "source": "",
+        "seconds": ""
+      },
+      {
+        "type": "wait",
+        "scene": "",
+        "text": "",
+        "source": "",
+        "seconds": "10"
+      },
+      {
+        "type": "show_banner",
+        "scene": "",
+        "text": "whats up !!!!!!!!!",
+        "source": "",
+        "seconds": ""
+      },
+      {
+        "type": "wait",
+        "scene": "",
+        "text": "",
+        "source": "",
+        "seconds": "7"
+      },
+      {
+        "type": "show_banner",
+        "scene": "",
+        "text": "letzter szenen wechsel",
+        "source": "",
+        "seconds": ""
+      },
+      {
+        "type": "wait",
+        "scene": "",
+        "text": "",
+        "source": "",
+        "seconds": "30"
+      },
+      {
+        "type": "switch_scene",
+        "scene": "VADAFOK Test",
+        "text": "",
         "source": "",
         "seconds": ""
       }
@@ -49,6 +254,23 @@
   },
   {
     "name": "Boss Fight",
+    "scene": "",
+    "banner_text": "This could get ugly...",
+    "show_banner": true,
+    "show_sources": [],
+    "hide_sources": [],
+    "actions": [
+      {
+        "type": "show_banner",
+        "scene": "",
+        "text": "This could get ugly...",
+        "source": "",
+        "seconds": ""
+      }
+    ]
+  },
+  {
+    "name": "Boss Fight Copy",
     "scene": "",
     "banner_text": "This could get ugly...",
     "show_banner": true,
