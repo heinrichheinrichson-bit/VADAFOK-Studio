@@ -35,7 +35,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.16.2.1")
+        self.wm_title("VADAFOK Studio 2.16.3")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -222,7 +222,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.16.2.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.16.3", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -1525,6 +1525,28 @@ class VadafokStudio(ctk.CTk):
         """Compatibility alias used by Silent Director."""
         return self.show_live_card()
 
+    def live_card_current_banner_name(self):
+        path = str(self.config_data.get("selected_banner_path", "") or "").strip()
+        if not path:
+            return "Kein Banner ausgewählt"
+        try:
+            return Path(path).name
+        except Exception:
+            return path
+
+    def reset_live_card_text(self):
+        """Reset only the Live Card editor text and refresh the preview."""
+        if not hasattr(self, "message_box"):
+            return
+        self.message_box.delete("1.0", "end")
+        self.message_box.insert("1.0", "CHAT WAS RIGHT.")
+        self.live_card_pending_text = ""
+        self.update_render_preview()
+        try:
+            self.message_box.focus_set()
+        except Exception:
+            pass
+
     def show_live_card(self):
         self.set_active("Live Card")
         self.clear_main()
@@ -1548,10 +1570,21 @@ class VadafokStudio(ctk.CTk):
 
         row = ctk.CTkFrame(left, fg_color="transparent")
         row.grid(row=2, column=0, sticky="ew", padx=18, pady=8)
-        row.grid_columnconfigure((0, 1, 2), weight=1)
-        self.option(row, "Engine", ["obs_text", "smart_png"], self.caption_engine, 0)
-        self.option(row, "Style", list(self.config_data["banner_sources"].keys()), self.style, 1)
-        self.option(row, "Duration", ["3", "5", "7", "10", "15"], self.duration, 2)
+        row.grid_columnconfigure((0, 1), weight=1)
+        self.option(
+            row,
+            "Engine",
+            ["obs_text", "smart_png"],
+            self.caption_engine,
+            0
+        )
+        self.option(
+            row,
+            "Duration",
+            ["3", "5", "7", "10", "15"],
+            self.duration,
+            1
+        )
 
         btns = ctk.CTkFrame(left, fg_color="transparent")
         btns.grid(row=3, column=0, sticky="ew", padx=18, pady=(14, 18))
@@ -1592,25 +1625,117 @@ class VadafokStudio(ctk.CTk):
             justify="left",
             anchor="w"
         )
-        self.render_status_label.grid(row=2, column=0, padx=18, pady=(0, 8), sticky="ew")
+        self.render_status_label.grid(
+            row=2,
+            column=0,
+            padx=18,
+            pady=(0, 4),
+            sticky="ew"
+        )
+
+        banner_info = ctk.CTkFrame(
+            right,
+            fg_color="#0B0B0B",
+            corner_radius=10,
+            border_color="#2D2818",
+            border_width=1
+        )
+        banner_info.grid(
+            row=3,
+            column=0,
+            padx=18,
+            pady=(0, 8),
+            sticky="ew"
+        )
+        banner_info.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkLabel(
+            banner_info,
+            text="CURRENT BANNER",
+            text_color="#777777",
+            font=ctk.CTkFont(size=10, weight="bold"),
+            anchor="w"
+        ).grid(
+            row=0,
+            column=0,
+            padx=12,
+            pady=(8, 1),
+            sticky="ew"
+        )
+
+        self.live_card_banner_name_label = ctk.CTkLabel(
+            banner_info,
+            text=self.live_card_current_banner_name(),
+            text_color=GOLD,
+            wraplength=330,
+            justify="left",
+            anchor="w",
+            font=ctk.CTkFont(size=12, weight="bold")
+        )
+        self.live_card_banner_name_label.grid(
+            row=1,
+            column=0,
+            padx=12,
+            pady=(0, 8),
+            sticky="ew"
+        )
+
+        preview_actions = ctk.CTkFrame(
+            right,
+            fg_color="transparent"
+        )
+        preview_actions.grid(
+            row=4,
+            column=0,
+            padx=18,
+            pady=(0, 8),
+            sticky="ew"
+        )
+        preview_actions.grid_columnconfigure((0, 1), weight=1)
 
         ctk.CTkButton(
-            right,
+            preview_actions,
             text="REFRESH PREVIEW",
+            height=38,
             fg_color="#333333",
             hover_color="#444444",
             command=self.update_render_preview
-        ).grid(row=3, column=0, padx=18, pady=(0, 6), sticky="ew")
+        ).grid(
+            row=0,
+            column=0,
+            padx=(0, 4),
+            sticky="ew"
+        )
+
+        ctk.CTkButton(
+            preview_actions,
+            text="RESET TEXT",
+            height=38,
+            fg_color="#333333",
+            hover_color="#444444",
+            command=self.reset_live_card_text
+        ).grid(
+            row=0,
+            column=1,
+            padx=(4, 0),
+            sticky="ew"
+        )
 
         ctk.CTkButton(
             right,
             text="CHANGE BANNER",
-            height=40,
+            height=42,
             fg_color=GOLD,
             text_color="#111111",
             hover_color=GOLD_DARK,
             command=self.open_live_card_banner_picker
-        ).grid(row=4, column=0, padx=18, pady=(0, 18), sticky="ew")
+        ).grid(
+            row=5,
+            column=0,
+            padx=18,
+            pady=(0, 18),
+            sticky="ew"
+        )
 
         self.update_render_preview()
 
@@ -8766,7 +8891,6 @@ class VadafokStudio(ctk.CTk):
             "caption_render_source": self.caption_render_source.get(),
             "scene_card_source": self.scene_card_source.get(),
             "duration": self.duration.get(),
-            "style": self.style.get(),
             "project_folder": self.project_folder.get(),
             "caption_engine": self.caption_engine.get(),
             "caption_font_family": self.caption_font_family.get(),
@@ -8845,10 +8969,19 @@ class VadafokStudio(ctk.CTk):
             ctk.CTkLabel(self.preview_frame, image=self.live_preview_image, text="").place(relx=0.5, rely=0.5, anchor="center")
 
             if hasattr(self, "render_status_label"):
+                banner_name = self.live_card_current_banner_name()
                 self.render_status_label.configure(
-                    text=f"🟢 Preview ready\nEngine: {self.caption_engine.get()}\nBanner: {'selected' if self.config_data.get('selected_banner_path') else 'none'}",
+                    text=(
+                        f"🟢 Preview ready\n"
+                        f"Engine: {self.caption_engine.get()}\n"
+                        f"Banner: {banner_name}"
+                    ),
                     text_color="#8FE6A0"
                 )
+                if hasattr(self, "live_card_banner_name_label"):
+                    self.live_card_banner_name_label.configure(
+                        text=banner_name
+                    )
         except Exception as e:
             ctk.CTkLabel(
                 self.preview_frame,

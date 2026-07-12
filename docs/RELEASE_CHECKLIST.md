@@ -1,10 +1,13 @@
-# v2.16.2.1 Testliste
+# v2.16.3 Testliste
 
-- Live Card -> CHANGE BANNER.
-- Select a banner.
-- SHOW / USE must return immediately to Live Card.
-- New banner must be visible in preview.
-- Repeat with USE AS CAPTION BANNER.
-- No success popup should block the picker workflow.
-- BACK TO LIVE CARD still works.
-- Open Library normally and verify banner selection still works.
+- Open Live Card.
+- Verify Style dropdown is gone.
+- Engine and Duration remain visible.
+- CURRENT BANNER shows the selected filename.
+- REFRESH PREVIEW works.
+- RESET TEXT restores `CHAT WAS RIGHT.`.
+- RESET TEXT refreshes preview but does not send to OBS.
+- CHANGE BANNER opens Library/Banners.
+- Pick a new banner and return automatically.
+- CURRENT BANNER and preview update to the new filename.
+- SHOW, HIDE, CLEAR and SAVE QUICK still work.

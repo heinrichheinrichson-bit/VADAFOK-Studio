@@ -1,16 +1,27 @@
 # CHANGELOG
 
-## v2.16.2.1 - Live Card Banner Picker Return Fix
+## v2.16.3 - Live Card Style Cleanup
 
-### Fixed
-- SHOW / USE now applies the banner and returns immediately to Live Card.
-- USE AS CAPTION BANNER uses the same automatic return flow.
-- No blocking success popup interrupts the picker workflow.
-- The new Live Card preview is rendered after returning.
-- OBS source update remains best-effort; warnings appear after the return if needed.
+### Verified
+- The old Style dropdown only changed and saved a variable.
+- It was not used by preview rendering, smart PNG rendering or OBS display.
+- It therefore had no visible effect.
+
+### Changed
+- Removed the ineffective Style dropdown from Live Card.
+- Engine and Duration now use the available space more clearly.
+- Added CURRENT BANNER with the real filename beneath the preview.
+- Preview status now displays the actual banner filename.
+- Added RESET TEXT beside REFRESH PREVIEW.
+- CHANGE BANNER remains the primary banner-selection action.
+
+### RESET TEXT
+- Restores `CHAT WAS RIGHT.`
+- Refreshes the preview immediately.
+- Does not send anything to OBS.
 
 ### Preserved
-- CHANGE BANNER opens Library/Banners directly.
-- BACK TO LIVE CARD still works.
-- Normal Library use keeps its confirmation messages.
-- Library Folder First remains unchanged.
+- CHANGE BANNER workflow.
+- Automatic return from Library to Live Card.
+- SHOW, HIDE, CLEAR and SAVE QUICK.
+- Caption Engine and smart PNG rendering.
