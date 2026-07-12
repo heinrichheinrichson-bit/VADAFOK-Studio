@@ -1,7 +1,10 @@
 import time
 
 import os
+import sys
+import subprocess
 import tkinter as tk
+from pathlib import Path
 from tkinter import filedialog
 import threading
 import customtkinter as ctk
@@ -35,9 +38,30 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.16.3")
+        self.wm_title("VADAFOK Studio 2.16.5.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
+
+        self._vadafok_icon_photo = None
+        try:
+            if sys.platform == "win32":
+                import ctypes
+                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+                    "VADAFOK.Studio.2.16.5.1"
+                )
+
+            icon_dir = Path(__file__).resolve().parent / "assets" / "icons"
+            ico_file = icon_dir / "vadafok_icon.ico"
+            png_file = icon_dir / "vadafok_icon.png"
+
+            if ico_file.exists():
+                self.iconbitmap(str(ico_file))
+
+            if png_file.exists():
+                self._vadafok_icon_photo = tk.PhotoImage(file=str(png_file))
+                self.iconphoto(True, self._vadafok_icon_photo)
+        except Exception:
+            pass
 
         self.config_data = load_config()
         self.favorites = load_favorites()
@@ -179,6 +203,21 @@ class VadafokStudio(ctk.CTk):
         self.quick_cards_editing_text = None
         self.quick_cards_edit_text_var = ctk.StringVar(value="")
 
+        self.voice_enabled = ctk.BooleanVar(
+            value=bool(self.config_data.get("voice_enabled", False))
+        )
+        self.voice_trigger_phrase = ctk.StringVar(
+            value=str(self.config_data.get("voice_trigger_phrase", "live card"))
+        )
+        self.voice_culture = ctk.StringVar(
+            value=str(self.config_data.get("voice_culture", "de-DE"))
+        )
+        self.voice_status_var = ctk.StringVar(value="OFF")
+        self.voice_last_heard_var = ctk.StringVar(value="-")
+        self.voice_process = None
+        self.voice_reader_thread = None
+        self.voice_stop_requested = False
+
         self.host = ctk.StringVar(value=self.config_data["host"])
         self.port = ctk.StringVar(value=self.config_data["port"])
         self.password = ctk.StringVar(value=self.config_data["password"])
@@ -216,13 +255,17 @@ class VadafokStudio(ctk.CTk):
         self.build_sidebar()
         self.show_library()
         self.bind_all("<F8>", lambda e: self.open_quick_caption())
+        self.protocol("WM_DELETE_WINDOW", self.on_app_close)
+
+        if self.voice_enabled.get():
+            self.after(1000, self.start_voice_trigger)
 
     def build_sidebar(self):
         self.sidebar = ctk.CTkFrame(self, width=240, corner_radius=0, fg_color="#050505")
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.16.3", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.16.5.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -8718,18 +8761,276 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkLabel(bottom, text=activity, text_color="#888888", justify="left", anchor="w").grid(row=2, column=0, padx=18, pady=(0, 14), sticky="ew")
 
 
+    def voice_script_path(self):
+        return (
+            Path(__file__).resolve().parent
+            / "tools"
+            / "voice_listener.ps1"
+        )
+
+    def normalize_voice_text(self, value):
+        return " ".join(str(value or "").strip().casefold().split())
+
+    def voice_trigger_matches(self, heard):
+        phrase = self.normalize_voice_text(self.voice_trigger_phrase.get())
+        heard = self.normalize_voice_text(heard)
+        return bool(phrase and heard and (phrase == heard or phrase in heard))
+
+    def voice_reader_loop(self, process):
+        try:
+            while not self.voice_stop_requested:
+                line = process.stdout.readline()
+                if line == "":
+                    break
+
+                line = line.strip()
+                if not line:
+                    continue
+
+                if line == "__READY__":
+                    self.after(0, lambda: self.voice_status_var.set("LISTENING"))
+                    continue
+
+                if line.startswith("__WARN__|"):
+                    warning = line.split("|", 1)[1]
+                    self.after(0, lambda text=warning: self.voice_status_var.set(f"LISTENING · {text}"))
+                    continue
+
+                if line.startswith("__ERROR__|"):
+                    error = line.split("|", 1)[1]
+                    self.after(0, lambda text=error: self.voice_status_var.set(f"ERROR: {text[:70]}"))
+                    continue
+
+                if line.startswith("__HEARD__|"):
+                    heard = line.split("|", 1)[1].strip()
+                    self.after(0, lambda text=heard: self.voice_last_heard_var.set(text))
+
+                    if self.voice_trigger_matches(heard):
+                        self.after(0, lambda: self.voice_status_var.set("COMMAND DETECTED"))
+                        self.after(0, self.open_quick_caption)
+                        self.after(800, lambda: self.voice_status_var.set("LISTENING"))
+        except Exception as exc:
+            if not self.voice_stop_requested:
+                self.after(0, lambda text=str(exc): self.voice_status_var.set(f"ERROR: {text[:70]}"))
+        finally:
+            if not self.voice_stop_requested and self.voice_status_var.get() != "ERROR":
+                self.after(0, lambda: self.voice_status_var.set("STOPPED"))
+
+    def start_voice_trigger(self):
+        if sys.platform != "win32":
+            self.voice_status_var.set("WINDOWS ONLY")
+            return
+
+        if self.voice_process is not None:
+            try:
+                if self.voice_process.poll() is None:
+                    self.voice_status_var.set("LISTENING")
+                    return
+            except Exception:
+                pass
+
+        script = self.voice_script_path()
+        if not script.exists():
+            self.voice_status_var.set("ERROR: voice_listener.ps1 missing")
+            return
+
+        self.voice_stop_requested = False
+        self.voice_status_var.set("STARTING...")
+
+        command = [
+            "powershell.exe",
+            "-NoProfile",
+            "-ExecutionPolicy", "Bypass",
+            "-File", str(script),
+            "-Culture", self.voice_culture.get().strip(),
+        ]
+
+        try:
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
+            self.voice_process = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                bufsize=1,
+                startupinfo=startupinfo,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+            )
+
+            self.voice_reader_thread = threading.Thread(
+                target=self.voice_reader_loop,
+                args=(self.voice_process,),
+                daemon=True,
+            )
+            self.voice_reader_thread.start()
+        except Exception as exc:
+            self.voice_process = None
+            self.voice_status_var.set(f"ERROR: {str(exc)[:70]}")
+
+    def stop_voice_trigger(self):
+        self.voice_stop_requested = True
+        process = self.voice_process
+        self.voice_process = None
+
+        if process is not None:
+            try:
+                process.terminate()
+                process.wait(timeout=1.2)
+            except Exception:
+                try:
+                    process.kill()
+                except Exception:
+                    pass
+
+        self.voice_status_var.set("OFF")
+
+    def restart_voice_trigger(self):
+        self.stop_voice_trigger()
+        if self.voice_enabled.get():
+            self.after(250, self.start_voice_trigger)
+
+    def toggle_voice_trigger(self):
+        self.save_config()
+        if self.voice_enabled.get():
+            self.start_voice_trigger()
+        else:
+            self.stop_voice_trigger()
+
+    def test_voice_trigger(self):
+        self.voice_last_heard_var.set("Manual F8 test")
+        self.open_quick_caption()
+
+    def on_app_close(self):
+        self.stop_voice_trigger()
+        self.destroy()
+
     def show_settings_page(self):
         self.set_active("Settings")
         self.clear_main()
         self.page_title("Settings")
-        box = ctk.CTkFrame(self.main, fg_color=PANEL, corner_radius=18)
+
+        box = ctk.CTkScrollableFrame(self.main, fg_color=PANEL, corner_radius=18)
         box.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
-        ctk.CTkLabel(box, text="VADAFOK Projektordner", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).pack(anchor="w", padx=24, pady=(24, 8))
-        row = ctk.CTkFrame(box, fg_color="transparent")
-        row.pack(fill="x", padx=24, pady=8)
-        ctk.CTkEntry(row, textvariable=self.project_folder).pack(side="left", fill="x", expand=True)
-        ctk.CTkButton(row, text="Durchsuchen...", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.browse_project_folder).pack(side="left", padx=8)
-        ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=18)
+        box.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkLabel(
+            box,
+            text="VADAFOK Projektordner",
+            text_color=GOLD,
+            font=ctk.CTkFont(size=18, weight="bold")
+        ).grid(row=0, column=0, padx=24, pady=(24, 8), sticky="w")
+
+        folder_row = ctk.CTkFrame(box, fg_color="transparent")
+        folder_row.grid(row=1, column=0, sticky="ew", padx=24, pady=8)
+        folder_row.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkEntry(folder_row, textvariable=self.project_folder).grid(row=0, column=0, sticky="ew")
+        ctk.CTkButton(
+            folder_row,
+            text="Durchsuchen...",
+            fg_color=GOLD,
+            text_color="#111111",
+            hover_color=GOLD_DARK,
+            command=self.browse_project_folder
+        ).grid(row=0, column=1, padx=(8, 0))
+
+        voice_box = ctk.CTkFrame(
+            box,
+            fg_color="#0B0B0B",
+            corner_radius=12,
+            border_color="#3A2A0D",
+            border_width=1
+        )
+        voice_box.grid(row=2, column=0, sticky="ew", padx=24, pady=(18, 8))
+        voice_box.grid_columnconfigure(1, weight=1)
+
+        ctk.CTkLabel(
+            voice_box,
+            text="Voice Trigger — Quick Caption",
+            text_color=GOLD,
+            font=ctk.CTkFont(size=17, weight="bold")
+        ).grid(row=0, column=0, columnspan=3, padx=16, pady=(14, 3), sticky="w")
+
+        ctk.CTkLabel(
+            voice_box,
+            text=(
+                "Lokale Windows-Spracherkennung. Der Befehl öffnet exakt "
+                "dasselbe Quick-Caption-Fenster wie F8. Es wird kein Audio an OBS gesendet."
+            ),
+            text_color="#999999",
+            wraplength=820,
+            justify="left"
+        ).grid(row=1, column=0, columnspan=3, padx=16, pady=(0, 10), sticky="w")
+
+        ctk.CTkCheckBox(
+            voice_box,
+            text="Enable Voice Trigger",
+            variable=self.voice_enabled,
+            command=self.toggle_voice_trigger
+        ).grid(row=2, column=0, padx=16, pady=8, sticky="w")
+
+        ctk.CTkLabel(voice_box, text="Command", text_color="#BCA870").grid(row=3, column=0, padx=16, pady=8, sticky="w")
+        command_entry = ctk.CTkEntry(voice_box, textvariable=self.voice_trigger_phrase)
+        command_entry.grid(row=3, column=1, padx=8, pady=8, sticky="ew")
+
+        ctk.CTkButton(
+            voice_box,
+            text="TEST F8 ACTION",
+            width=140,
+            fg_color="#333333",
+            hover_color="#444444",
+            command=self.test_voice_trigger
+        ).grid(row=3, column=2, padx=(8, 16), pady=8)
+
+        ctk.CTkLabel(voice_box, text="Recognition culture", text_color="#BCA870").grid(row=4, column=0, padx=16, pady=8, sticky="w")
+        culture_entry = ctk.CTkEntry(
+            voice_box,
+            textvariable=self.voice_culture,
+            placeholder_text="de-DE"
+        )
+        culture_entry.grid(row=4, column=1, padx=8, pady=8, sticky="ew")
+
+        ctk.CTkButton(
+            voice_box,
+            text="RESTART LISTENER",
+            width=140,
+            fg_color="#333333",
+            hover_color="#444444",
+            command=self.restart_voice_trigger
+        ).grid(row=4, column=2, padx=(8, 16), pady=8)
+
+        ctk.CTkLabel(voice_box, text="Status:", text_color="#BCA870").grid(row=5, column=0, padx=16, pady=(8, 3), sticky="w")
+        ctk.CTkLabel(
+            voice_box,
+            textvariable=self.voice_status_var,
+            text_color="#8FE6A0",
+            wraplength=700,
+            justify="left"
+        ).grid(row=5, column=1, columnspan=2, padx=8, pady=(8, 3), sticky="w")
+
+        ctk.CTkLabel(voice_box, text="Last heard:", text_color="#BCA870").grid(row=6, column=0, padx=16, pady=(3, 14), sticky="w")
+        ctk.CTkLabel(
+            voice_box,
+            textvariable=self.voice_last_heard_var,
+            text_color="#CFCFCF",
+            wraplength=700,
+            justify="left"
+        ).grid(row=6, column=1, columnspan=2, padx=8, pady=(3, 14), sticky="w")
+
+        ctk.CTkButton(
+            box,
+            text="SAVE SETTINGS",
+            height=42,
+            fg_color=GOLD,
+            text_color="#111111",
+            hover_color=GOLD_DARK,
+            command=self.save_config
+        ).grid(row=3, column=0, padx=24, pady=(10, 24), sticky="w")
+
 
     def browse_project_folder(self):
         folder = filedialog.askdirectory(title="VADAFOK Projektordner wählen")
@@ -8905,6 +9206,9 @@ class VadafokStudio(ctk.CTk):
             "caption_safe_right": int(self.caption_safe_right.get()),
             "caption_safe_top": int(self.caption_safe_top.get()),
             "caption_safe_bottom": int(self.caption_safe_bottom.get()),
+            "voice_enabled": bool(self.voice_enabled.get()),
+            "voice_trigger_phrase": self.voice_trigger_phrase.get().strip() or "live card",
+            "voice_culture": self.voice_culture.get().strip() or "de-DE",
         })
         save_config(self.config_data)
 

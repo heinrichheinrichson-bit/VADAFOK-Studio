@@ -1,6 +1,5 @@
 # Known Issues
 
-## v2.16.3
-- Old `style` values may remain in existing config.json files for compatibility,
-  but the Live Card no longer uses or displays them.
-- Returning from the Library rebuilds the Live Card page once.
+- Requires Windows System.Speech and an installed speech-recognition language.
+- Some Windows installations do not include German speech recognition by default.
+- Taskbar icons can behave differently when started from Python compared with a packaged EXE.

@@ -1,27 +1,17 @@
 # CHANGELOG
 
-## v2.16.3 - Live Card Style Cleanup
+## v2.16.5.1 - Voice Trigger Rebuild + Icon Fix
 
-### Verified
-- The old Style dropdown only changed and saved a variable.
-- It was not used by preview rendering, smart PNG rendering or OBS display.
-- It therefore had no visible effect.
+### Fixed
+- Added the missing global `Path` import.
+- Rebuilt voice startup and status handling.
+- Added explicit READY, WARNING, ERROR and HEARD messages.
+- Added listener restart button.
+- Added fallback when the selected speech culture is unavailable.
+- Moved icon assets inside the Python package for reliable path resolution.
+- Added Windows AppUserModelID for better taskbar icon behavior.
 
-### Changed
-- Removed the ineffective Style dropdown from Live Card.
-- Engine and Duration now use the available space more clearly.
-- Added CURRENT BANNER with the real filename beneath the preview.
-- Preview status now displays the actual banner filename.
-- Added RESET TEXT beside REFRESH PREVIEW.
-- CHANGE BANNER remains the primary banner-selection action.
-
-### RESET TEXT
-- Restores `CHAT WAS RIGHT.`
-- Refreshes the preview immediately.
-- Does not send anything to OBS.
-
-### Preserved
-- CHANGE BANNER workflow.
-- Automatic return from Library to Live Card.
-- SHOW, HIDE, CLEAR and SAVE QUICK.
-- Caption Engine and smart PNG rendering.
+### Voice command
+- `Live Card` opens the same Quick Caption window as F8.
+- Local Windows System.Speech only.
+- No microphone audio is sent to OBS.

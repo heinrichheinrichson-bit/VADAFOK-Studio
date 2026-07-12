@@ -1,9 +1,5 @@
-# VADAFOK Studio 2.16.3
+# VADAFOK Studio 2.16.5.1
 
-Live Card Style Cleanup.
+Voice Trigger Rebuild + Icon Fix.
 
-- Removed ineffective Style dropdown.
-- Added current banner filename.
-- Added Refresh Preview, Reset Text and Change Banner controls.
-
-Basis: v2.16.2.1
+Install over stable v2.16.3.

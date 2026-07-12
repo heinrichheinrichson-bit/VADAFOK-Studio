@@ -41,6 +41,9 @@ DEFAULT_CONFIG = {
     "caption_safe_right": 12,
     "caption_safe_top": 24,
     "caption_safe_bottom": 24,
+    "voice_enabled": False,
+    "voice_trigger_phrase": "live card",
+    "voice_culture": "de-DE",
     "banner_sources": {
         "Gold Ribbon": "VADAFOK Banner",
         "Black Gold Plate": "VADAFOK Banner Plate",
