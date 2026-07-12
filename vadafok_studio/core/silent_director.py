@@ -106,6 +106,7 @@ def normalize_preset(preset: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "name": str(preset.get("name", "")).strip() or "Untitled",
         "favorite": bool(preset.get("favorite", False)),
+        "icon": str(preset.get("icon", "AUTO")).strip().upper() or "AUTO",
         "scene": scene,
         "banner_text": banner_text,
         "show_banner": show_banner,
@@ -285,6 +286,7 @@ def duplicate_preset(preset_name: str) -> List[Dict[str, Any]]:
     duplicate = {
         "name": candidate,
         "favorite": bool(source.get("favorite", False)),
+        "icon": str(source.get("icon", "AUTO") or "AUTO"),
         "scene": str(source.get("scene", "") or ""),
         "banner_text": str(source.get("banner_text", "") or ""),
         "show_banner": bool(source.get("show_banner", False)),

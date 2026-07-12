@@ -1,7 +1,8 @@
 [
   {
     "name": "Gameplay",
-    "favorite": true,
+    "favorite": false,
+    "icon": "MIC",
     "scene": "VADAFOK Test",
     "banner_text": "Back to the adventure.",
     "show_banner": false,
@@ -62,6 +63,7 @@
   {
     "name": "Gameplay Copy",
     "favorite": false,
+    "icon": "AUTO",
     "scene": "Cam - VHS Retro",
     "banner_text": "whats up !!!!!!!!!",
     "show_banner": true,
@@ -122,6 +124,7 @@
   {
     "name": "Gameplay Copy Copy 2",
     "favorite": false,
+    "icon": "AUTO",
     "scene": "Cam - VHS Retro",
     "banner_text": "whats up !!!!!!!!!",
     "show_banner": true,
@@ -182,6 +185,7 @@
   {
     "name": "Gameplay Copy Copy",
     "favorite": false,
+    "icon": "AUTO",
     "scene": "Cam - VHS Retro",
     "banner_text": "whats up !!!!!!!!!",
     "show_banner": true,
@@ -242,6 +246,7 @@
   {
     "name": "Pause",
     "favorite": false,
+    "icon": "AUTO",
     "scene": "",
     "banner_text": "One moment, please...",
     "show_banner": true,
@@ -260,6 +265,7 @@
   {
     "name": "Boss Fight",
     "favorite": false,
+    "icon": "AUTO",
     "scene": "",
     "banner_text": "This could get ugly...",
     "show_banner": true,
@@ -278,6 +284,7 @@
   {
     "name": "Boss Fight Copy",
     "favorite": false,
+    "icon": "AUTO",
     "scene": "",
     "banner_text": "This could get ugly...",
     "show_banner": true,
@@ -296,6 +303,7 @@
   {
     "name": "new test 1",
     "favorite": true,
+    "icon": "AUTO",
     "scene": "Cam - Normal",
     "banner_text": "hallo test",
     "show_banner": false,

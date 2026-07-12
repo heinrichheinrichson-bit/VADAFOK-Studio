@@ -35,7 +35,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.15.8")
+        self.wm_title("VADAFOK Studio 2.15.9")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -111,6 +111,7 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_new_name = ctk.StringVar(value='')
         self.silent_director_search_var = ctk.StringVar(value='')
         self.silent_director_favorites_only = ctk.BooleanVar(value=False)
+        self.silent_director_editor_icon = ctk.StringVar(value='AUTO')
         self.silent_director_preset_list_frame = None
         self.silent_director_editor_name = ctk.StringVar(value='')
         self.silent_director_editor_scene = ctk.StringVar(value='')
@@ -219,7 +220,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.15.8", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.15.9", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -6365,6 +6366,9 @@ class VadafokStudio(ctk.CTk):
         if not preset:
             return
         self.silent_director_editor_name.set(preset.get("name", "Untitled"))
+        self.silent_director_editor_icon.set(
+            str(preset.get("icon", "AUTO") or "AUTO").upper()
+        )
         self.silent_director_editor_scene.set(preset.get("scene", ""))
         self.silent_director_editor_show_banner.set(bool(preset.get("show_banner", False)))
 
@@ -6387,6 +6391,7 @@ class VadafokStudio(ctk.CTk):
 
         updated = {
             "name": new_name,
+            "icon": str(self.silent_director_editor_icon.get() or "AUTO").strip().upper(),
             "scene": self.silent_director_editor_scene.get().strip(),
             "banner_text": banner_text,
             "show_banner": bool(self.silent_director_editor_show_banner.get()),
@@ -7159,6 +7164,44 @@ class VadafokStudio(ctk.CTk):
         )
         self.show_silent_director_page()
 
+    def silent_director_preset_icon(self, preset):
+        explicit = str((preset or {}).get("icon", "AUTO") or "AUTO").strip().upper()
+        if explicit and explicit != "AUTO":
+            return explicit
+
+        name = str((preset or {}).get("name", "") or "").casefold()
+
+        rules = [
+            (("pause", "break", "brb"), "BRB"),
+            (("podcast", "talk", "interview"), "MIC"),
+            (("music", "song", "audio"), "MUS"),
+            (("game", "gaming", "gameplay", "boss"), "GME"),
+            (("intro", "opening", "start"), "IN"),
+            (("outro", "ending", "end"), "OUT"),
+            (("test", "probe", "demo"), "TST"),
+            (("news", "show", "live"), "LIVE"),
+        ]
+
+        for keywords, icon in rules:
+            if any(keyword in name for keyword in keywords):
+                return icon
+
+        return "PRE"
+
+    def silent_director_icon_options(self):
+        return [
+            "AUTO",
+            "PRE",
+            "GME",
+            "BRB",
+            "MIC",
+            "MUS",
+            "LIVE",
+            "IN",
+            "OUT",
+            "TST",
+        ]
+
     def silent_director_filtered_presets(self):
         query = str(self.silent_director_search_var.get() or "").strip().casefold()
         presets = list(self.silent_director_presets or [])
@@ -7240,7 +7283,20 @@ class VadafokStudio(ctk.CTk):
                 border_width=1 if is_favorite else 0
             )
             row.grid(row=idx + row_offset, column=0, padx=6, pady=4, sticky="ew")
-            row.grid_columnconfigure(1, weight=1)
+            row.grid_columnconfigure(2, weight=1)
+
+            icon_text = self.silent_director_preset_icon(preset)
+
+            ctk.CTkLabel(
+                row,
+                text=icon_text,
+                width=44,
+                height=34,
+                fg_color=GOLD if is_favorite else "#242424",
+                text_color="#111111" if is_favorite else "#D9C58C",
+                corner_radius=9,
+                font=ctk.CTkFont(size=10, weight="bold")
+            ).grid(row=0, column=1, rowspan=2, padx=(2, 2), pady=6)
 
             ctk.CTkButton(
                 row,
@@ -7263,7 +7319,7 @@ class VadafokStudio(ctk.CTk):
                     self.silent_director_selected.set(n),
                     self.show_silent_director_page()
                 )
-            ).grid(row=0, column=1, sticky="ew", padx=6, pady=(5, 0))
+            ).grid(row=0, column=2, sticky="ew", padx=6, pady=(5, 0))
 
             ctk.CTkLabel(
                 row,
@@ -7271,10 +7327,10 @@ class VadafokStudio(ctk.CTk):
                 text_color="#888888",
                 anchor="w",
                 font=ctk.CTkFont(size=11)
-            ).grid(row=1, column=1, sticky="ew", padx=14, pady=(0, 6))
+            ).grid(row=1, column=2, sticky="ew", padx=14, pady=(0, 6))
 
             preset_controls = ctk.CTkFrame(row, fg_color="transparent")
-            preset_controls.grid(row=0, column=2, rowspan=2, padx=(4, 8), pady=6)
+            preset_controls.grid(row=0, column=3, rowspan=2, padx=(4, 8), pady=6)
 
             ctk.CTkButton(
                 preset_controls,
@@ -7459,7 +7515,7 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkLabel(monitor, textvariable=self.director_progress_var, text_color="#BCA870").grid(row=3, column=1, padx=12, pady=(3, 10), sticky="w")
         try:
             progress_bar = ctk.CTkProgressBar(monitor, variable=self.director_progress_percent_var, height=12)
-            progress_bar.grid(row=4, column=0, columnspan=2, sticky="ew", padx=12, pady=(0, 12))
+            progress_bar.grid(row=6, column=0, columnspan=2, sticky="ew", padx=12, pady=(0, 12))
         except Exception:
             pass
 
@@ -7470,16 +7526,38 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkLabel(editor, text="Name", text_color="#888888").grid(row=0, column=0, padx=12, pady=(14, 6), sticky="w")
         ctk.CTkEntry(editor, textvariable=self.silent_director_editor_name).grid(row=0, column=1, padx=12, pady=(14, 6), sticky="ew")
 
-        ctk.CTkLabel(editor, text="Legacy Scene", text_color="#888888").grid(row=1, column=0, padx=12, pady=6, sticky="w")
+        ctk.CTkLabel(
+            editor,
+            text="Preset Icon",
+            text_color="#888888"
+        ).grid(row=1, column=0, padx=12, pady=6, sticky="w")
+
+        ctk.CTkOptionMenu(
+            editor,
+            values=self.silent_director_icon_options(),
+            variable=self.silent_director_editor_icon,
+            fg_color="#333333",
+            button_color="#444444",
+            button_hover_color="#555555"
+        ).grid(row=3, column=1, padx=12, pady=6, sticky="ew")
+
+        ctk.CTkLabel(
+            editor,
+            text="AUTO chooses an icon from the preset name.",
+            text_color="#666666",
+            font=ctk.CTkFont(size=10)
+        ).grid(row=2, column=1, padx=12, pady=(0, 4), sticky="w")
+
+        ctk.CTkLabel(editor, text="Legacy Scene", text_color="#888888").grid(row=3, column=0, padx=12, pady=6, sticky="w")
         scene_values = self.silent_director_scene_values()
         ctk.CTkOptionMenu(editor, values=scene_values, variable=self.silent_director_editor_scene, fg_color="#333333", button_color="#444444", button_hover_color="#555555").grid(row=1, column=1, padx=12, pady=6, sticky="ew")
 
-        ctk.CTkLabel(editor, text="Legacy Banner", text_color="#888888").grid(row=2, column=0, padx=12, pady=6, sticky="nw")
+        ctk.CTkLabel(editor, text="Legacy Banner", text_color="#888888").grid(row=4, column=0, padx=12, pady=6, sticky="nw")
         self.silent_director_banner_textbox = ctk.CTkTextbox(editor, height=90, fg_color="#050505", border_color="#6A4A12", border_width=1)
-        self.silent_director_banner_textbox.grid(row=2, column=1, padx=12, pady=6, sticky="ew")
+        self.silent_director_banner_textbox.grid(row=4, column=1, padx=12, pady=6, sticky="ew")
         self.silent_director_banner_textbox.insert("1.0", preset.get("banner_text", ""))
 
-        ctk.CTkCheckBox(editor, text="Show legacy banner", variable=self.silent_director_editor_show_banner, fg_color=GOLD, hover_color=GOLD_DARK).grid(row=3, column=1, padx=12, pady=6, sticky="w")
+        ctk.CTkCheckBox(editor, text="Show legacy banner", variable=self.silent_director_editor_show_banner, fg_color=GOLD, hover_color=GOLD_DARK).grid(row=5, column=1, padx=12, pady=6, sticky="w")
 
         # Action list
         ctk.CTkLabel(
