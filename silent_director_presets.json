@@ -270,6 +270,23 @@
     ]
   },
   {
+    "name": "Boss Fight Copy",
+    "scene": "",
+    "banner_text": "This could get ugly...",
+    "show_banner": true,
+    "show_sources": [],
+    "hide_sources": [],
+    "actions": [
+      {
+        "type": "show_banner",
+        "scene": "",
+        "text": "This could get ugly...",
+        "source": "",
+        "seconds": ""
+      }
+    ]
+  },
+  {
     "name": "new test 1",
     "scene": "Cam - Normal",
     "banner_text": "hallo test",

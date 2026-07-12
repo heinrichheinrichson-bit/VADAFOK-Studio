@@ -1,11 +1,20 @@
 # CHANGELOG
 
-## v2.15.5 - Duplicate Preset
+## v2.15.6 - Preset Search
 
 ### Added
-- DUP button for every preset.
-- DUPLICATE PRESET button for the selected preset.
-- Copy is inserted directly below the original.
-- Copy is selected automatically.
-- Actions and all values are copied independently.
-- Automatic names: Copy, Copy 2, Copy 3.
+- Search field above the Silent Director preset list.
+- Presets filter immediately by name while typing.
+- Search is case-insensitive.
+- X button clears the search.
+- Result count is shown while filtering.
+- Empty results show a clear message.
+
+### Preserved
+- Duplicate Preset and preset statistics.
+- Director Runtime Highlight.
+- WAIT countdown and progress.
+- Timeline View and Drag & Drop.
+- Action DUP/EDIT/UPDATE/DELETE.
+- OBS Workflow live refresh.
+- F8, Banner + Text and Live Card.

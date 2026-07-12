@@ -35,7 +35,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.15.5")
+        self.wm_title("VADAFOK Studio 2.15.6")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -109,6 +109,8 @@ class VadafokStudio(ctk.CTk):
         self.silent_director_presets = silent_director.load_presets()
         self.silent_director_selected = ctk.StringVar(value=self.silent_director_presets[0]['name'] if self.silent_director_presets else '')
         self.silent_director_new_name = ctk.StringVar(value='')
+        self.silent_director_search_var = ctk.StringVar(value='')
+        self.silent_director_preset_list_frame = None
         self.silent_director_editor_name = ctk.StringVar(value='')
         self.silent_director_editor_scene = ctk.StringVar(value='')
         self.silent_director_editor_show_banner = ctk.BooleanVar(value=False)
@@ -216,7 +218,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.15.5", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.15.6", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -7134,6 +7136,115 @@ class VadafokStudio(ctk.CTk):
             f"Gesamtdauer {self.silent_director_format_duration(total_seconds)}"
         )
 
+    def silent_director_filtered_presets(self):
+        query = str(self.silent_director_search_var.get() or "").strip().casefold()
+        presets = list(self.silent_director_presets or [])
+        if not query:
+            return presets
+        return [
+            preset for preset in presets
+            if query in str(preset.get("name", "") or "").casefold()
+        ]
+
+    def silent_director_clear_search(self):
+        self.silent_director_search_var.set("")
+        self.silent_director_render_filtered_presets()
+
+    def silent_director_render_filtered_presets(self, *_args):
+        preset_list = getattr(self, "silent_director_preset_list_frame", None)
+        if preset_list is None:
+            return
+
+        for child in preset_list.winfo_children():
+            child.destroy()
+
+        filtered = self.silent_director_filtered_presets()
+        query = str(self.silent_director_search_var.get() or "").strip()
+
+        if not filtered:
+            message = "No matching presets." if query else "No presets yet."
+            ctk.CTkLabel(
+                preset_list,
+                text=message,
+                text_color="#777777"
+            ).grid(row=0, column=0, padx=10, pady=(12, 4), sticky="w")
+            if query:
+                ctk.CTkButton(
+                    preset_list,
+                    text="CLEAR SEARCH",
+                    width=120,
+                    fg_color="#333333",
+                    hover_color="#444444",
+                    command=self.silent_director_clear_search
+                ).grid(row=1, column=0, padx=10, pady=(4, 12), sticky="w")
+            return
+
+        if query:
+            ctk.CTkLabel(
+                preset_list,
+                text=f"{len(filtered)} Treffer",
+                text_color="#777777",
+                font=ctk.CTkFont(size=11)
+            ).grid(row=0, column=0, padx=10, pady=(8, 2), sticky="w")
+            row_offset = 1
+        else:
+            row_offset = 0
+
+        for idx, preset in enumerate(filtered):
+            name = preset.get("name", "Untitled")
+            selected = name == self.silent_director_selected.get()
+            row = ctk.CTkFrame(
+                preset_list,
+                fg_color="#171717" if selected else "transparent",
+                corner_radius=8
+            )
+            row.grid(row=idx + row_offset, column=0, padx=6, pady=4, sticky="ew")
+            row.grid_columnconfigure(0, weight=1)
+
+            ctk.CTkButton(
+                row,
+                text=name,
+                anchor="w",
+                fg_color="transparent",
+                hover_color="#2C2C2C",
+                text_color=GOLD if selected else TEXT,
+                command=lambda n=name: (
+                    self.silent_director_selected.set(n),
+                    self.show_silent_director_page()
+                )
+            ).grid(row=0, column=0, sticky="ew", padx=6, pady=(5, 0))
+
+            ctk.CTkLabel(
+                row,
+                text=self.silent_director_preset_stats_text(preset),
+                text_color="#888888",
+                anchor="w",
+                font=ctk.CTkFont(size=11)
+            ).grid(row=1, column=0, sticky="ew", padx=14, pady=(0, 6))
+
+            preset_controls = ctk.CTkFrame(row, fg_color="transparent")
+            preset_controls.grid(row=0, column=1, rowspan=2, padx=(4, 8), pady=6)
+
+            ctk.CTkButton(
+                preset_controls,
+                text="RUN",
+                width=58,
+                fg_color=GOLD,
+                text_color="#111111",
+                hover_color=GOLD_DARK,
+                command=lambda p=preset: self.silent_director_run_preset(p)
+            ).grid(row=0, column=0, padx=2, pady=2)
+
+            ctk.CTkButton(
+                preset_controls,
+                text="DUP",
+                width=48,
+                fg_color="#2D4B3A",
+                text_color="#D9F6E2",
+                hover_color="#3B624C",
+                command=lambda p=preset: self.silent_director_duplicate_preset(p)
+            ).grid(row=1, column=0, padx=2, pady=2)
+
     def show_silent_director_page(self):
         self.set_active("Silent Director")
         self.clear_main()
@@ -7150,89 +7261,45 @@ class VadafokStudio(ctk.CTk):
         left = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         left.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
         left.grid_columnconfigure(0, weight=1)
-        left.grid_rowconfigure(2, weight=1)
+        left.grid_rowconfigure(3, weight=1)
 
         ctk.CTkLabel(left, text="Director Presets", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
 
+        search_bar = ctk.CTkFrame(left, fg_color="#0B0B0B", corner_radius=12)
+        search_bar.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 8))
+        search_bar.grid_columnconfigure(0, weight=1)
+
+        search_entry = ctk.CTkEntry(
+            search_bar,
+            textvariable=self.silent_director_search_var,
+            placeholder_text="Preset suchen..."
+        )
+        search_entry.grid(row=0, column=0, padx=(10, 6), pady=10, sticky="ew")
+        search_entry.bind(
+            "<KeyRelease>",
+            self.silent_director_render_filtered_presets
+        )
+
+        ctk.CTkButton(
+            search_bar,
+            text="X",
+            width=38,
+            fg_color="#333333",
+            hover_color="#444444",
+            command=self.silent_director_clear_search
+        ).grid(row=0, column=1, padx=(0, 10), pady=10)
+
         create = ctk.CTkFrame(left, fg_color="#0B0B0B", corner_radius=12)
-        create.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 10))
+        create.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 10))
         create.grid_columnconfigure(0, weight=1)
         ctk.CTkEntry(create, textvariable=self.silent_director_new_name, placeholder_text="New preset name").grid(row=0, column=0, padx=10, pady=10, sticky="ew")
         ctk.CTkButton(create, text="ADD", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.silent_director_create_preset).grid(row=0, column=1, padx=(0, 10), pady=10)
 
         preset_list = ctk.CTkScrollableFrame(left, fg_color="#0B0B0B", corner_radius=12)
-        preset_list.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
+        preset_list.grid(row=3, column=0, sticky="nsew", padx=18, pady=(0, 18))
         preset_list.grid_columnconfigure(0, weight=1)
-
-        if not self.silent_director_presets:
-            ctk.CTkLabel(preset_list, text="No presets yet.", text_color="#777777").grid(row=0, column=0, padx=10, pady=10, sticky="w")
-        else:
-            for idx, preset in enumerate(self.silent_director_presets):
-                name = preset.get("name", "Untitled")
-                selected = name == self.silent_director_selected.get()
-                row = ctk.CTkFrame(
-                    preset_list,
-                    fg_color="#171717" if selected else "transparent",
-                    corner_radius=8
-                )
-                row.grid(row=idx, column=0, padx=6, pady=4, sticky="ew")
-                row.grid_columnconfigure(0, weight=1)
-
-                ctk.CTkButton(
-                    row,
-                    text=name,
-                    anchor="w",
-                    fg_color="transparent",
-                    hover_color="#2C2C2C",
-                    text_color=GOLD if selected else TEXT,
-                    command=lambda n=name: (
-                        self.silent_director_selected.set(n),
-                        self.show_silent_director_page()
-                    )
-                ).grid(
-                    row=0,
-                    column=0,
-                    sticky="ew",
-                    padx=6,
-                    pady=(5, 0)
-                )
-
-                ctk.CTkLabel(
-                    row,
-                    text=self.silent_director_preset_stats_text(preset),
-                    text_color="#888888",
-                    anchor="w",
-                    font=ctk.CTkFont(size=11)
-                ).grid(
-                    row=1,
-                    column=0,
-                    sticky="ew",
-                    padx=14,
-                    pady=(0, 6)
-                )
-
-                preset_controls = ctk.CTkFrame(row, fg_color="transparent")
-                preset_controls.grid(row=0, column=1, rowspan=2, padx=(4, 8), pady=6)
-
-                ctk.CTkButton(
-                    preset_controls,
-                    text="RUN",
-                    width=58,
-                    fg_color=GOLD,
-                    text_color="#111111",
-                    hover_color=GOLD_DARK,
-                    command=lambda p=preset: self.silent_director_run_preset(p)
-                ).grid(row=0, column=0, padx=2, pady=2)
-
-                ctk.CTkButton(
-                    preset_controls,
-                    text="DUP",
-                    width=48,
-                    fg_color="#2D4B3A",
-                    text_color="#D9F6E2",
-                    hover_color="#3B624C",
-                    command=lambda p=preset: self.silent_director_duplicate_preset(p)
-                ).grid(row=1, column=0, padx=2, pady=2)
+        self.silent_director_preset_list_frame = preset_list
+        self.silent_director_render_filtered_presets()
 
         right = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         right.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
