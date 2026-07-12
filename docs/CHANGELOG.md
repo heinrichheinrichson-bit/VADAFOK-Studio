@@ -1,23 +1,16 @@
 # CHANGELOG
 
-## v2.16.1 - Library Folder First
+## v2.16.2.1 - Live Card Banner Picker Return Fix
 
-### Added
-- Library opens with a lightweight folder overview.
-- No asset images or thumbnails are loaded when entering the module.
-- Files load only after selecting one folder.
-- Folder cards for Library, Live Cards, Scene Cards, Banners, Templates, Fonts, Sounds and Projects.
-- FOLDERS button returns to the overview.
-- REFRESH FOLDER reloads only the current folder.
-- Search and Favorites operate only inside the current folder.
-
-### Performance
-- Removed the automatic full-library scan on page open.
-- Removed automatic loading of all thumbnails.
-- The module now scales much better with large asset collections.
+### Fixed
+- SHOW / USE now applies the banner and returns immediately to Live Card.
+- USE AS CAPTION BANNER uses the same automatic return flow.
+- No blocking success popup interrupts the picker workflow.
+- The new Live Card preview is rendered after returning.
+- OBS source update remains best-effort; warnings appear after the return if needed.
 
 ### Preserved
-- Asset selection and preview.
-- Favorites and tags.
-- Caption Banner, Scene Card and Live Card actions.
-- Open Folder and Copy Path.
+- CHANGE BANNER opens Library/Banners directly.
+- BACK TO LIVE CARD still works.
+- Normal Library use keeps its confirmation messages.
+- Library Folder First remains unchanged.

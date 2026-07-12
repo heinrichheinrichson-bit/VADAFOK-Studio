@@ -1,8 +1,11 @@
-# VADAFOK Studio 2.16.1
+# VADAFOK Studio 2.16.2.1
 
-Library Folder First.
+Live Card Banner Picker Return Fix.
 
-The Library no longer loads all assets on entry.
-Choose a folder first; only that folder is scanned and rendered.
+After SHOW / USE or USE AS CAPTION BANNER:
+1. Banner is saved.
+2. OBS source is updated when available.
+3. Live Card opens automatically.
+4. Preview shows the selected banner.
 
-Basis: v2.15.9
+Basis: v2.16.2

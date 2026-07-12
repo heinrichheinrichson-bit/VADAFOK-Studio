@@ -35,7 +35,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title("VADAFOK Studio 2.16.1")
+        self.wm_title("VADAFOK Studio 2.16.2.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -192,6 +192,8 @@ class VadafokStudio(ctk.CTk):
         self.style = ctk.StringVar(value=self.config_data["style"])
         self.project_folder = ctk.StringVar(value=self.config_data.get("project_folder", ""))
         self.library_section = ctk.StringVar(value="All")
+        self.library_banner_picker_mode = False
+        self.library_return_page = None
         self.search_text = ctk.StringVar(value="")
         self.favorite_filter = ctk.BooleanVar(value=False)
 
@@ -220,7 +222,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text="Studio 2.16.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.16.2.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),
@@ -427,6 +429,18 @@ class VadafokStudio(ctk.CTk):
         for column in range(cols):
             self.library_grid.grid_columnconfigure(column, weight=1)
 
+    def open_live_card_banner_picker(self):
+        """Open Library directly in Banners for changing the Live Card banner."""
+        self.library_banner_picker_mode = True
+        self.library_return_page = "Live Card"
+        self.show_library()
+        self.open_library_section("Banners")
+
+    def return_to_live_card_from_library(self):
+        self.library_banner_picker_mode = False
+        self.library_return_page = None
+        self.show_live_card()
+
     def show_library(self):
         self.set_active("Library")
         self.clear_main()
@@ -501,6 +515,16 @@ class VadafokStudio(ctk.CTk):
             command=self.reload_library,
         ).grid(row=0, column=5, padx=(12, 0))
 
+        if self.library_banner_picker_mode:
+            ctk.CTkButton(
+                top,
+                text="← BACK TO LIVE CARD",
+                width=150,
+                fg_color="#333333",
+                hover_color="#444444",
+                command=self.return_to_live_card_from_library,
+            ).grid(row=0, column=6, padx=(8, 0))
+
         self.library_info = ctk.CTkLabel(
             left,
             text="",
@@ -515,6 +539,15 @@ class VadafokStudio(ctk.CTk):
             padx=18,
             pady=(0, 8),
         )
+
+        if self.library_banner_picker_mode:
+            self.library_info.configure(
+                text=(
+                    "LIVE CARD BANNER PICKER — Wähle ein Banner und nutze "
+                    "SHOW / USE oder USE AS CAPTION BANNER."
+                ),
+                text_color=GOLD,
+            )
 
         self.library_grid = ctk.CTkScrollableFrame(
             left,
@@ -573,7 +606,11 @@ class VadafokStudio(ctk.CTk):
 
         self.selection_meta = ctk.CTkLabel(
             right,
-            text="Wähle links zuerst einen Ordner.",
+            text=(
+                "Banner auswählen und SHOW / USE drücken."
+                if self.library_banner_picker_mode
+                else "Wähle links zuerst einen Ordner."
+            ),
             text_color="#BCA870",
             wraplength=300,
             justify="left",
@@ -836,14 +873,28 @@ class VadafokStudio(ctk.CTk):
 
     def default_selected_action(self):
         if not self.selected_item:
-            messagebox.showwarning("Library", "Bitte zuerst ein Asset auswählen.")
+            messagebox.showwarning(
+                "Library",
+                "Bitte zuerst ein Asset auswählen."
+            )
             return
+
         item = self.selected_item
-        if item.section == "Banners": self.use_selected_as_caption_banner()
-        elif item.section == "Live Cards": self.open_selected_live_card()
-        elif item.section == "Templates": self.assign_selected_template_background()
-        elif item.section == "Sounds": self.open_selected_file()
-        else: self.show_selected_scene_card()
+
+        if item.section == "Banners":
+            self.use_selected_as_caption_banner()
+            return
+        if item.section == "Live Cards":
+            self.open_selected_live_card()
+            return
+        if item.section == "Templates":
+            self.assign_selected_template_background()
+            return
+        if item.section == "Sounds":
+            self.open_selected_file()
+            return
+
+        self.show_selected_scene_card()
 
 
 
@@ -882,25 +933,82 @@ class VadafokStudio(ctk.CTk):
 
 
     def use_selected_as_caption_banner(self):
-        if not self.selected_item: return
-        if self.selected_item.kind != "image":
-            messagebox.showwarning("Banner", "Nur Bilder können als Caption-Banner verwendet werden.")
+        item = getattr(self, "selected_item", None)
+        if item is None:
+            messagebox.showwarning(
+                "Banner",
+                "Bitte zuerst ein Banner auswählen."
+            )
             return
-        self.config_data["selected_banner_path"] = str(self.selected_item.path)
+
+        if item.kind != "image":
+            messagebox.showwarning(
+                "Banner",
+                "Nur Bilder können als Caption-Banner verwendet werden."
+            )
+            return
+
+        picker_mode = bool(
+            getattr(self, "library_banner_picker_mode", False)
+        )
+
+        # Save the selected banner first. This is the authoritative change.
+        self.config_data["selected_banner_path"] = str(item.path)
         save_config(self.config_data)
+
+        obs_warning = None
         if self.ensure_obs_ready():
             try:
-                self.obs.set_image_file(self.caption_banner_source.get().strip(), self.selected_item.path)
-                if hasattr(self, "message_box"):
-                    self.update_render_preview()
-                messagebox.showinfo("Banner", f"Caption-Banner gewechselt:\n{self.selected_item.name}")
-            except Exception:
-                if hasattr(self, "message_box"):
-                    self.update_render_preview()
-                messagebox.showwarning(
-                    "Caption Banner Source nicht gefunden",
-                    f"Banner wurde im Studio gespeichert, aber die OBS-Bildquelle '{self.caption_banner_source.get().strip()}' wurde nicht gefunden.\n\nFür smart_png ist vor allem 'VADAFOK Caption Render' wichtig."
+                self.obs.set_image_file(
+                    self.caption_banner_source.get().strip(),
+                    item.path
                 )
+            except Exception:
+                obs_warning = (
+                    "Das Banner wurde im Studio gespeichert, aber die "
+                    f"OBS-Bildquelle '{self.caption_banner_source.get().strip()}' "
+                    "wurde nicht gefunden."
+                )
+
+        # Banner Picker workflow: no blocking popup, return immediately.
+        if picker_mode:
+            self.library_banner_picker_mode = False
+            self.library_return_page = None
+            self.show_live_card()
+
+            try:
+                self.update_render_preview()
+            except Exception:
+                pass
+
+            if obs_warning:
+                self.after(
+                    150,
+                    lambda text=obs_warning: messagebox.showwarning(
+                        "Caption Banner Source nicht gefunden",
+                        text
+                    )
+                )
+            return
+
+        # Normal Library workflow keeps the existing confirmation behavior.
+        if hasattr(self, "message_box"):
+            try:
+                self.update_render_preview()
+            except Exception:
+                pass
+
+        if obs_warning:
+            messagebox.showwarning(
+                "Caption Banner Source nicht gefunden",
+                obs_warning
+            )
+        else:
+            messagebox.showinfo(
+                "Banner",
+                f"Caption-Banner gewechselt:\n{item.name}"
+            )
+
 
     def show_selected_scene_card(self):
         if not self.selected_item: return
@@ -1492,7 +1600,17 @@ class VadafokStudio(ctk.CTk):
             fg_color="#333333",
             hover_color="#444444",
             command=self.update_render_preview
-        ).grid(row=3, column=0, padx=18, pady=(0, 18), sticky="ew")
+        ).grid(row=3, column=0, padx=18, pady=(0, 6), sticky="ew")
+
+        ctk.CTkButton(
+            right,
+            text="CHANGE BANNER",
+            height=40,
+            fg_color=GOLD,
+            text_color="#111111",
+            hover_color=GOLD_DARK,
+            command=self.open_live_card_banner_picker
+        ).grid(row=4, column=0, padx=18, pady=(0, 18), sticky="ew")
 
         self.update_render_preview()
 

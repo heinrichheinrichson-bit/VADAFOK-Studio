@@ -1,12 +1,10 @@
-# v2.16.1 Testliste
+# v2.16.2.1 Testliste
 
-- Open Library and verify that no images load immediately.
-- Folder overview appears quickly.
-- Open Banners and verify only banner files load.
-- Return with FOLDERS.
-- Open Live Cards, Scene Cards and Templates.
-- Test Search inside one folder.
-- Test Favorites inside one folder.
-- Test REFRESH FOLDER.
-- Select an asset and use preview/actions.
-- Reopen Library and verify folder overview appears again.
+- Live Card -> CHANGE BANNER.
+- Select a banner.
+- SHOW / USE must return immediately to Live Card.
+- New banner must be visible in preview.
+- Repeat with USE AS CAPTION BANNER.
+- No success popup should block the picker workflow.
+- BACK TO LIVE CARD still works.
+- Open Library normally and verify banner selection still works.
