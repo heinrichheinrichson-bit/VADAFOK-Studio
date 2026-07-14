@@ -1,0 +1,36 @@
+VADAFOK Studio 2.16.7 RC1 – Language Selection
+================================================
+
+BASIS
+-----
+Install only over the committed GitHub version 2.16.6.
+
+INSTALLATION
+------------
+1. Close VADAFOK Studio completely.
+2. Copy the full contents of this ZIP into the VADAFOK-Studio project folder.
+3. Confirm overwriting existing files.
+4. Start VADAFOK Studio normally.
+
+ROLLBACK
+--------
+Close VADAFOK Studio, open Git Bash in the project folder, then run:
+
+  git restore .
+  git clean -fd
+
+WARNING: git clean -fd deletes every untracked file and folder in the repository.
+
+TESTS
+-----
+1. Verify version 2.16.7 RC1 in title bar and sidebar.
+2. Open Settings. The culture field must be a dropdown.
+3. Select Deutsch (de-DE), save settings, restart listener.
+4. Test Live Card, Vadafok Show, Vadafok Reset and Vadafok Stop.
+5. Select English (en-US), save settings, restart listener.
+6. Repeat the same command tests.
+7. Dictate one German and one English sentence in each mode.
+8. Restart the whole program and verify the selected culture was retained.
+9. Verify F8, Quick Caption, OBS output and all other modules still work.
+
+DO NOT COMMIT until all tests pass.

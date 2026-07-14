@@ -27,7 +27,7 @@
   "caption_safe_bottom": 24,
   "voice_enabled": true,
   "voice_trigger_phrase": "live card",
-  "voice_culture": "de-DE",
+  "voice_culture": "en-US",
   "banner_sources": {
     "Gold Ribbon": "VADAFOK Banner",
     "Black Gold Plate": "VADAFOK Banner Plate",
