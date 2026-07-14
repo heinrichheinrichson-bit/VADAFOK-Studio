@@ -1,0 +1,16 @@
+VADAFOK Studio 2.16.8 RC1B
+
+BASIS
+VADAFOK Studio 2.16.8 RC1A (funktionierender Window-Fix-Stand)
+
+INSTALLATION
+1. VADAFOK vollständig schließen.
+2. ZIP-Inhalt in den Projekt-Hauptordner kopieren.
+3. Überschreiben bestätigen.
+4. VADAFOK starten.
+
+ROLLBACK AUF LETZTEN GIT-COMMIT
+  git restore .
+  git clean -fd
+
+ACHTUNG: git clean -fd löscht alle nicht eingecheckten neuen Dateien/Ordner.

@@ -1,0 +1,17 @@
+VADAFOK Studio 2.16.8 RC1A – Voice Quick Cards Window Fix
+
+BASIS
+VADAFOK Studio 2.16.7 RC1 nach vollständigem Zurücksetzen des fehlerhaften RC1.
+
+INSTALLATION
+1. VADAFOK vollständig schließen.
+2. ZIP über den VADAFOK-Studio-Hauptordner entpacken.
+3. Überschreiben bestätigen.
+4. Programm normal starten.
+
+ROLLBACK
+Im Projektordner in Git Bash:
+  git restore .
+  git clean -fd
+
+Noch nicht committen.

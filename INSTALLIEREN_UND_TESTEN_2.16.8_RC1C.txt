@@ -1,0 +1,11 @@
+VADAFOK Studio 2.16.8 RC1C
+Basis: installierter 2.16.8 RC1B Stand.
+
+1. VADAFOK vollständig schließen.
+2. ZIP über den Projektordner entpacken.
+3. Überschreiben bestätigen.
+4. VADAFOK starten und die Tests aus dem Chat durchführen.
+
+Rollback aller nicht eingecheckten Voice-RCs:
+  git restore .
+  git clean -fd

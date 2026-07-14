@@ -54,7 +54,25 @@ try {
         "vadafok reset",
         "Vadafok Reset",
         "vadafok stop",
-        "Vadafok Stop"
+        "Vadafok Stop",
+        "vadafok quick card",
+        "Vadafok Quick Card",
+        "vadafok one",
+        "Vadafok One",
+        "vadafok eins",
+        "Vadafok Eins",
+        "vadafok two",
+        "Vadafok Two",
+        "vadafok zwei",
+        "Vadafok Zwei",
+        "vadafok three",
+        "Vadafok Three",
+        "vadafok drei",
+        "Vadafok Drei",
+        "vadafok text",
+        "Vadafok Text",
+        "vadafok back",
+        "Vadafok Back"
     )
     foreach ($phrase in $commandPhrases) { [void]$choices.Add($phrase) }
 

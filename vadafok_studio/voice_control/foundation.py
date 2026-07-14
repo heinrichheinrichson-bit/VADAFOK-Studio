@@ -10,7 +10,15 @@ import re
 from typing import Any
 
 from .matcher import classify_command, match_known_phrase
+from .quick_card_voice import (
+    close_voice_quick_card_window,
+    select_voice_quick_card,
+    show_quick_card_matches,
+    use_recognized_voice_quick_card_text,
+    voice_quick_card_window_is_open,
+)
 from .whisper_dictation import start_whisper_dictation, stop_whisper_dictation
+from .voice_help import install_quick_caption_voice_help
 
 _INSTALLED = False
 
@@ -84,6 +92,7 @@ def _append_quick_caption_text(app: Any, text: str) -> bool:
 
 
 def _clear_quick_caption(app: Any) -> bool:
+    close_voice_quick_card_window(app)
     if not _quick_caption_is_open(app):
         _set_status(app, "WARNING: Quick Caption is not open")
         return False
@@ -104,6 +113,7 @@ def _clear_quick_caption(app: Any) -> bool:
 
 
 def _cancel_quick_caption(app: Any) -> bool:
+    close_voice_quick_card_window(app)
     if not _quick_caption_is_open(app):
         _set_status(app, "WARNING: Quick Caption is not open")
         return False
@@ -134,6 +144,27 @@ def _handle_whisper_text(app: Any, text: str) -> None:
     if command.wake_detected:
         # Command audio is handled by the Windows command grammar. Never place
         # a VADAFOK phrase in the visible caption.
+        return
+
+    if getattr(app, "voice_quick_card_mode", False):
+        app.voice_dictation_active = False
+        stop_whisper_dictation(app)
+        def resume_after_selection() -> None:
+            # Return to the normal Quick Caption state so SHOW / RESET / STOP
+            # work immediately and further dictation remains possible.
+            app.voice_quick_card_mode = False
+            app.after(100, lambda: _activate_dictation(app))
+
+        if show_quick_card_matches(app, text, on_finished=resume_after_selection):
+            _set_status(
+                app,
+                "QUICK CARD RESULTS · say ONE / TWO / THREE or VADAFOK TEXT",
+            )
+        else:
+            app.voice_quick_card_mode = False
+            _append_quick_caption_text(app, text)
+            app.after(100, lambda: _activate_dictation(app))
+            _set_status(app, "NO QUICK CARD WINDOW · dictation inserted")
         return
 
     phrase_match = match_known_phrase(text)
@@ -177,6 +208,8 @@ def _send_quick_caption_with_existing_action(app: Any) -> bool:
     reuses the application's existing send path instead of implementing a
     second OBS path in the voice module.
     """
+
+    close_voice_quick_card_window(app)
 
     if not _quick_caption_is_open(app):
         _set_status(app, "WARNING: Quick Caption is not open")
@@ -230,9 +263,47 @@ def _handle_heard(
 
     normalized = _normalize(text)
 
+    # Voice selection commands are handled even while Whisper is paused and
+    # voice_dictation_active is False. They are valid only while the result
+    # window is actually open.
+    if voice_quick_card_window_is_open(app):
+        selection_commands = {
+            "vadafok one": 1,
+            "vadafok eins": 1,
+            "vadafok two": 2,
+            "vadafok zwei": 2,
+            "vadafok three": 3,
+            "vadafok drei": 3,
+        }
+        if normalized in selection_commands:
+            number = selection_commands[normalized]
+            if not select_voice_quick_card(app, number):
+                _set_status(app, f"QUICK CARD {number} is not available")
+            return
+        if normalized in {"vadafok text", "vadafok free text"}:
+            if not use_recognized_voice_quick_card_text(app):
+                _set_status(app, "NO RECOGNIZED TEXT AVAILABLE")
+            return
+        if normalized in {"vadafok back", "vadafok zuruck", "vadafok zurück"}:
+            callback = getattr(app, "voice_quick_card_finish", None)
+            query = str(getattr(app, "voice_quick_card_query", "") or "").strip()
+            if callable(callback):
+                callback(query, "BACK TO QUICK CAPTION · say VADAFOK SHOW")
+            else:
+                close_voice_quick_card_window(app)
+            return
+        if normalized == "vadafok stop":
+            _cancel_quick_caption(app)
+            return
+        if normalized == "vadafok reset":
+            _clear_quick_caption(app)
+            return
+
     # Wake command. Use exact matching so normal dictated sentences that happen
     # to contain the words "live card" are not treated as commands.
     if trigger and normalized == trigger:
+        close_voice_quick_card_window(app)
+        app.voice_quick_card_mode = False
         _set_status(app, "COMMAND DETECTED · opening Quick Caption")
         try:
             app.open_quick_caption()
@@ -240,6 +311,28 @@ def _handle_heard(
         except Exception as exc:
             app.voice_dictation_active = False
             _set_status(app, f"ERROR: Quick Caption could not open · {str(exc)[:80]}")
+        return
+
+    # Voice Quick Card can be started while the listener is idle.
+    if normalized in {
+        "vadafok quick card",
+        "wadafok quick card",
+        "vada fox quick card",
+        "what a fox quick card",
+    }:
+        close_voice_quick_card_window(app)
+        _set_status(app, "VOICE QUICK CARD · opening F8 · speak a saved phrase")
+        try:
+            app.voice_quick_card_mode = True
+            app.open_quick_caption()
+            entry = getattr(app, "quick_caption_entry", None)
+            if entry is not None:
+                entry.delete("1.0", "end")
+            app.after(100, lambda: _activate_dictation(app))
+        except Exception as exc:
+            app.voice_quick_card_mode = False
+            app.voice_dictation_active = False
+            _set_status(app, f"ERROR: Voice Quick Card could not open · {str(exc)[:72]}")
         return
 
     if not getattr(app, "voice_dictation_active", False):
@@ -275,7 +368,7 @@ def _handle_heard(
     if command.wake_detected:
         _set_status(
             app,
-            "COMMAND NOT RECOGNIZED · use VADAFOK SHOW / RESET / STOP",
+            "COMMAND NOT RECOGNIZED · use QUICK CARD / SHOW / RESET / STOP",
         )
         return
 
@@ -376,6 +469,7 @@ def install_voice_foundation() -> None:
 
     original_init = VadafokStudio.__init__
     original_build_sidebar = VadafokStudio.build_sidebar
+    original_open_quick_caption = VadafokStudio.open_quick_caption
 
     def release_init(self: Any, *args: Any, **kwargs: Any) -> None:
         original_init(self, *args, **kwargs)
@@ -399,7 +493,17 @@ def install_voice_foundation() -> None:
             pass
         return result
 
+
+    def release_open_quick_caption(self: Any, *args: Any, **kwargs: Any) -> Any:
+        result = original_open_quick_caption(self, *args, **kwargs)
+        try:
+            self.after(0, lambda: install_quick_caption_voice_help(self))
+        except Exception:
+            pass
+        return result
+
     VadafokStudio.__init__ = release_init
     VadafokStudio.build_sidebar = release_build_sidebar
+    VadafokStudio.open_quick_caption = release_open_quick_caption
     VadafokStudio.voice_reader_loop = _voice_reader_loop
     _INSTALLED = True
