@@ -1,0 +1,11 @@
+{
+  "model": "small",
+  "device": "cpu",
+  "compute_type": "int8",
+  "sample_rate": 16000,
+  "speech_threshold": 0.012,
+  "silence_seconds": 1.0,
+  "minimum_speech_seconds": 0.35,
+  "maximum_phrase_seconds": 18.0,
+  "beam_size": 5
+}

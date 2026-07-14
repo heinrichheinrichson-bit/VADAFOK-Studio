@@ -65,3 +65,13 @@ Next step after Overlay Health:
 - Offer "Fix Scene" for one scene.
 - Offer "Install Overlay to All Scenes" for setup.
 - Keep diagnosis and installation separate for safety.
+
+<!-- VADAFOK-2.16.6-HYBRID-VOICE -->
+## Voice control / silent-stream input
+
+- Use speech privately as a local input method while the public stream remains silent.
+- Trigger prepared Quick Cards by voice in a future release.
+- Add user-editable Voice Library phrases and common recognition aliases.
+- Consider optional learning from manually corrected transcriptions.
+- Keep Quick Cards focused on complete, frequently used comments and responses.
+

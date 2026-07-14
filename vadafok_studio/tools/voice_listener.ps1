@@ -1,51 +1,122 @@
 param([string]$Culture = "")
 
 $ErrorActionPreference = "Stop"
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding = [System.Text.Encoding]::UTF8
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
+function Write-VoiceLine([string]$Text) {
+    [Console]::Out.WriteLine($Text)
+    [Console]::Out.Flush()
+}
+
+function Get-ErrorText($ErrorRecord) {
+    if ($null -eq $ErrorRecord) { return "Unknown voice listener error." }
+    $message = $ErrorRecord.Exception.Message
+    if ([string]::IsNullOrWhiteSpace($message)) { $message = [string]$ErrorRecord }
+    return ($message -replace "[\r\n]+", " ").Trim()
+}
+
+$recognizer = $null
 try {
     Add-Type -AssemblyName System.Speech
 
-    $recognizer = $null
-
-    if (-not [string]::IsNullOrWhiteSpace($Culture)) {
-        try {
-            $cultureInfo = New-Object System.Globalization.CultureInfo($Culture)
-            $recognizer = New-Object System.Speech.Recognition.SpeechRecognitionEngine($cultureInfo)
-        } catch {
-            [Console]::Out.WriteLine("__WARN__|Culture '$Culture' unavailable. Falling back to Windows default.")
-            [Console]::Out.Flush()
-        }
+    $installed = @(
+        [System.Speech.Recognition.SpeechRecognitionEngine]::InstalledRecognizers()
+    )
+    if ($installed.Count -eq 0) {
+        throw "No Windows desktop speech recognizer is installed."
     }
 
-    if ($null -eq $recognizer) {
-        $recognizer = New-Object System.Speech.Recognition.SpeechRecognitionEngine
+    if ([string]::IsNullOrWhiteSpace($Culture)) {
+        $selected = $installed | Select-Object -First 1
+    }
+    else {
+        $selected = $installed | Where-Object {
+            $_.Culture.Name -ieq $Culture
+        } | Select-Object -First 1
     }
 
+    if ($null -eq $selected) {
+        $available = ($installed | ForEach-Object { $_.Culture.Name }) -join ", "
+        throw "Recognizer '$Culture' is not installed. Available: $available"
+    }
+
+    $recognizer = New-Object System.Speech.Recognition.SpeechRecognitionEngine($selected)
+
+    # High-priority grammar for the same three core commands in every culture.
+    # Python performs additional fuzzy matching if Windows returns a near miss.
     $choices = New-Object System.Speech.Recognition.Choices
-    $choices.Add("live card")
-    $choices.Add("Live Card")
+    $commandPhrases = @(
+        "live card",
+        "Live Card",
+        "vadafok show",
+        "Vadafok Show",
+        "vadafok reset",
+        "Vadafok Reset",
+        "vadafok stop",
+        "Vadafok Stop"
+    )
+    foreach ($phrase in $commandPhrases) { [void]$choices.Add($phrase) }
 
     $builder = New-Object System.Speech.Recognition.GrammarBuilder
+    $builder.Culture = $selected.Culture
     $builder.Append($choices)
 
-    $grammar = New-Object System.Speech.Recognition.Grammar($builder)
-    $recognizer.LoadGrammar($grammar)
+    $commandGrammar = New-Object System.Speech.Recognition.Grammar($builder)
+    $commandGrammar.Name = "command"
+    $commandGrammar.Priority = 127
+    $commandGrammar.Weight = 1.0
+    $recognizer.LoadGrammar($commandGrammar)
+
+    # TEST08: System.Speech is command-only. Free dictation is handled by
+    # local Whisper in Python for substantially better DE/EN transcription.
+
+    $recognizer.InitialSilenceTimeout = [TimeSpan]::FromSeconds(30)
+    $recognizer.BabbleTimeout = [TimeSpan]::FromSeconds(4)
+    $recognizer.EndSilenceTimeout = [TimeSpan]::FromMilliseconds(900)
+    $recognizer.EndSilenceTimeoutAmbiguous = [TimeSpan]::FromMilliseconds(1200)
     $recognizer.SetInputToDefaultAudioDevice()
 
-    [Console]::Out.WriteLine("__READY__")
-    [Console]::Out.Flush()
+    Write-VoiceLine (
+        "__READY__|" + $selected.Culture.Name + "|" + $selected.Description
+    )
 
     while ($true) {
-        $result = $recognizer.Recognize()
-        if ($null -ne $result -and -not [string]::IsNullOrWhiteSpace($result.Text)) {
-            [Console]::Out.WriteLine("__HEARD__|" + $result.Text)
-            [Console]::Out.Flush()
+        try {
+            $result = $recognizer.Recognize()
+            if ($null -eq $result) { continue }
+            if ([string]::IsNullOrWhiteSpace($result.Text)) { continue }
+
+            $confidence = [Math]::Round($result.Confidence, 3).ToString(
+                [System.Globalization.CultureInfo]::InvariantCulture
+            )
+            $grammarKind = "unknown"
+            if ($null -ne $result.Grammar -and
+                -not [string]::IsNullOrWhiteSpace($result.Grammar.Name)) {
+                $grammarKind = $result.Grammar.Name
+            }
+
+            Write-VoiceLine (
+                "__HEARD__|" + $confidence + "|" + $grammarKind + "|" + $result.Text
+            )
+        }
+        catch [System.TimeoutException] {
+            continue
+        }
+        catch {
+            Write-VoiceLine (
+                "__WARN__|Recognition recovered: " + (Get-ErrorText $_)
+            )
+            Start-Sleep -Milliseconds 250
         }
     }
 }
 catch {
-    [Console]::Out.WriteLine("__ERROR__|" + $_.Exception.Message)
-    [Console]::Out.Flush()
+    Write-VoiceLine ("__ERROR__|" + (Get-ErrorText $_))
     exit 1
+}
+finally {
+    if ($null -ne $recognizer) {
+        try { $recognizer.Dispose() } catch { }
+    }
 }

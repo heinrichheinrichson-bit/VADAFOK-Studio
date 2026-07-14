@@ -15,3 +15,14 @@
 - `Live Card` opens the same Quick Caption window as F8.
 - Local Windows System.Speech only.
 - No microphone audio is sent to OBS.
+
+<!-- VADAFOK-2.16.6-HYBRID-VOICE -->
+## 2.16.6 – Hybrid Voice Quick Caption
+
+- Added stable command recognition for opening, sending, clearing, and cancelling Quick Caption.
+- Added local German and English dictation with faster-whisper.
+- Added a separate Voice Library and fuzzy phrase matcher.
+- Added read-only matching against existing Quick Card texts.
+- Added centralized release version metadata and consistent visible version labels.
+- Preserved the existing Quick Caption SHOW path for OBS output.
+

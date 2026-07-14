@@ -418,3 +418,14 @@ Warum:
 
 Jetzt, wo der Editor viele Bearbeitungsfunktionen hat, wird Undo/Redo wichtig, damit man risikofrei experimentieren kann..
 
+<!-- VADAFOK-2.16.6-HYBRID-VOICE -->
+## 2.16.6 – Hybrid Voice Quick Caption
+
+Status: implemented and release-tested.
+
+- Windows Speech recognizes fixed commands: `Live Card`, `Vadafok Show`, `Vadafok Reset`, `Vadafok Stop`.
+- Local faster-whisper dictation supports German and English captions.
+- Voice Matcher compares recognized text with the separate Voice Library and existing Quick Cards without modifying Quick Cards.
+- Captions remain editable before they are sent through the existing SHOW/OBS path.
+- Future work: direct Quick Card selection, configurable command phrases, optional user learning, and broader voice settings.
+
