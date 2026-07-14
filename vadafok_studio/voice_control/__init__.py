@@ -1,13 +1,17 @@
-"""Voice-control extensions for VADAFOK Studio."""
+"""Voice-control and workflow extensions for VADAFOK Studio."""
 
 from .foundation import install_voice_foundation as _install_foundation
 from .language_selection import install_language_selection
 
 
 def install_voice_foundation() -> None:
-    """Install the existing voice foundation and the language selector."""
     _install_foundation()
     install_language_selection()
+    try:
+        from vadafok_studio.quick_cards_workflow import install_quick_cards_workflow
+        install_quick_cards_workflow()
+    except Exception as exc:
+        print(f"[Quick Cards Workflow] not installed: {exc}")
 
 
 __all__ = ["install_voice_foundation"]

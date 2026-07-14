@@ -1,0 +1,4 @@
+BASE: VADAFOK Studio 2.16.8 RC1C from GitHub master.
+Copy this overlay into the repository root and overwrite files.
+Do not commit until all tests in the chat are completed.
+ROLLBACK: git restore . && git clean -fd
