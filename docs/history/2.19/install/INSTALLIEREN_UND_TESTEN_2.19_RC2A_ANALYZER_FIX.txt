@@ -1,0 +1,52 @@
+VADAFOK Studio 2.19 RC2A – Cleanup Analyzer Fix
+=================================================
+
+BASIS
+-----
+Direkt über VADAFOK Studio 2.19 RC2 installieren.
+Nicht vorher zurücksetzen.
+
+WAS WURDE KORRIGIERT?
+----------------------
+- Im Markdown-Bericht stehen jetzt echte relative Dateipfade statt "$safePath".
+- UTF-8-Ausgabe wurde korrigiert, damit Umlaute korrekt lesbar sind.
+- Der Bericht enthält zusätzlich die Spalte "Vorschlag".
+- CSV und JSON enthalten weiterhin die vollständige Inventarliste.
+- Es werden keine Projektdateien verschoben, umbenannt oder gelöscht.
+
+INSTALLATION
+------------
+1. VADAFOK vollständig schließen.
+2. Den Inhalt dieses ZIP direkt in den Projektordner kopieren.
+3. Überschreiben von vadafok_studio/version.py bestätigen.
+4. ANALYZE_CLEANUP_2.19_RC2A.bat starten.
+
+ERWARTETE AUSGABE
+-----------------
+Cleanup analysis complete.
+No project files were moved or deleted.
+
+BERICHTE
+--------
+docs/cleanup_reports/2.19_RC2A/cleanup_report.md
+docs/cleanup_reports/2.19_RC2A/cleanup_inventory.csv
+docs/cleanup_reports/2.19_RC2A/cleanup_inventory.json
+
+PRÜFUNG
+-------
+Öffne cleanup_report.md und kontrolliere:
+- echte Dateinamen werden angezeigt;
+- "$safePath" kommt nicht mehr vor;
+- Umlaute sind korrekt;
+- jede Zeile enthält Datei, Sicherheit, Begründung und Vorschlag.
+
+Danach nur cleanup_report.md im Chat hochladen.
+
+ROLLBACK
+--------
+Falls nötig:
+git restore .
+git clean -fd
+
+Achtung: git clean -fd löscht alle neuen, nicht eingecheckten Dateien.
+Noch nicht committen.

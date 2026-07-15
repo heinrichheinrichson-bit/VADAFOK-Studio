@@ -1,0 +1,48 @@
+VADAFOK Studio 2.19 RC2B – Cleanup Analyzer Path Fix
+======================================================
+
+BASIS
+-----
+Direkt über VADAFOK Studio 2.19 RC2A installieren.
+Nicht vorher zurücksetzen.
+
+FEHLERURSACHE
+-------------
+Die alte Batch-Datei übergab den Projektpfad mit abschließendem Backslash.
+Bei Ordnernamen mit Leerzeichen kam dadurch ein zusätzliches Anführungszeichen
+im PowerShell-Argument an.
+
+KORREKTUR
+---------
+- Die Batch-Datei übergibt keinen Projektpfad mehr.
+- PowerShell verwendet automatisch seinen eigenen Speicherort als Projektordner.
+- Manuell übergebene Pfade werden zusätzlich bereinigt und validiert.
+- Es werden weiterhin keine Projektdateien verschoben oder gelöscht.
+
+INSTALLATION
+------------
+1. VADAFOK vollständig schließen.
+2. ZIP-Inhalt direkt in den Projektordner kopieren.
+3. Überschreiben von vadafok_studio/version.py bestätigen.
+4. ANALYZE_CLEANUP_2.19_RC2B.bat starten.
+
+ERWARTETE AUSGABE
+-----------------
+Cleanup analysis complete.
+No project files were moved or deleted.
+
+BERICHT
+-------
+docs/cleanup_reports/2.19_RC2B/cleanup_report.md
+
+PRÜFUNG
+-------
+- Das Skript startet ohne Resolve-Path-Fehler.
+- Echte Dateinamen werden angezeigt.
+- "$safePath" kommt nicht mehr vor.
+- Umlaute sind korrekt.
+- Keine Projektdatei wurde verschoben oder gelöscht.
+
+Danach cleanup_report.md im Chat hochladen.
+
+Noch nicht committen.

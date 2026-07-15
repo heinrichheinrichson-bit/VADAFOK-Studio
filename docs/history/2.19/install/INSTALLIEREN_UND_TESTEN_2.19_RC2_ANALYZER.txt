@@ -1,0 +1,43 @@
+VADAFOK Studio 2.19 RC2 – Cleanup Analyzer
+============================================
+
+BASIS
+-----
+VADAFOK Studio 2.19 RC1
+
+SICHERHEIT
+----------
+Der Analyzer verschiebt, benennt und löscht keine bestehenden Projektdateien.
+Er erzeugt ausschließlich Berichte unter:
+
+docs\cleanup_reports\2.19_RC2\
+
+INSTALLATION
+------------
+1. VADAFOK Studio schließen.
+2. Inhalt dieser ZIP direkt in den Hauptordner VADAFOK-Studio kopieren.
+3. Überschreiben von vadafok_studio\version.py bestätigen.
+4. ANALYZE_CLEANUP_2.19_RC2.bat starten.
+
+ERGEBNIS
+--------
+docs\cleanup_reports\2.19_RC2\cleanup_report.md
+docs\cleanup_reports\2.19_RC2\cleanup_inventory.csv
+docs\cleanup_reports\2.19_RC2\cleanup_inventory.json
+
+Bitte vorzugsweise cleanup_report.md im Chat hochladen oder den relevanten Inhalt senden.
+Keine Projektdateien werden automatisch bereinigt.
+
+ROLLBACK
+--------
+Da keine bestehenden Dateien verändert werden, genügt es bei Bedarf, diese neuen Dateien zu entfernen:
+- ANALYZE_CLEANUP_2.19_RC2.bat
+- ANALYZE_CLEANUP_2.19_RC2.ps1
+- INSTALLIEREN_UND_TESTEN_2.19_RC2_ANALYZER.txt
+- docs\cleanup_reports\2.19_RC2\
+
+Oder, falls sämtliche lokalen Änderungen verworfen werden dürfen:
+  git restore .
+  git clean -fd
+
+Noch nicht committen.

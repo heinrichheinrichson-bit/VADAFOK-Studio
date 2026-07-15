@@ -1,0 +1,2154 @@
+﻿[
+    {
+        "Path":  ".gitignore",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  118,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "assets/icons/vadafok_icon.ico",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  42325,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "assets/icons/vadafok_icon.png",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  14835,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "batch_projects/.gitkeep",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  0,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "batch_projects/test save.vbatch",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  934,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "caption_library.json",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  1090,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "docs/ARCHITECTURE.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  579,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/CHANGELOG.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  1148,
+        "Modified":  "2026-07-14 12:06:39"
+    },
+    {
+        "Path":  "docs/IDEAS.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  2327,
+        "Modified":  "2026-07-14 12:06:39"
+    },
+    {
+        "Path":  "docs/MASTER_ROADMAP.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  475,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/PROJECT_STRUCTURE.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  2621,
+        "Modified":  "2026-07-15 14:16:46"
+    },
+    {
+        "Path":  "docs/ROADMAP.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  394,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/Voice_Control.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  2644,
+        "Modified":  "2026-07-14 12:06:13"
+    },
+    {
+        "Path":  "library/silent_director_presets/README.txt",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  67,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "PROJECT_RULES.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  3484,
+        "Modified":  "2026-07-15 14:16:46"
+    },
+    {
+        "Path":  "README.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  91,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "requirements.txt",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  56,
+        "Modified":  "2026-07-13 11:43:48"
+    },
+    {
+        "Path":  "requirements_voice.txt",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  58,
+        "Modified":  "2026-07-14 12:06:10"
+    },
+    {
+        "Path":  "ROADMAP.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  9179,
+        "Modified":  "2026-07-14 12:06:39"
+    },
+    {
+        "Path":  "run.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  171,
+        "Modified":  "2026-07-14 12:06:13"
+    },
+    {
+        "Path":  "scene_favorites.json",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  41,
+        "Modified":  "2026-07-13 11:43:48"
+    },
+    {
+        "Path":  "silent_director_presets.json",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  7302,
+        "Modified":  "2026-07-15 14:17:03"
+    },
+    {
+        "Path":  "Start VADAFOK Studio.bat",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  33,
+        "Modified":  "2026-07-13 11:43:48"
+    },
+    {
+        "Path":  "styles/.gitkeep",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  0,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "styles/red_test.json",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  201,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "text_library.json",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, AbhÃ¤ngigkeits- oder Kerndokumentation.",
+        "SizeBytes":  1253,
+        "Modified":  "2026-07-13 11:43:48"
+    },
+    {
+        "Path":  "tools/finalize_release_2_16_6.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  3575,
+        "Modified":  "2026-07-14 12:06:10"
+    },
+    {
+        "Path":  "tools/voice_listener.ps1",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  1071,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/__init__.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  0,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/__pycache__/__init__.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  158,
+        "Modified":  "2026-07-13 13:06:00"
+    },
+    {
+        "Path":  "vadafok_studio/__pycache__/app.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  408808,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/__pycache__/app.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  516182,
+        "Modified":  "2026-07-13 13:06:01"
+    },
+    {
+        "Path":  "vadafok_studio/__pycache__/banner_workflow.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  10593,
+        "Modified":  "2026-07-14 18:29:47"
+    },
+    {
+        "Path":  "vadafok_studio/__pycache__/banner_workflow.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  11851,
+        "Modified":  "2026-07-14 18:30:12"
+    },
+    {
+        "Path":  "vadafok_studio/__pycache__/stream_workflow.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  15409,
+        "Modified":  "2026-07-15 13:30:31"
+    },
+    {
+        "Path":  "vadafok_studio/__pycache__/stream_workflow.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  19112,
+        "Modified":  "2026-07-15 13:39:11"
+    },
+    {
+        "Path":  "vadafok_studio/__pycache__/version.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  334,
+        "Modified":  "2026-07-15 13:30:31"
+    },
+    {
+        "Path":  "vadafok_studio/__pycache__/version.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  352,
+        "Modified":  "2026-07-15 14:17:03"
+    },
+    {
+        "Path":  "vadafok_studio/__pycache__/workspace_state.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  6149,
+        "Modified":  "2026-07-15 12:57:24"
+    },
+    {
+        "Path":  "vadafok_studio/__pycache__/workspace_state.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  7330,
+        "Modified":  "2026-07-15 12:58:06"
+    },
+    {
+        "Path":  "vadafok_studio/app.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  392044,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/assets/icons/vadafok_icon.ico",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  34656,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/assets/icons/vadafok_icon.png",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  6471,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/banner_workflow.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  8454,
+        "Modified":  "2026-07-14 18:29:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/banner_profiles.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  2394,
+        "Modified":  "2026-07-09 11:06:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/banner_profiles.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  2581,
+        "Modified":  "2026-07-13 11:43:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/batch_engine.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  8446,
+        "Modified":  "2026-07-09 11:06:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/batch_engine.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  10223,
+        "Modified":  "2026-07-13 11:43:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/caption_renderer.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  7834,
+        "Modified":  "2026-07-09 11:06:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/caption_renderer.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  8526,
+        "Modified":  "2026-07-13 11:43:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/config.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  5233,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/config.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  5520,
+        "Modified":  "2026-07-13 13:06:01"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/export_engine.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  4696,
+        "Modified":  "2026-07-09 11:06:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/export_engine.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  5815,
+        "Modified":  "2026-07-13 11:43:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/image_view.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  2730,
+        "Modified":  "2026-07-09 11:06:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/image_view.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  2857,
+        "Modified":  "2026-07-13 11:43:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/layout_engine.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  10416,
+        "Modified":  "2026-07-09 11:06:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/layout_engine.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  11709,
+        "Modified":  "2026-07-13 11:43:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/library.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  4667,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/library.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  9760,
+        "Modified":  "2026-07-13 13:06:01"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/obs_controller.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  19893,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/obs_controller.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  20525,
+        "Modified":  "2026-07-13 13:06:01"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/obs_workflow.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  5322,
+        "Modified":  "2026-07-09 11:06:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/obs_workflow.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  6407,
+        "Modified":  "2026-07-13 11:43:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/online_speech.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  4280,
+        "Modified":  "2026-07-13 11:37:49"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/preview_engine.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  4605,
+        "Modified":  "2026-07-04 20:36:31"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/preview_engine.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  5766,
+        "Modified":  "2026-07-04 20:36:37"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/scene_favorites.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  3023,
+        "Modified":  "2026-07-09 11:06:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/scene_favorites.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  3887,
+        "Modified":  "2026-07-13 11:43:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/silent_caption_engine.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  4034,
+        "Modified":  "2026-07-06 22:53:46"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/silent_caption_engine.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  5044,
+        "Modified":  "2026-07-06 22:53:57"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/silent_director.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  8953,
+        "Modified":  "2026-07-09 11:06:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/silent_director.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  17148,
+        "Modified":  "2026-07-13 11:43:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/style_engine.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  4472,
+        "Modified":  "2026-07-09 11:06:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/style_engine.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  5929,
+        "Modified":  "2026-07-13 11:43:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/template_canvas_layers.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  1198,
+        "Modified":  "2026-07-04 20:44:05"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/template_canvas_layers.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  1221,
+        "Modified":  "2026-07-04 20:44:12"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/template_store.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  13080,
+        "Modified":  "2026-07-09 11:06:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/template_store.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  15292,
+        "Modified":  "2026-07-13 11:43:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/text_library_engine.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  6135,
+        "Modified":  "2026-07-09 11:06:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/__pycache__/text_library_engine.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  7825,
+        "Modified":  "2026-07-13 11:43:53"
+    },
+    {
+        "Path":  "vadafok_studio/core/banner_profiles.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  1908,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/batch_engine.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  5054,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/caption_renderer.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  5647,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/config.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  3539,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/export_engine.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  3188,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/image_view.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  1500,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/layout_engine.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  6334,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/library.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  5322,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/obs_controller.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  16227,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/obs_workflow.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  3432,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/preview_engine.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  2350,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/scene_favorites.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  1530,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/silent_caption_engine.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  2858,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/silent_director.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  9841,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/style_engine.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  2628,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/template_canvas_layers.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  659,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/template_store.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  8827,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/core/text_library_engine.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  4405,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio/quick_cards_workflow/__init__.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  98,
+        "Modified":  "2026-07-14 18:08:19"
+    },
+    {
+        "Path":  "vadafok_studio/quick_cards_workflow/__pycache__/__init__.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  274,
+        "Modified":  "2026-07-14 18:08:40"
+    },
+    {
+        "Path":  "vadafok_studio/quick_cards_workflow/__pycache__/integration.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  14997,
+        "Modified":  "2026-07-14 18:08:40"
+    },
+    {
+        "Path":  "vadafok_studio/quick_cards_workflow/integration.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  6680,
+        "Modified":  "2026-07-14 18:08:19"
+    },
+    {
+        "Path":  "vadafok_studio/stream_workflow.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  13605,
+        "Modified":  "2026-07-15 13:39:07"
+    },
+    {
+        "Path":  "vadafok_studio/tools/voice_listener.ps1",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  4490,
+        "Modified":  "2026-07-14 15:26:26"
+    },
+    {
+        "Path":  "vadafok_studio/version.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  168,
+        "Modified":  "2026-07-15 14:48:37"
+    },
+    {
+        "Path":  "vadafok_studio/voice_control/__init__.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  972,
+        "Modified":  "2026-07-15 12:26:59"
+    },
+    {
+        "Path":  "vadafok_studio/voice_control/__pycache__/__init__.cpython-313.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  1179,
+        "Modified":  "2026-07-14 18:29:47"
+    },
+    {
+        "Path":  "vadafok_studio/voice_control/__pycache__/__init__.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  1620,
+        "Modified":  "2026-07-15 12:27:14"
+    },
+    {
+        "Path":  "vadafok_studio/voice_control/__pycache__/foundation.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  25854,
+        "Modified":  "2026-07-14 15:26:51"
+    },
+    {
+        "Path":  "vadafok_studio/voice_control/__pycache__/integration.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  14309,
+        "Modified":  "2026-07-13 12:58:25"
+    },
+    {
+        "Path":  "vadafok_studio/voice_control/__pycache__/language_selection.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  7308,
+        "Modified":  "2026-07-14 12:40:34"
+    },
+    {
+        "Path":  "vadafok_studio/voice_control/__pycache__/matcher.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  11906,
+        "Modified":  "2026-07-14 12:07:22"
+    },
+    {
+        "Path":  "vadafok_studio/voice_control/__pycache__/quick_card_voice.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  18925,
+        "Modified":  "2026-07-14 15:26:51"
+    },
+    {
+        "Path":  "vadafok_studio/voice_control/__pycache__/voice_help.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  3827,
+        "Modified":  "2026-07-14 15:26:51"
+    },
+    {
+        "Path":  "vadafok_studio/voice_control/__pycache__/whisper_dictation.cpython-314.pyc",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  12578,
+        "Modified":  "2026-07-14 12:07:22"
+    },
+    {
+        "Path":  "vadafok_studio/voice_control/foundation.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  17112,
+        "Modified":  "2026-07-14 15:26:26"
+    },
+    {
+        "Path":  "vadafok_studio/voice_control/language_selection.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  4375,
+        "Modified":  "2026-07-14 12:40:27"
+    },
+    {
+        "Path":  "vadafok_studio/voice_control/matcher.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  7238,
+        "Modified":  "2026-07-14 12:06:13"
+    },
+    {
+        "Path":  "vadafok_studio/voice_control/quick_card_voice.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  11767,
+        "Modified":  "2026-07-14 15:26:26"
+    },
+    {
+        "Path":  "vadafok_studio/voice_control/voice_help.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  2298,
+        "Modified":  "2026-07-14 15:26:25"
+    },
+    {
+        "Path":  "vadafok_studio/voice_control/voice_library.json",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  5194,
+        "Modified":  "2026-07-14 12:06:13"
+    },
+    {
+        "Path":  "vadafok_studio/voice_control/whisper_dictation.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  8042,
+        "Modified":  "2026-07-14 12:06:13"
+    },
+    {
+        "Path":  "vadafok_studio/voice_control/whisper_settings.json",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  233,
+        "Modified":  "2026-07-14 12:06:13"
+    },
+    {
+        "Path":  "vadafok_studio/workspace_state.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "SizeBytes":  3851,
+        "Modified":  "2026-07-15 12:57:24"
+    },
+    {
+        "Path":  "ANALYZE_CLEANUP_2.19_RC2.bat",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  356,
+        "Modified":  "2026-07-15 14:48:23"
+    },
+    {
+        "Path":  "ANALYZE_CLEANUP_2.19_RC2.ps1",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  6647,
+        "Modified":  "2026-07-15 14:48:23"
+    },
+    {
+        "Path":  "docs/BANNER_WORKFLOW_2.17_RC1_APPEND.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  829,
+        "Modified":  "2026-07-14 18:29:47"
+    },
+    {
+        "Path":  "docs/CLEANUP_ANALYZER_2.19_RC2.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  334,
+        "Modified":  "2026-07-15 14:48:23"
+    },
+    {
+        "Path":  "docs/CLEANUP_INVENTORY_2.19_RC1.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  1538,
+        "Modified":  "2026-07-15 14:16:46"
+    },
+    {
+        "Path":  "docs/IDEAS_2.19_RC1_APPEND.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  1207,
+        "Modified":  "2026-07-15 14:16:46"
+    },
+    {
+        "Path":  "docs/OBS_ASSET_DISPLAY_IDEA_2.18_APPEND.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische Dokument-ErgÃ¤nzung oder Testnotiz.",
+        "SizeBytes":  1222,
+        "Modified":  "2026-07-15 12:26:57"
+    },
+    {
+        "Path":  "docs/QUICK_CARDS_WORKFLOW_2.16.9_RC1.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  278,
+        "Modified":  "2026-07-14 18:08:19"
+    },
+    {
+        "Path":  "docs/ROADMAP_2.19_RC1_APPEND.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  1187,
+        "Modified":  "2026-07-15 14:16:46"
+    },
+    {
+        "Path":  "docs/STREAM_WORKFLOW_2.18_RC1.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  1028,
+        "Modified":  "2026-07-15 12:26:57"
+    },
+    {
+        "Path":  "docs/STREAM_WORKFLOW_2.18_RC1A.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  780,
+        "Modified":  "2026-07-15 12:57:25"
+    },
+    {
+        "Path":  "docs/STREAM_WORKFLOW_2.18_RC1B.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  528,
+        "Modified":  "2026-07-15 13:11:18"
+    },
+    {
+        "Path":  "docs/STREAM_WORKFLOW_2.18_RC1C.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  715,
+        "Modified":  "2026-07-15 13:22:17"
+    },
+    {
+        "Path":  "docs/STREAM_WORKFLOW_2.18_RC1D.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  393,
+        "Modified":  "2026-07-15 13:30:30"
+    },
+    {
+        "Path":  "docs/STREAM_WORKFLOW_2.18_RC1E.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  361,
+        "Modified":  "2026-07-15 13:39:05"
+    },
+    {
+        "Path":  "docs/VOICE_CONTROL_2.16.7_RC1_APPEND.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  578,
+        "Modified":  "2026-07-14 12:40:27"
+    },
+    {
+        "Path":  "docs/VOICE_QUICK_CARDS_2.16.8_RC1A.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  590,
+        "Modified":  "2026-07-14 14:09:02"
+    },
+    {
+        "Path":  "docs/VOICE_QUICK_CARDS_2.16.8_RC1B.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  744,
+        "Modified":  "2026-07-14 14:40:40"
+    },
+    {
+        "Path":  "docs/VOICE_QUICK_CARDS_2.16.8_RC1C.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  467,
+        "Modified":  "2026-07-14 15:26:25"
+    },
+    {
+        "Path":  "FINALIZE_RELEASE_2.16.6.bat",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historisches Release-Werkzeug oder Release-Notiz.",
+        "SizeBytes":  316,
+        "Modified":  "2026-07-14 12:06:10"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.16.7_RC1.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  1174,
+        "Modified":  "2026-07-14 12:40:27"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.16.8_RC1A.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  408,
+        "Modified":  "2026-07-14 14:09:02"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.16.8_RC1B.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  393,
+        "Modified":  "2026-07-14 14:40:40"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.16.8_RC1C.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  316,
+        "Modified":  "2026-07-14 15:26:25"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.16.9_RC1.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  215,
+        "Modified":  "2026-07-14 18:08:19"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.17_RC1.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  630,
+        "Modified":  "2026-07-14 18:29:47"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.18_RC1.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  625,
+        "Modified":  "2026-07-15 12:26:57"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.18_RC1A.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  591,
+        "Modified":  "2026-07-15 12:57:25"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.18_RC1B.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  853,
+        "Modified":  "2026-07-15 13:11:18"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.18_RC1C.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  969,
+        "Modified":  "2026-07-15 13:22:17"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.18_RC1D.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  435,
+        "Modified":  "2026-07-15 13:30:30"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.18_RC1E.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  445,
+        "Modified":  "2026-07-15 13:39:05"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.19_RC1.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  1542,
+        "Modified":  "2026-07-15 14:16:46"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.19_RC2_ANALYZER.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "SizeBytes":  1241,
+        "Modified":  "2026-07-15 14:48:23"
+    },
+    {
+        "Path":  "RELEASE_2.16.6.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historisches Release-Werkzeug oder Release-Notiz.",
+        "SizeBytes":  1397,
+        "Modified":  "2026-07-14 12:06:10"
+    },
+    {
+        "Path":  "data/asset_meta.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  573,
+        "Modified":  "2026-07-14 18:36:44"
+    },
+    {
+        "Path":  "data/banner_profiles.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  13621,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data/card_values.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  1561,
+        "Modified":  "2026-07-14 12:09:13"
+    },
+    {
+        "Path":  "data/config.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  1321,
+        "Modified":  "2026-07-15 14:19:53"
+    },
+    {
+        "Path":  "data/favorites.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  467,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data/quick_cards_workflow.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  143,
+        "Modified":  "2026-07-14 18:13:56"
+    },
+    {
+        "Path":  "data/README.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  247,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data/template_profiles.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  8576,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data/templates/.deleted_templates",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  162,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data/templates/.legacy_import_done",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  4,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data/templates/Default_Stream_Plan/background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  2473776,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data/templates/Default_Stream_Plan/template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  799,
+        "Modified":  "2026-07-14 12:47:42"
+    },
+    {
+        "Path":  "data/templates/New_08072026/background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  2131526,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data/templates/New_08072026/template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  1096,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data/templates/New_Template/background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  2559626,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data/templates/New_Template/template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  1087,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data/templates/next_show_test_test/background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  2131526,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data/templates/next_show_test_test/template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  1358,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data/templates/now_showing/background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  1800039,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data/templates/now_showing/template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  2718,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data/templates/Test/background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  2131526,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data/templates/Test/template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  1080,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data/templates/test_zoom_etc/background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  2131526,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data/templates/test_zoom_etc/template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  1370,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data/templates/this_week/background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  2155886,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data/templates/this_week/template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  3388,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data/templates/zoom_test_2/background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  2344439,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data/templates/zoom_test_2/template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  1093,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data/templates/zoom_test_3/background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  2131526,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data/templates/zoom_test_3/template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  1464,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data/workspace_state.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeitdaten: vor Archivierung prÃ¼fen, ob benutzerspezifisch oder generiert.",
+        "SizeBytes":  176,
+        "Modified":  "2026-07-15 14:36:38"
+    },
+    {
+        "Path":  "docs/00_PROJECT_VISION.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  688,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/01_DEVELOPMENT_RULES.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  452,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/01_GITHUB_SETUP.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  220,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/02_PROJECT_BOARD.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  189,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/03_LABELS.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  190,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/04_MILESTONES.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  146,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/05_GITHUB_WORKFLOW.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  265,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/batch_import_sample.csv",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  124,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/BUILD.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  53,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/caption_library.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  1090,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/CODE_STYLE.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  96,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/CONTRIBUTING.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  60,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/DEVELOPMENT_WORKFLOW.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  112,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/KNOWN_ISSUES.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  271,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/README.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  161,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/RELEASE_CHECKLIST.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  384,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/RENDERING_FOUNDATION.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  1189,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/requirements.txt",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  56,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/TESTING.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  92,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs/text_library.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal; Inhalt prÃ¼fen.",
+        "SizeBytes":  1253,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "exports/08_07_2026_Next_show_broadcast_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  2332202,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "exports/08_07_2026_Next_show_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2332202,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "exports/banner_editor_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  1743355,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports/caption_render.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  1577725,
+        "Modified":  "2026-07-15 14:19:53"
+    },
+    {
+        "Path":  "exports/card_001_broadcast_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  2358106,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports/card_001_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2358106,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports/card_002_broadcast_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  2354463,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports/card_002_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2354463,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports/card_Default_Stream_Plan_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2700053,
+        "Modified":  "2026-07-15 11:34:01"
+    },
+    {
+        "Path":  "exports/card_Default_Stream_Plan_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  2351638,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports/card_Default_Stream_Plan_instagram_square_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  1262801,
+        "Modified":  "2026-07-15 11:38:46"
+    },
+    {
+        "Path":  "exports/card_Default_Stream_Plan_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  33855,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports/card_Default_Stream_Plan_tiktok_vertical_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2738810,
+        "Modified":  "2026-07-15 11:39:12"
+    },
+    {
+        "Path":  "exports/card_Default_Stream_Plan_youtube_thumb_preview.jpg",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  170076,
+        "Modified":  "2026-07-15 11:38:21"
+    },
+    {
+        "Path":  "exports/card_New_08_07_2026_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2332202,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports/card_New_Template_2_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  34238,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports/card_New_Template_2_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  34238,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports/card_New_Template_3_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2396855,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports/card_New_Template_5_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2628147,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports/card_New_Template_7_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2809839,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports/card_New_Template_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  2350843,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports/card_New_Template_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2345401,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports/card_next_show_copy_test_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  2330464,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_next_show_copy_test_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2357129,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_next_show_test_test_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2345974,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_next_show_test_test_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  2345974,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_next_show_test_test_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2345974,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_now_showing_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2004909,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_now_showing_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2009720,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_now_showing_test_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2016036,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_Test_broadcast_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  2361200,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_Test_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2361200,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_Test_instagram_square_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  1123050,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_Test_instagram_square_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  1123050,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_Test_obs_overlay_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  2360524,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_Test_obs_overlay_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2360524,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_Test_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2360524,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_Test_tiktok_vertical_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  2394687,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_Test_tiktok_vertical_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2394687,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_Test_youtube_thumb_final.jpg",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  145751,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_Test_youtube_thumb_preview.jpg",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  145751,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports/card_test_zoom_etc_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2396855,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports/card_test_zoom_etc_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2396855,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports/card_this_week_broadcast_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  2366879,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports/card_this_week_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2366879,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports/card_this_week_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  2366879,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports/card_this_week_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2366879,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports/card_zoom_test_2_broadcast_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  2568263,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports/card_zoom_test_2_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2568263,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports/card_zoom_test_2_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  2583974,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports/card_zoom_test_2_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2568263,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports/card_zoom_test_3_broadcast_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  2346201,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports/card_zoom_test_3_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2346968,
+        "Modified":  "2026-07-14 12:09:14"
+    },
+    {
+        "Path":  "exports/card_zoom_test_3_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "SizeBytes":  2344740,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports/card_zoom_test_3_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; prÃ¼fen, ob sie versioniert werden soll.",
+        "SizeBytes":  2344870,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "INSTALL_VOICE_DEPENDENCIES.bat",
+        "Status":  "REVIEW",
+        "Confidence":  "LOW",
+        "Reason":  "Keine sichere automatische Klassifikation.",
+        "SizeBytes":  576,
+        "Modified":  "2026-07-14 12:06:10"
+    },
+    {
+        "Path":  "RENDERING_FOUNDATION.md",
+        "Status":  "REVIEW",
+        "Confidence":  "LOW",
+        "Reason":  "Keine sichere automatische Klassifikation.",
+        "SizeBytes":  1189,
+        "Modified":  "2026-07-13 11:43:48"
+    },
+    {
+        "Path":  "VADAFOK_CODE_ONLY.zip",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Eingechecktes Archiv; Nutzen und AktualitÃ¤t prÃ¼fen.",
+        "SizeBytes":  521021,
+        "Modified":  "2026-07-13 11:43:48"
+    }
+]

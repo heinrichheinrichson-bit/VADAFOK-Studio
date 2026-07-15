@@ -1,0 +1,45 @@
+VADAFOK Studio 2.19 RC1 – Project Foundation
+
+BASIS
+VADAFOK Studio 2.18 RC1E (zuletzt getesteter und gespeicherter GitHub-Stand)
+
+WAS DIESES PAKET TUT
+- setzt die sichtbare Version auf 2.19 RC1
+- legt PROJECT_RULES.md an
+- legt docs/PROJECT_STRUCTURE.md an
+- legt ein Cleanup-Inventar an
+- legt Roadmap- und Ideas-Ergänzungen als separate APPEND-Dateien an
+
+WAS DIESES PAKET NICHT TUT
+- keine Dateien löschen
+- keine vorhandene Roadmap überschreiben
+- keine Ideas-Datei überschreiben
+- keine Testdokumente verschieben
+- keine Programmfunktion verändern
+
+INSTALLATION
+1. VADAFOK vollständig schließen.
+2. In Git Bash im Projektordner `git status` ausführen.
+3. Nur fortfahren, wenn keine eigenen ungesicherten Änderungen vorhanden sind.
+4. ZIP-Inhalt direkt in den Projektordner kopieren.
+5. Überschreiben von vadafok_studio/version.py bestätigen.
+6. Programm starten.
+
+TEST
+1. Oben und links muss 2.19 RC1 stehen.
+2. OBS Workflow muss weiterhin Startseite sein.
+3. Live Card, Voice, Quick Cards und Banner Workflow kurz öffnen.
+4. Prüfen, dass PROJECT_RULES.md vorhanden und lesbar ist.
+5. Prüfen, dass docs/PROJECT_STRUCTURE.md vorhanden ist.
+6. Prüfen, dass keine bisherigen Test- oder Roadmap-Dateien verschwunden sind.
+
+ROLLBACK
+VADAFOK schließen und in Git Bash ausführen:
+
+git restore .
+git clean -fd
+
+ACHTUNG: git clean -fd löscht alle neuen, nicht eingecheckten Dateien und Ordner.
+
+NOCH NICHT COMMITTEN
+RC1 dokumentiert nur das Fundament und das Inventar. Die eigentliche Archivierung folgt in RC2 nach Prüfung.

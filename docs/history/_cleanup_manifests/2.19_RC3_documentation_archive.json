@@ -1,0 +1,200 @@
+﻿{
+    "Version":  "2.19 RC3",
+    "CreatedAt":  "2026-07-15 15:12:15",
+    "ProjectRoot":  "F:\\Vadafok Studio\\VADAFOK_Studio",
+    "Moved":  38,
+    "Skipped":  0,
+    "Conflicts":  0,
+    "Results":  [
+                    {
+                        "Source":  "docs\\BANNER_WORKFLOW_2.17_RC1_APPEND.md",
+                        "Destination":  "docs\\history\\2.17\\notes\\BANNER_WORKFLOW_2.17_RC1_APPEND.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\CLEANUP_ANALYZER_2.19_RC2.md",
+                        "Destination":  "docs\\history\\2.19\\notes\\CLEANUP_ANALYZER_2.19_RC2.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\CLEANUP_ANALYZER_2.19_RC2A.md",
+                        "Destination":  "docs\\history\\2.19\\notes\\CLEANUP_ANALYZER_2.19_RC2A.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\CLEANUP_ANALYZER_2.19_RC2B.md",
+                        "Destination":  "docs\\history\\2.19\\notes\\CLEANUP_ANALYZER_2.19_RC2B.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\CLEANUP_INVENTORY_2.19_RC1.md",
+                        "Destination":  "docs\\history\\2.19\\notes\\CLEANUP_INVENTORY_2.19_RC1.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\IDEAS_2.19_RC1_APPEND.md",
+                        "Destination":  "docs\\history\\2.19\\notes\\IDEAS_2.19_RC1_APPEND.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\OBS_ASSET_DISPLAY_IDEA_2.18_APPEND.md",
+                        "Destination":  "docs\\history\\2.18\\notes\\OBS_ASSET_DISPLAY_IDEA_2.18_APPEND.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\QUICK_CARDS_WORKFLOW_2.16.9_RC1.md",
+                        "Destination":  "docs\\history\\2.16\\notes\\QUICK_CARDS_WORKFLOW_2.16.9_RC1.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\RELEASE_CHECKLIST.md",
+                        "Destination":  "docs\\history\\misc\\release\\RELEASE_CHECKLIST.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\ROADMAP_2.19_RC1_APPEND.md",
+                        "Destination":  "docs\\history\\2.19\\notes\\ROADMAP_2.19_RC1_APPEND.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\STREAM_WORKFLOW_2.18_RC1.md",
+                        "Destination":  "docs\\history\\2.18\\notes\\STREAM_WORKFLOW_2.18_RC1.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\STREAM_WORKFLOW_2.18_RC1A.md",
+                        "Destination":  "docs\\history\\2.18\\notes\\STREAM_WORKFLOW_2.18_RC1A.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\STREAM_WORKFLOW_2.18_RC1B.md",
+                        "Destination":  "docs\\history\\2.18\\notes\\STREAM_WORKFLOW_2.18_RC1B.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\STREAM_WORKFLOW_2.18_RC1C.md",
+                        "Destination":  "docs\\history\\2.18\\notes\\STREAM_WORKFLOW_2.18_RC1C.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\STREAM_WORKFLOW_2.18_RC1D.md",
+                        "Destination":  "docs\\history\\2.18\\notes\\STREAM_WORKFLOW_2.18_RC1D.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\STREAM_WORKFLOW_2.18_RC1E.md",
+                        "Destination":  "docs\\history\\2.18\\notes\\STREAM_WORKFLOW_2.18_RC1E.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\VOICE_CONTROL_2.16.7_RC1_APPEND.md",
+                        "Destination":  "docs\\history\\2.16\\notes\\VOICE_CONTROL_2.16.7_RC1_APPEND.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\VOICE_QUICK_CARDS_2.16.8_RC1A.md",
+                        "Destination":  "docs\\history\\2.16\\notes\\VOICE_QUICK_CARDS_2.16.8_RC1A.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\VOICE_QUICK_CARDS_2.16.8_RC1B.md",
+                        "Destination":  "docs\\history\\2.16\\notes\\VOICE_QUICK_CARDS_2.16.8_RC1B.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "docs\\VOICE_QUICK_CARDS_2.16.8_RC1C.md",
+                        "Destination":  "docs\\history\\2.16\\notes\\VOICE_QUICK_CARDS_2.16.8_RC1C.md",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "FINALIZE_RELEASE_2.16.6.bat",
+                        "Destination":  "docs\\history\\2.16\\release\\FINALIZE_RELEASE_2.16.6.bat",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "INSTALLIEREN_UND_TESTEN_2.16.7_RC1.txt",
+                        "Destination":  "docs\\history\\2.16\\install\\INSTALLIEREN_UND_TESTEN_2.16.7_RC1.txt",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "INSTALLIEREN_UND_TESTEN_2.16.8_RC1A.txt",
+                        "Destination":  "docs\\history\\2.16\\install\\INSTALLIEREN_UND_TESTEN_2.16.8_RC1A.txt",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "INSTALLIEREN_UND_TESTEN_2.16.8_RC1B.txt",
+                        "Destination":  "docs\\history\\2.16\\install\\INSTALLIEREN_UND_TESTEN_2.16.8_RC1B.txt",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "INSTALLIEREN_UND_TESTEN_2.16.8_RC1C.txt",
+                        "Destination":  "docs\\history\\2.16\\install\\INSTALLIEREN_UND_TESTEN_2.16.8_RC1C.txt",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "INSTALLIEREN_UND_TESTEN_2.16.9_RC1.txt",
+                        "Destination":  "docs\\history\\2.16\\install\\INSTALLIEREN_UND_TESTEN_2.16.9_RC1.txt",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "INSTALLIEREN_UND_TESTEN_2.17_RC1.txt",
+                        "Destination":  "docs\\history\\2.17\\install\\INSTALLIEREN_UND_TESTEN_2.17_RC1.txt",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "INSTALLIEREN_UND_TESTEN_2.18_RC1.txt",
+                        "Destination":  "docs\\history\\2.18\\install\\INSTALLIEREN_UND_TESTEN_2.18_RC1.txt",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "INSTALLIEREN_UND_TESTEN_2.18_RC1A.txt",
+                        "Destination":  "docs\\history\\2.18\\install\\INSTALLIEREN_UND_TESTEN_2.18_RC1A.txt",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "INSTALLIEREN_UND_TESTEN_2.18_RC1B.txt",
+                        "Destination":  "docs\\history\\2.18\\install\\INSTALLIEREN_UND_TESTEN_2.18_RC1B.txt",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "INSTALLIEREN_UND_TESTEN_2.18_RC1C.txt",
+                        "Destination":  "docs\\history\\2.18\\install\\INSTALLIEREN_UND_TESTEN_2.18_RC1C.txt",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "INSTALLIEREN_UND_TESTEN_2.18_RC1D.txt",
+                        "Destination":  "docs\\history\\2.18\\install\\INSTALLIEREN_UND_TESTEN_2.18_RC1D.txt",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "INSTALLIEREN_UND_TESTEN_2.18_RC1E.txt",
+                        "Destination":  "docs\\history\\2.18\\install\\INSTALLIEREN_UND_TESTEN_2.18_RC1E.txt",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "INSTALLIEREN_UND_TESTEN_2.19_RC1.txt",
+                        "Destination":  "docs\\history\\2.19\\install\\INSTALLIEREN_UND_TESTEN_2.19_RC1.txt",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "INSTALLIEREN_UND_TESTEN_2.19_RC2_ANALYZER.txt",
+                        "Destination":  "docs\\history\\2.19\\install\\INSTALLIEREN_UND_TESTEN_2.19_RC2_ANALYZER.txt",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "INSTALLIEREN_UND_TESTEN_2.19_RC2A_ANALYZER_FIX.txt",
+                        "Destination":  "docs\\history\\2.19\\install\\INSTALLIEREN_UND_TESTEN_2.19_RC2A_ANALYZER_FIX.txt",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "INSTALLIEREN_UND_TESTEN_2.19_RC2B_ANALYZER_PATH_FIX.txt",
+                        "Destination":  "docs\\history\\2.19\\install\\INSTALLIEREN_UND_TESTEN_2.19_RC2B_ANALYZER_PATH_FIX.txt",
+                        "Status":  "MOVED"
+                    },
+                    {
+                        "Source":  "RELEASE_2.16.6.md",
+                        "Destination":  "docs\\history\\2.16\\release\\RELEASE_2.16.6.md",
+                        "Status":  "MOVED"
+                    }
+                ]
+}

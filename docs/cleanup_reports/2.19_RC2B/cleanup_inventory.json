@@ -1,0 +1,1991 @@
+﻿[
+    {
+        "Path":  ".gitignore",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, Abhängigkeits- oder Kerndatei.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  118,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "ANALYZE_CLEANUP_2.19_RC2.bat",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Konfiguration oder Laufzeit-Asset.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  356,
+        "Modified":  "2026-07-15 14:48:23"
+    },
+    {
+        "Path":  "ANALYZE_CLEANUP_2.19_RC2.ps1",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Konfiguration oder Laufzeit-Asset.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  6647,
+        "Modified":  "2026-07-15 14:48:23"
+    },
+    {
+        "Path":  "ANALYZE_CLEANUP_2.19_RC2A.bat",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Konfiguration oder Laufzeit-Asset.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  161,
+        "Modified":  "2026-07-15 14:59:28"
+    },
+    {
+        "Path":  "ANALYZE_CLEANUP_2.19_RC2A.ps1",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Konfiguration oder Laufzeit-Asset.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  10003,
+        "Modified":  "2026-07-15 14:59:28"
+    },
+    {
+        "Path":  "ANALYZE_CLEANUP_2.19_RC2B.bat",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Konfiguration oder Laufzeit-Asset.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  140,
+        "Modified":  "2026-07-15 15:03:57"
+    },
+    {
+        "Path":  "ANALYZE_CLEANUP_2.19_RC2B.ps1",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Konfiguration oder Laufzeit-Asset.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  10525,
+        "Modified":  "2026-07-15 15:03:57"
+    },
+    {
+        "Path":  "assets\\icons\\vadafok_icon.ico",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  42325,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "assets\\icons\\vadafok_icon.png",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  14835,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "batch_projects\\.gitkeep",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  0,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "batch_projects\\test save.vbatch",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  934,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "caption_library.json",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Konfiguration oder Laufzeit-Asset.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  1090,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "docs\\ARCHITECTURE.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Kerndokumentation.",
+        "Suggestion":  "Behalten und weiter ergänzen",
+        "SizeBytes":  579,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\caption_library.json",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Konfiguration oder Laufzeit-Asset.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  1090,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\CHANGELOG.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Kerndokumentation.",
+        "Suggestion":  "Behalten und weiter ergänzen",
+        "SizeBytes":  1148,
+        "Modified":  "2026-07-14 12:06:39"
+    },
+    {
+        "Path":  "docs\\cleanup_reports\\2.19_RC2\\cleanup_inventory.json",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Konfiguration oder Laufzeit-Asset.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  80130,
+        "Modified":  "2026-07-15 14:49:08"
+    },
+    {
+        "Path":  "docs\\IDEAS.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Kerndokumentation.",
+        "Suggestion":  "Behalten und weiter ergänzen",
+        "SizeBytes":  2327,
+        "Modified":  "2026-07-14 12:06:39"
+    },
+    {
+        "Path":  "docs\\MASTER_ROADMAP.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Kerndokumentation.",
+        "Suggestion":  "Behalten und weiter ergänzen",
+        "SizeBytes":  475,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\PROJECT_STRUCTURE.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Kerndokumentation.",
+        "Suggestion":  "Behalten und weiter ergänzen",
+        "SizeBytes":  2621,
+        "Modified":  "2026-07-15 14:16:46"
+    },
+    {
+        "Path":  "docs\\ROADMAP.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Kerndokumentation.",
+        "Suggestion":  "Behalten und weiter ergänzen",
+        "SizeBytes":  394,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\text_library.json",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Konfiguration oder Laufzeit-Asset.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  1253,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\Voice_Control.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Kerndokumentation.",
+        "Suggestion":  "Behalten und weiter ergänzen",
+        "SizeBytes":  2644,
+        "Modified":  "2026-07-14 12:06:13"
+    },
+    {
+        "Path":  "INSTALL_VOICE_DEPENDENCIES.bat",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Konfiguration oder Laufzeit-Asset.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  576,
+        "Modified":  "2026-07-14 12:06:10"
+    },
+    {
+        "Path":  "library\\silent_director_presets\\README.txt",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  67,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "PROJECT_RULES.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, Abhängigkeits- oder Kerndatei.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  3484,
+        "Modified":  "2026-07-15 14:16:46"
+    },
+    {
+        "Path":  "README.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, Abhängigkeits- oder Kerndatei.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  91,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "requirements.txt",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, Abhängigkeits- oder Kerndatei.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  56,
+        "Modified":  "2026-07-13 11:43:48"
+    },
+    {
+        "Path":  "requirements_voice.txt",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, Abhängigkeits- oder Kerndatei.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  58,
+        "Modified":  "2026-07-14 12:06:10"
+    },
+    {
+        "Path":  "ROADMAP.md",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, Abhängigkeits- oder Kerndatei.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  9179,
+        "Modified":  "2026-07-14 12:06:39"
+    },
+    {
+        "Path":  "run.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, Abhängigkeits- oder Kerndatei.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  171,
+        "Modified":  "2026-07-14 12:06:13"
+    },
+    {
+        "Path":  "scene_favorites.json",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Konfiguration oder Laufzeit-Asset.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  41,
+        "Modified":  "2026-07-13 11:43:48"
+    },
+    {
+        "Path":  "silent_director_presets.json",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Konfiguration oder Laufzeit-Asset.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  7302,
+        "Modified":  "2026-07-15 14:17:03"
+    },
+    {
+        "Path":  "Start VADAFOK Studio.bat",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Aktive Projekt-, Start-, Abhängigkeits- oder Kerndatei.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  33,
+        "Modified":  "2026-07-13 11:43:48"
+    },
+    {
+        "Path":  "styles\\.gitkeep",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  0,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "styles\\red_test.json",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  201,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "text_library.json",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Konfiguration oder Laufzeit-Asset.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  1253,
+        "Modified":  "2026-07-13 11:43:48"
+    },
+    {
+        "Path":  "tools\\finalize_release_2_16_6.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  3575,
+        "Modified":  "2026-07-14 12:06:10"
+    },
+    {
+        "Path":  "tools\\voice_listener.ps1",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  1071,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\__init__.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  0,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\app.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  392044,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\assets\\icons\\vadafok_icon.ico",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  34656,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\assets\\icons\\vadafok_icon.png",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  6471,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\banner_workflow.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  8454,
+        "Modified":  "2026-07-14 18:29:47"
+    },
+    {
+        "Path":  "vadafok_studio\\core\\banner_profiles.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  1908,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\core\\batch_engine.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  5054,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\core\\caption_renderer.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  5647,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\core\\config.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  3539,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\core\\export_engine.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  3188,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\core\\image_view.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  1500,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\core\\layout_engine.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  6334,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\core\\library.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  5322,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\core\\obs_controller.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  16227,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\core\\obs_workflow.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  3432,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\core\\preview_engine.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  2350,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\core\\scene_favorites.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  1530,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\core\\silent_caption_engine.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  2858,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\core\\silent_director.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  9841,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\core\\style_engine.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  2628,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\core\\template_canvas_layers.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  659,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\core\\template_store.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  8827,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\core\\text_library_engine.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  4405,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "vadafok_studio\\quick_cards_workflow\\__init__.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  98,
+        "Modified":  "2026-07-14 18:08:19"
+    },
+    {
+        "Path":  "vadafok_studio\\quick_cards_workflow\\integration.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  6680,
+        "Modified":  "2026-07-14 18:08:19"
+    },
+    {
+        "Path":  "vadafok_studio\\stream_workflow.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  13605,
+        "Modified":  "2026-07-15 13:39:07"
+    },
+    {
+        "Path":  "vadafok_studio\\tools\\voice_listener.ps1",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  4490,
+        "Modified":  "2026-07-14 15:26:26"
+    },
+    {
+        "Path":  "vadafok_studio\\version.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  160,
+        "Modified":  "2026-07-15 15:04:01"
+    },
+    {
+        "Path":  "vadafok_studio\\voice_control\\__init__.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  972,
+        "Modified":  "2026-07-15 12:26:59"
+    },
+    {
+        "Path":  "vadafok_studio\\voice_control\\foundation.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  17112,
+        "Modified":  "2026-07-14 15:26:26"
+    },
+    {
+        "Path":  "vadafok_studio\\voice_control\\language_selection.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  4375,
+        "Modified":  "2026-07-14 12:40:27"
+    },
+    {
+        "Path":  "vadafok_studio\\voice_control\\matcher.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  7238,
+        "Modified":  "2026-07-14 12:06:13"
+    },
+    {
+        "Path":  "vadafok_studio\\voice_control\\quick_card_voice.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  11767,
+        "Modified":  "2026-07-14 15:26:26"
+    },
+    {
+        "Path":  "vadafok_studio\\voice_control\\voice_help.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  2298,
+        "Modified":  "2026-07-14 15:26:25"
+    },
+    {
+        "Path":  "vadafok_studio\\voice_control\\voice_library.json",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  5194,
+        "Modified":  "2026-07-14 12:06:13"
+    },
+    {
+        "Path":  "vadafok_studio\\voice_control\\whisper_dictation.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  8042,
+        "Modified":  "2026-07-14 12:06:13"
+    },
+    {
+        "Path":  "vadafok_studio\\voice_control\\whisper_settings.json",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  233,
+        "Modified":  "2026-07-14 12:06:13"
+    },
+    {
+        "Path":  "vadafok_studio\\workspace_state.py",
+        "Status":  "ACTIVE",
+        "Confidence":  "HIGH",
+        "Reason":  "Quellcode, Werkzeuge, Styles oder Laufzeit-Assets.",
+        "Suggestion":  "Behalten",
+        "SizeBytes":  3851,
+        "Modified":  "2026-07-15 12:57:24"
+    },
+    {
+        "Path":  "docs\\BANNER_WORKFLOW_2.17_RC1_APPEND.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.17\\notes\\",
+        "SizeBytes":  829,
+        "Modified":  "2026-07-14 18:29:47"
+    },
+    {
+        "Path":  "docs\\CLEANUP_ANALYZER_2.19_RC2.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.19\\notes\\",
+        "SizeBytes":  334,
+        "Modified":  "2026-07-15 14:48:23"
+    },
+    {
+        "Path":  "docs\\CLEANUP_ANALYZER_2.19_RC2A.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.19\\notes\\",
+        "SizeBytes":  305,
+        "Modified":  "2026-07-15 14:59:28"
+    },
+    {
+        "Path":  "docs\\CLEANUP_ANALYZER_2.19_RC2B.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.19\\notes\\",
+        "SizeBytes":  316,
+        "Modified":  "2026-07-15 15:03:57"
+    },
+    {
+        "Path":  "docs\\CLEANUP_INVENTORY_2.19_RC1.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.19\\notes\\",
+        "SizeBytes":  1538,
+        "Modified":  "2026-07-15 14:16:46"
+    },
+    {
+        "Path":  "docs\\IDEAS_2.19_RC1_APPEND.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.19\\notes\\",
+        "SizeBytes":  1207,
+        "Modified":  "2026-07-15 14:16:46"
+    },
+    {
+        "Path":  "docs\\OBS_ASSET_DISPLAY_IDEA_2.18_APPEND.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.18\\notes\\",
+        "SizeBytes":  1222,
+        "Modified":  "2026-07-15 12:26:57"
+    },
+    {
+        "Path":  "docs\\QUICK_CARDS_WORKFLOW_2.16.9_RC1.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.16\\notes\\",
+        "SizeBytes":  278,
+        "Modified":  "2026-07-14 18:08:19"
+    },
+    {
+        "Path":  "docs\\RELEASE_CHECKLIST.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historisches Release-Werkzeug oder Release-Dokument.",
+        "Suggestion":  "docs\\history\\misc\\release\\",
+        "SizeBytes":  384,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\ROADMAP_2.19_RC1_APPEND.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.19\\notes\\",
+        "SizeBytes":  1187,
+        "Modified":  "2026-07-15 14:16:46"
+    },
+    {
+        "Path":  "docs\\STREAM_WORKFLOW_2.18_RC1.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.18\\notes\\",
+        "SizeBytes":  1028,
+        "Modified":  "2026-07-15 12:26:57"
+    },
+    {
+        "Path":  "docs\\STREAM_WORKFLOW_2.18_RC1A.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.18\\notes\\",
+        "SizeBytes":  780,
+        "Modified":  "2026-07-15 12:57:25"
+    },
+    {
+        "Path":  "docs\\STREAM_WORKFLOW_2.18_RC1B.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.18\\notes\\",
+        "SizeBytes":  528,
+        "Modified":  "2026-07-15 13:11:18"
+    },
+    {
+        "Path":  "docs\\STREAM_WORKFLOW_2.18_RC1C.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.18\\notes\\",
+        "SizeBytes":  715,
+        "Modified":  "2026-07-15 13:22:17"
+    },
+    {
+        "Path":  "docs\\STREAM_WORKFLOW_2.18_RC1D.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.18\\notes\\",
+        "SizeBytes":  393,
+        "Modified":  "2026-07-15 13:30:30"
+    },
+    {
+        "Path":  "docs\\STREAM_WORKFLOW_2.18_RC1E.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.18\\notes\\",
+        "SizeBytes":  361,
+        "Modified":  "2026-07-15 13:39:05"
+    },
+    {
+        "Path":  "docs\\VOICE_CONTROL_2.16.7_RC1_APPEND.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.16\\notes\\",
+        "SizeBytes":  578,
+        "Modified":  "2026-07-14 12:40:27"
+    },
+    {
+        "Path":  "docs\\VOICE_QUICK_CARDS_2.16.8_RC1A.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.16\\notes\\",
+        "SizeBytes":  590,
+        "Modified":  "2026-07-14 14:09:02"
+    },
+    {
+        "Path":  "docs\\VOICE_QUICK_CARDS_2.16.8_RC1B.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.16\\notes\\",
+        "SizeBytes":  744,
+        "Modified":  "2026-07-14 14:40:40"
+    },
+    {
+        "Path":  "docs\\VOICE_QUICK_CARDS_2.16.8_RC1C.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historische RC-, Test- oder Ergänzungsnotiz.",
+        "Suggestion":  "docs\\history\\2.16\\notes\\",
+        "SizeBytes":  467,
+        "Modified":  "2026-07-14 15:26:25"
+    },
+    {
+        "Path":  "FINALIZE_RELEASE_2.16.6.bat",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historisches Release-Werkzeug oder Release-Dokument.",
+        "Suggestion":  "docs\\history\\2.16\\release\\",
+        "SizeBytes":  316,
+        "Modified":  "2026-07-14 12:06:10"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.16.7_RC1.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "Suggestion":  "docs\\history\\2.16\\install\\",
+        "SizeBytes":  1174,
+        "Modified":  "2026-07-14 12:40:27"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.16.8_RC1A.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "Suggestion":  "docs\\history\\2.16\\install\\",
+        "SizeBytes":  408,
+        "Modified":  "2026-07-14 14:09:02"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.16.8_RC1B.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "Suggestion":  "docs\\history\\2.16\\install\\",
+        "SizeBytes":  393,
+        "Modified":  "2026-07-14 14:40:40"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.16.8_RC1C.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "Suggestion":  "docs\\history\\2.16\\install\\",
+        "SizeBytes":  316,
+        "Modified":  "2026-07-14 15:26:25"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.16.9_RC1.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "Suggestion":  "docs\\history\\2.16\\install\\",
+        "SizeBytes":  215,
+        "Modified":  "2026-07-14 18:08:19"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.17_RC1.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "Suggestion":  "docs\\history\\2.17\\install\\",
+        "SizeBytes":  630,
+        "Modified":  "2026-07-14 18:29:47"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.18_RC1.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "Suggestion":  "docs\\history\\2.18\\install\\",
+        "SizeBytes":  625,
+        "Modified":  "2026-07-15 12:26:57"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.18_RC1A.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "Suggestion":  "docs\\history\\2.18\\install\\",
+        "SizeBytes":  591,
+        "Modified":  "2026-07-15 12:57:25"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.18_RC1B.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "Suggestion":  "docs\\history\\2.18\\install\\",
+        "SizeBytes":  853,
+        "Modified":  "2026-07-15 13:11:18"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.18_RC1C.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "Suggestion":  "docs\\history\\2.18\\install\\",
+        "SizeBytes":  969,
+        "Modified":  "2026-07-15 13:22:17"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.18_RC1D.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "Suggestion":  "docs\\history\\2.18\\install\\",
+        "SizeBytes":  435,
+        "Modified":  "2026-07-15 13:30:30"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.18_RC1E.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "Suggestion":  "docs\\history\\2.18\\install\\",
+        "SizeBytes":  445,
+        "Modified":  "2026-07-15 13:39:05"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.19_RC1.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "Suggestion":  "docs\\history\\2.19\\install\\",
+        "SizeBytes":  1542,
+        "Modified":  "2026-07-15 14:16:46"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.19_RC2_ANALYZER.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "Suggestion":  "docs\\history\\2.19\\install\\",
+        "SizeBytes":  1241,
+        "Modified":  "2026-07-15 14:48:23"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.19_RC2A_ANALYZER_FIX.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "Suggestion":  "docs\\history\\2.19\\install\\",
+        "SizeBytes":  1524,
+        "Modified":  "2026-07-15 14:59:28"
+    },
+    {
+        "Path":  "INSTALLIEREN_UND_TESTEN_2.19_RC2B_ANALYZER_PATH_FIX.txt",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Versionsgebundene Installations- oder RC/Test-Anleitung.",
+        "Suggestion":  "docs\\history\\2.19\\install\\",
+        "SizeBytes":  1386,
+        "Modified":  "2026-07-15 15:03:57"
+    },
+    {
+        "Path":  "RELEASE_2.16.6.md",
+        "Status":  "ARCHIVE_CANDIDATE",
+        "Confidence":  "HIGH",
+        "Reason":  "Historisches Release-Werkzeug oder Release-Dokument.",
+        "Suggestion":  "docs\\history\\2.16\\release\\",
+        "SizeBytes":  1397,
+        "Modified":  "2026-07-14 12:06:10"
+    },
+    {
+        "Path":  "data\\asset_meta.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  573,
+        "Modified":  "2026-07-14 18:36:44"
+    },
+    {
+        "Path":  "data\\banner_profiles.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  13621,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data\\card_values.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  1561,
+        "Modified":  "2026-07-14 12:09:13"
+    },
+    {
+        "Path":  "data\\config.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  1321,
+        "Modified":  "2026-07-15 14:19:53"
+    },
+    {
+        "Path":  "data\\favorites.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  467,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data\\quick_cards_workflow.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  143,
+        "Modified":  "2026-07-14 18:13:56"
+    },
+    {
+        "Path":  "data\\README.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  247,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data\\template_profiles.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  8576,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data\\templates\\.deleted_templates",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  162,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data\\templates\\.legacy_import_done",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  4,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data\\templates\\Default_Stream_Plan\\background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  2473776,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data\\templates\\Default_Stream_Plan\\template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  799,
+        "Modified":  "2026-07-14 12:47:42"
+    },
+    {
+        "Path":  "data\\templates\\New_08072026\\background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  2131526,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data\\templates\\New_08072026\\template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  1096,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data\\templates\\New_Template\\background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  2559626,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data\\templates\\New_Template\\template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  1087,
+        "Modified":  "2026-07-13 11:43:43"
+    },
+    {
+        "Path":  "data\\templates\\next_show_test_test\\background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  2131526,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data\\templates\\next_show_test_test\\template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  1358,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data\\templates\\now_showing\\background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  1800039,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data\\templates\\now_showing\\template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  2718,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data\\templates\\Test\\background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  2131526,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data\\templates\\Test\\template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  1080,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data\\templates\\test_zoom_etc\\background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  2131526,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data\\templates\\test_zoom_etc\\template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  1370,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data\\templates\\this_week\\background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  2155886,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data\\templates\\this_week\\template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  3388,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data\\templates\\zoom_test_2\\background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  2344439,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data\\templates\\zoom_test_2\\template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  1093,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data\\templates\\zoom_test_3\\background.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  2131526,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data\\templates\\zoom_test_3\\template.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  1464,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "data\\workspace_state.json",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Laufzeit- oder Benutzerdaten; nicht automatisch archivieren.",
+        "Suggestion":  "Behalten, bis Nutzung geklärt ist",
+        "SizeBytes":  176,
+        "Modified":  "2026-07-15 14:36:38"
+    },
+    {
+        "Path":  "docs\\00_PROJECT_VISION.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal.",
+        "Suggestion":  "Inhalt prüfen",
+        "SizeBytes":  688,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\01_DEVELOPMENT_RULES.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal.",
+        "Suggestion":  "Inhalt prüfen",
+        "SizeBytes":  452,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\01_GITHUB_SETUP.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal.",
+        "Suggestion":  "Inhalt prüfen",
+        "SizeBytes":  220,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\02_PROJECT_BOARD.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal.",
+        "Suggestion":  "Inhalt prüfen",
+        "SizeBytes":  189,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\03_LABELS.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal.",
+        "Suggestion":  "Inhalt prüfen",
+        "SizeBytes":  190,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\04_MILESTONES.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal.",
+        "Suggestion":  "Inhalt prüfen",
+        "SizeBytes":  146,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\05_GITHUB_WORKFLOW.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal.",
+        "Suggestion":  "Inhalt prüfen",
+        "SizeBytes":  265,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\batch_import_sample.csv",
+        "Status":  "REVIEW",
+        "Confidence":  "LOW",
+        "Reason":  "Keine sichere automatische Klassifikation.",
+        "Suggestion":  "Manuell prüfen",
+        "SizeBytes":  124,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\BUILD.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal.",
+        "Suggestion":  "Inhalt prüfen",
+        "SizeBytes":  53,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\cleanup_reports\\2.19_RC2\\cleanup_inventory.csv",
+        "Status":  "REVIEW",
+        "Confidence":  "LOW",
+        "Reason":  "Keine sichere automatische Klassifikation.",
+        "Suggestion":  "Manuell prüfen",
+        "SizeBytes":  41451,
+        "Modified":  "2026-07-15 14:49:08"
+    },
+    {
+        "Path":  "docs\\cleanup_reports\\2.19_RC2\\cleanup_report.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal.",
+        "Suggestion":  "Inhalt prüfen",
+        "SizeBytes":  23909,
+        "Modified":  "2026-07-15 14:49:08"
+    },
+    {
+        "Path":  "docs\\CODE_STYLE.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal.",
+        "Suggestion":  "Inhalt prüfen",
+        "SizeBytes":  96,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\CONTRIBUTING.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal.",
+        "Suggestion":  "Inhalt prüfen",
+        "SizeBytes":  60,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\DEVELOPMENT_WORKFLOW.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal.",
+        "Suggestion":  "Inhalt prüfen",
+        "SizeBytes":  112,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\KNOWN_ISSUES.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal.",
+        "Suggestion":  "Inhalt prüfen",
+        "SizeBytes":  271,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\README.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal.",
+        "Suggestion":  "Inhalt prüfen",
+        "SizeBytes":  161,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\RENDERING_FOUNDATION.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal.",
+        "Suggestion":  "Inhalt prüfen",
+        "SizeBytes":  1189,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\requirements.txt",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal.",
+        "Suggestion":  "Inhalt prüfen",
+        "SizeBytes":  56,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "docs\\TESTING.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal.",
+        "Suggestion":  "Inhalt prüfen",
+        "SizeBytes":  92,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "exports\\08_07_2026_Next_show_broadcast_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  2332202,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "exports\\08_07_2026_Next_show_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2332202,
+        "Modified":  "2026-07-13 11:43:44"
+    },
+    {
+        "Path":  "exports\\banner_editor_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  1743355,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports\\caption_render.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  1577725,
+        "Modified":  "2026-07-15 14:19:53"
+    },
+    {
+        "Path":  "exports\\card_001_broadcast_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  2358106,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports\\card_001_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2358106,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports\\card_002_broadcast_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  2354463,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports\\card_002_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2354463,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports\\card_Default_Stream_Plan_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2700053,
+        "Modified":  "2026-07-15 11:34:01"
+    },
+    {
+        "Path":  "exports\\card_Default_Stream_Plan_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  2351638,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports\\card_Default_Stream_Plan_instagram_square_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  1262801,
+        "Modified":  "2026-07-15 11:38:46"
+    },
+    {
+        "Path":  "exports\\card_Default_Stream_Plan_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  33855,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports\\card_Default_Stream_Plan_tiktok_vertical_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2738810,
+        "Modified":  "2026-07-15 11:39:12"
+    },
+    {
+        "Path":  "exports\\card_Default_Stream_Plan_youtube_thumb_preview.jpg",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  170076,
+        "Modified":  "2026-07-15 11:38:21"
+    },
+    {
+        "Path":  "exports\\card_New_08_07_2026_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2332202,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports\\card_New_Template_2_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  34238,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports\\card_New_Template_2_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  34238,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports\\card_New_Template_3_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2396855,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports\\card_New_Template_5_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2628147,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports\\card_New_Template_7_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2809839,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports\\card_New_Template_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  2350843,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports\\card_New_Template_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2345401,
+        "Modified":  "2026-07-13 11:43:45"
+    },
+    {
+        "Path":  "exports\\card_next_show_copy_test_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  2330464,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_next_show_copy_test_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2357129,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_next_show_test_test_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2345974,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_next_show_test_test_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  2345974,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_next_show_test_test_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2345974,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_now_showing_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2004909,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_now_showing_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2009720,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_now_showing_test_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2016036,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_Test_broadcast_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  2361200,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_Test_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2361200,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_Test_instagram_square_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  1123050,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_Test_instagram_square_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  1123050,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_Test_obs_overlay_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  2360524,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_Test_obs_overlay_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2360524,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_Test_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2360524,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_Test_tiktok_vertical_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  2394687,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_Test_tiktok_vertical_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2394687,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_Test_youtube_thumb_final.jpg",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  145751,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_Test_youtube_thumb_preview.jpg",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  145751,
+        "Modified":  "2026-07-13 11:43:46"
+    },
+    {
+        "Path":  "exports\\card_test_zoom_etc_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2396855,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports\\card_test_zoom_etc_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2396855,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports\\card_this_week_broadcast_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  2366879,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports\\card_this_week_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2366879,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports\\card_this_week_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  2366879,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports\\card_this_week_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2366879,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports\\card_zoom_test_2_broadcast_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  2568263,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports\\card_zoom_test_2_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2568263,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports\\card_zoom_test_2_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  2583974,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports\\card_zoom_test_2_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2568263,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports\\card_zoom_test_3_broadcast_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  2346201,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports\\card_zoom_test_3_broadcast_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2346968,
+        "Modified":  "2026-07-14 12:09:14"
+    },
+    {
+        "Path":  "exports\\card_zoom_test_3_final.png",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Exportdatei: absichtlich versioniert oder generiert?",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  2344740,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "exports\\card_zoom_test_3_preview.png",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Erzeugte Export-Vorschau; möglicherweise nicht zur Versionierung bestimmt.",
+        "Suggestion":  "Prüfen; eventuell .gitignore ergänzen",
+        "SizeBytes":  2344870,
+        "Modified":  "2026-07-13 11:43:47"
+    },
+    {
+        "Path":  "RENDERING_FOUNDATION.md",
+        "Status":  "REVIEW",
+        "Confidence":  "MEDIUM",
+        "Reason":  "Dokumentation ohne eindeutiges Aktiv-/Archiv-Signal.",
+        "Suggestion":  "Inhalt prüfen",
+        "SizeBytes":  1189,
+        "Modified":  "2026-07-13 11:43:48"
+    },
+    {
+        "Path":  "VADAFOK_CODE_ONLY.zip",
+        "Status":  "REVIEW",
+        "Confidence":  "HIGH",
+        "Reason":  "Eingechecktes Archiv; Nutzen und Aktualität prüfen.",
+        "Suggestion":  "Manuell entscheiden",
+        "SizeBytes":  521021,
+        "Modified":  "2026-07-13 11:43:48"
+    }
+]
