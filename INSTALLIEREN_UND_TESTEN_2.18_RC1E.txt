@@ -1,0 +1,15 @@
+VADAFOK Studio 2.18 RC1E
+Basis: 2.18 RC1D
+
+Installation:
+1. VADAFOK vollständig schließen.
+2. Paket direkt über den Projektordner entpacken.
+3. Überschreiben bestätigen.
+4. Programm starten.
+
+Gezielter Fix:
+- Vadafok Show verwendet nun denselben zentralen SHOW-Pfad wie die sichtbare SHOW-Schaltfläche.
+- Nach erfolgreicher OBS-Ausgabe wird der Entwurf gelöscht.
+- Alle anderen Entwurfsregeln bleiben unverändert.
+
+Noch nicht committen.

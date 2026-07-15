@@ -1,0 +1,36 @@
+VADAFOK Studio 2.18 RC1B
+========================
+
+BASIS
+-----
+Nur über den installierten Stand 2.18 RC1A kopieren.
+Nicht vorher zurücksetzen.
+
+INSTALLATION
+------------
+1. VADAFOK vollständig schließen.
+2. Inhalt dieser ZIP in den Hauptordner VADAFOK-Studio kopieren.
+3. Überschreiben bestätigen.
+4. VADAFOK starten.
+
+HAUPTTEST
+---------
+1. Live Card öffnen und Testtext eingeben.
+2. "Vadafok Stop" sagen.
+3. Live Card erneut öffnen.
+Erwartung: Das Textfeld ist leer.
+
+KONTROLLTESTS
+-------------
+- X und Escape behalten den Entwurf.
+- Reset löscht den Entwurf.
+- Show löscht den Entwurf nach erfolgreicher OBS-Ausgabe.
+- Stop im Quick-Card-Vorschlagsfenster schließt alles und löscht den Entwurf.
+
+ROLLBACK
+--------
+git restore .
+git clean -fd
+
+Achtung: git clean -fd löscht alle neuen, nicht eingecheckten Dateien.
+Noch nicht committen.

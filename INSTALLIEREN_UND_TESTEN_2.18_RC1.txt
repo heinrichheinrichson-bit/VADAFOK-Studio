@@ -1,0 +1,25 @@
+VADAFOK Studio 2.18 RC1 - Stream Workflow
+==========================================
+
+BASIS
+-----
+Installieren über den aktuell getesteten Stand 2.17 RC1.
+
+INSTALLATION
+------------
+1. VADAFOK Studio vollständig schließen.
+2. Den Inhalt dieser ZIP direkt in den Hauptordner VADAFOK-Studio kopieren.
+3. Überschreiben bestätigen.
+4. VADAFOK Studio starten.
+
+ROLLBACK
+--------
+Im Projektordner Git Bash öffnen:
+
+  git status
+  git restore .
+  git clean -fd
+
+ACHTUNG: git clean -fd löscht alle neuen, nicht eingecheckten Dateien und Ordner.
+
+Noch nicht committen. Erst die Testanleitung im Chat vollständig durchführen.

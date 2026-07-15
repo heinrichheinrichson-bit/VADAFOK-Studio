@@ -1,0 +1,42 @@
+VADAFOK Studio 2.18 RC1C – Installation und Test
+=================================================
+
+BASIS
+-----
+VADAFOK Studio 2.18 RC1B
+Nicht vorher zurücksetzen.
+
+INSTALLATION
+------------
+1. VADAFOK Studio vollständig schließen.
+2. Den gesamten Inhalt dieses ZIP-Archivs in den Hauptordner
+   VADAFOK-Studio kopieren.
+3. Überschreiben bestätigen.
+4. VADAFOK Studio starten.
+
+TEST
+----
+1. Live Card öffnen.
+2. Text eingeben oder diktieren.
+3. SHOW drücken oder "Vadafok Show" sagen.
+4. Prüfen, dass OBS den Text korrekt anzeigt.
+5. Live Card erneut öffnen.
+
+Erwartung: Das Textfeld ist leer und der gesendete Text erscheint nicht als
+Entwurf erneut.
+
+Kurz gegenprüfen:
+- X behält den Entwurf.
+- Escape behält den Entwurf.
+- Reset löscht den Entwurf.
+- Stop löscht den Entwurf.
+
+ROLLBACK
+--------
+git restore .
+git clean -fd
+
+Achtung: git clean -fd löscht sämtliche neuen, nicht eingecheckten Dateien
+und Ordner im Repository.
+
+Noch nicht committen.

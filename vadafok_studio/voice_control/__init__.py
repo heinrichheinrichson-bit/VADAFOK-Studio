@@ -19,5 +19,11 @@ def install_voice_foundation() -> None:
     except Exception as exc:
         print(f"[Banner Workflow] not installed: {exc}")
 
+    try:
+        from vadafok_studio.stream_workflow import install_stream_workflow
+        install_stream_workflow()
+    except Exception as exc:
+        print(f"[Stream Workflow] not installed: {exc}")
+
 
 __all__ = ["install_voice_foundation"]

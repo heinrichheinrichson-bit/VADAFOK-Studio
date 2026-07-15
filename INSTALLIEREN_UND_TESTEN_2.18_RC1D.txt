@@ -1,0 +1,19 @@
+VADAFOK Studio 2.18 RC1D
+Basis: 2.18 RC1C
+
+Installation:
+1. VADAFOK schließen.
+2. Paket über den Projektordner entpacken.
+3. Überschreiben bestätigen.
+4. Programm starten.
+
+Test:
+- SHOW löscht Entwurf.
+- Vadafok Show löscht Entwurf.
+- STOP-Schaltfläche löscht Entwurf.
+- Vadafok Stop löscht Entwurf.
+- Stop im Vorschlagsfenster löscht Entwurf.
+- RESET löscht Entwurf.
+- X und Escape behalten Entwurf.
+
+Noch nicht committen.

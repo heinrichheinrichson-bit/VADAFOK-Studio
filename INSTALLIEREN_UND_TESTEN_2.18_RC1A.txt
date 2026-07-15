@@ -1,0 +1,23 @@
+VADAFOK Studio 2.18 RC1A - Stream Workflow Polish
+==================================================
+
+BASIS
+-----
+Direkt über den aktuell installierten Stand 2.18 RC1 kopieren.
+Nicht vorher zurücksetzen.
+
+INSTALLATION
+------------
+1. VADAFOK Studio vollständig schließen.
+2. Inhalt dieser ZIP in den Hauptordner VADAFOK-Studio kopieren.
+3. Überschreiben bestätigen.
+4. VADAFOK Studio starten.
+
+ROLLBACK
+--------
+git status
+git restore .
+git clean -fd
+
+ACHTUNG: git clean -fd löscht alle neuen, nicht eingecheckten Dateien und Ordner.
+Noch nicht committen. Zuerst vollständig testen.
