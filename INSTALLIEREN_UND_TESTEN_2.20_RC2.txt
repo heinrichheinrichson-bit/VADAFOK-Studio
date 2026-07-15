@@ -1,0 +1,63 @@
+VADAFOK Studio 2.20 RC2 – Card Creator OBS Control
+=====================================================
+
+BASIS
+-----
+Commit:
+15a33c47c7260ded846518b7f710d0ab50284ea3
+
+Direkt über den gespeicherten und getesteten Stand 2.20 RC1 installieren.
+Nicht vorher zurücksetzen.
+
+DATEIEN
+-------
+GEÄNDERT:
+vadafok_studio/version.py
+vadafok_studio/card_creator_obs/__init__.py
+
+NEU:
+docs/CARD_CREATOR_OBS_2.20_RC2.md
+INSTALLIEREN_UND_TESTEN_2.20_RC2.txt
+
+INSTALLATION
+------------
+1. VADAFOK vollständig schließen.
+2. Im Projektordner `git status` ausführen.
+3. ZIP-Inhalt direkt in den Hauptordner kopieren.
+4. Überschreiben bestätigen.
+5. VADAFOK starten.
+
+TEST
+----
+1. Version oben und links: 2.20 RC2.
+2. Ohne OBS-Verbindung Card Creator öffnen:
+   - Status NOT CONNECTED.
+   - SHOW und HIDE deaktiviert.
+3. OBS Workflow öffnen und verbinden.
+4. Card Creator erneut öffnen oder kurz warten:
+   - SHOW und HIDE aktiv.
+   - Status READY, LIVE oder HIDDEN.
+5. SHOW IN OBS:
+   - Karte erscheint in OBS.
+   - Status LIVE mit Profil und Quelle.
+6. HIDE FROM OBS:
+   - Quelle wird ausgeblendet.
+   - Status HIDDEN.
+7. Erneut SHOW:
+   - Quelle wird wieder sichtbar.
+8. OBS-Verbindung trennen:
+   - Status wechselt zu NOT CONNECTED.
+   - Buttons werden deaktiviert.
+9. RENDER CARD prüfen:
+   - normaler Export funktioniert unverändert.
+10. Andere Module kurz prüfen.
+
+ROLLBACK
+--------
+Nur wenn alle lokalen Teständerungen verworfen werden dürfen:
+
+git restore .
+git clean -fd
+
+Achtung: git clean -fd löscht alle neuen, nicht eingecheckten Dateien.
+Noch nicht committen.
