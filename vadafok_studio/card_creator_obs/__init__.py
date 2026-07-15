@@ -1,9 +1,10 @@
-"""Timed Card Creator -> OBS control integration for VADAFOK Studio 2.21 RC2."""
+"""Timed Card Creator -> OBS control integration for VADAFOK Studio 2.21.3."""
 
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
+import json
 
 import customtkinter as ctk
 from tkinter import messagebox
@@ -24,6 +25,11 @@ _DURATION_OPTIONS = {
 
 _CUSTOM_MIN_SECONDS = 1
 _CUSTOM_MAX_SECONDS = 3600
+
+_SETTINGS_DIR = Path.home() / ".vadafok_studio"
+_SETTINGS_FILE = _SETTINGS_DIR / "card_creator_obs_settings.json"
+_DEFAULT_DURATION = "Until Hidden"
+_DEFAULT_CUSTOM_SECONDS = 120
 
 
 def _render_final_card(app: Any) -> Path:
@@ -54,6 +60,67 @@ def _selected_profile(app: Any) -> str:
     return str(profile_var.get()).strip() if profile_var is not None else "aktuelles Profil"
 
 
+def _load_duration_settings() -> dict[str, Any]:
+    defaults = {
+        "duration": _DEFAULT_DURATION,
+        "custom_seconds": _DEFAULT_CUSTOM_SECONDS,
+    }
+
+    try:
+        if not _SETTINGS_FILE.exists():
+            return defaults
+
+        data = json.loads(_SETTINGS_FILE.read_text(encoding="utf-8"))
+        duration = str(data.get("duration", _DEFAULT_DURATION)).strip()
+        custom_seconds = int(data.get("custom_seconds", _DEFAULT_CUSTOM_SECONDS))
+
+        if duration not in _DURATION_OPTIONS:
+            duration = _DEFAULT_DURATION
+
+        if not (_CUSTOM_MIN_SECONDS <= custom_seconds <= _CUSTOM_MAX_SECONDS):
+            custom_seconds = _DEFAULT_CUSTOM_SECONDS
+
+        return {
+            "duration": duration,
+            "custom_seconds": custom_seconds,
+        }
+    except Exception:
+        return defaults
+
+
+def _save_duration_settings(app: Any) -> None:
+    try:
+        duration = _selected_duration_label(app)
+        custom_seconds = _custom_duration_seconds(app, show_error=False)
+
+        if custom_seconds is None:
+            custom_seconds = int(
+                getattr(
+                    app,
+                    "_card_creator_obs_last_custom_seconds",
+                    _DEFAULT_CUSTOM_SECONDS,
+                )
+            )
+
+        if not (_CUSTOM_MIN_SECONDS <= custom_seconds <= _CUSTOM_MAX_SECONDS):
+            custom_seconds = _DEFAULT_CUSTOM_SECONDS
+
+        _SETTINGS_DIR.mkdir(parents=True, exist_ok=True)
+        _SETTINGS_FILE.write_text(
+            json.dumps(
+                {
+                    "duration": duration,
+                    "custom_seconds": custom_seconds,
+                },
+                indent=2,
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+    except Exception:
+        pass
+
+
 def _selected_duration_label(app: Any) -> str:
     duration_var = getattr(app, "_card_creator_obs_duration_var", None)
     if duration_var is None:
@@ -79,8 +146,24 @@ def _custom_duration_seconds(app: Any, *, show_error: bool = False) -> int | Non
             )
         return None
 
+    # Eingaben wie "00120" oder " 60 " werden sichtbar bereinigt.
+    if custom_var is not None:
+        try:
+            custom_var.set(str(seconds))
+        except Exception:
+            pass
+
     app._card_creator_obs_last_custom_seconds = seconds
     return seconds
+
+
+def _normalize_custom_duration(app: Any, *, show_error: bool = False) -> bool:
+    seconds = _custom_duration_seconds(app, show_error=show_error)
+    if seconds is None:
+        return False
+
+    _save_duration_settings(app)
+    return True
 
 
 def _selected_duration_seconds(app: Any, *, show_error: bool = False) -> int | None:
@@ -124,6 +207,7 @@ def _set_custom_duration_visibility(app: Any) -> None:
 
 def _on_duration_changed(app: Any, _value: str) -> None:
     _set_custom_duration_visibility(app)
+    _save_duration_settings(app)
     _refresh_obs_controls(app, schedule_next=False)
 
 
@@ -250,16 +334,22 @@ def _refresh_obs_controls(app: Any, *, schedule_next: bool = True) -> None:
             if enabled is True:
                 profile = _selected_profile(app)
                 remaining = _remaining_seconds(app)
-                if remaining is not None:
+                if remaining is not None and _selected_duration_label(app) == "Custom...":
+                    duration_text = f"CUSTOM  •  AUTO HIDE IN {remaining}s"
+                elif remaining is not None:
                     duration_text = f"AUTO HIDE IN {remaining}s"
                 elif _selected_duration_label(app) == "Until Hidden":
                     duration_text = "UNTIL HIDDEN"
                 elif _selected_duration_label(app) == "Custom...":
                     custom_seconds = _custom_duration_seconds(app, show_error=False)
                     duration_text = (
-                        f"CUSTOM {custom_seconds}s"
-                        if custom_seconds is not None
-                        else "CUSTOM"
+                        f"CUSTOM  •  AUTO HIDE IN {remaining}s"
+                        if remaining is not None
+                        else (
+                            f"CUSTOM {custom_seconds}s"
+                            if custom_seconds is not None
+                            else "CUSTOM"
+                        )
                     )
                 else:
                     duration_text = _selected_duration_label(app).upper()
@@ -318,6 +408,10 @@ def card_show_current_in_obs(self: Any) -> None:
             _set_obs_status(self, f"OBS STATUS  •  HIDDEN  •  {source_name}", _COLOR_HIDDEN)
             return
 
+        if duration_label == "Custom...":
+            _normalize_custom_duration(self, show_error=False)
+
+        _save_duration_settings(self)
         _schedule_auto_hide(self, duration_seconds)
         duration_text = _duration_display_text(self, duration_seconds)
         _set_render_status(self, f"OBS LIVE: {image_path.name} ({profile}, {duration_text})", _COLOR_LIVE)
@@ -385,7 +479,13 @@ def _inject_obs_controls(app: Any) -> None:
         )
         duration_title.grid(row=2, column=0, columnspan=2, padx=0, pady=(8, 3), sticky="ew")
 
-        duration_var = ctk.StringVar(value="Until Hidden")
+        saved_settings = _load_duration_settings()
+        saved_duration = str(saved_settings.get("duration", _DEFAULT_DURATION))
+        saved_custom_seconds = int(
+            saved_settings.get("custom_seconds", _DEFAULT_CUSTOM_SECONDS)
+        )
+
+        duration_var = ctk.StringVar(value=saved_duration)
         duration_menu = ctk.CTkOptionMenu(
             action_frame,
             variable=duration_var,
@@ -397,10 +497,10 @@ def _inject_obs_controls(app: Any) -> None:
             text_color="#F2E2B6",
             command=lambda value: _on_duration_changed(app, value),
         )
-        duration_menu.grid(row=3, column=0, columnspan=2, padx=0, pady=(0, 6), sticky="ew")
+        duration_menu.grid(row=3, column=0, columnspan=2, padx=0, pady=(0, 2), sticky="ew")
 
-        last_custom = int(getattr(app, "_card_creator_obs_last_custom_seconds", 120))
-        custom_duration_var = ctk.StringVar(value=str(last_custom))
+        app._card_creator_obs_last_custom_seconds = saved_custom_seconds
+        custom_duration_var = ctk.StringVar(value=str(saved_custom_seconds))
 
         custom_duration_frame = ctk.CTkFrame(
             action_frame,
@@ -411,7 +511,7 @@ def _inject_obs_controls(app: Any) -> None:
             column=0,
             columnspan=2,
             padx=0,
-            pady=(0, 6),
+            pady=(2, 6),
             sticky="ew",
         )
         custom_duration_frame.grid_columnconfigure(1, weight=1)
@@ -433,6 +533,14 @@ def _inject_obs_controls(app: Any) -> None:
             placeholder_text="120",
         )
         custom_entry.grid(row=0, column=1, sticky="ew")
+        custom_entry.bind(
+            "<FocusOut>",
+            lambda _event: _normalize_custom_duration(app, show_error=False),
+        )
+        custom_entry.bind(
+            "<Return>",
+            lambda _event: _normalize_custom_duration(app, show_error=True),
+        )
 
         custom_unit = ctk.CTkLabel(
             custom_duration_frame,

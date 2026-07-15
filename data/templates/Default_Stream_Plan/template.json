@@ -3,23 +3,9 @@
   "background": "background.png",
   "fields": [
     {
-      "name": "game",
-      "x": 120,
-      "y": 190,
-      "width": 567,
-      "height": 120,
-      "font_family": "Bebas Neue",
-      "font_size": 110,
-      "text_color": "#FFFFFF",
-      "stroke_color": "#000000",
-      "stroke_width": 3,
-      "uppercase": true,
-      "id": "c5efcff0-e6ad-45ba-a54d-953a51fed1b2"
-    },
-    {
       "name": "time",
-      "x": 120,
-      "y": 340,
+      "x": 118,
+      "y": 347,
       "width": 360,
       "height": 90,
       "font_family": "Bebas Neue",
