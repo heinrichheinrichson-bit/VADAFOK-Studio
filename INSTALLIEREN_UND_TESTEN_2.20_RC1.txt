@@ -1,0 +1,70 @@
+VADAFOK Studio 2.20 RC1 – Card Creator → OBS Live Display
+============================================================
+
+FESTE BASIS
+-----------
+Commit:
+8619d5a7e765395c7c006224d4c9eb3c6ccfda8f
+
+Installiere dieses Overlay ausschließlich über genau diesen gespeicherten Stand.
+
+GEÄNDERTE / NEUE DATEIEN
+------------------------
+GEÄNDERT:
+vadafok_studio/version.py
+vadafok_studio/voice_control/__init__.py
+
+NEU:
+vadafok_studio/card_creator_obs/__init__.py
+docs/CARD_CREATOR_OBS_2.20_RC1.md
+INSTALLIEREN_UND_TESTEN_2.20_RC1.txt
+
+INSTALLATION
+------------
+1. VADAFOK Studio vollständig schließen.
+2. Im Projektordner ausführen:
+   git status
+3. Nur fortfahren, wenn keine ungesicherten eigenen Änderungen vorhanden sind.
+4. ZIP öffnen.
+5. Den gesamten Inhalt direkt in den Hauptordner VADAFOK-Studio kopieren.
+6. Überschreiben bestätigen.
+7. VADAFOK starten.
+
+OBS-VORAUSSETZUNG
+-----------------
+RC1 verwendet die vorhandene Einstellung:
+Scene Card Source
+
+In OBS muss in der aktuellen Szene eine Bildquelle mit genau diesem Namen
+vorhanden sein. Der vorhandene OBS Workflow wird weiterhin zur Verbindung benutzt.
+
+TEST
+----
+1. Version oben und links: 2.20 RC1.
+2. OBS über OBS Workflow verbinden.
+3. Card Creator öffnen.
+4. Template und Export Profile auswählen.
+5. Felder ausfüllen.
+6. SHOW IN OBS drücken.
+7. Das frisch gerenderte Template muss in OBS erscheinen.
+8. Normalen Export mit RENDER CARD prüfen.
+9. OBS trennen und SHOW IN OBS erneut drücken:
+   verständliche Warnung, kein Absturz.
+10. In OBS die konfigurierte Bildquelle testweise umbenennen:
+    verständliche Fehlermeldung, kein Absturz.
+11. Quelle danach wieder korrekt benennen.
+
+WICHTIG
+-------
+RC1 blendet die Quelle ein, aber noch nicht automatisch aus.
+Ausblenden erfolgt in RC1 weiterhin manuell in OBS.
+
+ROLLBACK
+--------
+Bei Problemen, wenn alle lokalen Teständerungen verworfen werden dürfen:
+
+git restore .
+git clean -fd
+
+Achtung: git clean -fd löscht alle neuen, nicht eingecheckten Dateien.
+Noch nicht committen.
