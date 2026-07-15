@@ -1,4 +1,4 @@
-"""Timed Card Creator -> OBS control integration for VADAFOK Studio 2.21 RC1."""
+"""Timed Card Creator -> OBS control integration for VADAFOK Studio 2.21 RC2."""
 
 from __future__ import annotations
 
@@ -19,7 +19,11 @@ _DURATION_OPTIONS = {
     "Until Hidden": None,
     "30 Seconds": 30,
     "60 Seconds": 60,
+    "Custom...": "custom",
 }
+
+_CUSTOM_MIN_SECONDS = 1
+_CUSTOM_MAX_SECONDS = 3600
 
 
 def _render_final_card(app: Any) -> Path:
@@ -58,8 +62,69 @@ def _selected_duration_label(app: Any) -> str:
     return value if value in _DURATION_OPTIONS else "Until Hidden"
 
 
-def _selected_duration_seconds(app: Any) -> int | None:
-    return _DURATION_OPTIONS[_selected_duration_label(app)]
+def _custom_duration_seconds(app: Any, *, show_error: bool = False) -> int | None:
+    custom_var = getattr(app, "_card_creator_obs_custom_duration_var", None)
+    raw_value = str(custom_var.get()).strip() if custom_var is not None else ""
+
+    try:
+        seconds = int(raw_value)
+    except (TypeError, ValueError):
+        seconds = None
+
+    if seconds is None or not (_CUSTOM_MIN_SECONDS <= seconds <= _CUSTOM_MAX_SECONDS):
+        if show_error:
+            messagebox.showwarning(
+                "Ungültige Anzeigedauer",
+                "Bitte eine gültige Dauer zwischen 1 und 3600 Sekunden eingeben.",
+            )
+        return None
+
+    app._card_creator_obs_last_custom_seconds = seconds
+    return seconds
+
+
+def _selected_duration_seconds(app: Any, *, show_error: bool = False) -> int | None:
+    label = _selected_duration_label(app)
+    value = _DURATION_OPTIONS[label]
+
+    if value == "custom":
+        return _custom_duration_seconds(app, show_error=show_error)
+
+    return value
+
+
+def _duration_display_text(app: Any, seconds: int | None) -> str:
+    label = _selected_duration_label(app)
+
+    if seconds is None:
+        return "Until Hidden"
+
+    if label == "Custom...":
+        return f"Custom: {seconds} Seconds"
+
+    return f"Auto Hide: {seconds} Seconds"
+
+
+def _set_custom_duration_visibility(app: Any) -> None:
+    frame = getattr(app, "_card_creator_obs_custom_duration_frame", None)
+    if frame is None:
+        return
+
+    try:
+        if _selected_duration_label(app) == "Custom...":
+            frame.grid()
+            entry = getattr(app, "_card_creator_obs_custom_duration_entry", None)
+            if entry is not None:
+                entry.focus_set()
+        else:
+            frame.grid_remove()
+    except Exception:
+        pass
+
+
+def _on_duration_changed(app: Any, _value: str) -> None:
+    _set_custom_duration_visibility(app)
+    _refresh_obs_controls(app, schedule_next=False)
 
 
 def _set_render_status(app: Any, text: str, color: str) -> None:
@@ -189,6 +254,13 @@ def _refresh_obs_controls(app: Any, *, schedule_next: bool = True) -> None:
                     duration_text = f"AUTO HIDE IN {remaining}s"
                 elif _selected_duration_label(app) == "Until Hidden":
                     duration_text = "UNTIL HIDDEN"
+                elif _selected_duration_label(app) == "Custom...":
+                    custom_seconds = _custom_duration_seconds(app, show_error=False)
+                    duration_text = (
+                        f"CUSTOM {custom_seconds}s"
+                        if custom_seconds is not None
+                        else "CUSTOM"
+                    )
                 else:
                     duration_text = _selected_duration_label(app).upper()
                 _set_obs_status(
@@ -234,10 +306,20 @@ def card_show_current_in_obs(self: Any) -> None:
         self.obs.enable_source(scene_name, source_name, True)
 
         profile = _selected_profile(self)
-        duration_seconds = _selected_duration_seconds(self)
-        _schedule_auto_hide(self, duration_seconds)
+        duration_label = _selected_duration_label(self)
+        duration_seconds = _selected_duration_seconds(
+            self,
+            show_error=(duration_label == "Custom..."),
+        )
 
-        duration_text = "Until Hidden" if duration_seconds is None else f"Auto Hide: {duration_seconds} Seconds"
+        if duration_label == "Custom..." and duration_seconds is None:
+            self.obs.enable_source(scene_name, source_name, False)
+            _set_render_status(self, "Ungültige Custom-Dauer. Karte wurde nicht eingeblendet.", _COLOR_OFFLINE)
+            _set_obs_status(self, f"OBS STATUS  •  HIDDEN  •  {source_name}", _COLOR_HIDDEN)
+            return
+
+        _schedule_auto_hide(self, duration_seconds)
+        duration_text = _duration_display_text(self, duration_seconds)
         _set_render_status(self, f"OBS LIVE: {image_path.name} ({profile}, {duration_text})", _COLOR_LIVE)
         _set_obs_status(
             self,
@@ -292,7 +374,7 @@ def _inject_obs_controls(app: Any) -> None:
             _refresh_obs_controls(app, schedule_next=False)
             return
 
-        status_label.grid_configure(row=7, column=0, columnspan=2, pady=(8, 0), sticky="w")
+        status_label.grid_configure(row=8, column=0, columnspan=2, pady=(8, 0), sticky="w")
 
         duration_title = ctk.CTkLabel(
             action_frame,
@@ -313,9 +395,52 @@ def _inject_obs_controls(app: Any) -> None:
             button_color="#4B4230",
             button_hover_color="#665A40",
             text_color="#F2E2B6",
-            command=lambda _value: _refresh_obs_controls(app, schedule_next=False),
+            command=lambda value: _on_duration_changed(app, value),
         )
         duration_menu.grid(row=3, column=0, columnspan=2, padx=0, pady=(0, 6), sticky="ew")
+
+        last_custom = int(getattr(app, "_card_creator_obs_last_custom_seconds", 120))
+        custom_duration_var = ctk.StringVar(value=str(last_custom))
+
+        custom_duration_frame = ctk.CTkFrame(
+            action_frame,
+            fg_color="transparent",
+        )
+        custom_duration_frame.grid(
+            row=4,
+            column=0,
+            columnspan=2,
+            padx=0,
+            pady=(0, 6),
+            sticky="ew",
+        )
+        custom_duration_frame.grid_columnconfigure(1, weight=1)
+
+        custom_label = ctk.CTkLabel(
+            custom_duration_frame,
+            text="CUSTOM DURATION",
+            anchor="w",
+            text_color="#D6C27A",
+            font=ctk.CTkFont(size=11, weight="bold"),
+        )
+        custom_label.grid(row=0, column=0, padx=(0, 8), sticky="w")
+
+        custom_entry = ctk.CTkEntry(
+            custom_duration_frame,
+            textvariable=custom_duration_var,
+            width=90,
+            justify="center",
+            placeholder_text="120",
+        )
+        custom_entry.grid(row=0, column=1, sticky="ew")
+
+        custom_unit = ctk.CTkLabel(
+            custom_duration_frame,
+            text="Seconds",
+            anchor="w",
+            text_color="#B8B8B8",
+        )
+        custom_unit.grid(row=0, column=2, padx=(8, 0), sticky="w")
 
         show_button = ctk.CTkButton(
             action_frame,
@@ -327,7 +452,7 @@ def _inject_obs_controls(app: Any) -> None:
             font=ctk.CTkFont(weight="bold"),
             command=app.card_show_current_in_obs,
         )
-        show_button.grid(row=4, column=0, columnspan=2, padx=0, pady=(4, 2), sticky="ew")
+        show_button.grid(row=5, column=0, columnspan=2, padx=0, pady=(4, 2), sticky="ew")
 
         hide_button = ctk.CTkButton(
             action_frame,
@@ -339,7 +464,7 @@ def _inject_obs_controls(app: Any) -> None:
             font=ctk.CTkFont(weight="bold"),
             command=app.card_hide_from_obs,
         )
-        hide_button.grid(row=5, column=0, columnspan=2, padx=0, pady=(4, 2), sticky="ew")
+        hide_button.grid(row=6, column=0, columnspan=2, padx=0, pady=(4, 2), sticky="ew")
 
         obs_status = ctk.CTkLabel(
             action_frame,
@@ -350,10 +475,13 @@ def _inject_obs_controls(app: Any) -> None:
             text_color=_COLOR_NEUTRAL,
             font=ctk.CTkFont(size=12, weight="bold"),
         )
-        obs_status.grid(row=6, column=0, columnspan=2, padx=0, pady=(7, 2), sticky="ew")
+        obs_status.grid(row=7, column=0, columnspan=2, padx=0, pady=(7, 2), sticky="ew")
 
         app._card_creator_obs_duration_var = duration_var
         app._card_creator_obs_duration_menu = duration_menu
+        app._card_creator_obs_custom_duration_var = custom_duration_var
+        app._card_creator_obs_custom_duration_frame = custom_duration_frame
+        app._card_creator_obs_custom_duration_entry = custom_entry
         app._card_creator_obs_show_button = show_button
         app._card_creator_obs_hide_button = hide_button
         app._card_creator_obs_status_label = obs_status
@@ -361,6 +489,7 @@ def _inject_obs_controls(app: Any) -> None:
         app._card_creator_obs_auto_hide_deadline = None
         app._card_creator_obs_button = show_button
 
+        _set_custom_duration_visibility(app)
         _refresh_obs_controls(app, schedule_next=True)
     except Exception as exc:
         print(f"[Timed Card Creator OBS] Controls konnten nicht eingesetzt werden: {exc}")

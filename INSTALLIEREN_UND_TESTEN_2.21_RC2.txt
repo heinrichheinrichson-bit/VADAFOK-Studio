@@ -1,0 +1,39 @@
+VADAFOK Studio 2.21 RC2 – Custom Display Duration
+=====================================================
+
+BASIS
+-----
+Direkt über den getesteten Stand 2.21 RC1 installieren.
+Nicht vorher zurücksetzen.
+
+INSTALLATION
+------------
+1. VADAFOK vollständig schließen.
+2. Im Projektordner `git status` prüfen.
+3. ZIP-Inhalt direkt in den Hauptordner kopieren.
+4. Überschreiben bestätigen.
+5. VADAFOK starten.
+
+TEST
+----
+1. Version: 2.21 RC2.
+2. `Custom...` ist in DISPLAY DURATION sichtbar.
+3. Bei Custom erscheint das Sekundenfeld.
+4. Beim Wechsel auf eine andere Dauer verschwindet das Feld.
+5. Testwerte:
+   - 1 akzeptiert;
+   - 3600 akzeptiert;
+   - 0 abgelehnt;
+   - -5 abgelehnt;
+   - abc abgelehnt;
+   - leeres Feld abgelehnt.
+6. Mit Custom 5 Sekunden:
+   - SHOW;
+   - Status zählt herunter;
+   - automatische Ausblendung nach ungefähr 5 Sekunden.
+7. Erneutes SHOW startet den Timer neu.
+8. HIDE beendet den Timer sofort.
+9. Until Hidden, 30 und 60 Sekunden funktionieren weiterhin.
+10. RENDER CARD und andere Module funktionieren weiterhin.
+
+Noch nicht committen.
