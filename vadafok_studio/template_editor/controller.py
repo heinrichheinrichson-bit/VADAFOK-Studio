@@ -31,5 +31,16 @@ class TemplateEditorController:
         self.app.template_selected_field = None
         self.app.template_selected_fields = set()
         self.app.template_working_data = self._load_template(name)
-        self.app.show_template_editor_page()
+
+        refresh = getattr(
+            self.app,
+            "template_refresh_selected_template",
+            None,
+        )
+        if callable(refresh):
+            refresh()
+        else:
+            # Defensive fallback for partially upgraded installations.
+            self.app.show_template_editor_page()
+
         return True

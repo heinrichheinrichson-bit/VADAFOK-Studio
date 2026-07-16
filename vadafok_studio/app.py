@@ -3540,18 +3540,21 @@ class VadafokStudio(ctk.CTk):
         template_list.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
 
         default_template_name = get_default_template()
+        self.template_list_buttons = {}
         for name in sorted(list_templates()):
             prefix = "✓ " if name == self.template_selected_name else ""
             if name == default_template_name:
                 prefix += "★ "
-            ctk.CTkButton(
+            button = ctk.CTkButton(
                 template_list,
                 text=prefix + name,
                 anchor="w",
                 fg_color="#171717",
                 hover_color="#2C2C2C",
                 command=lambda n=name: self.template_select(n)
-            ).pack(fill="x", padx=8, pady=4)
+            )
+            button.pack(fill="x", padx=8, pady=4)
+            self.template_list_buttons[name] = button
 
         right = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         right.grid(row=0, column=1, sticky="nsew", padx=(12, 0))
@@ -3753,6 +3756,41 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkButton(group_bar, text="GROUP SELECTED", fg_color="#333333", hover_color="#444444", command=self.template_create_group).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
         ctk.CTkButton(group_bar, text="UNGROUP", fg_color="#333333", hover_color="#444444", command=self.template_ungroup_selected).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
 
+        self.template_draw_canvas()
+        self.template_build_style_presets_panel()
+        self.template_build_layers_panel()
+
+    def template_refresh_template_list_selection(self):
+        buttons = getattr(self, "template_list_buttons", {})
+        available = sorted(list_templates())
+
+        if set(buttons) != set(available):
+            return False
+
+        default_name = get_default_template()
+        for name, button in buttons.items():
+            prefix = "✓ " if name == self.template_selected_name else ""
+            if name == default_name:
+                prefix += "★ "
+            try:
+                button.configure(text=prefix + name)
+            except Exception:
+                return False
+
+        return True
+
+    def template_refresh_selected_template(self):
+        self.template_refresh_template_list_selection()
+
+        status_label = getattr(self, "template_status_label", None)
+        if status_label is not None:
+            try:
+                status_label.configure(text=self.template_selected_name)
+            except Exception:
+                pass
+
+        self.template_build_properties_panel()
+        self.template_ensure_field_ids()
         self.template_draw_canvas()
         self.template_build_style_presets_panel()
         self.template_build_layers_panel()

@@ -1,11 +1,11 @@
 {
-  "name": "New Template",
+  "name": "New Template 2",
   "background": "background.png",
   "fields": [
     {
       "name": "date",
-      "x": 320,
-      "y": 759,
+      "x": 296,
+      "y": 845,
       "width": 420,
       "height": 90,
       "font_family": "Bebas Neue",
@@ -14,13 +14,13 @@
       "stroke_color": "#000000",
       "stroke_width": 3,
       "uppercase": true,
-      "id": "93227bc4-4ef1-46b0-8120-198a92884ab1"
+      "id": "36576f90-fdb2-4475-a405-db069fec06bb"
     },
     {
       "name": "game",
-      "x": 93,
-      "y": 392,
-      "width": 874,
+      "x": 43,
+      "y": 1117,
+      "width": 900,
       "height": 120,
       "font_family": "Bebas Neue",
       "font_size": 110,
@@ -28,12 +28,12 @@
       "stroke_color": "#000000",
       "stroke_width": 3,
       "uppercase": true,
-      "id": "c5d44b07-b7c2-4de0-b001-1fd04187ce10"
+      "id": "3d04c07a-5f2b-43dd-a059-fb473683f9bb"
     },
     {
       "name": "time",
-      "x": 350,
-      "y": 582,
+      "x": 120,
+      "y": 340,
       "width": 360,
       "height": 90,
       "font_family": "Bebas Neue",
@@ -42,13 +42,13 @@
       "stroke_color": "#000000",
       "stroke_width": 3,
       "uppercase": true,
-      "id": "ed93d72b-3578-4d5d-93ba-8bf15f96c9e1"
+      "id": "031a5707-9e1a-442a-b481-81eaaf291d7c"
     },
     {
-      "name": "date_copy",
-      "x": 350,
-      "y": 910,
-      "width": 420,
+      "name": "field_4",
+      "x": 216,
+      "y": 677,
+      "width": 500,
       "height": 90,
       "font_family": "Bebas Neue",
       "font_size": 90,
@@ -56,21 +56,7 @@
       "stroke_color": "#000000",
       "stroke_width": 3,
       "uppercase": true,
-      "id": "a92b55ff-9cce-4238-a575-9aa276460084"
-    },
-    {
-      "name": "date_copy_copy",
-      "x": 249,
-      "y": 1092,
-      "width": 420,
-      "height": 90,
-      "font_family": "Bebas Neue",
-      "font_size": 90,
-      "text_color": "#FFFFFF",
-      "stroke_color": "#000000",
-      "stroke_width": 3,
-      "uppercase": true,
-      "id": "93a66f98-cb7c-484c-b738-df6762ca80c4"
+      "id": "18c63cf5-2e08-4111-84a9-6445777afb4e"
     }
   ],
   "groups": []
