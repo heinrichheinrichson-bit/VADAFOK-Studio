@@ -105,18 +105,13 @@ def _thread_exception_hook(args: Any) -> None:
 
 
 def _install_tk_callback_hook() -> None:
-    """Log uncaught Tk callback exceptions globally without changing UI flows."""
+    """Log uncaught Tk callback exceptions globally."""
     try:
         import tkinter
 
-        if getattr(
-            tkinter.Misc.report_callback_exception,
-            "_vadafok_logging_installed",
-            False,
-        ):
+        original = tkinter.Tk.report_callback_exception
+        if getattr(original, "_vadafok_logging_installed", False):
             return
-
-        original = tkinter.Misc.report_callback_exception
 
         def report_callback_exception(
             self: Any,
@@ -134,7 +129,8 @@ def _install_tk_callback_hook() -> None:
                 LOGGER.exception("Original Tk exception handler failed")
 
         report_callback_exception._vadafok_logging_installed = True
-        tkinter.Misc.report_callback_exception = report_callback_exception
+        tkinter.Tk.report_callback_exception = report_callback_exception
+        LOGGER.debug("Tk callback exception hook installed")
     except Exception:
         LOGGER.exception("Tk callback logging hook could not be installed")
 

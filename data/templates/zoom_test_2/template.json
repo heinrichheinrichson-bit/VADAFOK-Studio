@@ -5,7 +5,7 @@
     {
       "name": "game",
       "x": 156,
-      "y": 1368,
+      "y": 1367,
       "width": 623,
       "height": 120,
       "font_family": "Bebas Neue",
@@ -19,7 +19,7 @@
     {
       "name": "date",
       "x": 164,
-      "y": 817,
+      "y": 816,
       "width": 623,
       "height": 120,
       "font_family": "Bebas Neue",

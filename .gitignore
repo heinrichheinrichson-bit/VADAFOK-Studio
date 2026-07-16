@@ -1,16 +1,17 @@
 # Python
 __pycache__/
 *.pyc
-
 # Build
 build/
 dist/
-
 # PyInstaller
 *.spec
-
 # persönliche Einstellungen
 data/config.json
-
 # PyCharm
-.idea/\n\n# Runtime logs\nlogs/\n
+.idea/
+# Runtime logs
+logs/
+
+# Development and runtime files
+*.bak
