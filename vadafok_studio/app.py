@@ -5264,16 +5264,13 @@ class VadafokStudio(ctk.CTk):
 
         self.card_refresh_recent_templates()
 
-        for name in sorted(list_templates()):
-            prefix = "✓ " if name == self.card_selected_template.get() else ""
-            ctk.CTkButton(
-                tlist,
-                text=prefix + name,
-                anchor="w",
-                fg_color="#171717",
-                hover_color="#2C2C2C",
-                command=lambda n=name: self.card_select_template(n)
-            ).pack(fill="x", padx=8, pady=4)
+        self.card_all_templates_frame = ctk.CTkFrame(
+            tlist,
+            fg_color="transparent",
+        )
+        self.card_all_templates_frame.pack(fill="x", padx=0, pady=0)
+        self.card_template_buttons = {}
+        self.card_build_all_template_buttons()
 
         preview = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
         preview.grid(row=0, column=1, sticky="nsew", padx=12)
@@ -5381,6 +5378,51 @@ class VadafokStudio(ctk.CTk):
         self.card_build_form()
         self.card_build_batch_panel()
         self.card_update_preview()
+    def card_build_all_template_buttons(self):
+        frame = getattr(self, "card_all_templates_frame", None)
+        if frame is None:
+            return
+
+        try:
+            if not frame.winfo_exists():
+                return
+        except Exception:
+            return
+
+        for child in frame.winfo_children():
+            child.destroy()
+
+        self.card_template_buttons = {}
+        for name in sorted(list_templates()):
+            prefix = "✓ " if name == self.card_selected_template.get() else ""
+            button = ctk.CTkButton(
+                frame,
+                text=prefix + name,
+                anchor="w",
+                fg_color="#171717",
+                hover_color="#2C2C2C",
+                command=lambda n=name: self.card_select_template(n),
+            )
+            button.pack(fill="x", padx=8, pady=4)
+            self.card_template_buttons[name] = button
+
+    def card_refresh_all_templates(self):
+        buttons = getattr(self, "card_template_buttons", {})
+        available_names = sorted(list_templates())
+
+        if set(buttons) != set(available_names):
+            self.card_build_all_template_buttons()
+            return
+
+        selected = self.card_selected_template.get()
+        for name, button in buttons.items():
+            try:
+                prefix = "✓ " if name == selected else ""
+                button.configure(text=prefix + name)
+            except Exception:
+                self.card_build_all_template_buttons()
+                return
+
     def card_refresh_recent_templates(self):
         frame = getattr(self, "card_recent_templates_frame", None)
         if frame is None:
@@ -5456,14 +5498,24 @@ class VadafokStudio(ctk.CTk):
 
 
     def card_select_template(self, name):
-        self.card_recent_templates = record_recent_template(name, list_templates())
+        available_names = list_templates()
+        if name not in available_names:
+            return
+
+        self.card_recent_templates = record_recent_template(
+            name, available_names
+        )
         self.card_selected_template.set(name)
         self.card_output_name.set(self.card_default_output_name())
         self.card_data_undo_stack = []
         self.card_data_redo_stack = []
         self.card_creator_preview_image = None
         self.card_creator_last_render = None
-        self.show_card_creator_page()
+
+        self.card_refresh_recent_templates()
+        self.card_refresh_all_templates()
+        self.card_build_form()
+        self.card_update_preview()
 
 
 
