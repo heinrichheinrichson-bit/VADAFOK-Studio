@@ -1,0 +1,40 @@
+VADAFOK Studio 2.24.4.1 – Visual Library Picker – One-Click Apply
+===================================================================
+
+BASIS
+-----
+Bereits angewendeter und ansonsten funktionierender Stand 2.24.4.
+
+INSTALLATION
+------------
+1. VADAFOK vollständig schließen.
+2. ZIP-Inhalt direkt in den Projektordner kopieren.
+3. Überschreiben von version.py und test_version.py bestätigen.
+4. APPLY_2.24.4.1_VISUAL_LIBRARY_ONE_CLICK.bat starten.
+5. Danach RUN_2.24.4.1_TESTS.bat starten.
+6. Erst nach bestandenen Tests VADAFOK starten.
+
+MANUELLER TEST
+--------------
+Version 2.24.4.1 korrekt:
+Apply-Skript erfolgreich:
+Automatische Tests bestanden:
+Compileall bestanden:
+
+NEW TEMPLATE erstellen:
+SET BACKGROUND FROM LIBRARY öffnet Templates:
+Ein Klick auf ein Bild übernimmt es sofort:
+SHOW / USE ist nicht erforderlich:
+Automatische Rückkehr zum Template Editor:
+Canvas zeigt den gewählten Hintergrund:
+Felder bleiben erhalten:
+
+Normale Library öffnen:
+Ein Klick zeigt weiterhin nur die Auswahl/Vorschau:
+Normaler Library-Betrieb unverändert:
+Andere Module funktionieren:
+Programm bleibt bedienbar:
+
+Sonstige Probleme:
+
+NOCH NICHT COMMITTEN.

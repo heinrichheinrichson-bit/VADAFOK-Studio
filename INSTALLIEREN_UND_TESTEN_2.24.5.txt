@@ -1,0 +1,57 @@
+VADAFOK Studio 2.24.5 – Foundation – Library Controller
+==========================================================
+
+BASIS
+-----
+Aktueller lokaler 2.24.4.x-Arbeitsstand über dem gespeicherten Commit:
+db44923327c56e3bbfc8be4cda1a5ca47557c0e2
+
+KEIN ROLLBACK NÖTIG.
+
+INSTALLATION
+------------
+1. VADAFOK vollständig schließen.
+2. Im Projektordner `git status` prüfen.
+3. Gesamten ZIP-Inhalt direkt in den Projektordner kopieren.
+4. Überschreiben bestätigen.
+5. APPLY_2.24.5_LIBRARY_CONTROLLER.bat starten.
+6. Danach RUN_2.24.5_TESTS.bat starten.
+7. Erst nach bestandenen Tests VADAFOK starten.
+
+MANUELLER TEST
+--------------
+Version 2.24.5 korrekt:
+Apply-Skript erfolgreich:
+Automatische Tests bestanden:
+Compileall bestanden:
+
+NEW TEMPLATE erstellen:
+SET BACKGROUND FROM LIBRARY öffnet Templates:
+Einfacher Klick zeigt Auswahl und große Vorschau:
+Einfacher Klick kehrt nicht sofort zurück:
+Doppelklick übernimmt das Bild:
+Doppelklick kehrt automatisch zum Template Editor zurück:
+
+Erneut SET BACKGROUND FROM LIBRARY:
+Bild einfach anklicken:
+SHOW / USE übernimmt das Bild:
+SHOW / USE kehrt automatisch zum Template Editor zurück:
+
+Canvas zeigt jeweils den gewählten Hintergrund:
+Felder bleiben erhalten:
+Template-Daten bleiben erhalten:
+Zoom und Pan bleiben sinnvoll erhalten:
+
+Normale Library über Sidebar öffnen:
+Einfacher Klick zeigt nur Auswahl und Vorschau:
+Doppelklick nutzt normale Library-Standardaktion:
+Normaler Library-Betrieb unverändert:
+
+Template Editor funktioniert:
+Card Creator funktioniert:
+Andere Module funktionieren:
+Programm bleibt bedienbar:
+
+Sonstige Probleme:
+
+NOCH NICHT COMMITTEN.

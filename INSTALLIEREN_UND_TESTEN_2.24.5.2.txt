@@ -1,0 +1,24 @@
+VADAFOK Studio 2.24.5.2 – Library Picker Runtime Return Fix
+==============================================================
+
+KEIN ROLLBACK NÖTIG.
+
+1. VADAFOK vollständig schließen.
+2. ZIP-Inhalt in den Projektordner kopieren.
+3. Überschreiben bestätigen.
+4. APPLY_2.24.5.2_LIBRARY_PICKER_RUNTIME_RETURN_FIX.bat starten.
+5. RUN_2.24.5.2_TESTS.bat starten.
+6. Danach VADAFOK testen.
+
+MANUELL:
+Version 2.24.5.2 korrekt:
+Einfacher Klick zeigt Vorschau und bleibt in Library:
+Doppelklick übernimmt Hintergrund:
+Doppelklick öffnet automatisch Template Editor:
+SHOW / USE übernimmt Hintergrund:
+SHOW / USE öffnet automatisch Template Editor:
+Canvas zeigt gewählten Hintergrund:
+Felder bleiben erhalten:
+Normale Library unverändert:
+
+Noch nicht committen.

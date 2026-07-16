@@ -19,6 +19,7 @@ from .core.template_store import list_templates, load_template, save_template, c
 from .core.recent_templates import load_recent_templates, record_recent_template, remove_recent_template
 from .card_creator import CardCreatorController
 from .template_editor import TemplateEditorController
+from .library import LibraryController
 from .core.image_view import load_rgba, fit_image_to_box, pil_to_tk_photo_data, image_status
 from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card
 from .core import style_engine
@@ -240,6 +241,7 @@ class VadafokStudio(ctk.CTk):
         self.library_section = ctk.StringVar(value="All")
         self.library_banner_picker_mode = False
         self.library_return_page = None
+        self.library_controller = LibraryController(self)
         self.search_text = ctk.StringVar(value="")
         self.favorite_filter = ctk.BooleanVar(value=False)
 
@@ -490,6 +492,15 @@ class VadafokStudio(ctk.CTk):
         self.library_banner_picker_mode = False
         self.library_return_page = None
         self.show_live_card()
+
+    def open_template_background_picker(self):
+        self.library_controller.open_template_background_picker()
+
+        # Runtime fallbacks remain on the app as well. This guarantees
+        # correct return behavior even if older Library code resets one
+        # of the controller compatibility attributes.
+        self.library_template_background_picker_mode = True
+        self.library_return_page = "Template Editor"
 
     def show_library(self):
         self.set_active("Library")
@@ -952,35 +963,103 @@ class VadafokStudio(ctk.CTk):
 
 
 
-    def template_set_background_path(self, path):
+    def template_set_background_path(self, path, refresh_canvas=True):
+        """Set the template background without touching destroyed editor widgets."""
         if not path:
             return
-        data, dest = set_background_from_file(self.template_selected_name, path)
+
+        data, dest = set_background_from_file(
+            self.template_selected_name,
+            path,
+        )
         self.template_working_data = data
 
-        if hasattr(self, "template_canvas"):
-            self.template_draw_canvas()
-        try:
-            self.template_canvas.focus_set()
-        except Exception:
-            pass
+        if refresh_canvas:
+            canvas = getattr(self, "template_canvas", None)
+            canvas_exists = False
+            if canvas is not None:
+                try:
+                    canvas_exists = bool(canvas.winfo_exists())
+                except Exception:
+                    canvas_exists = False
+
+            if canvas_exists:
+                self.template_draw_canvas()
+                try:
+                    canvas.focus_set()
+                except Exception:
+                    pass
+
         return dest
 
 
+
     def assign_selected_template_background(self):
+        """Apply the selected Library image and finish the picker safely."""
         item = getattr(self, "selected_item", None)
         if item is None:
-            messagebox.showwarning("Template Background", "Bitte zuerst in der Library ein Template-Bild auswählen.")
+            messagebox.showwarning(
+                "Template Background",
+                "Bitte zuerst ein Template-Bild auswählen.",
+            )
             return
+
         if getattr(item, "kind", "") != "image":
-            messagebox.showwarning("Template Background", "Bitte ein Bild aus der Library auswählen.")
+            messagebox.showwarning(
+                "Template Background",
+                "Bitte ein Bild aus der Library auswählen.",
+            )
             return
-        self.template_set_background_path(item.path)
-        messagebox.showinfo(
-            "Template Background",
-            f"Hintergrundbild gespeichert:\n\nTemplate: {self.template_selected_name}\nBild: {Path(item.path).name}"
+
+        controller = getattr(self, "library_controller", None)
+        controller_return = bool(
+            controller is not None
+            and controller.is_template_background_picker
+        )
+        flag_return = bool(
+            getattr(
+                self,
+                "library_template_background_picker_mode",
+                False,
+            )
+        )
+        page_return = (
+            getattr(self, "library_return_page", None)
+            == "Template Editor"
+        )
+        should_return = (
+            controller_return
+            or flag_return
+            or page_return
         )
 
+        # The Template Editor canvas was destroyed when the Library page opened.
+        # Do not redraw that stale widget. The newly opened editor page will draw
+        # the updated background on its fresh canvas.
+        dest = self.template_set_background_path(
+            item.path,
+            refresh_canvas=not should_return,
+        )
+
+        if should_return:
+            if controller is not None:
+                controller.cancel_picker()
+            else:
+                self.library_template_background_picker_mode = False
+                self.library_return_page = None
+
+            self.show_template_editor_page()
+            return dest
+
+        messagebox.showinfo(
+            "Template Background",
+            (
+                f"Hintergrundbild gespeichert:\n\n"
+                f"Template: {self.template_selected_name}\n"
+                f"Bild: {Path(item.path).name}"
+            ),
+        )
+        return dest
 
     def use_selected_as_caption_banner(self):
         item = getattr(self, "selected_item", None)
@@ -1905,10 +1984,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_set_background_from_selected(self):
-        self.assign_selected_template_background()
-
-
-
+        self.library_controller.open_template_background_picker()
     def template_clear_background(self):
         template = self.template_current()
         template["background"] = "background.png"
@@ -3502,6 +3578,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def show_template_editor_page(self):
+        self.library_template_background_picker_mode = False
         self.set_active("Template Editor")
         self.clear_main()
         self.page_title("Template Editor")
