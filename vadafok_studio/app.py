@@ -17,6 +17,7 @@ from .core.obs_controller import OBSController
 from .core.caption_renderer import render_caption_png
 from .core.template_store import list_templates, load_template, save_template, create_template, set_background_from_file, background_path, import_legacy_templates, delete_template, duplicate_template, rename_template, set_default_template, get_default_template, ensure_background_file, template_dir
 from .core.recent_templates import load_recent_templates, record_recent_template, remove_recent_template
+from .card_creator import CardCreatorController
 from .core.image_view import load_rgba, fit_image_to_box, pil_to_tk_photo_data, image_status
 from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card
 from .core import style_engine
@@ -117,7 +118,8 @@ class VadafokStudio(ctk.CTk):
         self.template_prop_stroke_width = ctk.IntVar(value=3)
         self.template_prop_uppercase = ctk.BooleanVar(value=True)
         self.card_selected_template = ctk.StringVar(value="")
-        self.card_recent_templates = load_recent_templates(list_templates())
+        self.card_creator_controller = CardCreatorController(self, list_templates)
+        self.card_recent_templates = self.card_creator_controller.load_recent()
         self.card_creator_values = {}
         self.card_saved_values = load_json(CARD_VALUES_PATH, {})
         self.card_creator_preview_image = None
@@ -5488,36 +5490,10 @@ class VadafokStudio(ctk.CTk):
             ).grid(row=0, column=1)
 
     def card_remove_recent_template(self, name):
-        self.card_recent_templates = remove_recent_template(
-            name, list_templates()
-        )
-        self.card_refresh_recent_templates()
-
-
-
-
+        self.card_creator_controller.remove_recent(name)
 
     def card_select_template(self, name):
-        available_names = list_templates()
-        if name not in available_names:
-            return
-
-        self.card_recent_templates = record_recent_template(
-            name, available_names
-        )
-        self.card_selected_template.set(name)
-        self.card_output_name.set(self.card_default_output_name())
-        self.card_data_undo_stack = []
-        self.card_data_redo_stack = []
-        self.card_creator_preview_image = None
-        self.card_creator_last_render = None
-
-        self.card_refresh_recent_templates()
-        self.card_refresh_all_templates()
-        self.card_build_form()
-        self.card_update_preview()
-
-
+        self.card_creator_controller.select_template(name)
 
     def card_template(self):
         names = list_templates()

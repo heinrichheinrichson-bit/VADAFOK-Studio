@@ -1,0 +1,26 @@
+VADAFOK Studio 2.24.1.1 – Foundation – Controller Test Migration
+===================================================================
+
+BASIS
+-----
+Bereits angewendeter Stand 2.24.1 mit genau zwei fehlgeschlagenen
+Architekturtests.
+
+INSTALLATION
+------------
+1. VADAFOK kann geschlossen bleiben.
+2. ZIP-Inhalt direkt in den Projektordner kopieren.
+3. Überschreiben bestätigen:
+   - tests/test_partial_recent_refresh.py
+   - tests/test_partial_template_selection.py
+4. RUN_2.24.1_TESTS.bat erneut ausführen.
+
+ERWARTUNG
+---------
+Alle Tests erfolgreich.
+Compileall vadafok_studio: OK.
+Keine Änderung am Programmverhalten.
+
+Danach VADAFOK kurz starten und den Card Creator prüfen.
+
+Noch nicht committen.
