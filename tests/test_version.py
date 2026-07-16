@@ -14,7 +14,7 @@ from vadafok_studio.version import (
 
 class VersionTests(unittest.TestCase):
     def test_current_version(self) -> None:
-        self.assertEqual(VERSION, "2.22.3")
+        self.assertEqual(VERSION, "2.22.4")
 
     def test_derived_version_values(self) -> None:
         self.assertEqual(PRODUCT_NAME, "VADAFOK Studio")

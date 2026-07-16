@@ -445,16 +445,18 @@ def _voice_reader_loop(self: Any, process: Any) -> None:
                 lambda value=message: _set_status(self, f"ERROR: {value[:110]}"),
             )
     finally:
-        if getattr(self, "voice_stop_requested", False) or saw_error:
-            return
+        should_report_stopped = not (
+            getattr(self, "voice_stop_requested", False) or saw_error
+        )
 
-        try:
-            exit_code = process.poll()
-        except Exception:
-            exit_code = None
+        if should_report_stopped:
+            try:
+                exit_code = process.poll()
+            except Exception:
+                exit_code = None
 
-        detail = f" · exit {exit_code}" if exit_code is not None else ""
-        self.after(0, lambda: _set_status(self, f"STOPPED{detail}"))
+            detail = f" · exit {exit_code}" if exit_code is not None else ""
+            self.after(0, lambda: _set_status(self, f"STOPPED{detail}"))
 
 
 def install_voice_foundation() -> None:
