@@ -27,8 +27,6 @@ from .core import scene_favorites
 from .core import silent_director
 from .core.banner_profiles import load_banner_profiles, save_banner_profiles, ensure_profile, has_profile, profile_count, reset_profile_style
 from .version import APP_TITLE, APP_USER_MODEL_ID, SIDEBAR_VERSION
-from .logging_setup import LOGGER
-LOGGER.info("app.py loaded successfully")
 
 GOLD = "#D6A43A"
 GOLD_DARK = "#8A641D"

@@ -13,4 +13,4 @@ dist/
 data/config.json
 
 # PyCharm
-.idea/
+.idea/\n\n# Runtime logs\nlogs/\n

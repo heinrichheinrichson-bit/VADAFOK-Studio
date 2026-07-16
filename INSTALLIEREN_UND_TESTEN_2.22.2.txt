@@ -1,0 +1,49 @@
+VADAFOK Studio 2.22.2 – Foundation – Logging
+================================================
+
+BASIS
+-----
+Getesteter und auf GitHub gespeicherter Stand 2.22.1.
+
+INSTALLATION
+------------
+1. VADAFOK vollständig schließen.
+2. Im Projektordner `git status` ausführen.
+3. Gesamten ZIP-Inhalt direkt in den Projektordner kopieren.
+4. Überschreiben von `vadafok_studio/version.py` bestätigen.
+5. `APPLY_2.22.2_FOUNDATION_LOGGING.bat` doppelt anklicken.
+6. Bei Erfolg müssen [OK]-Zeilen und abschließend [FERTIG] erscheinen.
+7. VADAFOK normal starten.
+
+TEST
+----
+Version korrekt:
+Apply-Skript erfolgreich:
+
+logs-Ordner erstellt:
+vadafok_studio.log erstellt:
+Programmstart im Log:
+Version 2.22.2 im Log:
+Python-Version im Log:
+Betriebssystem im Log:
+Pfad der Logdatei im Log:
+
+Programm startet:
+Programm startet nach Neustart:
+OBS funktioniert:
+Card Creator funktioniert:
+SHOW/HIDE funktioniert:
+Timer funktioniert:
+Banner funktioniert:
+Quick Cards funktionieren:
+Live Card funktioniert:
+Voice Control funktioniert:
+
+Logdatei wächst nach erneutem Programmstart:
+Keine sichtbaren neuen Fehlermeldungen:
+Andere Module weiterhin korrekt:
+Programm bleibt bedienbar:
+
+Sonstige Probleme:
+
+NOCH NICHT COMMITTEN.
