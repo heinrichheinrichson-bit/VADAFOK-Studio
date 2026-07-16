@@ -15,3 +15,6 @@ logs/
 
 # Development and runtime files
 *.bak
+
+# User-specific Card Creator history
+data/card_creator_recent_templates.json

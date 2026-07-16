@@ -4,8 +4,8 @@
   "fields": [
     {
       "name": "time",
-      "x": 118,
-      "y": 347,
+      "x": 328,
+      "y": 557,
       "width": 360,
       "height": 90,
       "font_family": "Bebas Neue",
@@ -18,8 +18,8 @@
     },
     {
       "name": "time_copy",
-      "x": 147,
-      "y": 791,
+      "x": 328,
+      "y": 999,
       "width": 360,
       "height": 90,
       "font_family": "Bebas Neue",
@@ -32,8 +32,8 @@
     },
     {
       "name": "time_copy2",
-      "x": 334,
-      "y": 592,
+      "x": 328,
+      "y": 706,
       "width": 360,
       "height": 90,
       "font_family": "Bebas Neue",
@@ -46,8 +46,8 @@
     },
     {
       "name": "time_copy_copy",
-      "x": 363,
-      "y": 1036,
+      "x": 328,
+      "y": 846,
       "width": 360,
       "height": 90,
       "font_family": "Bebas Neue",
@@ -57,6 +57,34 @@
       "stroke_width": 3,
       "uppercase": true,
       "id": "ad1ed4d3-ae63-4e2f-b3ec-6caf0ee989b1"
+    },
+    {
+      "name": "time_copy_copy2",
+      "x": 337,
+      "y": 1113,
+      "width": 360,
+      "height": 90,
+      "font_family": "Bebas Neue",
+      "font_size": 90,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true,
+      "id": "c30b4817-3b8d-4195-990c-20ae8b362850"
+    },
+    {
+      "name": "time_copy_copy_copy",
+      "x": 328,
+      "y": 1503,
+      "width": 360,
+      "height": 90,
+      "font_family": "Bebas Neue",
+      "font_size": 90,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true,
+      "id": "a072b489-7c4d-4af0-917c-4c1e47f6044a"
     }
   ],
   "groups": []

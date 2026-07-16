@@ -16,6 +16,7 @@ from .core.library import scan_library, scan_library_section, library_section_ex
 from .core.obs_controller import OBSController
 from .core.caption_renderer import render_caption_png
 from .core.template_store import list_templates, load_template, save_template, create_template, set_background_from_file, background_path, import_legacy_templates, delete_template, duplicate_template, rename_template, set_default_template, get_default_template, ensure_background_file, template_dir
+from .core.recent_templates import load_recent_templates, record_recent_template
 from .core.image_view import load_rgba, fit_image_to_box, pil_to_tk_photo_data, image_status
 from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card
 from .core import style_engine
@@ -116,6 +117,7 @@ class VadafokStudio(ctk.CTk):
         self.template_prop_stroke_width = ctk.IntVar(value=3)
         self.template_prop_uppercase = ctk.BooleanVar(value=True)
         self.card_selected_template = ctk.StringVar(value="")
+        self.card_recent_templates = load_recent_templates(list_templates())
         self.card_creator_values = {}
         self.card_saved_values = load_json(CARD_VALUES_PATH, {})
         self.card_creator_preview_image = None
@@ -5244,6 +5246,34 @@ class VadafokStudio(ctk.CTk):
 
         tlist = ctk.CTkScrollableFrame(left, fg_color="#0B0B0B", corner_radius=12)
         tlist.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
+        recent_names = load_recent_templates(names)
+        self.card_recent_templates = recent_names
+        if recent_names:
+            ctk.CTkLabel(
+                tlist,
+                text="RECENT TEMPLATES",
+                text_color=GOLD,
+                anchor="w",
+                font=ctk.CTkFont(size=12, weight="bold"),
+            ).pack(fill="x", padx=8, pady=(8, 3))
+            for recent_name in recent_names:
+                prefix = "✓ " if recent_name == self.card_selected_template.get() else "↶ "
+                ctk.CTkButton(
+                    tlist,
+                    text=prefix + recent_name,
+                    anchor="w",
+                    fg_color="#3A2A0D",
+                    hover_color="#5A4318",
+                    command=lambda n=recent_name: self.card_select_template(n),
+                ).pack(fill="x", padx=8, pady=3)
+            ctk.CTkLabel(
+                tlist,
+                text="ALL TEMPLATES",
+                text_color="#BCA870",
+                anchor="w",
+                font=ctk.CTkFont(size=11, weight="bold"),
+            ).pack(fill="x", padx=8, pady=(12, 3))
+
         for name in sorted(list_templates()):
             prefix = "✓ " if name == self.card_selected_template.get() else ""
             ctk.CTkButton(
@@ -5366,6 +5396,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def card_select_template(self, name):
+        self.card_recent_templates = record_recent_template(name, list_templates())
         self.card_selected_template.set(name)
         self.card_output_name.set(self.card_default_output_name())
         self.card_data_undo_stack = []
