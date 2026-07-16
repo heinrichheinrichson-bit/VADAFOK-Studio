@@ -5246,46 +5246,23 @@ class VadafokStudio(ctk.CTk):
 
         tlist = ctk.CTkScrollableFrame(left, fg_color="#0B0B0B", corner_radius=12)
         tlist.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
-        recent_names = load_recent_templates(names)
-        self.card_recent_templates = recent_names
-        if recent_names:
-            ctk.CTkLabel(
-                tlist,
-                text="RECENT TEMPLATES",
-                text_color=GOLD,
-                anchor="w",
-                font=ctk.CTkFont(size=12, weight="bold"),
-            ).pack(fill="x", padx=8, pady=(8, 3))
-            for recent_name in recent_names:
-                recent_row = ctk.CTkFrame(tlist, fg_color="transparent")
-                recent_row.pack(fill="x", padx=8, pady=3)
-                recent_row.grid_columnconfigure(0, weight=1)
+        self.card_recent_templates_frame = ctk.CTkFrame(
+            tlist,
+            fg_color="transparent",
+        )
 
-                prefix = "✓ " if recent_name == self.card_selected_template.get() else "↶ "
-                ctk.CTkButton(
-                    recent_row,
-                    text=prefix + recent_name,
-                    anchor="w",
-                    fg_color="#3A2A0D",
-                    hover_color="#5A4318",
-                    command=lambda n=recent_name: self.card_select_template(n),
-                ).grid(row=0, column=0, sticky="ew", padx=(0, 4))
+        self.card_all_templates_label = ctk.CTkLabel(
+            tlist,
+            text="ALL TEMPLATES",
+            text_color="#BCA870",
+            anchor="w",
+            font=ctk.CTkFont(size=11, weight="bold"),
+        )
+        self.card_all_templates_label.pack(
+            fill="x", padx=8, pady=(8, 3)
+        )
 
-                ctk.CTkButton(
-                    recent_row,
-                    text="✕",
-                    width=28,
-                    fg_color="#5A2424",
-                    hover_color="#7A3030",
-                    command=lambda n=recent_name: self.card_remove_recent_template(n),
-                ).grid(row=0, column=1)
-            ctk.CTkLabel(
-                tlist,
-                text="ALL TEMPLATES",
-                text_color="#BCA870",
-                anchor="w",
-                font=ctk.CTkFont(size=11, weight="bold"),
-            ).pack(fill="x", padx=8, pady=(12, 3))
+        self.card_refresh_recent_templates()
 
         for name in sorted(list_templates()):
             prefix = "✓ " if name == self.card_selected_template.get() else ""
@@ -5404,11 +5381,75 @@ class VadafokStudio(ctk.CTk):
         self.card_build_form()
         self.card_build_batch_panel()
         self.card_update_preview()
+    def card_refresh_recent_templates(self):
+        frame = getattr(self, "card_recent_templates_frame", None)
+        if frame is None:
+            return
+
+        try:
+            if not frame.winfo_exists():
+                return
+        except Exception:
+            return
+
+        for child in self.card_recent_templates_frame.winfo_children():
+            child.destroy()
+
+        recent_names = load_recent_templates(list_templates())
+        self.card_recent_templates = recent_names
+
+        if not recent_names:
+            self.card_recent_templates_frame.pack_forget()
+            return
+
+        self.card_recent_templates_frame.pack(
+            fill="x", padx=0, pady=0, before=self.card_all_templates_label
+        )
+
+        ctk.CTkLabel(
+            self.card_recent_templates_frame,
+            text="RECENT TEMPLATES",
+            text_color=GOLD,
+            anchor="w",
+            font=ctk.CTkFont(size=12, weight="bold"),
+        ).pack(fill="x", padx=8, pady=(8, 3))
+
+        for recent_name in recent_names:
+            recent_row = ctk.CTkFrame(
+                self.card_recent_templates_frame,
+                fg_color="transparent",
+            )
+            recent_row.pack(fill="x", padx=8, pady=3)
+            recent_row.grid_columnconfigure(0, weight=1)
+
+            prefix = (
+                "✓ "
+                if recent_name == self.card_selected_template.get()
+                else "↶ "
+            )
+            ctk.CTkButton(
+                recent_row,
+                text=prefix + recent_name,
+                anchor="w",
+                fg_color="#3A2A0D",
+                hover_color="#5A4318",
+                command=lambda n=recent_name: self.card_select_template(n),
+            ).grid(row=0, column=0, sticky="ew", padx=(0, 4))
+
+            ctk.CTkButton(
+                recent_row,
+                text="✕",
+                width=28,
+                fg_color="#5A2424",
+                hover_color="#7A3030",
+                command=lambda n=recent_name: self.card_remove_recent_template(n),
+            ).grid(row=0, column=1)
+
     def card_remove_recent_template(self, name):
         self.card_recent_templates = remove_recent_template(
             name, list_templates()
         )
-        self.show_card_creator_page()
+        self.card_refresh_recent_templates()
 
 
 
