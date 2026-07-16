@@ -4,7 +4,7 @@ from vadafok_studio.version import APP_TITLE, APP_USER_MODEL_ID, PRODUCT_NAME, S
 
 class VersionTests(unittest.TestCase):
     def test_current_version(self):
-        self.assertEqual(VERSION, "2.24.1")
+        self.assertEqual(VERSION, "2.24.2")
 
     def test_values(self):
         self.assertEqual(APP_TITLE, f"{PRODUCT_NAME} {VERSION}")

@@ -1,0 +1,48 @@
+VADAFOK Studio 2.24.2 – Foundation – Template Editor Controller
+=================================================================
+
+BASIS
+-----
+3dd1b1bd0a7cb62f75834bf413a3a3d7ffa4a0c0
+
+INSTALLATION
+------------
+1. VADAFOK vollständig schließen.
+2. Im Projektordner `git status` prüfen.
+3. Gesamten ZIP-Inhalt direkt in den Projektordner kopieren.
+4. version.py und test_version.py überschreiben.
+5. APPLY_2.24.2_TEMPLATE_EDITOR_CONTROLLER.bat ausführen.
+6. Danach RUN_2.24.2_TESTS.bat ausführen.
+7. Erst nach bestandenen Tests VADAFOK starten.
+
+MANUELLER TEST
+--------------
+Version 2.24.2 korrekt:
+Apply-Skript erfolgreich:
+Automatische Tests bestanden:
+Compileall bestanden:
+
+Template Editor öffnet:
+Template-Auswahl funktioniert:
+Gewähltes Template wird korrekt geladen:
+Canvas passt zum gewählten Template:
+Layers passen zum gewählten Template:
+Properties werden zurückgesetzt:
+Mehrfachauswahl wird beim Wechsel zurückgesetzt:
+Collapsed Groups werden beim Wechsel zurückgesetzt:
+
+Feld hinzufügen funktioniert:
+Feld kopieren funktioniert:
+Feld löschen funktioniert:
+Dragging funktioniert:
+Smart Guides funktionieren:
+Undo/Redo funktioniert:
+Speichern funktioniert:
+
+Card Creator funktioniert:
+Andere Module funktionieren:
+Programm bleibt bedienbar:
+
+Sonstige Probleme:
+
+NOCH NICHT COMMITTEN.

@@ -18,6 +18,7 @@ from .core.caption_renderer import render_caption_png
 from .core.template_store import list_templates, load_template, save_template, create_template, set_background_from_file, background_path, import_legacy_templates, delete_template, duplicate_template, rename_template, set_default_template, get_default_template, ensure_background_file, template_dir
 from .core.recent_templates import load_recent_templates, record_recent_template, remove_recent_template
 from .card_creator import CardCreatorController
+from .template_editor import TemplateEditorController
 from .core.image_view import load_rgba, fit_image_to_box, pil_to_tk_photo_data, image_status
 from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card
 from .core import style_engine
@@ -73,6 +74,7 @@ class VadafokStudio(ctk.CTk):
         self.template_profiles = load_json(TEMPLATE_PROFILES_PATH, {})
         self.template_store_migrated = import_legacy_templates(self.template_profiles)
         self.template_selected_name = "Default Stream Plan"
+        self.template_editor_controller = TemplateEditorController(self, list_templates, load_template)
         self.template_selected_field = None
         self.template_selected_fields = set()
         self.template_shift_down = False
@@ -3833,12 +3835,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_select(self, name):
-        self.template_collapsed_groups = set()
-        self.template_selected_name = name
-        self.template_selected_field = None
-        self.template_selected_fields = set()
-        self.template_working_data = load_template(name)
-        self.show_template_editor_page()
+        self.template_editor_controller.select_template(name)
 
 
 

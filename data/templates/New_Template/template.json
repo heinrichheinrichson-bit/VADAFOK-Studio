@@ -4,8 +4,8 @@
   "fields": [
     {
       "name": "date",
-      "x": 120,
-      "y": 80,
+      "x": 95,
+      "y": 155,
       "width": 420,
       "height": 90,
       "font_family": "Bebas Neue",
@@ -18,9 +18,9 @@
     },
     {
       "name": "game",
-      "x": 120,
-      "y": 190,
-      "width": 900,
+      "x": 93,
+      "y": 392,
+      "width": 874,
       "height": 120,
       "font_family": "Bebas Neue",
       "font_size": 110,
@@ -32,8 +32,8 @@
     },
     {
       "name": "time",
-      "x": 120,
-      "y": 340,
+      "x": 95,
+      "y": 542,
       "width": 360,
       "height": 90,
       "font_family": "Bebas Neue",
