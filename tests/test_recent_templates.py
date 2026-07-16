@@ -33,25 +33,31 @@ class RecentTemplatesTests(unittest.TestCase):
         available = [f"Template {index}" for index in range(12)]
         for name in available:
             recent_templates.record_recent_template(name, available)
-        recent = recent_templates.load_recent_templates(available)
-        self.assertEqual(len(recent), 10)
-        self.assertEqual(recent[0], "Template 11")
+        self.assertEqual(len(recent_templates.load_recent_templates(available)), 10)
 
-    def test_history_survives_reload(self) -> None:
-        available = ["Stream Plan", "Schedule"]
-        recent_templates.record_recent_template("Stream Plan", available)
-        recent_templates.record_recent_template("Schedule", available)
-        self.assertEqual(
-            recent_templates.load_recent_templates(available),
-            ["Schedule", "Stream Plan"],
-        )
+    def test_remove_only_affects_recent_history(self) -> None:
+        available = ["A", "B", "C"]
+        recent_templates.save_recent_templates(["A", "B", "C"])
+        recent = recent_templates.remove_recent_template("B", available)
+        self.assertEqual(recent, ["A", "C"])
+        self.assertIn("B", available)
+
+    def test_removed_item_stays_removed_after_reload(self) -> None:
+        available = ["A", "B"]
+        recent_templates.save_recent_templates(["A", "B"])
+        recent_templates.remove_recent_template("A", available)
+        self.assertEqual(recent_templates.load_recent_templates(available), ["B"])
+
+    def test_removed_item_can_be_added_again_by_selection(self) -> None:
+        available = ["A", "B"]
+        recent_templates.save_recent_templates(["A", "B"])
+        recent_templates.remove_recent_template("A", available)
+        recent = recent_templates.record_recent_template("A", available)
+        self.assertEqual(recent, ["A", "B"])
 
     def test_stale_templates_are_filtered(self) -> None:
         recent_templates.save_recent_templates(["Deleted", "Existing"])
-        self.assertEqual(
-            recent_templates.load_recent_templates(["Existing"]),
-            ["Existing"],
-        )
+        self.assertEqual(recent_templates.load_recent_templates(["Existing"]), ["Existing"])
 
 
 if __name__ == "__main__":

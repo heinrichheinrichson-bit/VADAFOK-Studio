@@ -69,3 +69,18 @@ def record_recent_template(
     recent = [item for item in recent if item != normalized_name]
     recent.insert(0, normalized_name)
     return save_recent_templates(recent)
+
+
+def remove_recent_template(
+    name: str,
+    available_templates: Iterable[str] | None = None,
+) -> list[str]:
+    """Remove one item only from the recent history."""
+    normalized_name = str(name or "").strip()
+    recent = load_recent_templates(available_templates)
+
+    if not normalized_name:
+        return recent
+
+    recent = [item for item in recent if item != normalized_name]
+    return save_recent_templates(recent)

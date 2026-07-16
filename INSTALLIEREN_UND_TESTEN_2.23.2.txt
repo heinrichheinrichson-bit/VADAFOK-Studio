@@ -1,0 +1,15 @@
+VADAFOK Studio 2.23.2 – Card Creator – Manage Recent Templates
+================================================================
+
+BASIS
+Getesteter und gespeicherter Stand 2.23.1.
+
+INSTALLATION
+1. VADAFOK schließen.
+2. ZIP-Inhalt in den Projektordner kopieren.
+3. version.py, recent_templates.py, test_recent_templates.py und test_version.py überschreiben.
+4. APPLY_2.23.2_MANAGE_RECENT_TEMPLATES.bat starten.
+5. RUN_2.23.2_TESTS.bat starten.
+6. Danach VADAFOK testen.
+
+Noch nicht committen.

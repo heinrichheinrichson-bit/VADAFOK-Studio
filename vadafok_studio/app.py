@@ -16,7 +16,7 @@ from .core.library import scan_library, scan_library_section, library_section_ex
 from .core.obs_controller import OBSController
 from .core.caption_renderer import render_caption_png
 from .core.template_store import list_templates, load_template, save_template, create_template, set_background_from_file, background_path, import_legacy_templates, delete_template, duplicate_template, rename_template, set_default_template, get_default_template, ensure_background_file, template_dir
-from .core.recent_templates import load_recent_templates, record_recent_template
+from .core.recent_templates import load_recent_templates, record_recent_template, remove_recent_template
 from .core.image_view import load_rgba, fit_image_to_box, pil_to_tk_photo_data, image_status
 from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card
 from .core import style_engine
@@ -5257,15 +5257,28 @@ class VadafokStudio(ctk.CTk):
                 font=ctk.CTkFont(size=12, weight="bold"),
             ).pack(fill="x", padx=8, pady=(8, 3))
             for recent_name in recent_names:
+                recent_row = ctk.CTkFrame(tlist, fg_color="transparent")
+                recent_row.pack(fill="x", padx=8, pady=3)
+                recent_row.grid_columnconfigure(0, weight=1)
+
                 prefix = "✓ " if recent_name == self.card_selected_template.get() else "↶ "
                 ctk.CTkButton(
-                    tlist,
+                    recent_row,
                     text=prefix + recent_name,
                     anchor="w",
                     fg_color="#3A2A0D",
                     hover_color="#5A4318",
                     command=lambda n=recent_name: self.card_select_template(n),
-                ).pack(fill="x", padx=8, pady=3)
+                ).grid(row=0, column=0, sticky="ew", padx=(0, 4))
+
+                ctk.CTkButton(
+                    recent_row,
+                    text="✕",
+                    width=28,
+                    fg_color="#5A2424",
+                    hover_color="#7A3030",
+                    command=lambda n=recent_name: self.card_remove_recent_template(n),
+                ).grid(row=0, column=1)
             ctk.CTkLabel(
                 tlist,
                 text="ALL TEMPLATES",
@@ -5391,6 +5404,12 @@ class VadafokStudio(ctk.CTk):
         self.card_build_form()
         self.card_build_batch_panel()
         self.card_update_preview()
+    def card_remove_recent_template(self, name):
+        self.card_recent_templates = remove_recent_template(
+            name, list_templates()
+        )
+        self.show_card_creator_page()
+
 
 
 
