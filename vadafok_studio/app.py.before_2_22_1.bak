@@ -26,7 +26,6 @@ from .core import obs_workflow
 from .core import scene_favorites
 from .core import silent_director
 from .core.banner_profiles import load_banner_profiles, save_banner_profiles, ensure_profile, has_profile, profile_count, reset_profile_style
-from .version import APP_TITLE, APP_USER_MODEL_ID, SIDEBAR_VERSION
 
 GOLD = "#D6A43A"
 GOLD_DARK = "#8A641D"
@@ -39,7 +38,7 @@ class VadafokStudio(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
-        self.wm_title(APP_TITLE)
+        self.wm_title("VADAFOK Studio 2.16.5.1")
         self.geometry("1360x840")
         self.minsize(1160, 740)
 
@@ -47,7 +46,9 @@ class VadafokStudio(ctk.CTk):
         try:
             if sys.platform == "win32":
                 import ctypes
-                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_USER_MODEL_ID)
+                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+                    "VADAFOK.Studio.2.16.5.1"
+                )
 
             icon_dir = Path(__file__).resolve().parent / "assets" / "icons"
             ico_file = icon_dir / "vadafok_icon.ico"
@@ -264,7 +265,7 @@ class VadafokStudio(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.sidebar.grid_propagate(False)
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
-        ctk.CTkLabel(self.sidebar, text=SIDEBAR_VERSION, text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
+        ctk.CTkLabel(self.sidebar, text="Studio 2.16.5.1", text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
         pages = [
             ("Library", self.show_library),

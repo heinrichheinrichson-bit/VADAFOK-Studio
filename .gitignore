@@ -11,3 +11,6 @@ dist/
 
 # persönliche Einstellungen
 data/config.json
+
+# PyCharm
+.idea/

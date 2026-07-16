@@ -1,0 +1,54 @@
+VADAFOK Studio 2.22.1 – Foundation – Central Versioning
+==========================================================
+
+DIESE ZIP ERSETZT DIE ZUVOR ERSTELLTE 2.22.1-ZIP.
+
+BASIS
+-----
+f754cade006ae1e28f728084cdf2455c7e480ffb
+
+VORHANDENE .GITIGNORE-AENDERUNG
+-------------------------------
+Die bereits ergänzte Zeile `.idea/` bitte stehen lassen.
+Sie wird später gemeinsam mit 2.22.1 gespeichert.
+
+INSTALLATION
+------------
+1. VADAFOK vollständig schließen.
+2. Gesamten ZIP-Inhalt in den Projektordner kopieren.
+3. Überschreiben von `vadafok_studio/version.py` bestätigen.
+4. `APPLY_2.22.1_CENTRAL_VERSIONING.bat` doppelt anklicken.
+5. Bei Erfolg müssen mehrere [OK]-Zeilen und abschließend [FERTIG] erscheinen.
+6. Danach VADAFOK normal starten.
+
+BEI EINEM FEHLER
+----------------
+Nicht selbst reparieren und nicht committen.
+Den vollständigen Text oder einen Screenshot der Ausgabe senden.
+
+TEST
+----
+Apply-Skript erfolgreich:
+Version im Hauptfenster 2.22.1:
+Sidebar zeigt Studio 2.22.1:
+Fenstersymbol weiterhin korrekt:
+Suche nach 2.16.5.1 in app.py ergibt 0 Treffer:
+
+Programm startet:
+Programm startet nach erneutem Schließen weiterhin:
+OBS-Verbindung funktioniert:
+OBS Workflow funktioniert:
+Card Creator funktioniert:
+SHOW IN OBS funktioniert:
+HIDE FROM OBS funktioniert:
+Timer und Custom Duration funktionieren:
+Banner funktioniert:
+Live Card funktioniert:
+Quick Cards funktioniert:
+Voice Control funktioniert:
+Andere Module weiterhin korrekt:
+Programm bleibt bedienbar:
+
+Sonstige Probleme:
+
+NOCH NICHT COMMITTEN.
