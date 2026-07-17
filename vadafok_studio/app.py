@@ -3977,54 +3977,97 @@ class VadafokStudio(ctk.CTk):
         self.template_build_layers_panel()
 
     def template_build_properties_panel(self):
+        """Build Properties widgets once and only switch their visible state afterwards."""
         if not hasattr(self, "template_props_body"):
             return
-        body = self.template_props_body
-        for w in body.winfo_children():
-            w.destroy()
 
-        if self.template_selected_field is None:
-            ctk.CTkLabel(
+        body = self.template_props_body
+        cached_body = getattr(self, "_template_properties_body_ref", None)
+        editor = getattr(self, "_template_properties_editor", None)
+        empty_label = getattr(self, "_template_properties_empty_label", None)
+
+        cache_valid = cached_body is body and editor is not None and empty_label is not None
+        if cache_valid:
+            try:
+                cache_valid = bool(editor.winfo_exists()) and bool(empty_label.winfo_exists())
+            except Exception:
+                cache_valid = False
+
+        if not cache_valid:
+            for widget in body.winfo_children():
+                widget.destroy()
+
+            body.grid_columnconfigure(0, weight=1)
+            empty_label = ctk.CTkLabel(
                 body,
                 text="Kein Feld ausgewählt.",
                 text_color="#BCA870",
                 wraplength=220,
-                justify="left"
-            ).grid(row=0, column=0, columnspan=2, padx=12, pady=12, sticky="w")
-            return
+                justify="left",
+            )
+            empty_label.grid(row=0, column=0, padx=12, pady=12, sticky="w")
 
-        fields = [
-            ("Name", self.template_prop_name),
-            ("Font", self.template_prop_font_family),
-            ("Size", self.template_prop_font_size),
-            ("Text Color", self.template_prop_text_color),
-            ("Stroke Color", self.template_prop_stroke_color),
-            ("Stroke Width", self.template_prop_stroke_width),
-        ]
+            editor = ctk.CTkFrame(body, fg_color="transparent")
+            editor.grid(row=0, column=0, sticky="ew")
+            editor.grid_columnconfigure(1, weight=1)
 
-        for row, (label, var) in enumerate(fields):
-            ctk.CTkLabel(body, text=label, text_color="#BCA870").grid(row=row, column=0, padx=(12, 8), pady=6, sticky="w")
-            entry = ctk.CTkEntry(body, textvariable=var)
-            entry.grid(row=row, column=1, padx=(0, 12), pady=6, sticky="ew")
-            if label == "Name":
-                self.template_prop_name_entry = entry
-            entry.bind("<KeyRelease>", lambda e: self.template_apply_selected_properties())
+            fields = [
+                ("Name", self.template_prop_name),
+                ("Font", self.template_prop_font_family),
+                ("Size", self.template_prop_font_size),
+                ("Text Color", self.template_prop_text_color),
+                ("Stroke Color", self.template_prop_stroke_color),
+                ("Stroke Width", self.template_prop_stroke_width),
+            ]
 
-        ctk.CTkCheckBox(
-            body,
-            text="Uppercase",
-            variable=self.template_prop_uppercase,
-            text_color=TEXT,
-            command=self.template_apply_selected_properties
-        ).grid(row=len(fields), column=0, columnspan=2, padx=12, pady=8, sticky="w")
+            self._template_property_entries = {}
+            for row, (label, var) in enumerate(fields):
+                ctk.CTkLabel(editor, text=label, text_color="#BCA870").grid(
+                    row=row, column=0, padx=(12, 8), pady=6, sticky="w"
+                )
+                entry = ctk.CTkEntry(editor, textvariable=var)
+                entry.grid(row=row, column=1, padx=(0, 12), pady=6, sticky="ew")
+                entry.bind("<KeyRelease>", lambda _event: self.template_apply_selected_properties())
+                self._template_property_entries[label] = entry
+                if label == "Name":
+                    self.template_prop_name_entry = entry
 
-        ctk.CTkLabel(
-            body,
-            text="Änderungen werden automatisch gespeichert.",
-            text_color="#D9C58C",
-            wraplength=220,
-            justify="left"
-        ).grid(row=len(fields)+1, column=0, columnspan=2, padx=12, pady=(8, 12), sticky="w")
+            self._template_property_uppercase = ctk.CTkCheckBox(
+                editor,
+                text="Uppercase",
+                variable=self.template_prop_uppercase,
+                text_color=TEXT,
+                command=self.template_apply_selected_properties,
+            )
+            self._template_property_uppercase.grid(
+                row=len(fields), column=0, columnspan=2, padx=12, pady=8, sticky="w"
+            )
+
+            ctk.CTkLabel(
+                editor,
+                text="Änderungen werden automatisch gespeichert.",
+                text_color="#D9C58C",
+                wraplength=220,
+                justify="left",
+            ).grid(
+                row=len(fields) + 1,
+                column=0,
+                columnspan=2,
+                padx=12,
+                pady=(8, 12),
+                sticky="w",
+            )
+
+            self._template_properties_body_ref = body
+            self._template_properties_editor = editor
+            self._template_properties_empty_label = empty_label
+
+        if self.template_selected_field is None:
+            editor.grid_remove()
+            empty_label.grid()
+        else:
+            empty_label.grid_remove()
+            editor.grid()
 
 
 
