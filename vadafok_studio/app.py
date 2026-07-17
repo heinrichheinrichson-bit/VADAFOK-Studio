@@ -3223,6 +3223,8 @@ class VadafokStudio(ctk.CTk):
 
         self._template_layer_row_for_group = {}
         self._template_layer_row_for_field = {}
+        self._template_layer_group_buttons = {}
+        self._template_layer_field_buttons = {}
 
         fields = template.get("fields", [])
         selected = set(getattr(self, "template_selected_fields", set()))
@@ -3274,6 +3276,7 @@ class VadafokStudio(ctk.CTk):
                 command=lambda gid=group_id: self.template_select_group(gid)
             )
             group_btn.grid(row=row, column=1, padx=(2, 4), pady=(6, 3), sticky="ew")
+            self._template_layer_group_buttons[group_id] = group_btn
 
             ctk.CTkButton(
                 self.template_layers_body,
@@ -3342,6 +3345,7 @@ class VadafokStudio(ctk.CTk):
             )
             pad_left = 16 if group_name else 0
             btn.grid(row=0, column=0, padx=(pad_left, 4), pady=0, sticky="ew")
+            self._template_layer_field_buttons[idx] = btn
             try:
                 btn.bind("<Double-Button-1>", lambda _e, i=idx: self.template_start_inline_rename_field(i))
                 btn.bind("<ButtonPress-1>", lambda e, i=idx: self.template_layer_drag_start(e, i), add="+")
@@ -3397,13 +3401,76 @@ class VadafokStudio(ctk.CTk):
         self.template_layers_body.grid_columnconfigure(0, weight=1)
 
 
+    def template_refresh_layers_selection(self):
+        """Update only Layers selection styling without rebuilding every row widget."""
+        field_buttons = getattr(self, "_template_layer_field_buttons", None)
+        group_buttons = getattr(self, "_template_layer_group_buttons", None)
+        if field_buttons is None or group_buttons is None:
+            self.template_build_layers_panel()
+            return
+
+        template = self.template_current()
+        fields = template.get("fields", [])
+        selected = set(getattr(self, "template_selected_fields", set()))
+        if self.template_selected_field is not None:
+            selected.add(self.template_selected_field)
+
+        for idx, button in list(field_buttons.items()):
+            if not (0 <= idx < len(fields)):
+                self.template_build_layers_panel()
+                return
+            field = fields[idx]
+            active = idx in selected
+            locked = bool(field.get("locked", False))
+            hidden = bool(field.get("hidden", False))
+            group_name = self.template_group_name_for_field(idx) if hasattr(self, "template_group_name_for_field") else ""
+            name = field.get("name", f"field_{idx+1}")
+            if group_name:
+                name = f"{name} · {group_name}"
+            try:
+                button.configure(
+                    text=("✓ " if active else "") + ("🚫 " if hidden else "") + ("🔒 " if locked else "") + name,
+                    fg_color=GOLD if active else "#171717",
+                    text_color="#111111" if active else "#D9C58C",
+                    hover_color=GOLD_DARK if active else "#2C2C2C",
+                )
+            except Exception:
+                self.template_build_layers_panel()
+                return
+
+        selected_group_ids = self.template_selected_group_ids() if hasattr(self, "template_selected_group_ids") else set()
+        groups_by_id = {group.get("id"): group for group in template.get("groups", [])}
+        for group_id, button in list(group_buttons.items()):
+            group = groups_by_id.get(group_id)
+            if group is None:
+                self.template_build_layers_panel()
+                return
+            active = group_id in selected_group_ids
+            label = ("✓ " if active else "") + "📦 " + group.get("name", "Group")
+            try:
+                button.configure(
+                    text=label,
+                    fg_color=GOLD if active else "#202020",
+                    text_color="#111111" if active else "#D9C58C",
+                    hover_color=GOLD_DARK if active else "#303030",
+                )
+            except Exception:
+                self.template_build_layers_panel()
+                return
+
+    def template_refresh_selection_ui(self, refresh_properties=True):
+        """Refresh selection-dependent UI while keeping existing Layers widgets alive."""
+        if refresh_properties:
+            self.template_load_selected_properties()
+            if hasattr(self, "template_props_body"):
+                self.template_build_properties_panel()
+        self.template_update_fields_overlay(refresh_layers=False)
+        if hasattr(self, "template_layers_body"):
+            self.template_refresh_layers_selection()
+
     def template_select_layer(self, idx):
         self.template_set_single_selection(idx)
-        self.template_load_selected_properties()
-        if hasattr(self, "template_props_body"):
-            self.template_build_properties_panel()
-        self.template_update_fields_overlay()
-        self.template_build_layers_panel()
+        self.template_refresh_selection_ui()
 
     def template_move_layer(self, idx, direction):
         template = self.template_current()
@@ -4706,10 +4773,7 @@ class VadafokStudio(ctk.CTk):
         if not moved:
             if not getattr(self, "template_marquee_add_mode", False):
                 self.template_clear_selection()
-                self.template_load_selected_properties()
-                if hasattr(self, "template_props_body"):
-                    self.template_build_properties_panel()
-                self.template_update_fields_overlay()
+                self.template_refresh_selection_ui()
             return True
 
         template = self.template_current()
@@ -4736,12 +4800,7 @@ class VadafokStudio(ctk.CTk):
             self.template_selected_fields = found
             self.template_selected_field = next(iter(found), None)
 
-        self.template_load_selected_properties()
-        if hasattr(self, "template_props_body"):
-            self.template_build_properties_panel()
-        self.template_update_fields_overlay()
-        if hasattr(self, "template_layers_body"):
-            self.template_build_layers_panel()
+        self.template_refresh_selection_ui()
 
         return True
 
@@ -4774,16 +4833,13 @@ class VadafokStudio(ctk.CTk):
             else:
                 self.template_set_single_selection(idx)
 
-        self.template_load_selected_properties()
-        if hasattr(self, "template_props_body"):
-            self.template_build_properties_panel()
+        self.template_refresh_selection_ui()
 
         if self.template_is_field_locked(idx):
             self.template_drag_mode = None
             self.template_drag_start = None
             self.template_drag_original = None
             self.template_group_drag_originals = None
-            self.template_update_fields_overlay()
             return
 
         self.template_drag_history_snapshot = self.template_snapshot()

@@ -1,0 +1,81 @@
+VADAFOK Studio 2.25.0.4 – Selection & History Refresh Audit
+================================================================
+
+WICHTIG
+-------
+Noch nicht committen. Erst installieren und vollständig testen.
+
+INSTALLATION
+------------
+1. VADAFOK Studio vollständig schließen.
+2. Den Inhalt dieses ZIP-Archivs in den Hauptordner deines Projekts kopieren.
+3. Vorhandene Dateien ersetzen/überschreiben.
+4. RUN_2.25.0.4_TESTS.bat per Doppelklick starten.
+
+Geänderte Dateien:
+- vadafok_studio/app.py
+- vadafok_studio/version.py
+- tests/test_version.py
+
+Neue Dateien:
+- tests/test_template_editor_selection_refresh.py
+- docs/TEMPLATE_SELECTION_HISTORY_REFRESH_2.25.0.4.md
+- RUN_2.25.0.4_TESTS.bat
+- INSTALLIEREN_UND_TESTEN_2.25.0.4.txt
+
+MANUELLER TEST
+--------------
+1. VADAFOK Studio starten und Version 2.25.0.4 prüfen.
+2. Template Editor mit einem Hintergrund und mehreren Feldern öffnen.
+3. Nacheinander verschiedene Felder direkt auf dem Canvas anklicken.
+4. Dieselben Felder über die Layers-Liste anklicken.
+5. Dabei prüfen, dass die Layers-Liste nicht flackert und nicht springt.
+6. Mit Strg/Shift mehrere Felder auswählen und wieder abwählen.
+7. Eine Rahmenauswahl um mehrere Felder ziehen.
+8. Auf eine freie Canvas-Stelle klicken, um die Auswahl zu löschen.
+9. Ein gesperrtes Feld auswählen.
+10. Ein einzelnes Feld ziehen und skalieren.
+11. Mehrere ausgewählte Felder gemeinsam ziehen.
+12. Smart Snap und Smart Guides prüfen.
+13. Eine Feldänderung durchführen und UNDO verwenden.
+14. REDO verwenden.
+15. Mehrere Änderungen nacheinander rückgängig machen und wiederherstellen.
+16. Nach Undo/Redo Layers, Properties, Auswahlrahmen und Hintergrund prüfen.
+17. Zoomen und pannen.
+18. Speichern, Seite wechseln und Template erneut öffnen.
+
+TESTPROTOKOLL
+-------------
+Version 2.25.0.4 korrekt: JA / NEIN
+Alle automatisierten Tests bestanden: JA / NEIN
+Compileall bestanden: JA / NEIN
+
+Layers-Liste flackert bei Canvas-Auswahl nicht: JA / NEIN
+Layers-Liste flackert bei Layers-Auswahl nicht: JA / NEIN
+Layers-Liste springt/scrollt bei Auswahl nicht: JA / NEIN
+Einzelauswahl funktioniert: JA / NEIN
+Mehrfachauswahl funktioniert: JA / NEIN
+Auswahl abwählen funktioniert: JA / NEIN
+Rahmenauswahl funktioniert: JA / NEIN
+Gesperrtes Feld auswählen funktioniert: JA / NEIN
+Properties zeigen das richtige Feld: JA / NEIN
+
+Undo funktioniert: JA / NEIN
+Redo funktioniert: JA / NEIN
+Mehrstufiges Undo/Redo funktioniert: JA / NEIN
+Layers nach Undo/Redo korrekt: JA / NEIN
+Properties nach Undo/Redo korrekt: JA / NEIN
+Auswahlrahmen nach Undo/Redo korrekt: JA / NEIN
+Hintergrund nach Undo/Redo korrekt: JA / NEIN
+
+Feldziehen weiterhin flüssig: JA / NEIN
+Skalieren funktioniert: JA / NEIN
+Gruppenziehen funktioniert: JA / NEIN
+Smart Snap unverändert: JA / NEIN
+Smart Guides unverändert: JA / NEIN
+Zoom funktioniert: JA / NEIN
+Pan funktioniert: JA / NEIN
+Speichern und erneutes Öffnen korrekt: JA / NEIN
+
+Sonstige Probleme:
+...
