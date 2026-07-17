@@ -1,9 +1,9 @@
 """Lightweight diagnostics for Template Editor refresh gateways.
 
 Profiling is disabled by default. When enabled, the profiler records call
-counts and elapsed time without changing refresh behavior or swallowing errors.
-The developer view is a detached, text-only representation; it does not create
-widgets or modify the normal application UI.
+counts, elapsed time and bounded refresh-chain events without changing refresh
+behavior or swallowing errors. All diagnostics remain in memory and are
+detached from the normal application UI.
 """
 
 from __future__ import annotations
@@ -41,31 +41,123 @@ class RefreshMetric:
         }
 
 
+@dataclass
+class RefreshEvent:
+    """One completed gateway call in a nested refresh chain."""
+
+    sequence: int
+    name: str
+    parent_sequence: int | None
+    root_sequence: int
+    depth: int
+    started_seconds: float
+    elapsed_seconds: float
+    failed: bool = False
+
+    def snapshot(self) -> dict[str, int | float | str | bool | None]:
+        return {
+            "sequence": self.sequence,
+            "name": self.name,
+            "parent_sequence": self.parent_sequence,
+            "root_sequence": self.root_sequence,
+            "depth": self.depth,
+            "started_seconds": self.started_seconds,
+            "elapsed_seconds": self.elapsed_seconds,
+            "failed": self.failed,
+        }
+
+
+@dataclass
+class _ActiveRefresh:
+    sequence: int
+    name: str
+    parent_sequence: int | None
+    root_sequence: int
+    depth: int
+    started_seconds: float
+
+
 class TemplateRefreshProfiler:
     """Collect optional, in-memory refresh diagnostics."""
 
-    def __init__(self, *, enabled: bool = False) -> None:
+    def __init__(
+        self,
+        *,
+        enabled: bool = False,
+        event_limit: int = 1000,
+    ) -> None:
         self.enabled = bool(enabled)
+        self.event_limit = max(1, int(event_limit))
         self._metrics: dict[str, RefreshMetric] = {}
+        self._events: list[RefreshEvent] = []
+        self._active: list[_ActiveRefresh] = []
+        self._next_sequence = 1
+        self._dropped_events = 0
 
     def set_enabled(self, enabled: bool) -> None:
         self.enabled = bool(enabled)
 
     def run(self, name: str, callback: Callable[[], _Result]) -> _Result:
-        """Run *callback* and record its duration only when profiling is enabled."""
+        """Run *callback* and collect diagnostics only when profiling is enabled."""
 
         if not self.enabled:
             return callback()
 
+        sequence = self._next_sequence
+        self._next_sequence += 1
+        parent = self._active[-1] if self._active else None
         started = perf_counter()
+        active = _ActiveRefresh(
+            sequence=sequence,
+            name=name,
+            parent_sequence=parent.sequence if parent else None,
+            root_sequence=parent.root_sequence if parent else sequence,
+            depth=len(self._active),
+            started_seconds=started,
+        )
+        self._active.append(active)
+        failed = False
         try:
             return callback()
+        except BaseException:
+            failed = True
+            raise
         finally:
             elapsed = perf_counter() - started
             self._metrics.setdefault(name, RefreshMetric()).record(elapsed)
+            self._active.pop()
+            self._append_event(
+                RefreshEvent(
+                    sequence=active.sequence,
+                    name=active.name,
+                    parent_sequence=active.parent_sequence,
+                    root_sequence=active.root_sequence,
+                    depth=active.depth,
+                    started_seconds=active.started_seconds,
+                    elapsed_seconds=elapsed,
+                    failed=failed,
+                )
+            )
+
+    def _append_event(self, event: RefreshEvent) -> None:
+        if len(self._events) >= self.event_limit:
+            self._events.pop(0)
+            self._dropped_events += 1
+        self._events.append(event)
 
     def reset(self) -> None:
+        """Clear metrics and analysis data without changing enabled state."""
+
         self._metrics.clear()
+        self.reset_analysis()
+
+    def reset_analysis(self) -> None:
+        """Clear recorded events while preserving aggregate timing metrics."""
+
+        self._events.clear()
+        self._active.clear()
+        self._next_sequence = 1
+        self._dropped_events = 0
 
     def snapshot(self) -> dict[str, Any]:
         return {
@@ -123,4 +215,77 @@ class TemplateRefreshProfiler:
                 f"Ø {metric['average_seconds'] * 1000.0:.3f} ms | "
                 f"max {metric['maximum_seconds'] * 1000.0:.3f} ms"
             )
+        return "\n".join(lines)
+
+    def analysis_snapshot(self) -> dict[str, Any]:
+        """Return ordered events, counts and reconstructed top-level chains."""
+
+        ordered_events = sorted(self._events, key=lambda event: event.sequence)
+        event_snapshots = [event.snapshot() for event in ordered_events]
+        counts: dict[str, int] = {}
+        for event in ordered_events:
+            counts[event.name] = counts.get(event.name, 0) + 1
+
+        chains: list[dict[str, Any]] = []
+        events_by_root: dict[int, list[RefreshEvent]] = {}
+        for event in ordered_events:
+            events_by_root.setdefault(event.root_sequence, []).append(event)
+
+        for root_sequence in sorted(events_by_root):
+            chain_events = events_by_root[root_sequence]
+            root = next(
+                (event for event in chain_events if event.sequence == root_sequence),
+                chain_events[0],
+            )
+            chains.append(
+                {
+                    "root_sequence": root_sequence,
+                    "name": root.name,
+                    "elapsed_seconds": root.elapsed_seconds,
+                    "failed": root.failed,
+                    "events": [event.snapshot() for event in chain_events],
+                }
+            )
+
+        return {
+            "enabled": self.enabled,
+            "event_limit": self.event_limit,
+            "dropped_events": self._dropped_events,
+            "total_events": len(event_snapshots),
+            "counts": dict(sorted(counts.items())),
+            "events": event_snapshots,
+            "chains": chains,
+        }
+
+    def analysis_text(self) -> str:
+        """Return a compact, deterministic text representation of refresh chains."""
+
+        analysis = self.analysis_snapshot()
+        status = "AKTIV" if analysis["enabled"] else "INAKTIV"
+        lines = [
+            "=== Refresh Analysis ===",
+            f"Status: {status}",
+            f"Ereignisse: {analysis['total_events']}",
+            f"Ketten: {len(analysis['chains'])}",
+        ]
+        if analysis["dropped_events"]:
+            lines.append(f"Verworfene ältere Ereignisse: {analysis['dropped_events']}")
+
+        if not analysis["chains"]:
+            lines.append("Keine Analyseereignisse vorhanden.")
+            return "\n".join(lines)
+
+        for chain in analysis["chains"]:
+            suffix = " [FEHLER]" if chain["failed"] else ""
+            lines.append("")
+            lines.append(
+                f"{chain['name']} #{chain['root_sequence']}"
+                f" ({chain['elapsed_seconds'] * 1000.0:.3f} ms){suffix}"
+            )
+            for event in chain["events"]:
+                marker = " !FEHLER" if event["failed"] else ""
+                lines.append(
+                    f"{'  ' * event['depth']}- {event['name']} "
+                    f"({event['elapsed_seconds'] * 1000.0:.3f} ms){marker}"
+                )
         return "\n".join(lines)

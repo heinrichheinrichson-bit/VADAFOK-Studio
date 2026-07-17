@@ -31,20 +31,6 @@
       "id": "29fc4479-0ef2-4768-ba2f-321117831d9e"
     },
     {
-      "name": "1111111",
-      "x": 217,
-      "y": 974,
-      "width": 584,
-      "height": 140,
-      "font_family": "Bebas Neue",
-      "font_size": 90,
-      "text_color": "#FF0002",
-      "stroke_color": "#000000",
-      "stroke_width": 3,
-      "uppercase": true,
-      "id": "f73a48ad-33c2-4be3-8962-82d2dd8109fd"
-    },
-    {
       "name": "1111",
       "x": 209,
       "y": 170,
@@ -61,9 +47,9 @@
     },
     {
       "name": "time_copy_copy2",
-      "x": 300,
-      "y": 821,
-      "width": 360,
+      "x": 326,
+      "y": 790,
+      "width": 589,
       "height": 90,
       "font_family": "Bebas Neue",
       "font_size": 90,
@@ -75,8 +61,8 @@
     },
     {
       "name": "time_copy_copy_copy",
-      "x": 421,
-      "y": 1335,
+      "x": 447,
+      "y": 1304,
       "width": 99,
       "height": 146,
       "font_family": "Bebas Neue",

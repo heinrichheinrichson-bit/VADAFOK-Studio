@@ -53,6 +53,21 @@ class TemplateRefreshManager:
 
         return self.profiler.developer_text()
 
+    def refresh_analysis(self) -> dict[str, Any]:
+        """Return ordered refresh events and reconstructed call chains."""
+
+        return self.profiler.analysis_snapshot()
+
+    def refresh_analysis_text(self) -> str:
+        """Return refresh-chain analysis as a compact text report."""
+
+        return self.profiler.analysis_text()
+
+    def reset_analysis(self) -> None:
+        """Clear analysis events while preserving aggregate profile metrics."""
+
+        self.profiler.reset_analysis()
+
     def canvas(self, *, refresh_layers: bool = True) -> None:
         self._run(
             "canvas",
