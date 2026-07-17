@@ -2146,7 +2146,7 @@ class VadafokStudio(ctk.CTk):
         if hasattr(self, "template_zoom_label_var"):
             self.template_zoom_label_var.set(f"{int(self.template_zoom_factor * 100)}%")
         if hasattr(self, "template_canvas"):
-            self.template_draw_canvas()
+            self.template_draw_canvas(refresh_layers=False)
 
     def template_zoom_in(self):
         self.template_set_zoom(getattr(self, "template_zoom_factor", 1.0) * 1.25)
@@ -2238,7 +2238,7 @@ class VadafokStudio(ctk.CTk):
         self.template_pan_x = 0
         self.template_pan_y = 0
         if hasattr(self, "template_canvas"):
-            self.template_draw_canvas()
+            self.template_draw_canvas(refresh_layers=False)
 
 
 
@@ -4124,7 +4124,7 @@ class VadafokStudio(ctk.CTk):
             self.template_build_properties_panel()
 
 
-    def template_draw_canvas(self):
+    def template_draw_canvas(self, refresh_layers=True):
         if not hasattr(self, "template_canvas"):
             return
 
@@ -4132,7 +4132,6 @@ class VadafokStudio(ctk.CTk):
         template = self.template_current()
 
         canvas = self.template_canvas
-        canvas.delete("all")
         canvas.update_idletasks()
 
         cw = max(600, canvas.winfo_width())
@@ -4146,7 +4145,7 @@ class VadafokStudio(ctk.CTk):
 
         if bg_path and bg_info["exists"]:
             try:
-                original = load_rgba(bg_path)
+                original = self.template_load_background_image(bg_path)
                 self.template_canvas_design_size = original.size
                 _display, base_scale, _offset = fit_image_to_box(original, cw, ch, padding=40)
                 scale = base_scale * float(getattr(self, "template_zoom_factor", 1.0))
@@ -4158,7 +4157,11 @@ class VadafokStudio(ctk.CTk):
                 )
                 self.template_canvas_scale = scale
                 self.template_canvas_offset = offset
-                self.template_bg_photo = tk.PhotoImage(data=pil_to_tk_photo_data(display))
+                # Keep the old canvas visible while loading and scaling. Clear it
+                # only after the replacement image is fully prepared.
+                next_bg_photo = tk.PhotoImage(data=pil_to_tk_photo_data(display))
+                canvas.delete("all")
+                self.template_bg_photo = next_bg_photo
                 canvas.create_image(offset[0], offset[1], image=self.template_bg_photo, anchor="nw", tags="background")
                 canvas.create_rectangle(offset[0], offset[1], offset[0] + display.size[0], offset[1] + display.size[1], outline="#3A2A0D", width=2)
             except Exception as e:
@@ -4166,6 +4169,7 @@ class VadafokStudio(ctk.CTk):
                 self.template_canvas_offset = (((cw - int(1280 * self.template_canvas_scale)) // 2) + int(getattr(self, 'template_pan_x', 0)), ((ch - int(720 * self.template_canvas_scale)) // 2) + int(getattr(self, 'template_pan_y', 0)))
                 ox, oy = self.template_canvas_offset
                 dw, dh = int(1280 * self.template_canvas_scale), int(720 * self.template_canvas_scale)
+                canvas.delete("all")
                 canvas.create_rectangle(ox, oy, ox + dw, oy + dh, fill="#111111", outline="#3A2A0D", width=2)
                 canvas.create_text(ox + 20, oy + 20, text=f"Background Fehler:\n{e}", anchor="nw", fill="#D86A6A", font=("Arial", 14, "bold"))
         else:
@@ -4173,6 +4177,7 @@ class VadafokStudio(ctk.CTk):
             self.template_canvas_offset = (((cw - int(1280 * self.template_canvas_scale)) // 2) + int(getattr(self, 'template_pan_x', 0)), ((ch - int(720 * self.template_canvas_scale)) // 2) + int(getattr(self, 'template_pan_y', 0)))
             ox, oy = self.template_canvas_offset
             dw, dh = int(1280 * self.template_canvas_scale), int(720 * self.template_canvas_scale)
+            canvas.delete("all")
             canvas.create_rectangle(ox, oy, ox + dw, oy + dh, fill="#111111", outline="#3A2A0D", width=2)
 
         ox, oy = self.template_canvas_offset
@@ -4183,7 +4188,23 @@ class VadafokStudio(ctk.CTk):
         )
         canvas.create_text(ox + 18, oy + 18, text=status_text, anchor="nw", fill="#D6A43A", font=("Arial", 12, "bold"))
 
-        self.template_update_fields_overlay(bg_info)
+        self.template_update_fields_overlay(bg_info, refresh_layers=refresh_layers)
+
+
+    def template_load_background_image(self, bg_path):
+        """Load a Template background once and reuse it until the file changes."""
+        path = Path(bg_path)
+        try:
+            stamp = path.stat().st_mtime_ns
+        except OSError:
+            stamp = None
+
+        cache_key = (str(path.resolve()), stamp)
+        if getattr(self, "template_bg_cache_key", None) != cache_key:
+            self.template_bg_cache_image = load_rgba(path)
+            self.template_bg_cache_key = cache_key
+
+        return self.template_bg_cache_image
 
 
     def template_clear_fields_overlay(self):
