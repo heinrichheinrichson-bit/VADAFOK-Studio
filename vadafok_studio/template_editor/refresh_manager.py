@@ -1,6 +1,6 @@
 """Central refresh gateway for the Template Editor.
 
-The manager deliberately contains no rendering logic.  It provides one stable
+The manager deliberately contains no rendering logic. It provides one stable
 interface around the existing application methods so future controller
 extractions can happen without changing user-facing behavior.
 """
@@ -10,7 +10,6 @@ from __future__ import annotations
 from typing import Any, Callable, TypeVar
 
 from .refresh_profiler import TemplateRefreshProfiler
-
 
 _Result = TypeVar("_Result")
 
@@ -31,15 +30,28 @@ class TemplateRefreshManager:
 
     def set_profiling(self, enabled: bool) -> None:
         """Enable or disable in-memory refresh measurements."""
+
         self.profiler.set_enabled(enabled)
 
     def reset_profile(self) -> None:
         """Clear all collected refresh measurements."""
+
         self.profiler.reset()
 
     def refresh_profile(self) -> dict[str, Any]:
         """Return a detached snapshot of the current refresh measurements."""
+
         return self.profiler.snapshot()
+
+    def refresh_developer_view(self) -> dict[str, Any]:
+        """Return summarized profiler data for optional developer tooling."""
+
+        return self.profiler.developer_snapshot()
+
+    def refresh_developer_text(self) -> str:
+        """Return the optional developer view as plain text."""
+
+        return self.profiler.developer_text()
 
     def canvas(self, *, refresh_layers: bool = True) -> None:
         self._run(
