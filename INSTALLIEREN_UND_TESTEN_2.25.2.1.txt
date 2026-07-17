@@ -1,0 +1,38 @@
+VADAFOK Studio 2.25.2.1 - RefreshManager Adoption Compatibility
+=================================================================
+
+STATUS / ROLLBACK
+-----------------
+ROLLBACK: NEIN
+
+2.25.2.0 wurde nicht committet. Dieses Korrektur-Overlay wird direkt über den
+lokalen Stand 2.25.2.0 kopiert.
+
+INSTALLATION
+------------
+1. VADAFOK Studio vollständig schließen.
+2. ZIP entpacken.
+3. Den Inhalt in den Projekt-Hauptordner kopieren.
+4. Vorhandene Dateien ersetzen.
+5. RUN_2.25.2.1_TESTS.bat starten.
+6. Danach Start VADAFOK Studio.bat starten.
+7. Noch nicht committen.
+
+ZIEL
+----
+- Bestehenden Legacy-Auswahl-Wrapper vollständig wiederherstellen.
+- Bestehende Struktur- und Verhaltenstests wieder kompatibel machen.
+- RefreshManager als Foundation unverändert erhalten.
+- Keine sichtbare Verhaltensänderung.
+
+MANUELL PRÜFEN
+--------------
+- Programmstart
+- Canvas- und Layers-Auswahl
+- Auswahl abwählen
+- Mehrfach- und Rahmenauswahl
+- Properties und Autosave
+- Template-Wechsel
+- Drag, Skalieren, Zoom, Pan
+- Undo/Redo
+- Speichern und erneutes Öffnen

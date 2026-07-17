@@ -3460,11 +3460,10 @@ class VadafokStudio(ctk.CTk):
                 return
 
     def template_refresh_selection_ui(self, refresh_properties=True):
-        """Refresh selection-dependent UI without changing legacy behavior."""
+        """Refresh selection-dependent UI while preserving the legacy contract."""
         if refresh_properties:
             self.template_load_selected_properties()
-            if hasattr(self, "template_props_body"):
-                self.template_build_properties_panel()
+            self.template_build_properties_panel()
         self.template_update_fields_overlay(refresh_layers=False)
         self.template_refresh_layers_selection()
 

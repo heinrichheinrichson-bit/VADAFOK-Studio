@@ -3,24 +3,9 @@
   "background": "background.png",
   "fields": [
     {
-      "name": "time",
-      "x": 306,
-      "y": 431,
-      "width": 374,
-      "height": 129,
-      "font_family": "Bebas Neue",
-      "font_size": 90,
-      "text_color": "#00FF00",
-      "stroke_color": "#000000",
-      "stroke_width": 3,
-      "uppercase": true,
-      "id": "394eaa3e-ca29-4133-97e3-b5304ebefd9a",
-      "locked": true
-    },
-    {
       "name": "time_copy",
-      "x": 332,
-      "y": 1002,
+      "x": 345,
+      "y": 1104,
       "width": 391,
       "height": 96,
       "font_family": "Bebas Neue",
@@ -32,9 +17,23 @@
       "id": "7d838146-e20e-4fb1-b130-85378a167367"
     },
     {
+      "name": "time_copy",
+      "x": 345,
+      "y": 1104,
+      "width": 391,
+      "height": 96,
+      "font_family": "Bebas Neue",
+      "font_size": 90,
+      "text_color": "#FFFFFF",
+      "stroke_color": "#000000",
+      "stroke_width": 3,
+      "uppercase": true,
+      "id": "29fc4479-0ef2-4768-ba2f-321117831d9e"
+    },
+    {
       "name": "1111111",
-      "x": 220,
-      "y": 749,
+      "x": 231,
+      "y": 872,
       "width": 584,
       "height": 140,
       "font_family": "Bebas Neue",
@@ -47,9 +46,9 @@
     },
     {
       "name": "1111",
-      "x": 901,
+      "x": 500,
       "y": 216,
-      "width": 40,
+      "width": 441,
       "height": 121,
       "font_family": "Bebas Neue",
       "font_size": 90,
@@ -57,12 +56,13 @@
       "stroke_color": "#000000",
       "stroke_width": 3,
       "uppercase": true,
-      "id": "ad1ed4d3-ae63-4e2f-b3ec-6caf0ee989b1"
+      "id": "ad1ed4d3-ae63-4e2f-b3ec-6caf0ee989b1",
+      "locked": false
     },
     {
       "name": "time_copy_copy2",
-      "x": 320,
-      "y": 1121,
+      "x": 110,
+      "y": 791,
       "width": 360,
       "height": 90,
       "font_family": "Bebas Neue",
