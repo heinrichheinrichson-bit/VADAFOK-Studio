@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 PRODUCT_NAME = "VADAFOK Studio"
-VERSION = "2.25.0.2"
+VERSION = "2.25.0.3"
 APP_TITLE = f"{PRODUCT_NAME} {VERSION}"
 SIDEBAR_VERSION = f"Studio {VERSION}"
 APP_USER_MODEL_ID = f"VADAFOK.Studio.{VERSION}"

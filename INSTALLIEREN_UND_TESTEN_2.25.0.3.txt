@@ -1,0 +1,60 @@
+VADAFOK Studio 2.25.0.3 – Property Refresh Audit
+=================================================
+
+WICHTIG
+-------
+Noch nicht committen. Erst installieren und vollständig testen.
+
+INSTALLATION
+------------
+1. VADAFOK Studio vollständig schließen.
+2. Den Inhalt dieses ZIP-Archivs in den Hauptordner deines Projekts kopieren.
+3. Vorhandene Dateien ersetzen/überschreiben.
+
+Geänderte Dateien:
+- vadafok_studio/app.py
+- vadafok_studio/version.py
+- tests/test_version.py
+
+Neue Dateien:
+- tests/test_template_editor_property_refresh.py
+- docs/TEMPLATE_PROPERTY_REFRESH_2.25.0.3.md
+- RUN_2.25.0.3_TESTS.bat
+- INSTALLIEREN_UND_TESTEN_2.25.0.3.txt
+
+AUTOMATISCHE TESTS
+------------------
+RUN_2.25.0.3_TESTS.bat per Doppelklick starten.
+
+Alternativ im Projektordner:
+python -m unittest discover -s tests -v
+python -m compileall vadafok_studio
+
+MANUELLER TEST
+--------------
+1. VADAFOK Studio starten und Version 2.25.0.3 prüfen.
+2. Template Editor öffnen.
+3. Ein Template mit Hintergrundbild und mehreren Feldern laden.
+4. Ein Feld auswählen.
+5. Im Property Panel den Namen langsam Zeichen für Zeichen ändern.
+6. Danach den Namen schnell tippen und wieder löschen/ändern.
+7. Währenddessen Canvas, Hintergrund und Layers-Liste beobachten.
+8. Font Size mehrfach ändern, zum Beispiel 90 -> 120 -> 75.
+9. Text Color und Stroke Color ändern.
+10. Stroke Width ändern.
+11. Uppercase mehrfach ein- und ausschalten.
+12. Nach jeder Änderung kurz warten und prüfen, ob Layers/Status korrekt nachziehen.
+13. Ein anderes Feld auswählen und dessen Eigenschaften ändern.
+14. Feld ziehen, skalieren, zoomen und pannen.
+15. Smart Snap und Smart Guides prüfen.
+16. Template speichern, Seite wechseln und erneut öffnen.
+17. Prüfen, ob alle Property-Änderungen erhalten geblieben sind.
+
+ERWARTET
+--------
+- Der Hintergrund flackert beim Tippen im Property Panel nicht.
+- Die Layers-Liste wird nicht pro Tastendruck sichtbar neu aufgebaut.
+- Die Feldbeschriftung auf dem Canvas reagiert sofort.
+- Layers und Status aktualisieren sich kurz nach Ende der Eingabe.
+- Automatisches Speichern bleibt erhalten.
+- Alle bisherigen Editor-Funktionen bleiben unverändert.

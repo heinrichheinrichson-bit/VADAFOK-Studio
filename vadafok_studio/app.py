@@ -1948,10 +1948,47 @@ class VadafokStudio(ctk.CTk):
             field["stroke_color"] = self.template_prop_stroke_color.get() or "#000000"
             field["stroke_width"] = int(self.template_prop_stroke_width.get())
             field["uppercase"] = bool(self.template_prop_uppercase.get())
-            save_template(self.template_selected_name, template)
-            self.template_draw_canvas()
+
+            # Property changes affect only field overlays. Avoid a complete canvas,
+            # background, status, and Layers rebuild for every key release.
+            self.template_update_fields_overlay(
+                refresh_layers=False,
+                refresh_status=False,
+            )
+            self.template_schedule_property_commit()
         except Exception:
             pass
+
+    def template_schedule_property_commit(self, delay_ms=250):
+        """Debounce property persistence and the dependent Layers/status refresh."""
+        pending = getattr(self, "template_property_commit_job", None)
+        if pending is not None:
+            try:
+                self.after_cancel(pending)
+            except Exception:
+                pass
+
+        try:
+            self.template_property_commit_job = self.after(
+                int(delay_ms),
+                self.template_commit_selected_properties,
+            )
+        except Exception:
+            self.template_commit_selected_properties()
+
+    def template_commit_selected_properties(self):
+        self.template_property_commit_job = None
+        try:
+            save_template(self.template_selected_name, self.template_current())
+        except Exception:
+            return
+
+        # The field name may be displayed in Layers and status. Refresh those once
+        # after typing pauses instead of rebuilding them for every character.
+        self.template_update_fields_overlay(
+            refresh_layers=True,
+            refresh_status=True,
+        )
 
 
 

@@ -4,13 +4,13 @@
   "fields": [
     {
       "name": "time",
-      "x": 315,
-      "y": 505,
-      "width": 360,
-      "height": 89,
+      "x": 284,
+      "y": 446,
+      "width": 391,
+      "height": 129,
       "font_family": "Bebas Neue",
       "font_size": 90,
-      "text_color": "#FFFFFF",
+      "text_color": "#00FF00",
       "stroke_color": "#000000",
       "stroke_width": 3,
       "uppercase": true,

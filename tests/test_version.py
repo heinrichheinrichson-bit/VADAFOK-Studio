@@ -7,7 +7,7 @@ from vadafok_studio.version import VERSION
 
 class VersionTests(unittest.TestCase):
     def test_current_version(self):
-        self.assertEqual(VERSION, "2.25.0.2")
+        self.assertEqual(VERSION, "2.25.0.3")
 
 
 if __name__ == "__main__":
