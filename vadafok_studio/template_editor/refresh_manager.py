@@ -88,6 +88,16 @@ class TemplateRefreshManager:
 
         return self.profiler.hotspot_analysis_text()
 
+    def refresh_pattern_analysis(self) -> dict[str, Any]:
+        """Return passive parent-child refresh transition statistics."""
+
+        return self.profiler.pattern_analysis_snapshot()
+
+    def refresh_pattern_text(self) -> str:
+        """Return passive parent-child refresh transitions as plain text."""
+
+        return self.profiler.pattern_analysis_text()
+
     def canvas(self, *, refresh_layers: bool = True) -> None:
         self._run(
             "canvas",

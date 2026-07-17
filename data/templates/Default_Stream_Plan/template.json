@@ -4,8 +4,8 @@
   "fields": [
     {
       "name": "time_copy",
-      "x": 343,
-      "y": 1053,
+      "x": 377,
+      "y": 1059,
       "width": 391,
       "height": 96,
       "font_family": "Bebas Neue",
@@ -18,8 +18,8 @@
     },
     {
       "name": "time_copy",
-      "x": 232,
-      "y": 987,
+      "x": 266,
+      "y": 993,
       "width": 391,
       "height": 96,
       "font_family": "Bebas Neue",
@@ -47,10 +47,10 @@
     },
     {
       "name": "time_copy_copy2",
-      "x": 94,
-      "y": 828,
-      "width": 589,
-      "height": 90,
+      "x": 16,
+      "y": 768,
+      "width": 914,
+      "height": 171,
       "font_family": "Bebas Neue",
       "font_size": 90,
       "text_color": "#FFFFFF",
@@ -61,8 +61,8 @@
     },
     {
       "name": "time_copy_copy_copy",
-      "x": 200,
-      "y": 1315,
+      "x": 176,
+      "y": 1263,
       "width": 598,
       "height": 146,
       "font_family": "Bebas Neue",

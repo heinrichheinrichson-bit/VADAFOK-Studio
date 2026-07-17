@@ -481,6 +481,125 @@ class TemplateRefreshProfiler:
             },
         }
 
+
+    def pattern_analysis_snapshot(self) -> dict[str, Any]:
+        """Analyze recurring parent-child transitions in recorded refresh chains."""
+
+        analysis = self.analysis_snapshot()
+        transition_counts: dict[tuple[str, str], int] = {}
+        outgoing_counts: dict[str, int] = {}
+        incoming_counts: dict[str, int] = {}
+
+        for chain in analysis["chains"]:
+            events = chain["events"]
+            events_by_sequence = {
+                int(event["sequence"]): event
+                for event in events
+            }
+            for event in events:
+                parent_sequence = event["parent_sequence"]
+                if parent_sequence is None:
+                    continue
+                parent = events_by_sequence.get(int(parent_sequence))
+                if parent is None:
+                    continue
+
+                source = str(parent["name"])
+                target = str(event["name"])
+                key = (source, target)
+                transition_counts[key] = transition_counts.get(key, 0) + 1
+                outgoing_counts[source] = outgoing_counts.get(source, 0) + 1
+                incoming_counts[target] = incoming_counts.get(target, 0) + 1
+
+        transitions: list[dict[str, Any]] = []
+        for (source, target), count in transition_counts.items():
+            outgoing_total = outgoing_counts[source]
+            target_share = count / outgoing_total if outgoing_total else 0.0
+            transitions.append(
+                {
+                    "source": source,
+                    "target": target,
+                    "signature": f"{source}>{target}",
+                    "count": count,
+                    "source_total": outgoing_total,
+                    "target_share": target_share,
+                }
+            )
+
+        transitions.sort(
+            key=lambda transition: (
+                -transition["count"],
+                transition["source"],
+                transition["target"],
+            )
+        )
+
+        source_summaries: list[dict[str, Any]] = []
+        for source in sorted(outgoing_counts):
+            source_transitions = [
+                dict(transition)
+                for transition in transitions
+                if transition["source"] == source
+            ]
+            source_summaries.append(
+                {
+                    "name": source,
+                    "outgoing_count": outgoing_counts[source],
+                    "unique_targets": len(source_transitions),
+                    "transitions": source_transitions,
+                }
+            )
+
+        source_summaries.sort(
+            key=lambda source: (
+                -source["outgoing_count"],
+                source["name"],
+            )
+        )
+
+        return {
+            "enabled": analysis["enabled"],
+            "event_limit": analysis["event_limit"],
+            "dropped_events": analysis["dropped_events"],
+            "total_events": analysis["total_events"],
+            "total_chains": len(analysis["chains"]),
+            "total_transitions": sum(transition_counts.values()),
+            "unique_transitions": len(transitions),
+            "transitions": transitions,
+            "sources": source_summaries,
+            "incoming_counts": dict(sorted(incoming_counts.items())),
+        }
+
+    def pattern_analysis_text(self) -> str:
+        """Return recurring refresh transitions as deterministic plain text."""
+
+        analysis = self.pattern_analysis_snapshot()
+        status = "AKTIV" if analysis["enabled"] else "INAKTIV"
+        lines = [
+            "=== Refresh Pattern Analysis ===",
+            f"Status: {status}",
+            f"Ketten: {analysis['total_chains']}",
+            f"Übergänge gesamt: {analysis['total_transitions']}",
+            f"Eindeutige Übergänge: {analysis['unique_transitions']}",
+        ]
+        if analysis["dropped_events"]:
+            lines.append(f"Verworfene ältere Ereignisse: {analysis['dropped_events']}")
+
+        if not analysis["transitions"]:
+            lines.append("Keine Refresh-Übergänge vorhanden.")
+            return "\n".join(lines)
+
+        lines.append("")
+        lines.append("Übergänge:")
+        for index, transition in enumerate(analysis["transitions"], start=1):
+            lines.append(
+                f"{index}. {transition['source']} -> {transition['target']} | "
+                f"{transition['count']}x | "
+                f"{transition['target_share'] * 100.0:.2f}% der Ausgänge"
+            )
+
+        return "\n".join(lines)
+
     def hotspot_analysis_text(self) -> str:
         """Return a deterministic gateway-hotspot report."""
 
