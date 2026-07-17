@@ -401,3 +401,128 @@ class TemplateRefreshProfiler:
                 )
 
         return "\n".join(lines)
+
+    def hotspot_analysis_snapshot(self) -> dict[str, Any]:
+        """Rank gateway metrics by frequency and elapsed time."""
+
+        snapshot = self.snapshot()
+        metrics = snapshot["metrics"]
+        total_count = sum(int(metric["count"]) for metric in metrics.values())
+        total_seconds = sum(
+            float(metric["total_seconds"]) for metric in metrics.values()
+        )
+
+        gateways: list[dict[str, Any]] = []
+        for name, metric in metrics.items():
+            count = int(metric["count"])
+            gateway_total = float(metric["total_seconds"])
+            gateway = {
+                "name": name,
+                "count": count,
+                "total_seconds": gateway_total,
+                "average_seconds": float(metric["average_seconds"]),
+                "last_seconds": float(metric["last_seconds"]),
+                "maximum_seconds": float(metric["maximum_seconds"]),
+                "count_share": count / total_count if total_count else 0.0,
+                "time_share": (
+                    gateway_total / total_seconds if total_seconds else 0.0
+                ),
+            }
+            gateways.append(gateway)
+
+        by_total_time = sorted(
+            gateways,
+            key=lambda gateway: (
+                -gateway["total_seconds"],
+                -gateway["count"],
+                gateway["name"],
+            ),
+        )
+        by_count = sorted(
+            gateways,
+            key=lambda gateway: (
+                -gateway["count"],
+                -gateway["total_seconds"],
+                gateway["name"],
+            ),
+        )
+        by_average_time = sorted(
+            gateways,
+            key=lambda gateway: (
+                -gateway["average_seconds"],
+                -gateway["count"],
+                gateway["name"],
+            ),
+        )
+        by_maximum_time = sorted(
+            gateways,
+            key=lambda gateway: (
+                -gateway["maximum_seconds"],
+                -gateway["count"],
+                gateway["name"],
+            ),
+        )
+
+        return {
+            "enabled": snapshot["enabled"],
+            "total_count": total_count,
+            "total_seconds": total_seconds,
+            "gateway_count": len(gateways),
+            "gateways": [dict(gateway) for gateway in by_total_time],
+            "rankings": {
+                "by_total_time": [dict(gateway) for gateway in by_total_time],
+                "by_count": [dict(gateway) for gateway in by_count],
+                "by_average_time": [
+                    dict(gateway) for gateway in by_average_time
+                ],
+                "by_maximum_time": [
+                    dict(gateway) for gateway in by_maximum_time
+                ],
+            },
+        }
+
+    def hotspot_analysis_text(self) -> str:
+        """Return a deterministic gateway-hotspot report."""
+
+        analysis = self.hotspot_analysis_snapshot()
+        status = "AKTIV" if analysis["enabled"] else "INAKTIV"
+        lines = [
+            "=== Refresh Hotspot Analysis ===",
+            f"Status: {status}",
+            f"Gateways: {analysis['gateway_count']}",
+            f"Aufrufe gesamt: {analysis['total_count']}",
+            f"Gateway-Zeit gesamt: {analysis['total_seconds'] * 1000.0:.3f} ms",
+        ]
+
+        if not analysis["gateways"]:
+            lines.append("Keine Gateway-Messwerte vorhanden.")
+            return "\n".join(lines)
+
+        lines.append("")
+        lines.append("Ranking nach Gesamtzeit:")
+        for index, gateway in enumerate(
+            analysis["rankings"]["by_total_time"],
+            start=1,
+        ):
+            lines.append(
+                f"{index}. {gateway['name']} | "
+                f"{gateway['count']}x | "
+                f"{gateway['total_seconds'] * 1000.0:.3f} ms gesamt | "
+                f"Ø {gateway['average_seconds'] * 1000.0:.3f} ms | "
+                f"{gateway['time_share'] * 100.0:.2f}% Zeit"
+            )
+
+        lines.append("")
+        lines.append(
+            "Häufigster Gateway: "
+            f"{analysis['rankings']['by_count'][0]['name']}"
+        )
+        lines.append(
+            "Höchster Durchschnitt: "
+            f"{analysis['rankings']['by_average_time'][0]['name']}"
+        )
+        lines.append(
+            "Höchster Einzelwert: "
+            f"{analysis['rankings']['by_maximum_time'][0]['name']}"
+        )
+        return "\n".join(lines)

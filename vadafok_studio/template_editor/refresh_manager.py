@@ -78,6 +78,16 @@ class TemplateRefreshManager:
 
         return self.profiler.chain_analysis_text()
 
+    def refresh_hotspot_analysis(self) -> dict[str, Any]:
+        """Return passive gateway hotspot rankings."""
+
+        return self.profiler.hotspot_analysis_snapshot()
+
+    def refresh_hotspot_text(self) -> str:
+        """Return passive gateway hotspot rankings as plain text."""
+
+        return self.profiler.hotspot_analysis_text()
+
     def canvas(self, *, refresh_layers: bool = True) -> None:
         self._run(
             "canvas",

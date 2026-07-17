@@ -1,0 +1,26 @@
+VADAFOK Studio 2.25.7.0 - Refresh Hotspot Analyzer
+===================================================
+
+BASIS
+-----
+Commit: 2b591f7d0d287e1cf6e6115db47556375c50288d
+
+ROLLBACK: NEIN
+
+INSTALLATION
+------------
+1. VADAFOK Studio vollständig schließen.
+2. Inhalt des ZIP-Archivs in den Projekt-Hauptordner kopieren.
+3. Vorhandene Dateien ersetzen.
+4. RUN_2.25.7.0_TESTS.bat starten.
+5. Danach VADAFOK Studio starten und vollständig manuell prüfen.
+6. Noch nicht committen.
+
+ÄNDERUNG
+--------
+- Passive Hotspot-Auswertung vorhandener Gateway-Metriken.
+- Rankings nach Gesamtzeit, Häufigkeit, Durchschnitt und Maximum.
+- Prozentanteile an Aufrufen und gemessener Gateway-Zeit.
+- Neue API refresh_hotspot_analysis() und refresh_hotspot_text().
+- Keine Änderung an Refresh-Reihenfolge, UI oder normalem Verhalten.
+- Profiling bleibt standardmäßig deaktiviert.
