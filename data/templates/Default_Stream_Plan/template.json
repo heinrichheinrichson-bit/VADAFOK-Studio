@@ -4,8 +4,8 @@
   "fields": [
     {
       "name": "time_copy",
-      "x": 314,
-      "y": 1051,
+      "x": 248,
+      "y": 1064,
       "width": 391,
       "height": 96,
       "font_family": "Bebas Neue",
@@ -18,8 +18,8 @@
     },
     {
       "name": "time_copy",
-      "x": 314,
-      "y": 1051,
+      "x": 137,
+      "y": 998,
       "width": 391,
       "height": 96,
       "font_family": "Bebas Neue",
@@ -32,8 +32,8 @@
     },
     {
       "name": "1111",
-      "x": 209,
-      "y": 170,
+      "x": 248,
+      "y": 180,
       "width": 408,
       "height": 488,
       "font_family": "Bebas Neue",
@@ -47,8 +47,8 @@
     },
     {
       "name": "time_copy_copy2",
-      "x": 326,
-      "y": 790,
+      "x": 137,
+      "y": 802,
       "width": 589,
       "height": 90,
       "font_family": "Bebas Neue",
@@ -61,9 +61,9 @@
     },
     {
       "name": "time_copy_copy_copy",
-      "x": 447,
-      "y": 1304,
-      "width": 99,
+      "x": 324,
+      "y": 1303,
+      "width": 598,
       "height": 146,
       "font_family": "Bebas Neue",
       "font_size": 90,

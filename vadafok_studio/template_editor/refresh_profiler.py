@@ -289,3 +289,115 @@ class TemplateRefreshProfiler:
                     f"({event['elapsed_seconds'] * 1000.0:.3f} ms){marker}"
                 )
         return "\n".join(lines)
+
+    def chain_analysis_snapshot(self) -> dict[str, Any]:
+        """Aggregate identical refresh-chain structures without changing runtime."""
+
+        analysis = self.analysis_snapshot()
+        grouped: dict[tuple[tuple[int, str], ...], dict[str, Any]] = {}
+
+        for chain in analysis["chains"]:
+            events = chain["events"]
+            if not events:
+                continue
+
+            base_depth = min(int(event["depth"]) for event in events)
+            structure = tuple(
+                (int(event["depth"]) - base_depth, str(event["name"]))
+                for event in events
+            )
+            signature = ">".join(
+                f"{depth}:{name}" for depth, name in structure
+            )
+            elapsed_seconds = float(chain["elapsed_seconds"])
+
+            group = grouped.setdefault(
+                structure,
+                {
+                    "signature": signature,
+                    "name": str(chain["name"]),
+                    "count": 0,
+                    "total_seconds": 0.0,
+                    "minimum_seconds": elapsed_seconds,
+                    "maximum_seconds": elapsed_seconds,
+                    "failed_count": 0,
+                    "gateways": [name for _, name in structure],
+                    "structure": [
+                        {"depth": depth, "name": name}
+                        for depth, name in structure
+                    ],
+                },
+            )
+            group["count"] += 1
+            group["total_seconds"] += elapsed_seconds
+            group["minimum_seconds"] = min(
+                group["minimum_seconds"],
+                elapsed_seconds,
+            )
+            group["maximum_seconds"] = max(
+                group["maximum_seconds"],
+                elapsed_seconds,
+            )
+            if chain["failed"]:
+                group["failed_count"] += 1
+
+        groups: list[dict[str, Any]] = []
+        for group in grouped.values():
+            count = group["count"]
+            group["average_seconds"] = (
+                group["total_seconds"] / count if count else 0.0
+            )
+            groups.append(group)
+
+        groups.sort(
+            key=lambda group: (
+                -group["count"],
+                -group["total_seconds"],
+                group["signature"],
+            )
+        )
+
+        return {
+            "enabled": analysis["enabled"],
+            "event_limit": analysis["event_limit"],
+            "dropped_events": analysis["dropped_events"],
+            "total_events": analysis["total_events"],
+            "total_chains": len(analysis["chains"]),
+            "unique_chains": len(groups),
+            "chains": groups,
+        }
+
+    def chain_analysis_text(self) -> str:
+        """Return grouped refresh-chain statistics as deterministic plain text."""
+
+        analysis = self.chain_analysis_snapshot()
+        status = "AKTIV" if analysis["enabled"] else "INAKTIV"
+        lines = [
+            "=== Refresh Chain Analysis ===",
+            f"Status: {status}",
+            f"Ketten gesamt: {analysis['total_chains']}",
+            f"Eindeutige Ketten: {analysis['unique_chains']}",
+        ]
+        if analysis["dropped_events"]:
+            lines.append(f"Verworfene ältere Ereignisse: {analysis['dropped_events']}")
+
+        if not analysis["chains"]:
+            lines.append("Keine Refresh-Ketten vorhanden.")
+            return "\n".join(lines)
+
+        for index, chain in enumerate(analysis["chains"], start=1):
+            lines.append("")
+            lines.append(
+                f"{index}. {chain['name']} | {chain['count']}x | "
+                f"Ø {chain['average_seconds'] * 1000.0:.3f} ms | "
+                f"min {chain['minimum_seconds'] * 1000.0:.3f} ms | "
+                f"max {chain['maximum_seconds'] * 1000.0:.3f} ms"
+            )
+            if chain["failed_count"]:
+                lines.append(f"   Fehler: {chain['failed_count']}")
+            for event in chain["structure"]:
+                lines.append(
+                    f"{'  ' * (event['depth'] + 1)}- {event['name']}"
+                )
+
+        return "\n".join(lines)

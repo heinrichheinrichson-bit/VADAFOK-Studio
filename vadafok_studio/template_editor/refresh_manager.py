@@ -68,6 +68,16 @@ class TemplateRefreshManager:
 
         self.profiler.reset_analysis()
 
+    def refresh_chain_analysis(self) -> dict[str, Any]:
+        """Return aggregated statistics for identical refresh-chain structures."""
+
+        return self.profiler.chain_analysis_snapshot()
+
+    def refresh_chain_text(self) -> str:
+        """Return aggregated refresh-chain statistics as plain text."""
+
+        return self.profiler.chain_analysis_text()
+
     def canvas(self, *, refresh_layers: bool = True) -> None:
         self._run(
             "canvas",
