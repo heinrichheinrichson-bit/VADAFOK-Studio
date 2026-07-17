@@ -32,8 +32,8 @@
     },
     {
       "name": "1111111",
-      "x": 231,
-      "y": 872,
+      "x": 248,
+      "y": 1027,
       "width": 584,
       "height": 140,
       "font_family": "Bebas Neue",
@@ -46,10 +46,10 @@
     },
     {
       "name": "1111",
-      "x": 500,
-      "y": 216,
+      "x": 379,
+      "y": 167,
       "width": 441,
-      "height": 121,
+      "height": 779,
       "font_family": "Bebas Neue",
       "font_size": 90,
       "text_color": "#FFFFFF",
@@ -57,12 +57,12 @@
       "stroke_width": 3,
       "uppercase": true,
       "id": "ad1ed4d3-ae63-4e2f-b3ec-6caf0ee989b1",
-      "locked": false
+      "locked": true
     },
     {
       "name": "time_copy_copy2",
-      "x": 110,
-      "y": 791,
+      "x": 290,
+      "y": 937,
       "width": 360,
       "height": 90,
       "font_family": "Bebas Neue",
@@ -75,8 +75,8 @@
     },
     {
       "name": "time_copy_copy_copy",
-      "x": 349,
-      "y": 1269,
+      "x": 366,
+      "y": 1424,
       "width": 99,
       "height": 146,
       "font_family": "Bebas Neue",
