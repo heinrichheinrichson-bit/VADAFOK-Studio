@@ -600,6 +600,135 @@ class TemplateRefreshProfiler:
 
         return "\n".join(lines)
 
+
+    def flow_analysis_snapshot(self) -> dict[str, Any]:
+        """Group complete recorded refresh flows and summarize their shape."""
+
+        analysis = self.analysis_snapshot()
+        grouped: dict[tuple[tuple[int, str], ...], dict[str, Any]] = {}
+
+        for chain in analysis["chains"]:
+            events = chain["events"]
+            if not events:
+                continue
+
+            base_depth = min(int(event["depth"]) for event in events)
+            structure = tuple(
+                (int(event["depth"]) - base_depth, str(event["name"]))
+                for event in events
+            )
+            gateways = [name for _, name in structure]
+            signature = ">".join(
+                f"{depth}:{name}" for depth, name in structure
+            )
+            elapsed_seconds = float(chain["elapsed_seconds"])
+            maximum_depth = max((depth for depth, _ in structure), default=0)
+
+            flow = grouped.setdefault(
+                structure,
+                {
+                    "signature": signature,
+                    "start": gateways[0],
+                    "end": gateways[-1],
+                    "gateways": gateways,
+                    "gateway_count": len(gateways),
+                    "maximum_depth": maximum_depth,
+                    "count": 0,
+                    "total_seconds": 0.0,
+                    "minimum_seconds": elapsed_seconds,
+                    "maximum_seconds": elapsed_seconds,
+                    "failed_count": 0,
+                    "structure": [
+                        {"depth": depth, "name": name}
+                        for depth, name in structure
+                    ],
+                },
+            )
+            flow["count"] += 1
+            flow["total_seconds"] += elapsed_seconds
+            flow["minimum_seconds"] = min(
+                flow["minimum_seconds"], elapsed_seconds
+            )
+            flow["maximum_seconds"] = max(
+                flow["maximum_seconds"], elapsed_seconds
+            )
+            if chain["failed"]:
+                flow["failed_count"] += 1
+
+        flows: list[dict[str, Any]] = []
+        for flow in grouped.values():
+            count = int(flow["count"])
+            flow["average_seconds"] = (
+                flow["total_seconds"] / count if count else 0.0
+            )
+            flow["failure_rate"] = (
+                flow["failed_count"] / count if count else 0.0
+            )
+            flows.append(flow)
+
+        flows.sort(
+            key=lambda flow: (
+                -flow["count"],
+                -flow["total_seconds"],
+                flow["signature"],
+            )
+        )
+
+        return {
+            "enabled": analysis["enabled"],
+            "event_limit": analysis["event_limit"],
+            "dropped_events": analysis["dropped_events"],
+            "total_events": analysis["total_events"],
+            "total_flows": len(analysis["chains"]),
+            "unique_flows": len(flows),
+            "flows": flows,
+        }
+
+    def flow_analysis_text(self) -> str:
+        """Return complete refresh-flow statistics as deterministic plain text."""
+
+        analysis = self.flow_analysis_snapshot()
+        status = "AKTIV" if analysis["enabled"] else "INAKTIV"
+        lines = [
+            "=== Refresh Flow Analysis ===",
+            f"Status: {status}",
+            f"Flows gesamt: {analysis['total_flows']}",
+            f"Eindeutige Flows: {analysis['unique_flows']}",
+        ]
+        if analysis["dropped_events"]:
+            lines.append(
+                f"Verworfene ältere Ereignisse: {analysis['dropped_events']}"
+            )
+
+        if not analysis["flows"]:
+            lines.append("Keine Refresh-Flows vorhanden.")
+            return "\n".join(lines)
+
+        for index, flow in enumerate(analysis["flows"], start=1):
+            lines.append("")
+            lines.append(
+                f"{index}. {flow['start']} -> {flow['end']} | "
+                f"{flow['count']}x | {flow['gateway_count']} Gateways | "
+                f"Tiefe {flow['maximum_depth']}"
+            )
+            lines.append(
+                f"   Ø {flow['average_seconds'] * 1000.0:.3f} ms | "
+                f"min {flow['minimum_seconds'] * 1000.0:.3f} ms | "
+                f"max {flow['maximum_seconds'] * 1000.0:.3f} ms"
+            )
+            if flow["failed_count"]:
+                lines.append(
+                    f"   Fehler: {flow['failed_count']} "
+                    f"({flow['failure_rate'] * 100.0:.2f}%)"
+                )
+            lines.append("   Ablauf:")
+            for event in flow["structure"]:
+                lines.append(
+                    f"{'  ' * (event['depth'] + 2)}- {event['name']}"
+                )
+
+        return "\n".join(lines)
+
     def hotspot_analysis_text(self) -> str:
         """Return a deterministic gateway-hotspot report."""
 

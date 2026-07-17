@@ -1,0 +1,14 @@
+VADAFOK Studio 2.25.9.0 – Refresh Flow Analyzer
+
+Basis-Commit:
+02d412da2ccbdbf2fabb9fd3cf66ca1fa80529a1
+
+INSTALLATION
+1. ZIP im Stammverzeichnis des Repositorys entpacken.
+2. Vorhandene Dateien überschreiben lassen.
+3. RUN_2.25.9.0_TESTS.bat ausführen.
+4. Anwendung starten und die bisherigen Template-Editor-Abläufe manuell prüfen.
+5. Noch NICHT committen. Erst die Testergebnisse zurückmelden.
+
+ROLLBACK: NEIN
+Das Overlay ist inkrementell und verändert ausschließlich passive Diagnosefunktionen, Version, Tests und Dokumentation.

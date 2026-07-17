@@ -98,6 +98,17 @@ class TemplateRefreshManager:
 
         return self.profiler.pattern_analysis_text()
 
+
+    def refresh_flow_analysis(self) -> dict[str, Any]:
+        """Return passive statistics for complete refresh flows."""
+
+        return self.profiler.flow_analysis_snapshot()
+
+    def refresh_flow_text(self) -> str:
+        """Return complete refresh-flow statistics as plain text."""
+
+        return self.profiler.flow_analysis_text()
+
     def canvas(self, *, refresh_layers: bool = True) -> None:
         self._run(
             "canvas",

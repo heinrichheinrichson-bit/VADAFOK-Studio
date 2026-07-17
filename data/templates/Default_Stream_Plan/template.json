@@ -4,8 +4,8 @@
   "fields": [
     {
       "name": "time_copy",
-      "x": 377,
-      "y": 1059,
+      "x": 370,
+      "y": 1060,
       "width": 391,
       "height": 96,
       "font_family": "Bebas Neue",
@@ -47,9 +47,9 @@
     },
     {
       "name": "time_copy_copy2",
-      "x": 16,
-      "y": 768,
-      "width": 914,
+      "x": 19,
+      "y": 790,
+      "width": 912,
       "height": 171,
       "font_family": "Bebas Neue",
       "font_size": 90,
@@ -61,7 +61,7 @@
     },
     {
       "name": "time_copy_copy_copy",
-      "x": 176,
+      "x": 171,
       "y": 1263,
       "width": 598,
       "height": 146,
