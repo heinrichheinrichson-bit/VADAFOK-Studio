@@ -1,0 +1,49 @@
+VADAFOK Studio 2.25.1.0a - RefreshManager Compatibility
+========================================================
+
+STATUS / ROLLBACK
+-----------------
+Kein Git-Rollback ist erforderlich, weil 2.25.1.0 nicht committet wurde.
+Dieses Korrektur-Overlay wird direkt über die lokal installierte 2.25.1.0 kopiert.
+
+Falls du vor der Installation lieber den stabilen GitHub-Stand 2.25.0.5
+wiederherstellen möchtest, verwende im Projektordner:
+
+    git reset --hard 694558f6f0605964b1e6fc9e12473d58c30b785e
+    git clean -fd
+
+ACHTUNG: Diese beiden Befehle löschen alle nicht committeten Änderungen und
+nicht versionierten Dateien im Projektordner. Nur verwenden, wenn dort nichts
+Eigenes ungesichert liegt.
+
+INSTALLATION OHNE ROLLBACK (EMPFOHLEN)
+--------------------------------------
+1. VADAFOK Studio vollständig schließen.
+2. Dieses ZIP entpacken.
+3. Den Inhalt des entpackten Ordners in den Projekt-Hauptordner kopieren.
+4. Vorhandene Dateien ersetzen/überschreiben.
+5. RUN_2.25.1.0a_TESTS.bat per Doppelklick starten.
+6. Noch nicht committen. Erst alle manuellen Tests durchführen.
+
+WAS KORRIGIERT WURDE
+--------------------
+- Der RefreshManager bleibt als Foundation vorhanden.
+- Bestehende Auswahl- und Template-Wechsel-Abläufe verwenden wieder exakt die
+  bewährten direkten Refresh-Aufrufe.
+- Reihenfolge und Semantik der bisherigen Partial Refreshes bleiben erhalten.
+- Der Controller-Fallback ist wieder eindeutig als defensiver Fallback markiert.
+- Bestehende Architektur- und Regressionstests bleiben kompatibel.
+
+MANUELLER TEST
+--------------
+1. Version 2.25.1.0a prüfen.
+2. Template Editor mit Hintergrund und mehreren Feldern öffnen.
+3. Felder auf dem Canvas und über Layers auswählen.
+4. Auswahl aufheben, Mehrfach- und Rahmenauswahl testen.
+5. Properties ändern und automatisches Speichern prüfen.
+6. Ziehen, Skalieren und Gruppenziehen testen.
+7. Smart Snap und Smart Guides testen.
+8. Zoom, Pan und Ansicht zurücksetzen testen.
+9. Undo/Redo mehrstufig testen.
+10. Zwischen Templates wechseln.
+11. Speichern, Seite wechseln und erneut öffnen.

@@ -18,7 +18,7 @@ from .core.caption_renderer import render_caption_png
 from .core.template_store import list_templates, load_template, save_template, create_template, set_background_from_file, background_path, import_legacy_templates, delete_template, duplicate_template, rename_template, set_default_template, get_default_template, ensure_background_file, template_dir
 from .core.recent_templates import load_recent_templates, record_recent_template, remove_recent_template
 from .card_creator import CardCreatorController
-from .template_editor import TemplateEditorController
+from .template_editor import TemplateEditorController, TemplateRefreshManager
 from .library import LibraryController
 from .core.image_view import load_rgba, fit_image_to_box, pil_to_tk_photo_data, image_status
 from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card
@@ -76,6 +76,7 @@ class VadafokStudio(ctk.CTk):
         self.template_store_migrated = import_legacy_templates(self.template_profiles)
         self.template_selected_name = "Default Stream Plan"
         self.template_editor_controller = TemplateEditorController(self, list_templates, load_template)
+        self.template_refresh_manager = TemplateRefreshManager(self)
         self.template_selected_field = None
         self.template_selected_fields = set()
         self.template_shift_down = False
@@ -3459,14 +3460,13 @@ class VadafokStudio(ctk.CTk):
                 return
 
     def template_refresh_selection_ui(self, refresh_properties=True):
-        """Refresh selection-dependent UI while keeping existing Layers widgets alive."""
+        """Refresh selection-dependent UI without changing legacy behavior."""
         if refresh_properties:
             self.template_load_selected_properties()
             if hasattr(self, "template_props_body"):
                 self.template_build_properties_panel()
         self.template_update_fields_overlay(refresh_layers=False)
-        if hasattr(self, "template_layers_body"):
-            self.template_refresh_layers_selection()
+        self.template_refresh_layers_selection()
 
     def template_select_layer(self, idx):
         self.template_set_single_selection(idx)

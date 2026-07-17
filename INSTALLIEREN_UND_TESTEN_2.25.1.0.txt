@@ -1,0 +1,28 @@
+VADAFOK Studio 2.25.1.0 – RefreshManager Foundation
+====================================================
+
+WICHTIG
+-------
+Noch nicht committen. Erst installieren und vollständig testen.
+
+INSTALLATION
+------------
+1. VADAFOK Studio vollständig schließen.
+2. Den Inhalt dieses ZIP-Archivs in den Hauptordner des Projekts kopieren.
+3. Vorhandene Dateien ersetzen/überschreiben.
+4. RUN_2.25.1.0_TESTS.bat per Doppelklick starten.
+
+MANUELLER TEST
+--------------
+1. Version 2.25.1.0 prüfen.
+2. Template Editor mit Hintergrund und mehreren Feldern öffnen.
+3. Felder auf Canvas und über Layers auswählen und abwählen.
+4. Einzel-, Mehrfach- und Rahmenauswahl prüfen.
+5. Properties ändern und automatisches Speichern prüfen.
+6. Felder ziehen, skalieren und gemeinsam verschieben.
+7. Smart Snap und Smart Guides prüfen.
+8. Zoom, Pan und Ansicht zurücksetzen prüfen.
+9. Undo und Redo mehrstufig prüfen.
+10. Template wechseln, speichern, Seite wechseln und erneut öffnen.
+
+Es soll keine sichtbare Verhaltensänderung geben.
