@@ -4415,7 +4415,7 @@ class VadafokStudio(ctk.CTk):
             self.template_selected_field = idx
 
 
-    def template_update_fields_overlay(self, bg_info=None):
+    def template_update_fields_overlay(self, bg_info=None, refresh_layers=True, refresh_status=True):
         if not hasattr(self, "template_canvas"):
             return
         canvas = self.template_canvas
@@ -4423,12 +4423,14 @@ class VadafokStudio(ctk.CTk):
         self.template_clear_smart_guides()
         template = self.template_current()
 
-        if bg_info is None:
+        if refresh_status and bg_info is None:
             try:
                 bg_path = str(background_path(self.template_selected_name, template))
                 bg_info = image_status(bg_path)
             except Exception:
                 bg_info = {"name": "?", "exists": False}
+        elif bg_info is None:
+            bg_info = {"name": "?", "exists": False}
 
         for idx, field in enumerate(template.get("fields", [])):
             if field.get("hidden", False):
@@ -4478,7 +4480,7 @@ class VadafokStudio(ctk.CTk):
                         tags=("template_overlay",)
                     )
 
-        if hasattr(self, "template_status_label"):
+        if refresh_status and hasattr(self, "template_status_label"):
             selected_count = len(getattr(self, "template_selected_fields", set()))
             if selected_count > 1:
                 self.template_status_label.configure(
@@ -4497,7 +4499,7 @@ class VadafokStudio(ctk.CTk):
                     text_color="#8FE6A0"
                 )
 
-        if hasattr(self, "template_layers_body"):
+        if refresh_layers and hasattr(self, "template_layers_body"):
             self.template_build_layers_panel()
 
 
@@ -4779,7 +4781,10 @@ class VadafokStudio(ctk.CTk):
                 f["y"] = int(f.get("y", 0)) + dy
                 template["fields"][idx] = f
 
-            self.template_update_fields_overlay()
+            self.template_update_fields_overlay(
+                refresh_layers=False,
+                refresh_status=False,
+            )
             return
 
         f = dict(self.template_drag_original)
@@ -4827,7 +4832,10 @@ class VadafokStudio(ctk.CTk):
 
         f["x"], f["y"], f["width"], f["height"] = int(x), int(y), int(w), int(h)
         template["fields"][self.template_selected_field] = f
-        self.template_update_fields_overlay()
+        self.template_update_fields_overlay(
+            refresh_layers=False,
+            refresh_status=False,
+        )
         self.template_draw_smart_guides(guides_x, guides_y)
 
 
@@ -4845,6 +4853,7 @@ class VadafokStudio(ctk.CTk):
                 self.template_redo_stack.clear()
             self.template_drag_history_snapshot = None
         save_template(self.template_selected_name, self.template_current())
+        self.template_update_fields_overlay(refresh_layers=False)
         self.template_drag_mode = None
         self.template_drag_start = None
         self.template_drag_original = None
