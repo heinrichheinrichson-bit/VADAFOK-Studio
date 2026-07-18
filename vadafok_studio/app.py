@@ -9870,6 +9870,7 @@ class VadafokStudio(ctk.CTk):
             safe_top=int(self.caption_safe_top.get()),
             safe_bottom=int(self.caption_safe_bottom.get()),
             profiler=profiler,
+            png_compress_level=self.config_data.get("caption_png_compress_level", 1),
         )
         return self.last_render_path
 

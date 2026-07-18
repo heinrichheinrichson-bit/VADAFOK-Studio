@@ -126,7 +126,7 @@ class LiveCardSoundShowIntegrationTests(unittest.TestCase):
         version_source = (ROOT / "vadafok_studio" / "version.py").read_text(
             encoding="utf-8"
         )
-        self.assertIn('VERSION = "2.26.6.0"', version_source)
+        self.assertIn('VERSION = "2.26.7.0"', version_source)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,20 @@
+VADAFOK Studio 2.26.7.0 – Fast PNG Pipeline
+
+INSTALLATION
+1. VADAFOK Studio beenden.
+2. Den Inhalt dieses Overlay-Ordners in das Projektverzeichnis kopieren.
+3. Vorhandene Dateien ersetzen.
+4. compileall und unittest ausführen.
+5. Anwendung starten und mindestens 5 Smart-PNG-SHOWs testen.
+6. logs/sync_profile.log prüfen.
+
+ÄNDERUNGEN
+- PNG-Encoding nutzt standardmäßig compress_level=1.
+- optimize=False verhindert zusätzliche Optimierungsläufe.
+- Kompressionsgrad wird auf 0..9 begrenzt.
+- Neuer Config-Standard: caption_png_compress_level=1.
+- Profiler protokolliert Kompressionsgrad und Dateigröße.
+- Version 2.26.7.0.
+
+ROLLBACK
+Die zuvor gesicherten Dateien bzw. den Git-Commit 2.26.6.0 wiederherstellen.

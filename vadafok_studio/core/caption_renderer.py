@@ -138,6 +138,7 @@ def render_caption_png(
     safe_bottom=24,
     text_area=None,
     profiler=None,
+    png_compress_level=1,
 ):
     """Create one final transparent PNG and optionally profile each stage."""
     _mark(profiler, "Renderer entered")
@@ -233,11 +234,31 @@ def render_caption_png(
         y += line_h + spacing
     _mark(profiler, "Text draw finished")
 
-    _mark(profiler, "PNG save requested")
-    img.save(output_path)
+    try:
+        png_compress_level = int(png_compress_level)
+    except (TypeError, ValueError):
+        png_compress_level = 1
+    png_compress_level = max(0, min(9, png_compress_level))
+
+    _mark(
+        profiler,
+        f"PNG save requested: compress_level={png_compress_level}",
+    )
+    img.save(
+        output_path,
+        format="PNG",
+        compress_level=png_compress_level,
+        optimize=False,
+    )
     try:
         png_size = output_path.stat().st_size
-        _mark(profiler, f"PNG save finished: bytes={png_size}")
+        _mark(
+            profiler,
+            (
+                f"PNG save finished: bytes={png_size} "
+                f"compress_level={png_compress_level}"
+            ),
+        )
     except OSError:
         _mark(profiler, "PNG save finished")
     return output_path

@@ -8,6 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 RENDERER_PATH = ROOT / "vadafok_studio" / "core" / "caption_renderer.py"
 APP_PATH = ROOT / "vadafok_studio" / "app.py"
+CONFIG_PATH = ROOT / "vadafok_studio" / "core" / "config.py"
 
 
 class CaptionRendererPerformanceTests(unittest.TestCase):
@@ -15,6 +16,7 @@ class CaptionRendererPerformanceTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.renderer_source = RENDERER_PATH.read_text(encoding="utf-8")
         cls.app_source = APP_PATH.read_text(encoding="utf-8")
+        cls.config_source = CONFIG_PATH.read_text(encoding="utf-8")
         cls.renderer_tree = ast.parse(cls.renderer_source)
         cls.app_tree = ast.parse(cls.app_source)
 
@@ -47,6 +49,29 @@ class CaptionRendererPerformanceTests(unittest.TestCase):
         self.assertIn("def render_smart_caption(self, text, profiler=None):", self.app_source)
         self.assertIn("profiler=profiler", self.app_source)
         self.assertIn("self.render_smart_caption(text, profiler=profiler)", self.app_source)
+
+    def test_fast_png_configuration_default_is_present(self) -> None:
+        self.assertIn('"caption_png_compress_level": 1', self.config_source)
+
+    def test_renderer_uses_explicit_fast_png_settings(self) -> None:
+        self.assertIn('png_compress_level=1', self.renderer_source)
+        self.assertIn('compress_level=png_compress_level', self.renderer_source)
+        self.assertIn('optimize=False', self.renderer_source)
+        self.assertIn('format="PNG"', self.renderer_source)
+
+    def test_png_compression_level_is_clamped(self) -> None:
+        self.assertIn('max(0, min(9, png_compress_level))', self.renderer_source)
+
+    def test_profiler_records_png_compression_and_size(self) -> None:
+        self.assertIn('PNG save requested: compress_level=', self.renderer_source)
+        self.assertIn('PNG save finished: bytes=', self.renderer_source)
+        self.assertIn('compress_level={png_compress_level}', self.renderer_source)
+
+    def test_app_passes_configured_png_compression_level(self) -> None:
+        self.assertIn(
+            'png_compress_level=self.config_data.get("caption_png_compress_level", 1)',
+            self.app_source,
+        )
 
 
 if __name__ == "__main__":

@@ -31,6 +31,7 @@ DEFAULT_CONFIG = {
     "stream_effect_enabled": False,
     "stream_effect_source": "VADAFOK Stream Effect",
     "sync_profiler_enabled": True,
+    "caption_png_compress_level": 1,
     "caption_engine": "obs_text",
     "caption_font_family": "Bebas Neue",
     "caption_font_size": 160,
