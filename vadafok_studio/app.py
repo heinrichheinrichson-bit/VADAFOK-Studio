@@ -34,6 +34,7 @@ from .version import APP_TITLE, APP_USER_MODEL_ID, SIDEBAR_VERSION
 from .logging_setup import LOGGER
 from .services.sound_service import SoundService
 from .services.sound_effect_selection import effect_display_name, portable_effect_path
+from .core.sync_profiler import SyncProfiler
 LOGGER.info("app.py loaded successfully")
 
 GOLD = "#D6A43A"
@@ -244,6 +245,14 @@ class VadafokStudio(ctk.CTk):
         self.sound_service = SoundService(self.project_folder.get())
         self.stream_effect_enabled = ctk.BooleanVar(
             value=bool(self.config_data.get("stream_effect_enabled", False))
+        )
+        self.stream_effect_source = ctk.StringVar(
+            value=str(
+                self.config_data.get(
+                    "stream_effect_source",
+                    "VADAFOK Stream Effect",
+                )
+            )
         )
         self.library_section = ctk.StringVar(value="All")
         self.library_banner_picker_mode = False
@@ -1719,6 +1728,22 @@ class VadafokStudio(ctk.CTk):
 
         self.config_data["selected_sound_effect"] = relative
         save_config(self.config_data)
+
+        # Keep an already connected OBS Media Source aligned immediately.
+        # SHOW also applies the file again, so choosing an effect while OBS is
+        # offline remains fully supported.
+        try:
+            if self.obs.probe():
+                media_file = service.resolve(relative)
+                source_name = self.stream_effect_source.get().strip()
+                if media_file is not None and source_name:
+                    self.obs.set_media_file(source_name, media_file)
+        except Exception:
+            LOGGER.exception(
+                "OBS Stream Effect source could not be updated for %s",
+                relative,
+            )
+
         label = getattr(self, "live_card_effect_name_label", None)
         if label is not None:
             try:
@@ -9499,6 +9524,35 @@ class VadafokStudio(ctk.CTk):
             command=self.browse_project_folder
         ).grid(row=0, column=1, padx=(8, 0))
 
+        stream_effect_box = ctk.CTkFrame(
+            box,
+            fg_color="#0B0B0B",
+            corner_radius=12,
+            border_color="#3A2A0D",
+            border_width=1,
+        )
+        stream_effect_box.grid(row=2, column=0, sticky="ew", padx=24, pady=(18, 8))
+        stream_effect_box.grid_columnconfigure(1, weight=1)
+
+        ctk.CTkLabel(
+            stream_effect_box,
+            text="OBS Stream Effect",
+            text_color=GOLD,
+            font=ctk.CTkFont(size=17, weight="bold"),
+        ).grid(row=0, column=0, columnspan=2, padx=16, pady=(14, 3), sticky="w")
+
+        ctk.CTkLabel(
+            stream_effect_box,
+            text="Media Source name",
+            text_color="#BCA870",
+        ).grid(row=1, column=0, padx=16, pady=(6, 14), sticky="w")
+
+        ctk.CTkEntry(
+            stream_effect_box,
+            textvariable=self.stream_effect_source,
+            placeholder_text="VADAFOK Stream Effect",
+        ).grid(row=1, column=1, padx=(8, 16), pady=(6, 14), sticky="ew")
+
         voice_box = ctk.CTkFrame(
             box,
             fg_color="#0B0B0B",
@@ -9506,7 +9560,7 @@ class VadafokStudio(ctk.CTk):
             border_color="#3A2A0D",
             border_width=1
         )
-        voice_box.grid(row=2, column=0, sticky="ew", padx=24, pady=(18, 8))
+        voice_box.grid(row=3, column=0, sticky="ew", padx=24, pady=(18, 8))
         voice_box.grid_columnconfigure(1, weight=1)
 
         ctk.CTkLabel(
@@ -9590,7 +9644,7 @@ class VadafokStudio(ctk.CTk):
             text_color="#111111",
             hover_color=GOLD_DARK,
             command=self.save_config
-        ).grid(row=3, column=0, padx=24, pady=(10, 24), sticky="w")
+        ).grid(row=4, column=0, padx=24, pady=(10, 24), sticky="w")
 
 
     def browse_project_folder(self):
@@ -9770,6 +9824,10 @@ class VadafokStudio(ctk.CTk):
             "voice_enabled": bool(self.voice_enabled.get()),
             "voice_trigger_phrase": self.voice_trigger_phrase.get().strip() or "live card",
             "voice_culture": self.voice_culture.get().strip() or "de-DE",
+            "stream_effect_source": (
+                self.stream_effect_source.get().strip()
+                or "VADAFOK Stream Effect"
+            ),
         })
         save_config(self.config_data)
 
@@ -9791,7 +9849,7 @@ class VadafokStudio(ctk.CTk):
             return None
 
 
-    def render_smart_caption(self, text):
+    def render_smart_caption(self, text, profiler=None):
         self.last_render_path = EXPORT_DIR / "caption_render.png"
         profile = self.get_current_banner_profile() or {}
         render_caption_png(
@@ -9811,6 +9869,7 @@ class VadafokStudio(ctk.CTk):
             safe_right=int(self.caption_safe_right.get()),
             safe_top=int(self.caption_safe_top.get()),
             safe_bottom=int(self.caption_safe_bottom.get()),
+            profiler=profiler,
         )
         return self.last_render_path
 
@@ -9859,86 +9918,133 @@ class VadafokStudio(ctk.CTk):
                 self.render_status_label.configure(text="🔴 Preview error", text_color="#D86A6A")
 
 
-    def play_selected_sound_effect_for_show(self):
-        """Play the configured Stream Effect without blocking SHOW.
+    def play_selected_sound_effect_for_show(self, profiler=None):
+        """Restart the configured OBS Media Source for SHOW.
 
-        Sound playback is optional and deliberately best-effort: a missing
-        file, unsupported audio backend or any unexpected audio error is
-        logged, but never interrupts the OBS Live Card workflow.
+        PREVIEW intentionally remains local through SoundService. Automatic
+        SHOW playback is best-effort so an audio-source problem never cancels
+        the Live Card itself.
         """
         if not bool(self.config_data.get("stream_effect_enabled", False)):
+            if profiler is not None:
+                profiler.mark("Sound skipped: automatic playback disabled")
             return None
 
         relative = str(
             self.config_data.get("selected_sound_effect", "") or ""
         ).strip()
         if not relative:
+            if profiler is not None:
+                profiler.mark("Sound skipped: no effect selected")
             return None
+
+        source_name = self.stream_effect_source.get().strip()
+        if not source_name:
+            LOGGER.warning("No OBS Stream Effect Media Source is configured.")
+            if profiler is not None:
+                profiler.mark("Sound failed: no OBS Media Source configured")
+            return False
 
         try:
             service = self._sync_sound_service_project()
-            if not service.exists(relative):
+            media_file = service.resolve(relative)
+            if media_file is None or not service.exists(relative):
                 LOGGER.warning(
                     "Configured Stream Effect is unavailable: %s",
                     relative,
                 )
+                if profiler is not None:
+                    profiler.mark("Sound failed: WAV unavailable")
                 return False
-            if not service.play(relative):
-                LOGGER.warning(
-                    "Configured Stream Effect could not be played: %s",
-                    relative,
-                )
-                return False
+
+            if profiler is not None:
+                profiler.mark("OBS media playback requested")
+            self.obs.play_media_file(source_name, media_file)
+            if profiler is not None:
+                profiler.mark("OBS media playback request finished")
             return True
         except Exception:
+            if profiler is not None:
+                profiler.mark("OBS media playback request failed")
             LOGGER.exception(
-                "Unexpected Stream Effect playback error for %s",
+                "OBS Stream Effect playback failed for %s via source %s",
                 relative,
+                source_name,
             )
             return False
 
 
     def show_card(self):
+        profiler = SyncProfiler(
+            enabled=bool(self.config_data.get("sync_profiler_enabled", False)),
+            session_name="LiveCard SHOW",
+        )
+        profiler.mark("SHOW event received")
+
         if not self.ensure_obs_ready():
+            profiler.mark("SHOW aborted: OBS not ready")
+            profiler.save()
             return
+
         text = self.message_box.get("1.0", "end").strip() if hasattr(self, "message_box") else ""
-        if not text: text = "..."
+        if not text:
+            text = "..."
+
         try:
             scene = self.current_scene()
+            profiler.mark("OBS scene resolved")
 
             selected_banner_path = self.config_data.get("selected_banner_path", "")
 
             if self.caption_engine.get() == "smart_png":
                 try:
-                    png = self.render_smart_caption(text)
+                    profiler.mark("Smart caption render requested")
+                    png = self.render_smart_caption(text, profiler=profiler)
+                    profiler.mark("Smart caption render finished")
                     self.obs.set_image_file(self.caption_render_source.get().strip(), png)
+                    profiler.mark("OBS caption image update finished")
                 except Exception:
+                    profiler.mark("SHOW failed: caption render source")
                     messagebox.showerror("Caption Render Source nicht gefunden", f"Die OBS-Bildquelle '{self.caption_render_source.get().strip()}' wurde nicht gefunden.\n\nBitte OBS Connection prüfen.")
                     return
 
-                try: self.obs.enable_source(scene, self.caption_text.get().strip(), False)
-                except Exception: pass
-                try: self.obs.enable_source(scene, self.caption_render_source.get().strip(), True)
-                except Exception: pass
+                try:
+                    self.obs.enable_source(scene, self.caption_text.get().strip(), False)
+                except Exception:
+                    pass
+                try:
+                    self.obs.enable_source(scene, self.caption_render_source.get().strip(), True)
+                except Exception:
+                    pass
             else:
                 if selected_banner_path:
                     try:
                         self.obs.set_image_file(self.caption_banner_source.get().strip(), selected_banner_path)
+                        profiler.mark("OBS banner image update finished")
                     except Exception:
+                        profiler.mark("SHOW failed: caption banner source")
                         messagebox.showerror("Caption Banner Source nicht gefunden", f"Die OBS-Bildquelle '{self.caption_banner_source.get().strip()}' wurde nicht gefunden.\n\nBitte OBS Connection prüfen.")
                         return
                 try:
                     self.obs.set_text(self.caption_text.get().strip(), text)
+                    profiler.mark("OBS caption text update finished")
                 except Exception:
+                    profiler.mark("SHOW failed: text source")
                     messagebox.showerror("Text Source nicht gefunden", f"Die OBS-Textquelle '{self.caption_text.get().strip()}' wurde nicht gefunden.\n\nBitte OBS Connection prüfen.")
                     return
 
-                try: self.obs.enable_source(scene, self.caption_render_source.get().strip(), False)
-                except Exception: pass
-                try: self.obs.enable_source(scene, self.caption_text.get().strip(), True)
-                except Exception: pass
+                try:
+                    self.obs.enable_source(scene, self.caption_render_source.get().strip(), False)
+                except Exception:
+                    pass
+                try:
+                    self.obs.enable_source(scene, self.caption_text.get().strip(), True)
+                except Exception:
+                    pass
 
+            profiler.mark("Banner group enable requested")
             self.obs.enable_source(scene, self.caption_group.get().strip(), True)
+            profiler.mark("Banner group enable request finished")
 
             if self.hide_timer:
                 self.hide_timer.cancel()
@@ -9946,14 +10052,18 @@ class VadafokStudio(ctk.CTk):
             self.hide_timer = threading.Timer(seconds, lambda: self.after(0, self.hide_card))
             self.hide_timer.daemon = True
             self.hide_timer.start()
+            profiler.mark("Hide timer started")
             self.save_config()
+            profiler.mark("Config save finished")
 
-            # Sprint 3: play the optional Stream Effect only after OBS SHOW
-            # completed successfully. Playback errors are isolated inside the
-            # helper and can never cancel or delay the Live Card action.
-            self.play_selected_sound_effect_for_show()
+            self.play_selected_sound_effect_for_show(profiler=profiler)
+            profiler.mark("SHOW completed")
         except Exception as e:
+            profiler.mark(f"SHOW exception: {type(e).__name__}")
             messagebox.showerror("SHOW fehlgeschlagen", str(e))
+        finally:
+            profiler.save()
+
         try:
             self.obs_workflow_banner_action("SHOW Live Card", self.obs_workflow_current_live_text())
         except Exception:

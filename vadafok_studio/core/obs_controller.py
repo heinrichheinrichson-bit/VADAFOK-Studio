@@ -415,3 +415,56 @@ class OBSController:
         client = self._require_connected()
         client.set_input_settings(name=source_name, settings={"file": str(file_path)}, overlay=True)
         return True
+
+    def set_media_file(self, source_name, file_path):
+        """Set the local file used by an OBS Media Source.
+
+        Uses the raw OBS WebSocket v5 request payload so this remains stable
+        across obsws-python wrapper signature changes.
+        """
+        client = self._require_connected()
+        source_name = str(source_name or "").strip()
+        file_path = str(file_path or "").strip()
+        if not source_name:
+            raise RuntimeError("Keine OBS Media Source angegeben.")
+        if not file_path:
+            raise RuntimeError("Keine Mediendatei angegeben.")
+
+        client.send(
+            "SetInputSettings",
+            {
+                "inputName": source_name,
+                "inputSettings": {
+                    "is_local_file": True,
+                    "local_file": file_path,
+                },
+                "overlay": True,
+            },
+        )
+        return True
+
+    def restart_media_source(self, source_name):
+        """Restart an OBS Media Source from the beginning.
+
+        OBS WebSocket v5 expects the protocol string below. Sending the raw
+        request avoids ambiguity in keyword names between obsws-python builds.
+        """
+        client = self._require_connected()
+        source_name = str(source_name or "").strip()
+        if not source_name:
+            raise RuntimeError("Keine OBS Media Source angegeben.")
+
+        client.send(
+            "TriggerMediaInputAction",
+            {
+                "inputName": source_name,
+                "mediaAction": "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART",
+            },
+        )
+        return True
+
+    def play_media_file(self, source_name, file_path):
+        """Assign a local media file and restart it in OBS."""
+        self.set_media_file(source_name, file_path)
+        self.restart_media_source(source_name)
+        return True
