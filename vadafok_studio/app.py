@@ -32,6 +32,8 @@ from .core import silent_director
 from .core.banner_profiles import load_banner_profiles, save_banner_profiles, ensure_profile, has_profile, profile_count, reset_profile_style
 from .version import APP_TITLE, APP_USER_MODEL_ID, SIDEBAR_VERSION
 from .logging_setup import LOGGER
+from .services.sound_service import SoundService
+from .services.sound_effect_selection import effect_display_name, portable_effect_path
 LOGGER.info("app.py loaded successfully")
 
 GOLD = "#D6A43A"
@@ -239,6 +241,7 @@ class VadafokStudio(ctk.CTk):
         self.duration = ctk.StringVar(value=self.config_data["duration"])
         self.style = ctk.StringVar(value=self.config_data["style"])
         self.project_folder = ctk.StringVar(value=self.config_data.get("project_folder", ""))
+        self.sound_service = SoundService(self.project_folder.get())
         self.library_section = ctk.StringVar(value="All")
         self.library_banner_picker_mode = False
         self.library_return_page = None
@@ -1664,6 +1667,88 @@ class VadafokStudio(ctk.CTk):
         except Exception:
             return path
 
+    def live_card_current_effect_name(self):
+        return effect_display_name(self.config_data.get("selected_sound_effect", ""))
+
+    def _sync_sound_service_project(self):
+        """Keep the SoundService aligned with the currently selected project."""
+        project = str(self.project_folder.get() or "").strip()
+        if getattr(self, "sound_service", None) is None:
+            self.sound_service = SoundService(project)
+        elif str(self.sound_service.project_dir or "") != str(Path(project).expanduser().resolve(strict=False) if project else ""):
+            self.sound_service.set_project_dir(project or None)
+        return self.sound_service
+
+    def change_live_card_effect(self):
+        """Choose one portable WAV path below <Project>/Sounds."""
+        project = str(self.project_folder.get() or "").strip()
+        if not project:
+            messagebox.showwarning(
+                "Stream Effect",
+                "Bitte zuerst unter Settings einen Projektordner auswählen.",
+            )
+            return False
+
+        service = self._sync_sound_service_project()
+        sounds_dir = service.sounds_dir
+        if sounds_dir is None or not sounds_dir.is_dir():
+            messagebox.showwarning(
+                "Stream Effect",
+                f"Der Sound-Ordner wurde nicht gefunden:\n\n{Path(project) / 'Sounds'}",
+            )
+            return False
+
+        selected = filedialog.askopenfilename(
+            title="Stream Effect auswählen",
+            initialdir=str(sounds_dir),
+            filetypes=[("WAV Audio", "*.wav"), ("Alle Dateien", "*.*")],
+        )
+        if not selected:
+            return False
+
+        relative = portable_effect_path(service, selected)
+        if relative is None:
+            messagebox.showerror(
+                "Stream Effect",
+                "Bitte eine vorhandene WAV-Datei innerhalb des Projektordners Sounds auswählen.",
+            )
+            return False
+
+        self.config_data["selected_sound_effect"] = relative
+        save_config(self.config_data)
+        label = getattr(self, "live_card_effect_name_label", None)
+        if label is not None:
+            try:
+                label.configure(text=self.live_card_current_effect_name())
+            except Exception:
+                pass
+        return True
+
+    def preview_live_card_effect(self):
+        """Preview the configured effect without changing the SHOW workflow."""
+        relative = str(self.config_data.get("selected_sound_effect", "") or "").strip()
+        if not relative:
+            messagebox.showwarning(
+                "Stream Effect",
+                "Bitte zuerst einen Effekt auswählen.",
+            )
+            return False
+
+        service = self._sync_sound_service_project()
+        if not service.exists(relative):
+            messagebox.showerror(
+                "Stream Effect",
+                "Die ausgewählte WAV-Datei wurde im Projektordner Sounds nicht gefunden.",
+            )
+            return False
+        if not service.play(relative):
+            messagebox.showerror(
+                "Stream Effect",
+                "Der Sound konnte nicht abgespielt werden. WAV-Wiedergabe wird derzeit unter Windows unterstützt.",
+            )
+            return False
+        return True
+
     def reset_live_card_text(self):
         """Reset only the Live Card editor text and refresh the preview."""
         if not hasattr(self, "message_box"):
@@ -1863,9 +1948,67 @@ class VadafokStudio(ctk.CTk):
             row=5,
             column=0,
             padx=18,
-            pady=(0, 18),
+            pady=(0, 10),
             sticky="ew"
         )
+
+        effect_info = ctk.CTkFrame(
+            right,
+            fg_color="#0B0B0B",
+            corner_radius=10,
+            border_color="#2D2818",
+            border_width=1,
+        )
+        effect_info.grid(
+            row=6,
+            column=0,
+            padx=18,
+            pady=(0, 8),
+            sticky="ew",
+        )
+        effect_info.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(
+            effect_info,
+            text="STREAM EFFECT",
+            text_color="#777777",
+            font=ctk.CTkFont(size=10, weight="bold"),
+            anchor="w",
+        ).grid(row=0, column=0, padx=12, pady=(8, 1), sticky="ew")
+        self.live_card_effect_name_label = ctk.CTkLabel(
+            effect_info,
+            text=self.live_card_current_effect_name(),
+            text_color=GOLD,
+            wraplength=330,
+            justify="left",
+            anchor="w",
+            font=ctk.CTkFont(size=12, weight="bold"),
+        )
+        self.live_card_effect_name_label.grid(
+            row=1, column=0, padx=12, pady=(0, 8), sticky="ew"
+        )
+
+        effect_actions = ctk.CTkFrame(right, fg_color="transparent")
+        effect_actions.grid(
+            row=7, column=0, padx=18, pady=(0, 18), sticky="ew"
+        )
+        effect_actions.grid_columnconfigure((0, 1), weight=1)
+        ctk.CTkButton(
+            effect_actions,
+            text="CHANGE EFFECT",
+            height=38,
+            fg_color=GOLD,
+            text_color="#111111",
+            hover_color=GOLD_DARK,
+            command=self.change_live_card_effect,
+        ).grid(row=0, column=0, padx=(0, 4), sticky="ew")
+        ctk.CTkButton(
+            effect_actions,
+            text="PREVIEW",
+            height=38,
+            fg_color="#333333",
+            hover_color="#444444",
+            command=self.preview_live_card_effect,
+        ).grid(row=0, column=1, padx=(4, 0), sticky="ew")
 
         self.update_render_preview()
 

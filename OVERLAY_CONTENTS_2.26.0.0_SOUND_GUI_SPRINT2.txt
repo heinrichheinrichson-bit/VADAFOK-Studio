@@ -1,0 +1,2 @@
+Sprint 2 ergänzt ausschließlich Auswahl, Speicherung, Anzeige und Vorschau eines WAV-Effekts auf der Live-Card-Seite.
+Die automatische Wiedergabe über SHOW ist ausdrücklich noch nicht enthalten.

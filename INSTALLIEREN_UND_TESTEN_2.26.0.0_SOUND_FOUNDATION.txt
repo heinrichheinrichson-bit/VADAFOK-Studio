@@ -1,0 +1,38 @@
+VADAFOK Studio 2.26.0.0 - Sound Effects Foundation (Backend)
+
+AUSGANGSBASIS
+Commit: 81ccba2ede1143e79007062dc1223df0185db8b1
+Version: 2.25.9.0
+
+INHALT
+- Neuer GUI- und OBS-unabhängiger SoundService
+- Rekursive Suche in <Projekt>/Sounds
+- Ausschließlich WAV-Dateien
+- Relative, sortierte Pfade
+- Sichere Pfadauflösung ohne Verlassen des Sounds-Ordners
+- Asynchrone Windows-Wiedergabe über winsound
+- play(), stop(), exists(), scan(), list_sounds(), set_project_dir()
+- Unit-Tests
+- Versionsstand 2.26.0.0
+
+INSTALLATION
+1. VADAFOK Studio schließen.
+2. Vorher "git status" prüfen. Der Arbeitsbaum muss sauber sein.
+3. Dieses ZIP im Stammordner des Repositorys entpacken.
+4. Überschreiben bestätigen.
+
+TESTS
+python -m compileall -q vadafok_studio tests
+python -m unittest discover -s tests -p "test_*.py"
+
+Diese Phase hat absichtlich noch keine GUI- oder Live-Card-Integration.
+
+ROLLBACK
+Nur bei Problemen:
+git reset --hard 81ccba2ede1143e79007062dc1223df0185db8b1
+git clean -fd
+
+ACHTUNG: git clean -fd entfernt nicht versionierte Dateien und Ordner.
+
+COMMIT
+Erst nach erfolgreichen Tests und Anwendungsstart committen.
