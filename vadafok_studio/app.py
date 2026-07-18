@@ -242,6 +242,9 @@ class VadafokStudio(ctk.CTk):
         self.style = ctk.StringVar(value=self.config_data["style"])
         self.project_folder = ctk.StringVar(value=self.config_data.get("project_folder", ""))
         self.sound_service = SoundService(self.project_folder.get())
+        self.stream_effect_enabled = ctk.BooleanVar(
+            value=bool(self.config_data.get("stream_effect_enabled", False))
+        )
         self.library_section = ctk.StringVar(value="All")
         self.library_banner_picker_mode = False
         self.library_return_page = None
@@ -1724,8 +1727,15 @@ class VadafokStudio(ctk.CTk):
                 pass
         return True
 
+    def set_stream_effect_enabled(self):
+        """Persist whether SHOW should automatically play the selected effect."""
+        enabled = bool(self.stream_effect_enabled.get())
+        self.config_data["stream_effect_enabled"] = enabled
+        save_config(self.config_data)
+        return enabled
+
     def preview_live_card_effect(self):
-        """Preview the configured effect without changing the SHOW workflow."""
+        """Preview the configured effect independently of automatic SHOW playback."""
         relative = str(self.config_data.get("selected_sound_effect", "") or "").strip()
         if not relative:
             messagebox.showwarning(
@@ -1984,8 +1994,19 @@ class VadafokStudio(ctk.CTk):
             font=ctk.CTkFont(size=12, weight="bold"),
         )
         self.live_card_effect_name_label.grid(
-            row=1, column=0, padx=12, pady=(0, 8), sticky="ew"
+            row=1, column=0, padx=12, pady=(0, 5), sticky="ew"
         )
+        ctk.CTkCheckBox(
+            effect_info,
+            text="Sound automatisch bei SHOW abspielen",
+            variable=self.stream_effect_enabled,
+            command=self.set_stream_effect_enabled,
+            text_color=TEXT,
+            fg_color=GOLD,
+            hover_color=GOLD_DARK,
+            border_color="#777777",
+            checkmark_color="#111111",
+        ).grid(row=2, column=0, padx=12, pady=(0, 10), sticky="w")
 
         effect_actions = ctk.CTkFrame(right, fg_color="transparent")
         effect_actions.grid(
@@ -9838,6 +9859,45 @@ class VadafokStudio(ctk.CTk):
                 self.render_status_label.configure(text="🔴 Preview error", text_color="#D86A6A")
 
 
+    def play_selected_sound_effect_for_show(self):
+        """Play the configured Stream Effect without blocking SHOW.
+
+        Sound playback is optional and deliberately best-effort: a missing
+        file, unsupported audio backend or any unexpected audio error is
+        logged, but never interrupts the OBS Live Card workflow.
+        """
+        if not bool(self.config_data.get("stream_effect_enabled", False)):
+            return None
+
+        relative = str(
+            self.config_data.get("selected_sound_effect", "") or ""
+        ).strip()
+        if not relative:
+            return None
+
+        try:
+            service = self._sync_sound_service_project()
+            if not service.exists(relative):
+                LOGGER.warning(
+                    "Configured Stream Effect is unavailable: %s",
+                    relative,
+                )
+                return False
+            if not service.play(relative):
+                LOGGER.warning(
+                    "Configured Stream Effect could not be played: %s",
+                    relative,
+                )
+                return False
+            return True
+        except Exception:
+            LOGGER.exception(
+                "Unexpected Stream Effect playback error for %s",
+                relative,
+            )
+            return False
+
+
     def show_card(self):
         if not self.ensure_obs_ready():
             return
@@ -9887,6 +9947,11 @@ class VadafokStudio(ctk.CTk):
             self.hide_timer.daemon = True
             self.hide_timer.start()
             self.save_config()
+
+            # Sprint 3: play the optional Stream Effect only after OBS SHOW
+            # completed successfully. Playback errors are isolated inside the
+            # helper and can never cancel or delay the Live Card action.
+            self.play_selected_sound_effect_for_show()
         except Exception as e:
             messagebox.showerror("SHOW fehlgeschlagen", str(e))
         try:

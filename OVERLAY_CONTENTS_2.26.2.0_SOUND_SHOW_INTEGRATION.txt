@@ -1,0 +1,17 @@
+VADAFOK Studio 2.26.2.0 - Overlay-Inhalt
+
+Geaendert:
+- vadafok_studio/app.py
+- vadafok_studio/version.py
+
+Neu:
+- tests/test_live_card_sound_show_integration.py
+- RUN_2.26.2.0_SOUND_SHOW_INTEGRATION_TESTS.bat
+- INSTALLIEREN_UND_TESTEN_2.26.2.0_SOUND_SHOW_INTEGRATION.txt
+- OVERLAY_CONTENTS_2.26.2.0_SOUND_SHOW_INTEGRATION.txt
+
+Funktion:
+- Der konfigurierte Stream Effect wird nach erfolgreichem Live-Card SHOW einmal abgespielt.
+- Alle SHOW-Einstiege verwenden weiterhin den zentralen show_card()-Pfad.
+- Fehlende Dateien und Audiofehler blockieren OBS SHOW nicht.
+- Wiedergabe bleibt asynchron.

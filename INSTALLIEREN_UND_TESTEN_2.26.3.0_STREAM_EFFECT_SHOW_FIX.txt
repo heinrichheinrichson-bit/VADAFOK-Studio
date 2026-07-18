@@ -1,0 +1,41 @@
+VADAFOK Studio 2.26.3.0 - Stream Effect SHOW Fix
+=================================================
+
+VORBEREITUNG
+------------
+Zuruecksetzen erforderlich: NEIN.
+
+Dieses Overlay wird direkt ueber den aktuell installierten Stand 2.26.2.0
+entpackt. Es ersetzt die fehlerhafte automatische SHOW-Wiedergabe und fuegt
+eine gespeicherte Aktivierungs-Checkbox hinzu.
+
+INSTALLATION
+------------
+1. VADAFOK Studio und OBS-Steuerungsaktionen beenden.
+2. ZIP im Hauptordner des Projekts entpacken.
+3. Vorhandene Dateien ueberschreiben.
+4. In Git Bash ausfuehren:
+
+   python -m compileall -q vadafok_studio tests
+   python -m unittest discover -s tests -p "test_*.py"
+
+Alternativ RUN_2.26.3.0_STREAM_EFFECT_SHOW_FIX_TESTS.bat starten.
+
+MANUELLER TEST
+--------------
+1. Anwendung starten und Live Card oeffnen.
+2. Unter STREAM EFFECT einen WAV-Effekt aus <Projekt>/Sounds auswaehlen.
+3. PREVIEW pruefen.
+4. Checkbox "Sound automatisch bei SHOW abspielen" AUS:
+   SHOW zeigt das Banner, aber spielt keinen Sound.
+5. Checkbox EIN:
+   SHOW zeigt das Banner und spielt den Sound genau einmal.
+6. Anwendung neu starten. Die Checkbox-Einstellung muss erhalten bleiben.
+7. Checkbox EIN lassen und die WAV-Datei testweise umbenennen:
+   SHOW muss weiterhin funktionieren und darf nicht abstuerzen.
+8. WAV-Datei wiederherstellen.
+
+ROLLBACK
+--------
+ROLLBACK: JA - nur falls Tests fehlschlagen oder Version 2.26.3.0 verworfen
+werden soll. Nach erfolgreichem Test NICHT zuruecksetzen.

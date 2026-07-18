@@ -1,0 +1,12 @@
+VADAFOK Studio 2.26.3.0 overlay contents
+
+Modified:
+- vadafok_studio/app.py
+- vadafok_studio/core/config.py
+- vadafok_studio/version.py
+- tests/test_live_card_sound_show_integration.py
+
+Added:
+- RUN_2.26.3.0_STREAM_EFFECT_SHOW_FIX_TESTS.bat
+- INSTALLIEREN_UND_TESTEN_2.26.3.0_STREAM_EFFECT_SHOW_FIX.txt
+- OVERLAY_CONTENTS_2.26.3.0_STREAM_EFFECT_SHOW_FIX.txt

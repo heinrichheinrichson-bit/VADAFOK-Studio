@@ -28,6 +28,7 @@ DEFAULT_CONFIG = {
     "style": "Gold Ribbon",
     "selected_banner_path": "",
     "selected_sound_effect": "",
+    "stream_effect_enabled": False,
     "caption_engine": "obs_text",
     "caption_font_family": "Bebas Neue",
     "caption_font_size": 160,
