@@ -1,0 +1,20 @@
+VADAFOK Studio 2.27.0.5
+========================
+
+Fixed
+-----
+- VADAFOK ENGLISH is now part of the actual Windows System.Speech grammar.
+- ENGLISCH, ENGLISH TEXT, TRANSLATE and TRANSLATION are also accepted.
+- The Python command dispatcher and PowerShell listener now use the same
+  translation-command vocabulary.
+
+Changed
+-------
+- Version updated everywhere through version.py to 2.27.0.5.
+- Translation selection briefly reports the command heard in Voice Status.
+
+Unchanged
+---------
+- The translation button still works.
+- VADAFOK TEXT still selects the recognized original sentence.
+- VADAFOK SHOW remains required before anything is sent to OBS.

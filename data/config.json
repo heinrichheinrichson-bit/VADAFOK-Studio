@@ -13,7 +13,7 @@
   "style": "Gold Ribbon",
   "selected_banner_path": "F:\\Bilder\\Vadafok\\Stream\\Banners\\Ausschneiden Test.png",
   "selected_sound_effect": "mixkit-arcade-retro-game-over-2131BESCHNITTEN2.wav",
-  "stream_effect_enabled": false,
+  "stream_effect_enabled": true,
   "stream_effect_source": "VADAFOK Stream Effect",
   "sync_profiler_enabled": true,
   "caption_png_compress_level": 1,

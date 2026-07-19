@@ -15,6 +15,7 @@ from .quick_card_voice import (
     select_voice_quick_card,
     show_quick_card_matches,
     use_recognized_voice_quick_card_text,
+    use_translated_voice_quick_card_text,
     voice_quick_card_window_is_open,
 )
 from .whisper_dictation import start_whisper_dictation, stop_whisper_dictation
@@ -158,7 +159,7 @@ def _handle_whisper_text(app: Any, text: str) -> None:
         if show_quick_card_matches(app, text, on_finished=resume_after_selection):
             _set_status(
                 app,
-                "QUICK CARD RESULTS · say ONE / TWO / THREE or VADAFOK TEXT",
+                "QUICK CARD RESULTS · say ONE / TWO / THREE, VADAFOK TEXT or VADAFOK ENGLISH",
             )
         else:
             app.voice_quick_card_mode = False
@@ -283,6 +284,36 @@ def _handle_heard(
         if normalized in {"vadafok text", "vadafok free text"}:
             if not use_recognized_voice_quick_card_text(app):
                 _set_status(app, "NO RECOGNIZED TEXT AVAILABLE")
+            return
+        if normalized in {
+            "vadafok english",
+            "wadafok english",
+            "vada fox english",
+            "what a fox english",
+            "what a fork english",
+            "vadafok englisch",
+            "wadafok englisch",
+            "vada fox englisch",
+            "vadafok english text",
+            "vadafok englisch text",
+            "vadafok translate",
+            "wadafok translate",
+            "vada fox translate",
+            "what a fox translate",
+            "what a fork translate",
+            "vadafok translation",
+            "vadafok übersetzen",
+            "vadafok ubersetzen",
+        }:
+            _set_status(app, f"COMMAND HEARD · {text} · selecting translation")
+            if not use_translated_voice_quick_card_text(app):
+                state = str(
+                    getattr(app, "voice_quick_card_translation_state", "") or ""
+                )
+                if state == "loading":
+                    _set_status(app, "TRANSLATION IS STILL BEING PREPARED")
+                else:
+                    _set_status(app, "NO TRANSLATION AVAILABLE")
             return
         if normalized in {"vadafok back", "vadafok zuruck", "vadafok zurück"}:
             callback = getattr(app, "voice_quick_card_finish", None)

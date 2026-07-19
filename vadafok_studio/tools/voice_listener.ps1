@@ -43,8 +43,8 @@ try {
 
     $recognizer = New-Object System.Speech.Recognition.SpeechRecognitionEngine($selected)
 
-    # High-priority grammar for the same three core commands in every culture.
-    # Python performs additional fuzzy matching if Windows returns a near miss.
+    # High-priority command grammar used in every supported culture.
+    # Free dictation stays in Whisper; System.Speech handles only fixed commands.
     $choices = New-Object System.Speech.Recognition.Choices
     $commandPhrases = @(
         "live card",
@@ -71,6 +71,16 @@ try {
         "Vadafok Drei",
         "vadafok text",
         "Vadafok Text",
+        "vadafok english",
+        "Vadafok English",
+        "vadafok englisch",
+        "Vadafok Englisch",
+        "vadafok english text",
+        "Vadafok English Text",
+        "vadafok translate",
+        "Vadafok Translate",
+        "vadafok translation",
+        "Vadafok Translation",
         "vadafok back",
         "Vadafok Back"
     )

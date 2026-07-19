@@ -1,0 +1,1 @@
+"""VADAFOK Studio package overlay."""

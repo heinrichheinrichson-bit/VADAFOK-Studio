@@ -2,12 +2,15 @@
 
 The Quick Card library is read-only. All Tk/CustomTkinter UI work happens on
 Tk's main thread. Suggestions can be selected by mouse or fixed voice commands.
+The recognized text is translated asynchronously while the result window stays
+open, so existing Quick Card selection remains responsive.
 """
 
 from __future__ import annotations
 
 import json
 import re
+import threading
 import unicodedata
 from dataclasses import dataclass
 from difflib import SequenceMatcher
@@ -23,6 +26,8 @@ _LIBRARY_CANDIDATES = (
     _PROJECT_ROOT / "docs" / "text_library.json",
 )
 _MIN_SUGGESTION_SCORE = 0.60
+_DEFAULT_TARGET_LANGUAGE = "EN"
+_TRANSLATION_TIMEOUT_SECONDS = 5.0
 
 
 @dataclass(frozen=True)
@@ -119,6 +124,9 @@ def close_voice_quick_card_window(app: Any) -> None:
     app.voice_quick_card_window = None
     app.voice_quick_card_matches = []
     app.voice_quick_card_query = ""
+    app.voice_quick_card_translation = ""
+    app.voice_quick_card_translation_state = ""
+    app.voice_quick_card_translation_error = ""
     if window is None:
         return
     try:
@@ -143,7 +151,7 @@ def _position_near_parent(window: Any, parent: Any) -> None:
         px, py = parent.winfo_rootx(), parent.winfo_rooty()
         pw, ph = parent.winfo_width(), parent.winfo_height()
         sw, sh = window.winfo_screenwidth(), window.winfo_screenheight()
-        ww, wh = max(window.winfo_reqwidth(), 660), max(window.winfo_reqheight(), 440)
+        ww, wh = max(window.winfo_reqwidth(), 660), max(window.winfo_reqheight(), 500)
 
         x = px + pw + 16
         y = py
@@ -154,7 +162,7 @@ def _position_near_parent(window: Any, parent: Any) -> None:
         y = max(20, min(y, sh - wh - 60))
         window.geometry(f"{ww}x{wh}+{x}+{y}")
     except Exception:
-        window.geometry("680x440")
+        window.geometry("680x500")
 
 
 def select_voice_quick_card(app: Any, index: int) -> bool:
@@ -181,12 +189,111 @@ def use_recognized_voice_quick_card_text(app: Any) -> bool:
     return True
 
 
+def use_translated_voice_quick_card_text(app: Any) -> bool:
+    """Use the prepared translation only while the result window is open."""
+
+    if not voice_quick_card_window_is_open(app):
+        return False
+    translated = str(
+        getattr(app, "voice_quick_card_translation", "") or ""
+    ).strip()
+    callback = getattr(app, "voice_quick_card_finish", None)
+    if not translated or not callable(callback):
+        return False
+    callback(translated, "TRANSLATION USED · say VADAFOK SHOW")
+    return True
+
+
+def _translation_target_language(app: Any) -> str:
+    """Read an optional app/config override; default to English."""
+
+    try:
+        config = getattr(app, "config_data", {}) or {}
+        value = str(config.get("translation_target_language", "") or "").strip()
+        if value:
+            return value.upper()
+    except Exception:
+        pass
+    return _DEFAULT_TARGET_LANGUAGE
+
+
+def _start_translation(
+    app: Any,
+    query: str,
+    translation_label: Any,
+    translate_button: Any,
+) -> None:
+    """Prepare the DeepL translation without blocking Tk."""
+
+    app.voice_quick_card_translation = ""
+    app.voice_quick_card_translation_error = ""
+    app.voice_quick_card_translation_state = "loading"
+
+    def update_ui(text: str, button_state: str = "disabled") -> None:
+        try:
+            if voice_quick_card_window_is_open(app):
+                translation_label.configure(text=text)
+                translate_button.configure(state=button_state)
+        except Exception:
+            pass
+
+    def worker() -> None:
+        try:
+            from vadafok_studio.translator.runtime import translate_text
+
+            result = translate_text(
+                query,
+                source_language="",
+                target_language=_translation_target_language(app),
+            )
+            if not result.success or not result.translated_text.strip():
+                raise RuntimeError(result.error or "Keine Übersetzung erhalten.")
+
+            translated = result.translated_text.strip()
+
+            def success() -> None:
+                if not voice_quick_card_window_is_open(app):
+                    return
+                app.voice_quick_card_translation = translated
+                app.voice_quick_card_translation_state = "ready"
+                app.voice_quick_card_translation_error = ""
+                update_ui(
+                    f"Übersetzung:\n{translated}\n\n"
+                    "Sprachbefehl: VADAFOK ENGLISH",
+                    "normal",
+                )
+
+            app.after(0, success)
+        except Exception as exc:
+            error = str(exc).strip() or "Unbekannter Übersetzungsfehler"
+
+            def failure() -> None:
+                if not voice_quick_card_window_is_open(app):
+                    return
+                app.voice_quick_card_translation = ""
+                app.voice_quick_card_translation_state = "error"
+                app.voice_quick_card_translation_error = error
+                update_ui(
+                    "Übersetzung momentan nicht verfügbar.\n"
+                    "Technische Details: logs/translation.log",
+                    "disabled",
+                )
+
+            app.after(0, failure)
+
+    threading.Thread(
+        target=worker,
+        name="VADAFOK-QuickCard-Translation",
+        daemon=True,
+    ).start()
+
+
 def show_quick_card_matches(
     app: Any,
     query: str,
     on_finished: Callable[[], None] | None = None,
 ) -> bool:
-    """Show credible results, or a clear no-match state, in a safe window."""
+    """Show Quick Card matches and prepare a translation suggestion."""
 
     matches = find_quick_card_matches(query, limit=3)
     parent = getattr(app, "quick_window", None)
@@ -204,6 +311,9 @@ def show_quick_card_matches(
     close_voice_quick_card_window(app)
     app.voice_quick_card_matches = matches
     app.voice_quick_card_query = query.strip()
+    app.voice_quick_card_translation = ""
+    app.voice_quick_card_translation_state = "loading"
+    app.voice_quick_card_translation_error = ""
     window = None
 
     def finish_with_text(text: str, status: str) -> None:
@@ -231,7 +341,7 @@ def show_quick_card_matches(
         window = ctk.CTkToplevel(parent)
         app.voice_quick_card_window = window
         window.title("Voice Quick Card – Auswahl")
-        window.minsize(580, 400)
+        window.minsize(580, 470)
         window.transient(parent)
         window.protocol(
             "WM_DELETE_WINDOW",
@@ -274,8 +384,9 @@ def show_quick_card_matches(
             ctk.CTkLabel(
                 window,
                 text=(
-                    "Wähle mit der Maus oder sage: "
-                    "Vadafok One / Two / Three (oder Eins / Zwei / Drei)"
+                    "Sage VADAFOK ONE / TWO / THREE für eine Quick Card, "
+                    "VADAFOK TEXT für den erkannten Satz oder "
+                    "VADAFOK ENGLISH für die Übersetzung."
                 ),
                 anchor="w",
                 justify="left",
@@ -304,19 +415,38 @@ def show_quick_card_matches(
             ctk.CTkLabel(
                 window,
                 text=(
-                    "Der erkannte Satz bleibt erhalten. Klicke unten oder sage "
-                    "Vadafok Text, um ihn als freie Caption zu verwenden."
+                    "Der erkannte Satz bleibt sichtbar. Sage VADAFOK TEXT oder, "
+                    "sobald sie bereit ist, VADAFOK ENGLISH."
                 ),
                 anchor="w",
                 justify="left",
                 wraplength=620,
-            ).pack(fill="x", padx=22, pady=(0, 16))
+            ).pack(fill="x", padx=22, pady=(0, 12))
+
+        translation_frame = ctk.CTkFrame(window)
+        translation_frame.pack(fill="x", padx=22, pady=(10, 6))
+        translation_label = ctk.CTkLabel(
+            translation_frame,
+            text="Übersetzung wird vorbereitet …",
+            anchor="w",
+            justify="left",
+            wraplength=600,
+        )
+        translation_label.pack(fill="x", padx=14, pady=(12, 8))
+
+        translate_button = ctk.CTkButton(
+            translation_frame,
+            text="ÜBERSETZUNG VERWENDEN · VADAFOK ENGLISH",
+            state="disabled",
+            command=lambda: use_translated_voice_quick_card_text(app),
+        )
+        translate_button.pack(fill="x", padx=14, pady=(0, 12))
 
         ctk.CTkButton(
             window,
-            text="ERKANNTEN TEXT VERWENDEN (KEINE QUICK CARD)",
+            text="ERKANNTEN TEXT VERWENDEN · VADAFOK TEXT",
             command=lambda: use_recognized_voice_quick_card_text(app),
-        ).pack(fill="x", padx=22, pady=(14, 8))
+        ).pack(fill="x", padx=22, pady=(8, 8))
 
         available_commands = []
         english_numbers = ("Vadafok One", "Vadafok Two", "Vadafok Three")
@@ -325,7 +455,15 @@ def show_quick_card_matches(
             available_commands.append(
                 f"{english_numbers[index]} / {german_numbers[index]}"
             )
-        available_commands.extend(("Vadafok Text", "Vadafok Back", "Vadafok Stop"))
+        available_commands.extend(
+            (
+                "Vadafok Text",
+                "Vadafok English",
+                "Vadafok Translate (Alias)",
+                "Vadafok Back",
+                "Vadafok Stop",
+            )
+        )
         add_voice_help(
             window,
             available_commands,
@@ -348,6 +486,7 @@ def show_quick_card_matches(
         window.after(0, window.lift)
         window.after(30, window.focus_force)
         window.after(250, monitor_parent)
+        _start_translation(app, query.strip(), translation_label, translate_button)
         return True
 
     except Exception as exc:
