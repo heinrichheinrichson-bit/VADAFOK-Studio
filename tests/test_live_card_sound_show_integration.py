@@ -122,11 +122,11 @@ class LiveCardSoundShowIntegrationTests(unittest.TestCase):
         self.assertIn('"TriggerMediaInputAction"', controller_source)
         self.assertIn('client.send(', controller_source)
 
-    def test_version_is_2_26_6_0(self) -> None:
+    def test_version_is_2_26_8_0(self) -> None:
         version_source = (ROOT / "vadafok_studio" / "version.py").read_text(
             encoding="utf-8"
         )
-        self.assertIn('VERSION = "2.26.7.0"', version_source)
+        self.assertIn('VERSION = "2.26.8.0"', version_source)
 
 
 if __name__ == "__main__":

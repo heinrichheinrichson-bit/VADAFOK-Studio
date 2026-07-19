@@ -13,10 +13,28 @@
   "style": "Gold Ribbon",
   "selected_banner_path": "F:\\Bilder\\Vadafok\\Stream\\Banners\\Ausschneiden Test.png",
   "selected_sound_effect": "mixkit-arcade-retro-game-over-2131BESCHNITTEN2.wav",
-  "stream_effect_enabled": true,
+  "stream_effect_enabled": false,
   "stream_effect_source": "VADAFOK Stream Effect",
   "sync_profiler_enabled": true,
   "caption_png_compress_level": 1,
+  "sound_favorites": [
+    {
+      "name": "retro game notification",
+      "file": "mixkit-retro-game-notification-212.wav"
+    },
+    {
+      "name": "arcade retro game",
+      "file": "mixkit-arcade-retro-game-over-2131BESCHNITTEN2.wav"
+    },
+    {
+      "name": "arrow whoosh",
+      "file": "mixkit-arrow-whoosh-1491.wav"
+    },
+    {
+      "name": "fast whoosh",
+      "file": "mixkit-fast-whoosh-transition-1490.wav"
+    }
+  ],
   "caption_engine": "smart_png",
   "caption_font_family": "Bebas Neue",
   "caption_font_size": 160,

@@ -32,6 +32,12 @@ DEFAULT_CONFIG = {
     "stream_effect_source": "VADAFOK Stream Effect",
     "sync_profiler_enabled": True,
     "caption_png_compress_level": 1,
+    "sound_favorites": [
+        {"name": "Favorit 1", "file": ""},
+        {"name": "Favorit 2", "file": ""},
+        {"name": "Favorit 3", "file": ""},
+        {"name": "Favorit 4", "file": ""},
+    ],
     "caption_engine": "obs_text",
     "caption_font_family": "Bebas Neue",
     "caption_font_size": 160,

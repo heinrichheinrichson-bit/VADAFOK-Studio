@@ -1,0 +1,24 @@
+VADAFOK Studio 2.26.8.0 - Sound Favorites Overlay
+==================================================
+
+INSTALLATION
+1. VADAFOK Studio vollständig schließen.
+2. Inhalt dieses Overlay-Ordners in das Projekt-Hauptverzeichnis kopieren.
+3. Vorhandene Dateien ersetzen.
+4. In Git Bash im Projektordner ausführen:
+
+   python -m compileall vadafok_studio tests
+   python -m unittest discover -s tests -v
+   python -m vadafok_studio
+
+MANUELLER TEST
+1. Live Card öffnen.
+2. Im Bereich SOUND-FAVORITEN auf FAVORITEN BEARBEITEN klicken.
+3. Vier Namen vergeben und WAV-Dateien aus <Projekt>/Sounds auswählen.
+4. Speichern.
+5. Favoriten anklicken und prüfen, ob CURRENT STREAM EFFECT sofort wechselt.
+6. SHOW auslösen und OBS-Wiedergabe prüfen.
+7. App neu starten und prüfen, ob Favoriten erhalten bleiben.
+
+ROLLBACK
+Die geänderten Dateien aus Git wiederherstellen oder vorherigen Commit auschecken.
