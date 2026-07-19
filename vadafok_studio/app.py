@@ -1937,6 +1937,11 @@ class VadafokStudio(ctk.CTk):
         self.message_box.delete("1.0", "end")
         self.message_box.insert("1.0", "CHAT WAS RIGHT.")
         self.live_card_pending_text = ""
+        try:
+            from .voice_control.live_card_voice import reset_live_card_translation
+            reset_live_card_translation(self)
+        except Exception:
+            pass
         self.update_render_preview()
         try:
             self.message_box.focus_set()
@@ -1964,8 +1969,30 @@ class VadafokStudio(ctk.CTk):
         self.message_box.bind("<Return>", self.enter_to_show)
         self.message_box.bind("<KeyRelease>", lambda e: self.update_render_preview())
 
+        if not hasattr(self, "live_card_translation_var"):
+            self.live_card_translation_var = ctk.StringVar(
+                value="Speak to prepare an English translation."
+            )
+        translation_box = ctk.CTkFrame(left, fg_color="#0B0B0B", corner_radius=10)
+        translation_box.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 8))
+        translation_box.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(
+            translation_box,
+            text="ENGLISH PREVIEW · VADAFOK ENGLISH TO USE",
+            text_color="#BCA870",
+            font=ctk.CTkFont(size=12, weight="bold"),
+        ).grid(row=0, column=0, padx=12, pady=(9, 2), sticky="w")
+        ctk.CTkLabel(
+            translation_box,
+            textvariable=self.live_card_translation_var,
+            text_color=TEXT,
+            justify="left",
+            anchor="w",
+            wraplength=650,
+        ).grid(row=1, column=0, padx=12, pady=(2, 10), sticky="ew")
+
         row = ctk.CTkFrame(left, fg_color="transparent")
-        row.grid(row=2, column=0, sticky="ew", padx=18, pady=8)
+        row.grid(row=3, column=0, sticky="ew", padx=18, pady=8)
         row.grid_columnconfigure((0, 1), weight=1)
         self.option(
             row,
@@ -1983,7 +2010,7 @@ class VadafokStudio(ctk.CTk):
         )
 
         btns = ctk.CTkFrame(left, fg_color="transparent")
-        btns.grid(row=3, column=0, sticky="ew", padx=18, pady=(14, 18))
+        btns.grid(row=4, column=0, sticky="ew", padx=18, pady=(14, 18))
         btns.grid_columnconfigure((0, 1, 2, 3), weight=1)
         ctk.CTkButton(btns, text="SHOW", height=46, fg_color=GOLD, hover_color=GOLD_DARK, text_color="#111111", command=self.show_card).grid(row=0, column=0, padx=5, sticky="ew")
         ctk.CTkButton(btns, text="HIDE", height=46, fg_color="#333333", command=self.hide_card).grid(row=0, column=1, padx=5, sticky="ew")
@@ -1991,7 +2018,7 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkButton(btns, text="SAVE QUICK", height=46, fg_color="#222222", command=self.save_current_quick).grid(row=0, column=3, padx=5, sticky="ew")
 
         quick_save_box = ctk.CTkFrame(left, fg_color="#0B0B0B", corner_radius=10)
-        quick_save_box.grid(row=4, column=0, sticky="ew", padx=18, pady=(0, 12))
+        quick_save_box.grid(row=5, column=0, sticky="ew", padx=18, pady=(0, 12))
         quick_save_box.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(quick_save_box, text="Quick Save Category", text_color="#BCA870").grid(row=0, column=0, padx=(10, 8), pady=10, sticky="w")
         cats = self.quick_cards_categories()
@@ -9877,7 +9904,8 @@ class VadafokStudio(ctk.CTk):
 
         self.quick_window = ctk.CTkToplevel(self)
         self.quick_window.title("Quick Caption")
-        self.quick_window.geometry("520x190")
+        self.quick_window.geometry("520x340")
+        self.quick_window.minsize(520, 320)
         self.quick_window.attributes("-topmost", True)
 
         ctk.CTkLabel(
@@ -9899,6 +9927,33 @@ class VadafokStudio(ctk.CTk):
 
         self.quick_caption_entry = entry
 
+        translation_frame = ctk.CTkFrame(
+            self.quick_window,
+            fg_color="#0B0B0B",
+            corner_radius=8,
+            border_color="#3A2A0D",
+            border_width=1,
+        )
+        translation_frame.pack(fill="x", padx=16, pady=(0, 8))
+        ctk.CTkLabel(
+            translation_frame,
+            text="ENGLISH",
+            font=ctk.CTkFont(size=11, weight="bold"),
+            text_color=GOLD,
+        ).pack(anchor="w", padx=10, pady=(7, 1))
+        self.quick_caption_translation_label = ctk.CTkLabel(
+            translation_frame,
+            text="Speak to prepare English…",
+            font=ctk.CTkFont(size=14),
+            text_color="#D9C58C",
+            justify="left",
+            anchor="w",
+            wraplength=470,
+        )
+        self.quick_caption_translation_label.pack(
+            fill="x", padx=10, pady=(0, 8)
+        )
+
         try:
             self.quick_window.after_idle(focus_quick_caption)
             self.quick_window.after(1, focus_quick_caption)
@@ -9918,6 +9973,8 @@ class VadafokStudio(ctk.CTk):
                     pass
                 self.quick_window = None
                 self.quick_caption_entry = None
+                self.quick_caption_translation_label = None
+                self.voice_live_card_mode = False
 
                 self.show_live_card()
                 self.set_message(text)
@@ -9927,6 +9984,8 @@ class VadafokStudio(ctk.CTk):
         def close_window():
             try:
                 self.quick_caption_entry = None
+                self.quick_caption_translation_label = None
+                self.voice_live_card_mode = False
                 self.quick_window.destroy()
             except Exception:
                 pass
@@ -10284,6 +10343,11 @@ class VadafokStudio(ctk.CTk):
             self.message_box.delete("1.0", "end")
             self.message_box.focus_set()
             self.update_preview()
+        try:
+            from .voice_control.live_card_voice import reset_live_card_translation
+            reset_live_card_translation(self)
+        except Exception:
+            pass
         try:
             self.obs_workflow_banner_action("CLEAR Live Card")
         except Exception:

@@ -1,0 +1,9 @@
+test_f8_contains_english_preview (test_f8_live_card_translation_release.F8LiveCardTranslationReleaseTests.test_f8_contains_english_preview) ... ok
+test_translation_replaces_f8_text (test_f8_live_card_translation_release.F8LiveCardTranslationReleaseTests.test_translation_replaces_f8_text) ... ok
+test_version (test_f8_live_card_translation_release.F8LiveCardTranslationReleaseTests.test_version) ... ok
+test_wake_command_opens_compact_window (test_f8_live_card_translation_release.F8LiveCardTranslationReleaseTests.test_wake_command_opens_compact_window) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.009s
+
+OK

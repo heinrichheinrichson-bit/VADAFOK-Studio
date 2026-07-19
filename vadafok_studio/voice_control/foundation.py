@@ -10,6 +10,12 @@ import re
 from typing import Any
 
 from .matcher import classify_command, match_known_phrase
+from .live_card_voice import (
+    prepare_live_card_translation,
+    reset_live_card_translation,
+    restore_live_card_original,
+    use_live_card_translation,
+)
 from .quick_card_voice import (
     close_voice_quick_card_window,
     select_voice_quick_card,
@@ -92,6 +98,65 @@ def _append_quick_caption_text(app: Any, text: str) -> bool:
 
 
 
+def _live_card_is_open(app: Any) -> bool:
+    widget = getattr(app, "message_box", None)
+    try:
+        return bool(widget is not None and widget.winfo_exists())
+    except Exception:
+        return False
+
+
+def _set_live_card_text(app: Any, text: str) -> bool:
+    setter = getattr(app, "live_card_set_message_text", None)
+    if not callable(setter):
+        return False
+    setter(text)
+    try:
+        app.update_render_preview()
+    except Exception:
+        pass
+    return True
+
+
+def _send_live_card(app: Any) -> bool:
+    if not _live_card_is_open(app):
+        _set_status(app, "WARNING: Live Card is not open")
+        return False
+    getter = getattr(app, "live_card_get_message_text", None)
+    text = getter() if callable(getter) else ""
+    if not str(text or "").strip():
+        _set_status(app, "WARNING: Live Card is empty · nothing sent")
+        return False
+    app.voice_dictation_active = False
+    stop_whisper_dictation(app)
+    _set_status(app, "SENDING · Live Card")
+    try:
+        app.show_card()
+        app.after(350, lambda: _return_to_listening(app))
+        return True
+    except Exception as exc:
+        app.voice_dictation_active = True
+        _set_status(app, f"ERROR: Live Card could not be sent · {str(exc)[:75]}")
+        return False
+
+
+def _clear_live_card(app: Any) -> bool:
+    if not _live_card_is_open(app):
+        _set_status(app, "WARNING: Live Card is not open")
+        return False
+    try:
+        app.message_box.delete("1.0", "end")
+        app.live_card_pending_text = ""
+        reset_live_card_translation(app)
+        app.update_render_preview()
+        _set_status(app, "LIVE CARD CLEARED · speak your text")
+        return True
+    except Exception as exc:
+        _set_status(app, f"ERROR: Live Card could not be cleared · {str(exc)[:72]}")
+        return False
+
+
+
 def _clear_quick_caption(app: Any) -> bool:
     close_voice_quick_card_window(app)
     if not _quick_caption_is_open(app):
@@ -124,6 +189,9 @@ def _cancel_quick_caption(app: Any) -> bool:
         stop_whisper_dictation(app)
         app.quick_window.destroy()
         app.quick_window = None
+        app.quick_caption_entry = None
+        app.quick_caption_translation_label = None
+        app.voice_live_card_mode = False
         app.after(150, lambda: _return_to_listening(app))
         return True
     except Exception as exc:
@@ -137,7 +205,13 @@ def _handle_whisper_text(app: Any, text: str) -> None:
 
     if not getattr(app, "voice_dictation_active", False):
         return
-    if not _quick_caption_is_open(app):
+
+    live_mode = bool(getattr(app, "voice_live_card_mode", False))
+    if live_mode:
+        if not _quick_caption_is_open(app):
+            stop_whisper_dictation(app)
+            return
+    elif not _quick_caption_is_open(app):
         stop_whisper_dictation(app)
         return
 
@@ -145,6 +219,23 @@ def _handle_whisper_text(app: Any, text: str) -> None:
     if command.wake_detected:
         # Command audio is handled by the Windows command grammar. Never place
         # a VADAFOK phrase in the visible caption.
+        return
+
+    if live_mode:
+        entry = getattr(app, "quick_caption_entry", None)
+        try:
+            entry.delete("1.0", "end")
+            entry.insert("1.0", str(text or "").strip())
+            entry.mark_set("insert", "end")
+            entry.see("end")
+            entry.focus_set()
+        except Exception:
+            return
+        prepare_live_card_translation(app, text)
+        _set_status(
+            app,
+            "F8 LIVE CARD DICTATED · original active · translation preparing",
+        )
         return
 
     if getattr(app, "voice_quick_card_mode", False):
@@ -264,6 +355,28 @@ def _handle_heard(
 
     normalized = _normalize(text)
 
+    live_translation_commands = {
+        "vadafok english", "wadafok english", "vada fox english",
+        "what a fox english", "what a fork english", "vadafok englisch",
+        "wadafok englisch", "vada fox englisch", "vadafok english text",
+        "vadafok englisch text", "vadafok translate", "wadafok translate",
+        "vada fox translate", "what a fox translate", "what a fork translate",
+        "vadafok translation", "vadafok übersetzen", "vadafok ubersetzen",
+    }
+    if getattr(app, "voice_live_card_mode", False):
+        if normalized in live_translation_commands:
+            if use_live_card_translation(app):
+                _set_status(app, "LIVE CARD TRANSLATION USED · say VADAFOK SHOW")
+            elif getattr(app, "live_card_translation_state", "") == "loading":
+                _set_status(app, "LIVE CARD TRANSLATION IS STILL BEING PREPARED")
+            else:
+                _set_status(app, "NO LIVE CARD TRANSLATION AVAILABLE")
+            return
+        if normalized in {"vadafok text", "vadafok free text"}:
+            if restore_live_card_original(app):
+                _set_status(app, "LIVE CARD ORIGINAL RESTORED · say VADAFOK SHOW")
+            return
+
     # Voice selection commands are handled even while Whisper is paused and
     # voice_dictation_active is False. They are valid only while the result
     # window is actually open.
@@ -335,13 +448,19 @@ def _handle_heard(
     if trigger and normalized == trigger:
         close_voice_quick_card_window(app)
         app.voice_quick_card_mode = False
-        _set_status(app, "COMMAND DETECTED · opening Quick Caption")
+        app.voice_live_card_mode = True
+        _set_status(app, "COMMAND DETECTED · opening compact F8 Live Card")
         try:
             app.open_quick_caption()
+            entry = getattr(app, "quick_caption_entry", None)
+            if entry is not None:
+                entry.delete("1.0", "end")
+            reset_live_card_translation(app)
             app.after(100, lambda: _activate_dictation(app))
         except Exception as exc:
             app.voice_dictation_active = False
-            _set_status(app, f"ERROR: Quick Caption could not open · {str(exc)[:80]}")
+            app.voice_live_card_mode = False
+            _set_status(app, f"ERROR: F8 Live Card could not open · {str(exc)[:80]}")
         return
 
     # Voice Quick Card can be started while the listener is idle.
@@ -354,6 +473,7 @@ def _handle_heard(
         close_voice_quick_card_window(app)
         _set_status(app, "VOICE QUICK CARD · opening F8 · speak a saved phrase")
         try:
+            app.voice_live_card_mode = False
             app.voice_quick_card_mode = True
             app.open_quick_caption()
             entry = getattr(app, "quick_caption_entry", None)
@@ -369,7 +489,13 @@ def _handle_heard(
     if not getattr(app, "voice_dictation_active", False):
         return
 
-    if not _quick_caption_is_open(app):
+    if getattr(app, "voice_live_card_mode", False):
+        if not _quick_caption_is_open(app):
+            app.voice_dictation_active = False
+            stop_whisper_dictation(app)
+            _set_status(app, "LISTENING · Live Card closed")
+            return
+    elif not _quick_caption_is_open(app):
         app.voice_dictation_active = False
         stop_whisper_dictation(app)
         _set_status(app, "LISTENING · Quick Caption closed")
@@ -385,14 +511,21 @@ def _handle_heard(
     # appear in the visible banner.
     command = classify_command(text)
     if command.action == "show":
+        # The spoken Live Card workflow uses the compact F8 window. Reuse the
+        # same SHOW path as its visible button so OBS output and window closing
+        # remain identical.
         _send_quick_caption_with_existing_action(app)
         return
 
     if command.action == "reset":
-        _clear_quick_caption(app)
+        # Clear the compact F8 textbox and its prepared translation.
+        if _clear_quick_caption(app):
+            reset_live_card_translation(app)
         return
 
     if command.action == "stop":
+        # STOP must close the compact F8 window completely, just as before.
+        app.voice_live_card_mode = False
         _cancel_quick_caption(app)
         return
 
@@ -506,6 +639,11 @@ def install_voice_foundation() -> None:
 
     def release_init(self: Any, *args: Any, **kwargs: Any) -> None:
         original_init(self, *args, **kwargs)
+        self.voice_live_card_mode = False
+        self.live_card_original_text = ""
+        self.live_card_translation_preview = ""
+        self.live_card_translation_state = ""
+        self.live_card_translation_request_id = 0
         try:
             self.wm_title(APP_TITLE)
         except Exception:

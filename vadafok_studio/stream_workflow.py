@@ -214,6 +214,18 @@ def _install_quick_caption_ui(app: Any) -> None:
     except Exception:
         pass
 
+    # Older saved Quick Caption dimensions predate the in-window English
+    # preview. Keep the overlay compact, but never let that preview or the
+    # action bar be pushed outside the visible area.
+    if getattr(app, "quick_caption_translation_label", None) is not None:
+        try:
+            window.minsize(520, 320)
+            window.update_idletasks()
+            if window.winfo_height() < 320:
+                window.geometry(f"520x340+{window.winfo_x()}+{window.winfo_y()}")
+        except Exception:
+            pass
+
     try:
         import customtkinter as ctk
         from vadafok_studio.app import GOLD, GOLD_DARK, TEXT
