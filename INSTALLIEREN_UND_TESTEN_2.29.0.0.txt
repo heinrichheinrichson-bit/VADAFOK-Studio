@@ -1,0 +1,31 @@
+VADAFOK Studio 2.29.0.0 - Windows Launcher
+============================================================
+
+INSTALLATION
+1. Dieses ZIP direkt in den Hauptordner von VADAFOK Studio entpacken.
+2. Vorhandene Dateien muessen nicht ersetzt werden; der Patch fuegt nur neue Dateien hinzu.
+3. BUILD_VADAFOK_STUDIO_EXE.bat doppelklicken.
+4. Warten, bis im Fenster ERFOLG angezeigt wird.
+5. Danach liegt VADAFOK Studio.exe direkt neben run.py.
+
+TEST
+1. VADAFOK Studio.exe doppelklicken.
+2. Es darf kein schwarzes CMD-Fenster sichtbar bleiben.
+3. Studio muss normal starten.
+4. Icon im Explorer und in der Taskleiste kontrollieren.
+5. Studio schliessen und ein zweites Mal ueber die EXE starten.
+
+WICHTIG
+- Start VADAFOK Studio.bat bleibt als Notfall-Starter erhalten.
+- Der eigentliche Studio-Code wird nicht veraendert.
+- Die EXE startet immer die aktuelle run.py. Normale Funktionsupdates brauchen daher keinen neuen Launcher-Build.
+- Bei einem Startfehler wird vadafok_launcher.log im Projektordner angelegt.
+- Build-Zwischendateien liegen ausschließlich im Ordner launcher_build.
+
+ROLLBACK
+Nur folgende neuen Dateien/Ordner entfernen:
+- VADAFOK Studio.exe
+- BUILD_VADAFOK_STUDIO_EXE.bat
+- launcher\
+- launcher_build\
+- INSTALLIEREN_UND_TESTEN_2.29.0.0.txt
