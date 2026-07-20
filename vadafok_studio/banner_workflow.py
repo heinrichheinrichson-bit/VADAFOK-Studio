@@ -23,7 +23,14 @@ def _same_path(left: Any, right: Any) -> bool:
 
 
 def _load_banner_favorites(app: Any) -> list[Any]:
-    """Load up to four favorite image banners from the existing Library."""
+    """Load the four most recently marked favorite image banners.
+
+    Library favorites are stored in selection order. The previous code scanned
+    the Banners folder and returned the first four matching files, so a newly
+    marked favorite could remain invisible whenever older favorites were found
+    first. Reading the metadata order backwards makes CHANGE / MANAGE behave
+    like a real four-slot switcher: the newest choice is visible immediately.
+    """
     try:
         from vadafok_studio.app import scan_library_section
 
@@ -35,29 +42,45 @@ def _load_banner_favorites(app: Any) -> list[Any]:
         print(f"[Banner Workflow] could not scan Banners: {exc}")
         return []
 
-    result: list[Any] = []
+    banner_items: dict[str, Any] = {}
     for item in items:
         try:
-            if getattr(item, "kind", "") != "image":
-                continue
-            if not app.item_is_favorite(item):
-                continue
-            result.append(item)
-            if len(result) >= _MAX_FAVORITES:
-                break
+            if getattr(item, "kind", "") == "image":
+                banner_items[str(app.item_key(item))] = item
         except Exception:
             continue
+
+    favorite_keys = list(
+        getattr(app, "asset_meta", {}).get("favorites", []) or []
+    )
+    result: list[Any] = []
+    for key in reversed(favorite_keys):
+        item = banner_items.get(str(key))
+        if item is None:
+            continue
+        result.append(item)
+        if len(result) >= _MAX_FAVORITES:
+            break
+
     return result
 
 
 def _select_favorite_banner(app: Any, item: Any) -> None:
-    """Select a favorite through the application's normal config path."""
+    """Select a favorite without rebuilding the complete Live Card page."""
     try:
         from vadafok_studio.app import save_config
 
         app.config_data["selected_banner_path"] = str(item.path)
         save_config(app.config_data)
-        app.show_live_card()
+
+        # Update only the widgets affected by the banner selection. Reopening
+        # the complete Live Card page caused a visible flash on every click.
+        label = getattr(app, "live_card_banner_name_label", None)
+        if label is not None and label.winfo_exists():
+            label.configure(text=app.live_card_current_banner_name())
+
+        app.update_render_preview()
+        _render_banner_favorites(app)
     except Exception as exc:
         try:
             from tkinter import messagebox

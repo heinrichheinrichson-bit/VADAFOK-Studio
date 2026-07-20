@@ -1,0 +1,14 @@
+VADAFOK Studio – Live Card Favorites Refresh Fix
+
+1. Gesamten Inhalt dieser ZIP über den bestehenden Projektordner kopieren.
+2. Vorhandene Dateien ersetzen.
+3. VADAFOK Studio starten.
+4. Live Cards öffnen.
+5. CHANGE / MANAGE öffnen.
+6. In Library > Banners einen neuen Banner mit TOGGLE FAVORITE markieren.
+   Bei Bedarf einen alten Banner vorher aus den Favoriten entfernen.
+7. BACK TO LIVE CARD drücken.
+8. Prüfen, dass der neu markierte Banner sofort unter den vier Favoriten erscheint.
+9. Mehrfach auf die vier Favoriten klicken und prüfen, dass die Seite nicht flackert.
+
+Noch kein Git-Commit und keine neue Versionsnummer.

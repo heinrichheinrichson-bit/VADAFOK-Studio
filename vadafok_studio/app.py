@@ -506,6 +506,10 @@ class VadafokStudio(ctk.CTk):
         self.open_library_section("Banners")
 
     def return_to_live_card_from_library(self):
+        # Re-read the Library metadata before rebuilding the four Live Card
+        # favorite slots. This keeps CHANGE / MANAGE reliable even when the
+        # favorites file was changed while the picker was open.
+        self.asset_meta = load_asset_meta()
         self.library_banner_picker_mode = False
         self.library_return_page = None
         self.show_live_card()
