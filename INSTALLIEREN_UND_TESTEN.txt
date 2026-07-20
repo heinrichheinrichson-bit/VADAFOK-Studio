@@ -1,0 +1,22 @@
+VADAFOK Studio - Settings Page Modularization
+Working towards release 2.29.0.6
+
+INSTALLATION
+1. ZIP entpacken.
+2. Den gesamten Inhalt über den bestehenden Projektordner kopieren.
+3. Vorhandene Dateien ersetzen.
+4. VADAFOK Studio wie gewohnt starten.
+
+TEST
+1. Prüfen, dass in der Seitenleiste "Studio 2.29.0.6" angezeigt wird.
+2. Settings öffnen.
+3. Projektordner-Feld und Durchsuchen-Schaltfläche prüfen.
+4. OBS Stream Effect Media Source prüfen.
+5. Voice Trigger ein-/ausschalten.
+6. TEST F8 ACTION prüfen: Es muss das kompakte Quick-Caption-Fenster öffnen.
+7. RESTART LISTENER prüfen.
+8. SAVE SETTINGS prüfen.
+9. F8 prüfen.
+10. Sprachbefehl "Live Card" prüfen: Er muss weiterhin das kompakte Quick-Caption-Fenster öffnen.
+
+Noch kein Git-Commit, Tag oder Push vor erfolgreicher Rückmeldung.

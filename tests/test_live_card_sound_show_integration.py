@@ -79,8 +79,9 @@ class LiveCardSoundShowIntegrationTests(unittest.TestCase):
     def test_stream_effect_source_is_loaded_and_saved(self) -> None:
         self.assertIn("self.stream_effect_source = ctk.StringVar", self.source)
         self.assertIn('"stream_effect_source": (', self.source)
-        self.assertIn('text="OBS Stream Effect"', self.source)
-        self.assertIn("textvariable=self.stream_effect_source", self.source)
+        settings_source = (ROOT / 'vadafok_studio' / 'settings' / 'page.py').read_text(encoding='utf-8')
+        self.assertIn('text="OBS Stream Effect"', settings_source)
+        self.assertIn("textvariable=app.stream_effect_source", settings_source)
 
     def test_checkbox_and_persistence_callback_are_present(self) -> None:
         self.assertIn('text="Sound automatisch bei SHOW abspielen"', self.source)
