@@ -3,7 +3,7 @@
  False,
  False,
  ['F:\\Vadafok Studio\\VADAFOK_Studio\\assets\\icons\\vadafok_icon.ico'],
- versioninfo.VSVersionInfo(ffi=versioninfo.FixedFileInfo(filevers=(2, 29, 0, 0), prodvers=(2, 29, 0, 0), mask=0x3f, flags=0x0, OS=0x40004, fileType=1, subtype=0x0, date=(0, 0)), kids=[versioninfo.StringFileInfo([versioninfo.StringTable('040704B0', [versioninfo.StringStruct('CompanyName', 'VADAFOK'), versioninfo.StringStruct('FileDescription', 'VADAFOK Studio Windows Launcher'), versioninfo.StringStruct('FileVersion', '2.29.0.0'), versioninfo.StringStruct('InternalName', 'VADAFOK Studio'), versioninfo.StringStruct('LegalCopyright', 'Copyright © VADAFOK'), versioninfo.StringStruct('OriginalFilename', 'VADAFOK Studio.exe'), versioninfo.StringStruct('ProductName', 'VADAFOK Studio'), versioninfo.StringStruct('ProductVersion', '2.29.0.0')])]), versioninfo.VarFileInfo([versioninfo.VarStruct('Translation', [1031, 1200])])]),
+ versioninfo.VSVersionInfo(ffi=versioninfo.FixedFileInfo(filevers=(2, 29, 0, 1), prodvers=(2, 29, 0, 1), mask=0x3f, flags=0x0, OS=0x40004, fileType=1, subtype=0x0, date=(0, 0)), kids=[versioninfo.StringFileInfo([versioninfo.StringTable('040704B0', [versioninfo.StringStruct('CompanyName', 'VADAFOK'), versioninfo.StringStruct('FileDescription', 'VADAFOK Studio Windows Launcher'), versioninfo.StringStruct('FileVersion', '2.29.0.1'), versioninfo.StringStruct('InternalName', 'VADAFOK Studio'), versioninfo.StringStruct('LegalCopyright', 'Copyright © VADAFOK'), versioninfo.StringStruct('OriginalFilename', 'VADAFOK Studio.exe'), versioninfo.StringStruct('ProductName', 'VADAFOK Studio'), versioninfo.StringStruct('ProductVersion', '2.29.0.1')])]), versioninfo.VarFileInfo([versioninfo.VarStruct('Translation', [1031, 1200])])]),
  False,
  False,
  b'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<assembly xmlns='
@@ -117,7 +117,7 @@
  [],
  False,
  False,
- 1784546440,
+ 1784547549,
  [('runw.exe',
    'C:\\Users\\heinr\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\runw.exe',
    'EXECUTABLE')],

@@ -5,6 +5,7 @@ title VADAFOK Studio Launcher Build
 
 set "PROJECT_DIR=%CD%"
 set "LAUNCHER_SOURCE=%PROJECT_DIR%\launcher\vadafok_launcher.py"
+set "VERSION_GENERATOR=%PROJECT_DIR%\launcher\generate_version_info.py"
 set "VERSION_FILE=%PROJECT_DIR%\launcher\version_info.txt"
 set "ICON_FILE=%PROJECT_DIR%\assets\icons\vadafok_icon.ico"
 set "BUILD_ROOT=%PROJECT_DIR%\launcher_build"
@@ -18,18 +19,25 @@ echo.
 
 if not exist "%PROJECT_DIR%\run.py" goto :missing_run
 if not exist "%LAUNCHER_SOURCE%" goto :missing_source
-if not exist "%VERSION_FILE%" goto :missing_version
+if not exist "%VERSION_GENERATOR%" goto :missing_generator
+if not exist "%PROJECT_DIR%\vadafok_studio\version.py" goto :missing_app_version
 if not exist "%ICON_FILE%" goto :missing_icon
 
 where py >nul 2>nul
 if errorlevel 1 goto :missing_py
 
-echo [1/4] Python wird geprueft ...
+echo [1/5] Python wird geprueft ...
 py -c "import sys; print(sys.version)"
 if errorlevel 1 goto :failed
 
 echo.
-echo [2/4] PyInstaller wird geprueft ...
+echo [2/5] Zentrale Versionsdaten werden erzeugt ...
+py "%VERSION_GENERATOR%"
+if errorlevel 1 goto :failed
+if not exist "%VERSION_FILE%" goto :missing_version
+
+echo.
+echo [3/5] PyInstaller wird geprueft ...
 py -m PyInstaller --version >nul 2>nul
 if errorlevel 1 (
     echo PyInstaller ist noch nicht installiert. Installation beginnt ...
@@ -38,7 +46,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo [3/4] Launcher wird gebaut ...
+echo [4/5] Launcher wird gebaut ...
 if exist "%BUILD_ROOT%" rmdir /s /q "%BUILD_ROOT%"
 
 py -m PyInstaller ^
@@ -58,7 +66,7 @@ if errorlevel 1 goto :failed
 if not exist "%DIST_DIR%\VADAFOK Studio.exe" goto :missing_output
 
 echo.
-echo [4/4] EXE wird in den Projektordner kopiert ...
+echo [5/5] EXE wird in den Projektordner kopiert ...
 copy /y "%DIST_DIR%\VADAFOK Studio.exe" "%PROJECT_DIR%\VADAFOK Studio.exe" >nul
 if errorlevel 1 goto :failed
 
@@ -67,10 +75,8 @@ echo ============================================================
 echo   ERFOLG
 echo ============================================================
 echo   VADAFOK Studio.exe wurde erstellt.
+echo   Die EXE-Version stammt aus vadafok_studio\version.py.
 echo   Pfad: "%PROJECT_DIR%\VADAFOK Studio.exe"
-echo.
-echo   Starte sie jetzt per Doppelklick.
-echo   Die bisherige BAT bleibt als Notfall-Starter erhalten.
 echo ============================================================
 echo.
 pause
@@ -84,8 +90,16 @@ goto :failed
 echo FEHLER: launcher\vadafok_launcher.py wurde nicht gefunden.
 goto :failed
 
+:missing_generator
+echo FEHLER: launcher\generate_version_info.py wurde nicht gefunden.
+goto :failed
+
+:missing_app_version
+echo FEHLER: vadafok_studio\version.py wurde nicht gefunden.
+goto :failed
+
 :missing_version
-echo FEHLER: launcher\version_info.txt wurde nicht gefunden.
+echo FEHLER: launcher\version_info.txt wurde nicht erzeugt.
 goto :failed
 
 :missing_icon
