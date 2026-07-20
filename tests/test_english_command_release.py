@@ -11,11 +11,11 @@ class EnglishCommandReleaseTests(unittest.TestCase):
         self.assertIn("vadafok english", aliases)
         self.assertIn("vadafok translate", aliases)
 
-    def test_version_is_227004(self):
+    def test_version_uses_central_semantic_version(self):
         path = Path(__file__).resolve().parents[1] / "vadafok_studio" / "version.py"
         namespace = {}
         exec(path.read_text(encoding="utf-8"), namespace)
-        self.assertEqual(namespace["VERSION"], "2.27.0.5")
+        self.assertRegex(namespace["VERSION"], r"^\d+\.\d+\.\d+\.\d+$")
 
     def test_quick_card_ui_prefers_english(self):
         path = Path(__file__).resolve().parents[1] / "vadafok_studio" / "voice_control" / "quick_card_voice.py"

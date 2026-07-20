@@ -18,3 +18,14 @@ logs/
 
 # User-specific Card Creator history
 data/card_creator_recent_templates.json
+
+# VADAFOK launcher build output
+launcher_build/
+*.pkg
+VADAFOK Studio.exe
+vadafok_launcher.log
+
+# Test caches and coverage
+.pytest_cache/
+.coverage
+htmlcov/

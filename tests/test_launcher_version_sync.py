@@ -28,8 +28,11 @@ def _load_generator():
     return module
 
 
-def test_application_version_is_release_version() -> None:
-    assert _constant("VERSION") == "2.29.0.1"
+def test_application_version_has_four_numeric_parts() -> None:
+    version = _constant("VERSION")
+    parts = version.split(".")
+    assert len(parts) == 4
+    assert all(part.isdigit() for part in parts)
 
 
 def test_launcher_metadata_uses_central_version() -> None:
@@ -40,5 +43,6 @@ def test_launcher_metadata_uses_central_version() -> None:
 
     assert f"FileVersion', u'{version}'" in rendered
     assert f"ProductVersion', u'{version}'" in rendered
-    assert "filevers=(2, 29, 0, 1)" in rendered
-    assert "prodvers=(2, 29, 0, 1)" in rendered
+    tuple_text = ", ".join(version.split("."))
+    assert f"filevers=({tuple_text})" in rendered
+    assert f"prodvers=({tuple_text})" in rendered

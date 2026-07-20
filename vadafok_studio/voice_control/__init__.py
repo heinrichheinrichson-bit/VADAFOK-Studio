@@ -1,40 +1,32 @@
-"""Voice-control and workflow extensions for VADAFOK Studio."""
+"""Voice-control and workflow extensions for VADAFOK Studio.
 
-from .foundation import install_voice_foundation as _install_foundation
-from .language_selection import install_language_selection
+Imports are intentionally lazy so non-GUI modules and unit tests can use the
+voice package without requiring CustomTkinter at import time.
+"""
+
+from __future__ import annotations
 
 
 def install_voice_foundation() -> None:
-    _install_foundation()
+    from .foundation import install_voice_foundation as install_foundation
+    from .language_selection import install_language_selection
+
+    install_foundation()
     install_language_selection()
 
-    try:
-        from vadafok_studio.quick_cards_workflow import install_quick_cards_workflow
+    optional_installers = (
+        ("vadafok_studio.quick_cards_workflow", "install_quick_cards_workflow", "Quick Cards Workflow"),
+        ("vadafok_studio.banner_workflow", "install_banner_workflow", "Banner Workflow"),
+        ("vadafok_studio.stream_workflow", "install_stream_workflow", "Stream Workflow"),
+        ("vadafok_studio.card_creator_obs", "install_card_creator_obs_display", "Card Creator OBS"),
+    )
 
-        install_quick_cards_workflow()
-    except Exception as exc:
-        print(f"[Quick Cards Workflow] not installed: {exc}")
-
-    try:
-        from vadafok_studio.banner_workflow import install_banner_workflow
-
-        install_banner_workflow()
-    except Exception as exc:
-        print(f"[Banner Workflow] not installed: {exc}")
-
-    try:
-        from vadafok_studio.stream_workflow import install_stream_workflow
-
-        install_stream_workflow()
-    except Exception as exc:
-        print(f"[Stream Workflow] not installed: {exc}")
-
-    try:
-        from vadafok_studio.card_creator_obs import install_card_creator_obs_display
-
-        install_card_creator_obs_display()
-    except Exception as exc:
-        print(f"[Card Creator OBS] not installed: {exc}")
+    for module_name, function_name, label in optional_installers:
+        try:
+            module = __import__(module_name, fromlist=[function_name])
+            getattr(module, function_name)()
+        except Exception as exc:
+            print(f"[{label}] not installed: {exc}")
 
 
 __all__ = ["install_voice_foundation"]

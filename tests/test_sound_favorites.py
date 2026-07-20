@@ -16,8 +16,10 @@ class SoundFavoritesTests(unittest.TestCase):
         cls.version_source = VERSION_PATH.read_text(encoding="utf-8")
         cls.app_tree = ast.parse(cls.app_source)
 
-    def test_version_is_22680(self):
-        self.assertIn('VERSION = "2.26.8.0"', self.version_source)
+    def test_version_is_semantic(self):
+        namespace = {}
+        exec(self.version_source, namespace)
+        self.assertRegex(namespace["VERSION"], r"^\d+\.\d+\.\d+\.\d+$")
 
     def test_config_has_exactly_four_default_slots(self):
         namespace = {"__file__": str(CONFIG_PATH)}

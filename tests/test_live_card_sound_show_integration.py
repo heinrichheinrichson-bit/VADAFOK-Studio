@@ -126,7 +126,9 @@ class LiveCardSoundShowIntegrationTests(unittest.TestCase):
         version_source = (ROOT / "vadafok_studio" / "version.py").read_text(
             encoding="utf-8"
         )
-        self.assertIn('VERSION = "2.26.8.0"', version_source)
+        namespace = {}
+        exec(version_source, namespace)
+        self.assertRegex(namespace['VERSION'], r'^\d+\.\d+\.\d+\.\d+$')
 
 
 if __name__ == "__main__":

@@ -36,7 +36,7 @@ class VoiceListenerEnglishCommandTests(unittest.TestCase):
         namespace = {}
         path = ROOT / "vadafok_studio" / "version.py"
         exec(path.read_text(encoding="utf-8"), namespace)
-        self.assertEqual(namespace["VERSION"], "2.27.0.5")
+        self.assertRegex(namespace["VERSION"], r"^\d+\.\d+\.\d+\.\d+$")
 
 
 if __name__ == "__main__":

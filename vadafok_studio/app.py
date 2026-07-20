@@ -5,10 +5,9 @@ import sys
 import subprocess
 import tkinter as tk
 from pathlib import Path
-from tkinter import filedialog
 import threading
 import customtkinter as ctk
-from tkinter import messagebox, simpledialog, filedialog, simpledialog
+from tkinter import filedialog, messagebox, simpledialog
 from PIL import Image
 
 from .core.config import TEMPLATE_PROFILES_PATH, load_config, save_config, load_favorites, save_favorites, load_asset_meta, save_asset_meta, EXPORT_DIR, load_json, save_json, CARD_VALUES_PATH
@@ -69,7 +68,7 @@ class VadafokStudio(ctk.CTk):
                 self._vadafok_icon_photo = tk.PhotoImage(file=str(png_file))
                 self.iconphoto(True, self._vadafok_icon_photo)
         except Exception:
-            pass
+            LOGGER.warning("Unable to configure application icon", exc_info=True)
 
         self.config_data = load_config()
         self.favorites = load_favorites()
