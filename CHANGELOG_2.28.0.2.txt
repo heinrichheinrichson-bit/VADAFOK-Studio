@@ -1,6 +1,0 @@
-2.28.0.2
-- Fixed F8 translation result field: translated_text is now displayed.
-- VADAFOK SHOW again uses the compact F8 SHOW action and closes the window after sending.
-- VADAFOK RESET clears the compact F8 textbox and translation preview.
-- VADAFOK STOP closes the compact F8 window completely.
-- Prevented saved legacy window dimensions from hiding the English preview/action bar.

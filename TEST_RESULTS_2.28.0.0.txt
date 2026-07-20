@@ -1,9 +1,0 @@
-
-test_live_card_ui_is_inline (test_live_card_translation_release.LiveCardTranslationReleaseTests.test_live_card_ui_is_inline) ... ok
-test_live_card_voice_path (test_live_card_translation_release.LiveCardTranslationReleaseTests.test_live_card_voice_path) ... ok
-test_version (test_live_card_translation_release.LiveCardTranslationReleaseTests.test_version) ... ok
-
-----------------------------------------------------------------------
-Ran 3 tests in 0.005s
-
-OK
