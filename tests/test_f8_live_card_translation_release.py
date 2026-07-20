@@ -19,10 +19,8 @@ class F8LiveCardTranslationReleaseTests(unittest.TestCase):
         self.assertNotIn('app.show_live_card()', block)
 
     def test_f8_contains_english_preview(self):
-        text = (ROOT / 'vadafok_studio/app.py').read_text(encoding='utf-8')
-        start = text.index('def open_quick_caption(self):')
-        end = text.index('def ensure_obs_ready', start)
-        block = text[start:end]
+        text = (ROOT / 'vadafok_studio/quick_caption/window.py').read_text(encoding='utf-8')
+        block = text
         self.assertIn('quick_caption_translation_label', block)
         self.assertIn('text="ENGLISH"', block)
         self.assertIn('520x340', block)

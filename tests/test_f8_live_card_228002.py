@@ -17,9 +17,9 @@ class ReleaseTests(unittest.TestCase):
         self.assertIn('_cancel_quick_caption(app)', text)
 
     def test_preview_has_minimum_visible_height(self):
-        app=(ROOT/'vadafok_studio/app.py').read_text(encoding='utf-8')
+        app=(ROOT/'vadafok_studio/quick_caption/window.py').read_text(encoding='utf-8')
         workflow=(ROOT/'vadafok_studio/stream_workflow.py').read_text(encoding='utf-8')
-        self.assertIn('self.quick_window.minsize(520, 320)', app)
+        self.assertIn('app.quick_window.minsize(520, 320)', app)
         self.assertIn('window.minsize(520, 320)', workflow)
 
 if __name__ == '__main__':
