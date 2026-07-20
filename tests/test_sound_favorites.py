@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 APP_PATH = ROOT / "vadafok_studio" / "app.py"
 CONFIG_PATH = ROOT / "vadafok_studio" / "core" / "config.py"
 VERSION_PATH = ROOT / "vadafok_studio" / "version.py"
+EDITOR_PATH = ROOT / "vadafok_studio" / "sound_favorites" / "editor.py"
 
 
 class SoundFavoritesTests(unittest.TestCase):
@@ -15,6 +16,7 @@ class SoundFavoritesTests(unittest.TestCase):
         cls.config_source = CONFIG_PATH.read_text(encoding="utf-8")
         cls.version_source = VERSION_PATH.read_text(encoding="utf-8")
         cls.app_tree = ast.parse(cls.app_source)
+        cls.editor_source = EDITOR_PATH.read_text(encoding="utf-8")
 
     def test_version_is_semantic(self):
         namespace = {}
@@ -52,8 +54,13 @@ class SoundFavoritesTests(unittest.TestCase):
         self.assertIn("self.obs.set_media_file(source_name, media_file)", self.app_source)
 
     def test_editor_keeps_files_portable(self):
-        self.assertIn("portable_effect_path(service, selected)", self.app_source)
-        self.assertIn("innerhalb des Projektordners Sounds", self.app_source)
+        self.assertIn("portable_effect_path(service, selected)", self.editor_source)
+        self.assertIn("innerhalb des Projektordners Sounds", self.editor_source)
+
+    def test_editor_is_delegated_to_its_module(self):
+        self.assertIn("from .sound_favorites.editor import open_sound_favorites_editor_window", self.app_source)
+        self.assertIn("return open_sound_favorites_editor_window(self)", self.app_source)
+        self.assertIn("def open_sound_favorites_editor_window(app):", self.editor_source)
 
     def test_live_card_builds_four_favorite_buttons(self):
         self.assertIn("for index in range(4):", self.app_source)
