@@ -1,0 +1,74 @@
+VADAFOK Studio 2.29.0.11 – Live Card Controller
+
+AUSGANGSVERSION
+2.29.0.10 (erfolgreich getestet und auf develop gespeichert)
+
+INSTALLATION
+1. VADAFOK Studio vollständig schließen.
+2. Dieses ZIP entpacken.
+3. Den enthaltenen Ordner vadafok_studio über den vorhandenen Projektordner kopieren.
+4. Vorhandene Dateien ersetzen.
+5. Den enthaltenen tests-Ordner ebenfalls über den vorhandenen tests-Ordner kopieren.
+6. VADAFOK Studio starten.
+7. Prüfen, dass im Fenstertitel bzw. in der Sidebar 2.29.0.11 angezeigt wird.
+
+MANUELLE TESTS
+1. Live Card über die Seitenleiste öffnen.
+2. Text eingeben und die Vorschau prüfen.
+3. SHOW ausführen und prüfen, dass die Live Card wie zuvor an OBS gesendet wird.
+4. RESET TEXT ausführen; der Standardtext muss wieder erscheinen.
+5. CHANGE BANNER öffnen, ein Banner wählen und zu Live Card zurückkehren.
+6. Einen eingerichteten Sound-Favoriten auswählen.
+7. PREVIEW für den gewählten Sound testen.
+8. „Sound automatisch bei SHOW abspielen“ ein- und ausschalten.
+9. Live Card schließen und erneut öffnen; Auswahl und Einstellung prüfen.
+10. F8 drücken: Es muss immer das kompakte Quick-Caption-Fenster öffnen.
+11. In Settings „TEST F8 ACTION“ ausführen: ebenfalls kompaktes Quick-Caption-Fenster.
+12. Sprachbefehl „Live Card“ testen: ebenfalls kompaktes Quick-Caption-Fenster.
+13. Quick Cards öffnen, einen Text übernehmen und anschließend Live Card prüfen.
+14. OBS Workflow, Banner Editor und Settings kurz öffnen, um Seiteneffekte auszuschließen.
+
+WICHTIG
+Es wurde keine neue Funktion eingebaut. 21 bestehende Live-Card-, Sound- und
+Quick-Caption-Methoden wurden in LiveCardController verschoben. Die bisherigen
+Methodennamen bleiben in app.py als Kompatibilitäts-Wrapper erhalten.
+
+F8 und der Sprachbefehl „Live Card“ müssen weiterhin ausschließlich das
+kompakte Quick-Caption-Fenster öffnen.
+
+AUTOMATISCHE PRÜFUNG
+- Syntaxprüfung/compileall: bestanden
+- 246 Tests bestanden
+- 1 bereits vorhandener, unabhängiger Card-Creator-Strukturtest schlägt weiterhin fehl:
+  tests/test_card_creator_page_module.py::CardCreatorPageModuleTests::test_app_delegates_card_creator_page_to_module
+
+ROLLBACK
+Bei einem Fehler VADAFOK Studio schließen und die Dateien aus dem zuletzt
+gespeicherten Stand 2.29.0.10 wiederherstellen. 2.29.0.11 dann nicht committen
+und nicht taggen.
+
+GIT NACH BESTANDENEM TEST
+git checkout develop
+
+git status
+
+git add vadafok_studio/app.py
+git add vadafok_studio/version.py
+git add vadafok_studio/live_card/__init__.py
+git add vadafok_studio/live_card/controller.py
+git add tests/test_version.py
+git add tests/test_live_card_controller.py
+git add tests/test_live_card_modularization.py
+git add tests/test_live_card_banner_manage_refresh.py
+git add tests/test_live_card_sound_show_integration.py
+git add tests/test_live_card_translation_release.py
+git add tests/test_quick_caption_module.py
+git add tests/test_sound_favorites.py
+
+git commit -m "Refactor Live Card into LiveCardController (2.29.0.11)"
+
+git tag -a 2.29.0.11 -m "Release 2.29.0.11"
+
+git push origin develop
+
+git push origin 2.29.0.11

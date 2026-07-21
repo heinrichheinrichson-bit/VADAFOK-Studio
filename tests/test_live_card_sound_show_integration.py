@@ -9,25 +9,33 @@ ROOT = Path(__file__).resolve().parents[1]
 APP_PATH = ROOT / "vadafok_studio" / "app.py"
 CONFIG_PATH = ROOT / "vadafok_studio" / "core" / "config.py"
 OBS_CONTROLLER_PATH = ROOT / "vadafok_studio" / "core" / "obs_controller.py"
+LIVE_CONTROLLER_PATH = ROOT / "vadafok_studio" / "live_card" / "controller.py"
 
 
 class LiveCardSoundShowIntegrationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.source = APP_PATH.read_text(encoding="utf-8")
+        cls.live_source = LIVE_CONTROLLER_PATH.read_text(encoding="utf-8")
+        cls.combined_source = cls.source + "\n" + cls.live_source
         cls.tree = ast.parse(cls.source)
+        cls.live_tree = ast.parse(cls.live_source)
         cls.app_class = next(
             node
             for node in cls.tree.body
             if isinstance(node, ast.ClassDef) and node.name == "VadafokStudio"
         )
+        cls.live_class = next(
+            node for node in cls.live_tree.body
+            if isinstance(node, ast.ClassDef) and node.name == "LiveCardController"
+        )
 
     def _method(self, name: str) -> ast.FunctionDef:
-        return next(
-            node
-            for node in self.app_class.body
-            if isinstance(node, ast.FunctionDef) and node.name == name
-        )
+        for owner in (self.live_class, self.app_class):
+            for node in owner.body:
+                if isinstance(node, ast.FunctionDef) and node.name == name:
+                    return node
+        raise AssertionError(f"method not found: {name}")
 
     def test_show_card_restarts_obs_sound_only_after_obs_enable(self) -> None:
         method = self._method("show_card")
@@ -78,18 +86,19 @@ class LiveCardSoundShowIntegrationTests(unittest.TestCase):
 
     def test_stream_effect_source_is_loaded_and_saved(self) -> None:
         self.assertIn("self.stream_effect_source = ctk.StringVar", self.source)
-        self.assertIn('"stream_effect_source": (', self.source)
+        settings_controller_source = (ROOT / "vadafok_studio" / "settings" / "controller.py").read_text(encoding="utf-8")
+        self.assertIn('"stream_effect_source": (', settings_controller_source)
         settings_source = (ROOT / 'vadafok_studio' / 'settings' / 'page.py').read_text(encoding='utf-8')
         self.assertIn('text="OBS Stream Effect"', settings_source)
         self.assertIn("textvariable=app.stream_effect_source", settings_source)
 
     def test_checkbox_and_persistence_callback_are_present(self) -> None:
-        self.assertIn('text="Sound automatisch bei SHOW abspielen"', self.source)
-        self.assertIn("variable=self.stream_effect_enabled", self.source)
-        self.assertIn("command=self.set_stream_effect_enabled", self.source)
+        self.assertIn('text="Sound automatisch bei SHOW abspielen"', self.live_source)
+        self.assertIn("variable=app.stream_effect_enabled", self.live_source)
+        self.assertIn("command=app.set_stream_effect_enabled", self.live_source)
         callback = ast.unparse(self._method("set_stream_effect_enabled"))
         self.assertIn("stream_effect_enabled", callback)
-        self.assertIn("save_config(self.config_data)", callback)
+        self.assertIn("save_config(app.config_data)", callback)
 
     def test_config_contains_obs_media_source_default(self) -> None:
         config_source = CONFIG_PATH.read_text(encoding="utf-8")

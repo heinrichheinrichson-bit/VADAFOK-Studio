@@ -10,9 +10,9 @@ class LiveCardTranslationReleaseTests(unittest.TestCase):
         self.assertRegex(ns['VERSION'], r'^\d+\.\d+\.\d+\.\d+$')
 
     def test_live_card_ui_is_inline(self):
-        text=(ROOT/'vadafok_studio/app.py').read_text(encoding='utf-8')
+        text=(ROOT/'vadafok_studio/live_card/controller.py').read_text(encoding='utf-8')
         self.assertIn('ENGLISH PREVIEW · VADAFOK ENGLISH TO USE', text)
-        self.assertIn('textvariable=self.live_card_translation_var', text)
+        self.assertIn('textvariable=app.live_card_translation_var', text)
 
     def test_live_card_voice_path(self):
         text=(ROOT/'vadafok_studio/voice_control/foundation.py').read_text(encoding='utf-8')

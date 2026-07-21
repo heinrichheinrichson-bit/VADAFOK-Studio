@@ -2,11 +2,11 @@ from pathlib import Path
 
 
 def test_back_to_live_card_reloads_library_favorites():
-    source = Path('vadafok_studio/app.py').read_text(encoding='utf-8')
+    source = Path('vadafok_studio/live_card/controller.py').read_text(encoding='utf-8')
     block = source.split('def return_to_live_card_from_library', 1)[1].split(
         'def open_template_background_picker', 1
     )[0]
-    assert 'self.asset_meta = load_asset_meta()' in block
+    assert 'app.asset_meta = load_asset_meta()' in block
     assert 'self.show_live_card()' in block
 
 

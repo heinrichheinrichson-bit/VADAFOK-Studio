@@ -13,7 +13,7 @@ class QuickCaptionModuleTests(unittest.TestCase):
         method = next(node for node in studio.body if isinstance(node, ast.FunctionDef) and node.name == "open_quick_caption")
         self.assertLessEqual(method.end_lineno - method.lineno + 1, 8)
         block = ast.get_source_segment(text, method)
-        self.assertIn("open_quick_caption_window(self)", block)
+        self.assertIn("live_card_controller.open_quick_caption()", block)
 
     def test_compact_window_remains_separate_from_large_live_card_page(self):
         text = (ROOT / "vadafok_studio/quick_caption/window.py").read_text(encoding="utf-8")

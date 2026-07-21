@@ -1,0 +1,58 @@
+VADAFOK Studio 2.29.0.10 – Settings Controller
+
+INSTALLATION
+1. VADAFOK Studio vollständig schließen.
+2. Diese ZIP entpacken.
+3. Den enthaltenen Ordner vadafok_studio über den vorhandenen
+   Projektordner vadafok_studio kopieren und Dateien ersetzen.
+4. Den enthaltenen Ordner tests ebenfalls über den vorhandenen tests-Ordner
+   kopieren und Dateien ersetzen.
+5. VADAFOK Studio starten und prüfen, dass 2.29.0.10 angezeigt wird.
+
+GEÄNDERTE DATEIEN
+- vadafok_studio/app.py
+- vadafok_studio/version.py
+- vadafok_studio/settings/__init__.py
+- vadafok_studio/settings/controller.py
+- tests/test_version.py
+- tests/test_settings_controller.py
+- tests/test_settings_page_modularization.py
+
+MANUELLE TESTANLEITUNG
+1. Settings öffnen. Die Seite muss vollständig und ohne Fehler erscheinen.
+2. Projektordner über „Durchsuchen...“ auswählen.
+3. „SAVE SETTINGS“ drücken.
+4. VADAFOK Studio schließen und neu starten.
+5. Prüfen, dass Projektordner und OBS-/Caption-Einstellungen erhalten bleiben.
+6. Voice Trigger aktivieren/deaktivieren und Status prüfen.
+7. „TEST F8 ACTION“ drücken: Es muss weiterhin das kompakte Quick-Caption-
+   Fenster geöffnet werden.
+8. F8 direkt drücken: Es muss ebenfalls das kompakte Quick-Caption-Fenster
+   geöffnet werden.
+9. „RESTART LISTENER“ testen, sofern die lokale Spracherkennung eingerichtet ist.
+10. OBS-Verbindung kurz testen, da die OBS-Zugangsdaten über dieselbe
+    Konfigurationsspeicherung persistiert werden.
+
+ROLLBACK
+Die vorherigen Dateien aus dem Repository-Stand 2.29.0.9 zurückkopieren.
+
+GIT BASH – ERST NACH ERFOLGREICHEM TEST
+
+git checkout develop
+
+git status
+
+git add vadafok_studio/app.py
+git add vadafok_studio/version.py
+git add vadafok_studio/settings/__init__.py
+git add vadafok_studio/settings/controller.py
+git add tests/test_version.py
+git add tests/test_settings_controller.py
+git add tests/test_settings_page_modularization.py
+
+git commit -m "Refactor settings into SettingsController (2.29.0.10)"
+
+git tag -a 2.29.0.10 -m "Release 2.29.0.10"
+
+git push origin develop
+git push origin 2.29.0.10

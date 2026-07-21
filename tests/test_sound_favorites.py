@@ -7,12 +7,15 @@ APP_PATH = ROOT / "vadafok_studio" / "app.py"
 CONFIG_PATH = ROOT / "vadafok_studio" / "core" / "config.py"
 VERSION_PATH = ROOT / "vadafok_studio" / "version.py"
 EDITOR_PATH = ROOT / "vadafok_studio" / "sound_favorites" / "editor.py"
+LIVE_CONTROLLER_PATH = ROOT / "vadafok_studio" / "live_card" / "controller.py"
 
 
 class SoundFavoritesTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.app_source = APP_PATH.read_text(encoding="utf-8")
+        cls.live_source = LIVE_CONTROLLER_PATH.read_text(encoding="utf-8")
+        cls.combined_source = cls.app_source + "\n" + cls.live_source
         cls.config_source = CONFIG_PATH.read_text(encoding="utf-8")
         cls.version_source = VERSION_PATH.read_text(encoding="utf-8")
         cls.app_tree = ast.parse(cls.app_source)
@@ -49,27 +52,27 @@ class SoundFavoritesTests(unittest.TestCase):
         }.issubset(methods))
 
     def test_quick_select_uses_existing_selected_effect_pipeline(self):
-        self.assertIn("return self._apply_selected_sound_effect(relative)", self.app_source)
-        self.assertIn('self.config_data["selected_sound_effect"] = relative', self.app_source)
-        self.assertIn("self.obs.set_media_file(source_name, media_file)", self.app_source)
+        self.assertIn("return self._apply_selected_sound_effect(relative)", self.live_source)
+        self.assertIn('app.config_data["selected_sound_effect"] = relative', self.live_source)
+        self.assertIn("app.obs.set_media_file(source_name, media_file)", self.live_source)
 
     def test_editor_keeps_files_portable(self):
         self.assertIn("portable_effect_path(service, selected)", self.editor_source)
         self.assertIn("innerhalb des Projektordners Sounds", self.editor_source)
 
     def test_editor_is_delegated_to_its_module(self):
-        self.assertIn("from .sound_favorites.editor import open_sound_favorites_editor_window", self.app_source)
-        self.assertIn("return open_sound_favorites_editor_window(self)", self.app_source)
+        self.assertIn("from ..sound_favorites.editor import open_sound_favorites_editor_window", self.live_source)
+        self.assertIn("return open_sound_favorites_editor_window(app)", self.live_source)
         self.assertIn("def open_sound_favorites_editor_window(app):", self.editor_source)
 
     def test_live_card_builds_four_favorite_buttons(self):
-        self.assertIn("for index in range(4):", self.app_source)
-        self.assertIn("command=lambda slot=index: self.select_sound_favorite(slot)", self.app_source)
-        self.assertIn('text="FAVORITEN BEARBEITEN"', self.app_source)
+        self.assertIn("for index in range(4):", self.live_source)
+        self.assertIn("command=lambda slot=index: self.select_sound_favorite(slot)", self.live_source)
+        self.assertIn('text="FAVORITEN BEARBEITEN"', self.live_source)
 
     def test_empty_slot_is_handled_without_playback(self):
-        self.assertIn("Dieser Favorit ist noch nicht eingerichtet.", self.app_source)
-        self.assertIn("if not relative:", self.app_source)
+        self.assertIn("Dieser Favorit ist noch nicht eingerichtet.", self.live_source)
+        self.assertIn("if not relative:", self.live_source)
 
 
 if __name__ == "__main__":

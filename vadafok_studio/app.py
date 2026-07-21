@@ -22,6 +22,7 @@ from .library import LibraryController
 from .banner_editor.controller import BannerEditorController
 from .obs_workflow.controller import OBSWorkflowController
 from .settings.controller import SettingsController
+from .live_card.controller import LiveCardController
 from .core.image_view import load_rgba, fit_image_to_box, pil_to_tk_photo_data, image_status
 from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card
 from .core import style_engine
@@ -215,6 +216,7 @@ class VadafokStudio(ctk.CTk):
         self.text_library_new_category = ctk.StringVar(value="")
         self.quick_cards_collapsed = set()
         self.live_card_pending_text = ""
+        self.live_card_controller = LiveCardController(self)
         self.quick_cards_target_category = ctk.StringVar(value="Chat")
         self.quick_cards_editing_category = None
         self.quick_cards_editing_text = None
@@ -505,20 +507,10 @@ class VadafokStudio(ctk.CTk):
             self.library_grid.grid_columnconfigure(column, weight=1)
 
     def open_live_card_banner_picker(self):
-        """Open Library directly in Banners for changing the Live Card banner."""
-        self.library_banner_picker_mode = True
-        self.library_return_page = "Live Card"
-        self.show_library()
-        self.open_library_section("Banners")
+        return self.live_card_controller.open_live_card_banner_picker()
 
     def return_to_live_card_from_library(self):
-        # Re-read the Library metadata before rebuilding the four Live Card
-        # favorite slots. This keeps CHANGE / MANAGE reliable even when the
-        # favorites file was changed while the picker was open.
-        self.asset_meta = load_asset_meta()
-        self.library_banner_picker_mode = False
-        self.library_return_page = None
-        self.show_live_card()
+        return self.live_card_controller.return_to_live_card_from_library()
 
     def open_template_background_picker(self):
         self.library_controller.open_template_background_picker()
@@ -1284,539 +1276,49 @@ class VadafokStudio(ctk.CTk):
         return self.banner_editor_controller.editor_mouse_up(event)
 
     def show_live_card_page(self):
-        """Compatibility alias used by Silent Director."""
-        return self.show_live_card()
+        return self.live_card_controller.show_live_card_page()
 
     def live_card_current_banner_name(self):
-        path = str(self.config_data.get("selected_banner_path", "") or "").strip()
-        if not path:
-            return "Kein Banner ausgewählt"
-        try:
-            return Path(path).name
-        except Exception:
-            return path
+        return self.live_card_controller.live_card_current_banner_name()
 
     def live_card_current_effect_name(self):
-        return effect_display_name(self.config_data.get("selected_sound_effect", ""))
+        return self.live_card_controller.live_card_current_effect_name()
 
     def _sync_sound_service_project(self):
-        """Keep the SoundService aligned with the currently selected project."""
-        project = str(self.project_folder.get() or "").strip()
-        if getattr(self, "sound_service", None) is None:
-            self.sound_service = SoundService(project)
-        elif str(self.sound_service.project_dir or "") != str(Path(project).expanduser().resolve(strict=False) if project else ""):
-            self.sound_service.set_project_dir(project or None)
-        return self.sound_service
+        return self.live_card_controller._sync_sound_service_project()
 
-    @staticmethod
-    def default_sound_favorites():
-        return [
-            {"name": "Favorit 1", "file": ""},
-            {"name": "Favorit 2", "file": ""},
-            {"name": "Favorit 3", "file": ""},
-            {"name": "Favorit 4", "file": ""},
-        ]
+    def default_sound_favorites(self):
+        return self.live_card_controller.default_sound_favorites()
 
     def _ensure_sound_favorites(self):
-        """Normalize the four quick-select sound slots in config."""
-        raw = self.config_data.get("sound_favorites", [])
-        normalized = []
-        for index in range(4):
-            fallback = self.default_sound_favorites()[index]
-            item = raw[index] if isinstance(raw, list) and index < len(raw) else {}
-            if not isinstance(item, dict):
-                item = {}
-            normalized.append({
-                "name": str(item.get("name", fallback["name"]) or fallback["name"]).strip(),
-                "file": str(item.get("file", "") or "").strip(),
-            })
-        self.config_data["sound_favorites"] = normalized
-        return normalized
+        return self.live_card_controller._ensure_sound_favorites()
 
     def _apply_selected_sound_effect(self, relative):
-        """Persist one portable sound path and align the OBS media source."""
-        relative = str(relative or "").strip()
-        if not relative:
-            return False
-        service = self._sync_sound_service_project()
-        if not service.exists(relative):
-            messagebox.showerror(
-                "Stream Effect",
-                "Die ausgewählte WAV-Datei wurde im Projektordner Sounds nicht gefunden.",
-            )
-            return False
-
-        self.config_data["selected_sound_effect"] = relative
-        save_config(self.config_data)
-
-        try:
-            if self.obs.probe():
-                media_file = service.resolve(relative)
-                source_name = self.stream_effect_source.get().strip()
-                if media_file is not None and source_name:
-                    self.obs.set_media_file(source_name, media_file)
-        except Exception:
-            LOGGER.exception("OBS Stream Effect source could not be updated for %s", relative)
-
-        label = getattr(self, "live_card_effect_name_label", None)
-        if label is not None:
-            try:
-                label.configure(text=self.live_card_current_effect_name())
-            except Exception:
-                pass
-        self.refresh_sound_favorite_buttons()
-        return True
+        return self.live_card_controller._apply_selected_sound_effect(relative)
 
     def select_sound_favorite(self, index):
-        favorites = self._ensure_sound_favorites()
-        if index < 0 or index >= len(favorites):
-            return False
-        favorite = favorites[index]
-        relative = str(favorite.get("file", "") or "").strip()
-        if not relative:
-            messagebox.showinfo(
-                "Sound-Favorit",
-                "Dieser Favorit ist noch nicht eingerichtet.",
-            )
-            return False
-        return self._apply_selected_sound_effect(relative)
+        return self.live_card_controller.select_sound_favorite(index)
 
     def refresh_sound_favorite_buttons(self):
-        favorites = self._ensure_sound_favorites()
-        selected = str(self.config_data.get("selected_sound_effect", "") or "").strip()
-        for index, button in enumerate(getattr(self, "sound_favorite_buttons", [])):
-            if index >= len(favorites):
-                continue
-            favorite = favorites[index]
-            name = str(favorite.get("name", "") or f"Favorit {index + 1}")
-            configured = bool(str(favorite.get("file", "") or "").strip())
-            active = configured and str(favorite.get("file", "")).strip() == selected
-            button.configure(
-                text=name,
-                fg_color=GOLD if active else ("#333333" if configured else "#1C1C1C"),
-                text_color="#111111" if active else TEXT,
-                hover_color=GOLD_DARK if active else "#444444",
-            )
+        return self.live_card_controller.refresh_sound_favorite_buttons()
 
     def open_sound_favorites_editor(self):
-        from .sound_favorites.editor import open_sound_favorites_editor_window
-        return open_sound_favorites_editor_window(self)
+        return self.live_card_controller.open_sound_favorites_editor()
 
     def change_live_card_effect(self):
-        """Choose one portable WAV path below <Project>/Sounds."""
-        project = str(self.project_folder.get() or "").strip()
-        if not project:
-            messagebox.showwarning(
-                "Stream Effect",
-                "Bitte zuerst unter Settings einen Projektordner auswählen.",
-            )
-            return False
-
-        service = self._sync_sound_service_project()
-        sounds_dir = service.sounds_dir
-        if sounds_dir is None or not sounds_dir.is_dir():
-            messagebox.showwarning(
-                "Stream Effect",
-                f"Der Sound-Ordner wurde nicht gefunden:\n\n{Path(project) / 'Sounds'}",
-            )
-            return False
-
-        selected = filedialog.askopenfilename(
-            title="Stream Effect auswählen",
-            initialdir=str(sounds_dir),
-            filetypes=[("WAV Audio", "*.wav"), ("Alle Dateien", "*.*")],
-        )
-        if not selected:
-            return False
-
-        relative = portable_effect_path(service, selected)
-        if relative is None:
-            messagebox.showerror(
-                "Stream Effect",
-                "Bitte eine vorhandene WAV-Datei innerhalb des Projektordners Sounds auswählen.",
-            )
-            return False
-
-        return self._apply_selected_sound_effect(relative)
+        return self.live_card_controller.change_live_card_effect()
 
     def set_stream_effect_enabled(self):
-        """Persist whether SHOW should automatically play the selected effect."""
-        enabled = bool(self.stream_effect_enabled.get())
-        self.config_data["stream_effect_enabled"] = enabled
-        save_config(self.config_data)
-        return enabled
+        return self.live_card_controller.set_stream_effect_enabled()
 
     def preview_live_card_effect(self):
-        """Preview the configured effect independently of automatic SHOW playback."""
-        relative = str(self.config_data.get("selected_sound_effect", "") or "").strip()
-        if not relative:
-            messagebox.showwarning(
-                "Stream Effect",
-                "Bitte zuerst einen Effekt auswählen.",
-            )
-            return False
-
-        service = self._sync_sound_service_project()
-        if not service.exists(relative):
-            messagebox.showerror(
-                "Stream Effect",
-                "Die ausgewählte WAV-Datei wurde im Projektordner Sounds nicht gefunden.",
-            )
-            return False
-        if not service.play(relative):
-            messagebox.showerror(
-                "Stream Effect",
-                "Der Sound konnte nicht abgespielt werden. WAV-Wiedergabe wird derzeit unter Windows unterstützt.",
-            )
-            return False
-        return True
+        return self.live_card_controller.preview_live_card_effect()
 
     def reset_live_card_text(self):
-        """Reset only the Live Card editor text and refresh the preview."""
-        if not hasattr(self, "message_box"):
-            return
-        self.message_box.delete("1.0", "end")
-        self.message_box.insert("1.0", "CHAT WAS RIGHT.")
-        self.live_card_pending_text = ""
-        try:
-            from .voice_control.live_card_voice import reset_live_card_translation
-            reset_live_card_translation(self)
-        except Exception:
-            pass
-        self.update_render_preview()
-        try:
-            self.message_box.focus_set()
-        except Exception:
-            pass
+        return self.live_card_controller.reset_live_card_text()
 
     def show_live_card(self):
-        self.set_active("Live Card")
-        self.clear_main()
-        self.page_title("Live Card")
-        content = ctk.CTkFrame(self.main, fg_color=DARK)
-        content.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
-        content.grid_columnconfigure(0, weight=2)
-        content.grid_columnconfigure(1, weight=1)
-        content.grid_rowconfigure(0, weight=1)
-
-        left = ctk.CTkFrame(content, fg_color=PANEL, corner_radius=18)
-        left.grid(row=0, column=0, sticky="nsew", padx=(0, 12))
-        left.grid_columnconfigure(0, weight=1)
-        left.grid_rowconfigure(1, weight=1)
-        ctk.CTkLabel(left, text="Message", font=ctk.CTkFont(size=16, weight="bold"), text_color=TEXT).grid(row=0, column=0, padx=18, pady=(18, 6), sticky="w")
-        self.message_box = ctk.CTkTextbox(left, height=180, font=ctk.CTkFont(size=18), fg_color="#050505", border_color=GOLD_DARK, border_width=1)
-        self.message_box.grid(row=1, column=0, padx=18, pady=(0, 12), sticky="nsew")
-        self.message_box.insert("1.0", self.live_card_pending_text or "CHAT WAS RIGHT.")
-        self.message_box.bind("<Return>", self.enter_to_show)
-        self.message_box.bind("<KeyRelease>", lambda e: self.update_render_preview())
-
-        if not hasattr(self, "live_card_translation_var"):
-            self.live_card_translation_var = ctk.StringVar(
-                value="Speak to prepare an English translation."
-            )
-        translation_box = ctk.CTkFrame(left, fg_color="#0B0B0B", corner_radius=10)
-        translation_box.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 8))
-        translation_box.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(
-            translation_box,
-            text="ENGLISH PREVIEW · VADAFOK ENGLISH TO USE",
-            text_color="#BCA870",
-            font=ctk.CTkFont(size=12, weight="bold"),
-        ).grid(row=0, column=0, padx=12, pady=(9, 2), sticky="w")
-        ctk.CTkLabel(
-            translation_box,
-            textvariable=self.live_card_translation_var,
-            text_color=TEXT,
-            justify="left",
-            anchor="w",
-            wraplength=650,
-        ).grid(row=1, column=0, padx=12, pady=(2, 10), sticky="ew")
-
-        row = ctk.CTkFrame(left, fg_color="transparent")
-        row.grid(row=3, column=0, sticky="ew", padx=18, pady=8)
-        row.grid_columnconfigure((0, 1), weight=1)
-        self.option(
-            row,
-            "Engine",
-            ["obs_text", "smart_png"],
-            self.caption_engine,
-            0
-        )
-        self.option(
-            row,
-            "Duration",
-            ["3", "5", "7", "10", "15"],
-            self.duration,
-            1
-        )
-
-        btns = ctk.CTkFrame(left, fg_color="transparent")
-        btns.grid(row=4, column=0, sticky="ew", padx=18, pady=(14, 18))
-        btns.grid_columnconfigure((0, 1, 2, 3), weight=1)
-        ctk.CTkButton(btns, text="SHOW", height=46, fg_color=GOLD, hover_color=GOLD_DARK, text_color="#111111", command=self.show_card).grid(row=0, column=0, padx=5, sticky="ew")
-        ctk.CTkButton(btns, text="HIDE", height=46, fg_color="#333333", command=self.hide_card).grid(row=0, column=1, padx=5, sticky="ew")
-        ctk.CTkButton(btns, text="CLEAR", height=46, fg_color="#222222", command=self.clear_text).grid(row=0, column=2, padx=5, sticky="ew")
-        ctk.CTkButton(btns, text="SAVE QUICK", height=46, fg_color="#222222", command=self.save_current_quick).grid(row=0, column=3, padx=5, sticky="ew")
-
-        quick_save_box = ctk.CTkFrame(left, fg_color="#0B0B0B", corner_radius=10)
-        quick_save_box.grid(row=5, column=0, sticky="ew", padx=18, pady=(0, 12))
-        quick_save_box.grid_columnconfigure(1, weight=1)
-        ctk.CTkLabel(quick_save_box, text="Quick Save Category", text_color="#BCA870").grid(row=0, column=0, padx=(10, 8), pady=10, sticky="w")
-        cats = self.quick_cards_categories()
-        if self.quick_cards_target_category.get() not in cats:
-            self.quick_cards_target_category.set("Chat" if "Chat" in cats else cats[0])
-        ctk.CTkOptionMenu(
-            quick_save_box,
-            values=cats,
-            variable=self.quick_cards_target_category,
-            fg_color="#333333",
-            button_color="#444444",
-            button_hover_color="#555555"
-        ).grid(row=0, column=1, padx=(0, 10), pady=10, sticky="ew")
-
-        right = ctk.CTkFrame(content, fg_color=PANEL, corner_radius=18)
-        right.grid(row=0, column=1, sticky="nsew", padx=(12, 0))
-        right.grid_rowconfigure(1, weight=1)
-        right.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(right, text="Live Preview", font=ctk.CTkFont(size=16, weight="bold"), text_color=TEXT).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
-        self.preview_frame = ctk.CTkFrame(right, fg_color="#020202", corner_radius=14, border_width=1, border_color="#3A2A0D")
-        self.preview_frame.grid(row=1, column=0, padx=18, pady=(0, 8), sticky="nsew")
-
-        self.render_status_label = ctk.CTkLabel(
-            right,
-            text="Preview wartet...",
-            text_color="#BCA870",
-            justify="left",
-            anchor="w"
-        )
-        self.render_status_label.grid(
-            row=2,
-            column=0,
-            padx=18,
-            pady=(0, 4),
-            sticky="ew"
-        )
-
-        banner_info = ctk.CTkFrame(
-            right,
-            fg_color="#0B0B0B",
-            corner_radius=10,
-            border_color="#2D2818",
-            border_width=1
-        )
-        banner_info.grid(
-            row=3,
-            column=0,
-            padx=18,
-            pady=(0, 8),
-            sticky="ew"
-        )
-        banner_info.grid_columnconfigure(0, weight=1)
-
-        ctk.CTkLabel(
-            banner_info,
-            text="CURRENT BANNER",
-            text_color="#777777",
-            font=ctk.CTkFont(size=10, weight="bold"),
-            anchor="w"
-        ).grid(
-            row=0,
-            column=0,
-            padx=12,
-            pady=(8, 1),
-            sticky="ew"
-        )
-
-        self.live_card_banner_name_label = ctk.CTkLabel(
-            banner_info,
-            text=self.live_card_current_banner_name(),
-            text_color=GOLD,
-            wraplength=330,
-            justify="left",
-            anchor="w",
-            font=ctk.CTkFont(size=12, weight="bold")
-        )
-        self.live_card_banner_name_label.grid(
-            row=1,
-            column=0,
-            padx=12,
-            pady=(0, 8),
-            sticky="ew"
-        )
-
-        preview_actions = ctk.CTkFrame(
-            right,
-            fg_color="transparent"
-        )
-        preview_actions.grid(
-            row=4,
-            column=0,
-            padx=18,
-            pady=(0, 8),
-            sticky="ew"
-        )
-        preview_actions.grid_columnconfigure((0, 1), weight=1)
-
-        ctk.CTkButton(
-            preview_actions,
-            text="REFRESH PREVIEW",
-            height=38,
-            fg_color="#333333",
-            hover_color="#444444",
-            command=self.update_render_preview
-        ).grid(
-            row=0,
-            column=0,
-            padx=(0, 4),
-            sticky="ew"
-        )
-
-        ctk.CTkButton(
-            preview_actions,
-            text="RESET TEXT",
-            height=38,
-            fg_color="#333333",
-            hover_color="#444444",
-            command=self.reset_live_card_text
-        ).grid(
-            row=0,
-            column=1,
-            padx=(4, 0),
-            sticky="ew"
-        )
-
-        ctk.CTkButton(
-            right,
-            text="CHANGE BANNER",
-            height=42,
-            fg_color=GOLD,
-            text_color="#111111",
-            hover_color=GOLD_DARK,
-            command=self.open_live_card_banner_picker
-        ).grid(
-            row=5,
-            column=0,
-            padx=18,
-            pady=(0, 10),
-            sticky="ew"
-        )
-
-        effect_info = ctk.CTkFrame(
-            right,
-            fg_color="#0B0B0B",
-            corner_radius=10,
-            border_color="#2D2818",
-            border_width=1,
-        )
-        effect_info.grid(
-            row=6,
-            column=0,
-            padx=18,
-            pady=(0, 8),
-            sticky="ew",
-        )
-        effect_info.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(
-            effect_info,
-            text="STREAM EFFECT",
-            text_color="#777777",
-            font=ctk.CTkFont(size=10, weight="bold"),
-            anchor="w",
-        ).grid(row=0, column=0, padx=12, pady=(8, 1), sticky="ew")
-        self.live_card_effect_name_label = ctk.CTkLabel(
-            effect_info,
-            text=self.live_card_current_effect_name(),
-            text_color=GOLD,
-            wraplength=330,
-            justify="left",
-            anchor="w",
-            font=ctk.CTkFont(size=12, weight="bold"),
-        )
-        self.live_card_effect_name_label.grid(
-            row=1, column=0, padx=12, pady=(0, 5), sticky="ew"
-        )
-        ctk.CTkCheckBox(
-            effect_info,
-            text="Sound automatisch bei SHOW abspielen",
-            variable=self.stream_effect_enabled,
-            command=self.set_stream_effect_enabled,
-            text_color=TEXT,
-            fg_color=GOLD,
-            hover_color=GOLD_DARK,
-            border_color="#777777",
-            checkmark_color="#111111",
-        ).grid(row=2, column=0, padx=12, pady=(0, 10), sticky="w")
-
-        favorites_box = ctk.CTkFrame(
-            right,
-            fg_color="#0B0B0B",
-            corner_radius=10,
-            border_color="#2D2818",
-            border_width=1,
-        )
-        favorites_box.grid(row=7, column=0, padx=18, pady=(0, 8), sticky="ew")
-        favorites_box.grid_columnconfigure((0, 1), weight=1)
-        ctk.CTkLabel(
-            favorites_box,
-            text="★ SOUND-FAVORITEN",
-            text_color="#777777",
-            font=ctk.CTkFont(size=10, weight="bold"),
-            anchor="w",
-        ).grid(row=0, column=0, columnspan=2, padx=12, pady=(8, 5), sticky="ew")
-        self.sound_favorite_buttons = []
-        for index in range(4):
-            button = ctk.CTkButton(
-                favorites_box,
-                text=f"Favorit {index + 1}",
-                height=32,
-                fg_color="#1C1C1C",
-                hover_color="#444444",
-                command=lambda slot=index: self.select_sound_favorite(slot),
-            )
-            button.grid(
-                row=1 + index // 2,
-                column=index % 2,
-                padx=(8 if index % 2 == 0 else 4, 4 if index % 2 == 0 else 8),
-                pady=4,
-                sticky="ew",
-            )
-            self.sound_favorite_buttons.append(button)
-        ctk.CTkButton(
-            favorites_box,
-            text="FAVORITEN BEARBEITEN",
-            height=30,
-            fg_color="transparent",
-            border_width=1,
-            border_color="#555555",
-            hover_color="#252525",
-            command=self.open_sound_favorites_editor,
-        ).grid(row=3, column=0, columnspan=2, padx=8, pady=(4, 8), sticky="ew")
-        self.refresh_sound_favorite_buttons()
-
-        effect_actions = ctk.CTkFrame(right, fg_color="transparent")
-        effect_actions.grid(
-            row=8, column=0, padx=18, pady=(0, 18), sticky="ew"
-        )
-        effect_actions.grid_columnconfigure((0, 1), weight=1)
-        ctk.CTkButton(
-            effect_actions,
-            text="CHANGE EFFECT",
-            height=38,
-            fg_color=GOLD,
-            text_color="#111111",
-            hover_color=GOLD_DARK,
-            command=self.change_live_card_effect,
-        ).grid(row=0, column=0, padx=(0, 4), sticky="ew")
-        ctk.CTkButton(
-            effect_actions,
-            text="PREVIEW",
-            height=38,
-            fg_color="#333333",
-            hover_color="#444444",
-            command=self.preview_live_card_effect,
-        ).grid(row=0, column=1, padx=(4, 0), sticky="ew")
-
-        self.update_render_preview()
+        return self.live_card_controller.show_live_card()
 
     def option(self, parent, label, values, var, col):
         frame = ctk.CTkFrame(parent, fg_color="transparent")
@@ -5961,36 +5463,13 @@ class VadafokStudio(ctk.CTk):
 
 
     def live_card_set_message_text(self, text):
-        text = str(text or "").strip()
-        if not text:
-            return
-        self.live_card_pending_text = text
-
-        for attr in ("message_box", "message", "live_message", "live_card_message"):
-            widget = getattr(self, attr, None)
-            if widget is not None:
-                try:
-                    widget.delete("1.0", "end")
-                    widget.insert("1.0", text)
-                    return
-                except Exception:
-                    pass
+        return self.live_card_controller.live_card_set_message_text(text)
 
     def live_card_get_message_text(self):
-        for attr in ("message_box", "message", "live_message", "live_card_message"):
-            widget = getattr(self, attr, None)
-            if widget is not None:
-                try:
-                    return widget.get("1.0", "end").strip()
-                except Exception:
-                    pass
-        return str(getattr(self, "live_card_pending_text", "") or "").strip()
+        return self.live_card_controller.live_card_get_message_text()
 
     def live_card_apply_pending_text(self):
-        text = str(getattr(self, "live_card_pending_text", "") or "").strip()
-        if not text:
-            return
-        self.live_card_set_message_text(text)
+        return self.live_card_controller.live_card_apply_pending_text()
 
     def quick_cards_build_tree(self):
         if not hasattr(self, "quick_cards_tree"):
@@ -8587,10 +8066,7 @@ class VadafokStudio(ctk.CTk):
             self.update_render_preview()
 
     def open_quick_caption(self):
-        """Open the compact F8 Quick Caption window."""
-        from vadafok_studio.quick_caption.window import open_quick_caption_window
-
-        return open_quick_caption_window(self)
+        return self.live_card_controller.open_quick_caption()
 
 
     def ensure_obs_ready(self):
