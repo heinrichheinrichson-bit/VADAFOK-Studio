@@ -76,6 +76,7 @@ class TemplateEditorSmartGuidesTests(unittest.TestCase):
     def test_move_snaps_inside_tolerance_but_not_outside(self):
         app = SimpleNamespace(
             template_smart_snap_enabled=Variable(True),
+            template_smart_guides_enabled=Variable(True),
             template_smart_guide_tolerance=8,
             template_smart_targets=Mock(return_value=([("line", 100)], [])),
         )
@@ -85,6 +86,30 @@ class TemplateEditorSmartGuidesTests(unittest.TestCase):
     def test_disabled_snap_returns_input_unchanged(self):
         app = SimpleNamespace(template_smart_snap_enabled=Variable(False))
         self.assertEqual(apply_smart_snap(app, 1, 2, 3, 4, "move"), (1, 2, 3, 4, [], []))
+
+    def test_guides_remain_visible_when_snap_is_disabled(self):
+        app = SimpleNamespace(
+            template_smart_snap_enabled=Variable(False),
+            template_smart_guides_enabled=Variable(True),
+            template_smart_guide_tolerance=8,
+            template_smart_targets=Mock(return_value=([("line", 100)], [])),
+        )
+        self.assertEqual(
+            apply_smart_snap(app, 93, 10, 0, 20, "move"),
+            (93, 10, 0, 20, [100], []),
+        )
+
+    def test_snap_remains_active_when_guides_are_disabled(self):
+        app = SimpleNamespace(
+            template_smart_snap_enabled=Variable(True),
+            template_smart_guides_enabled=Variable(False),
+            template_smart_guide_tolerance=8,
+            template_smart_targets=Mock(return_value=([("line", 100)], [])),
+        )
+        self.assertEqual(
+            apply_smart_snap(app, 93, 10, 0, 20, "move"),
+            (100, 10, 0, 20, [], []),
+        )
 
     def test_disabled_guides_clear_existing_lines_without_drawing(self):
         canvas = Mock()

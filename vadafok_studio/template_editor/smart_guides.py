@@ -125,7 +125,15 @@ def apply_smart_snap(app: Any, x, y, w, h, mode):
     Returns x, y, w, h and active guide lines.
     Smart snap uses design coordinates, so it works correctly with zoom and pan.
     """
-    if not (getattr(app, "template_smart_snap_enabled", None) and app.template_smart_snap_enabled.get()):
+    snap_enabled = bool(
+        getattr(app, "template_smart_snap_enabled", None)
+        and app.template_smart_snap_enabled.get()
+    )
+    guides_enabled = bool(
+        getattr(app, "template_smart_guides_enabled", None)
+        and app.template_smart_guides_enabled.get()
+    )
+    if not snap_enabled and not guides_enabled:
         return x, y, w, h, [], []
 
     tolerance = int(getattr(app, "template_smart_guide_tolerance", 8))
@@ -156,40 +164,52 @@ def apply_smart_snap(app: Any, x, y, w, h, mode):
 
         snap_x = nearest_delta([edges["left"], edges["center_x"], edges["right"]], targets_x)
         if snap_x:
-            x += snap_x[0]
-            guides_x.append(snap_x[1])
+            if snap_enabled:
+                x += snap_x[0]
+            if guides_enabled:
+                guides_x.append(snap_x[1])
 
         snap_y = nearest_delta([edges["top"], edges["center_y"], edges["bottom"]], targets_y)
         if snap_y:
-            y += snap_y[0]
-            guides_y.append(snap_y[1])
+            if snap_enabled:
+                y += snap_y[0]
+            if guides_enabled:
+                guides_y.append(snap_y[1])
 
     else:
         # Resize snapping: snap only the actively moved edge(s).
-        if "w" in mode:
-            snap = nearest_delta([x], targets_x)
-            if snap:
-                old_right = x + w
-                x = snap[1]
-                w = old_right - x
-                guides_x.append(snap[1])
-        if "e" in mode:
-            snap = nearest_delta([x + w], targets_x)
-            if snap:
-                w = snap[1] - x
-                guides_x.append(snap[1])
-        if "n" in mode:
-            snap = nearest_delta([y], targets_y)
-            if snap:
-                old_bottom = y + h
-                y = snap[1]
-                h = old_bottom - y
-                guides_y.append(snap[1])
-        if "s" in mode:
-            snap = nearest_delta([y + h], targets_y)
-            if snap:
-                h = snap[1] - y
-                guides_y.append(snap[1])
+            if "w" in mode:
+                snap = nearest_delta([x], targets_x)
+                if snap:
+                    if snap_enabled:
+                        old_right = x + w
+                        x = snap[1]
+                        w = old_right - x
+                    if guides_enabled:
+                        guides_x.append(snap[1])
+            if "e" in mode:
+                snap = nearest_delta([x + w], targets_x)
+                if snap:
+                    if snap_enabled:
+                        w = snap[1] - x
+                    if guides_enabled:
+                        guides_x.append(snap[1])
+            if "n" in mode:
+                snap = nearest_delta([y], targets_y)
+                if snap:
+                    if snap_enabled:
+                        old_bottom = y + h
+                        y = snap[1]
+                        h = old_bottom - y
+                    if guides_enabled:
+                        guides_y.append(snap[1])
+            if "s" in mode:
+                snap = nearest_delta([y + h], targets_y)
+                if snap:
+                    if snap_enabled:
+                        h = snap[1] - y
+                    if guides_enabled:
+                        guides_y.append(snap[1])
 
     return x, y, w, h, guides_x, guides_y
 
