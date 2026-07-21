@@ -19,6 +19,7 @@ from .core.recent_templates import load_recent_templates, record_recent_template
 from .card_creator import CardCreatorController
 from .template_editor import TemplateEditorController, TemplateRefreshManager
 from .library import LibraryController
+from .banner_editor.controller import BannerEditorController
 from .core.image_view import load_rgba, fit_image_to_box, pil_to_tk_photo_data, image_status
 from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card
 from .core import style_engine
@@ -204,6 +205,7 @@ class VadafokStudio(ctk.CTk):
         self.editor_stroke_color = ctk.StringVar(value="#000000")
         self.editor_stroke_width = ctk.IntVar(value=3)
         self.editor_uppercase = ctk.BooleanVar(value=True)
+        self.banner_editor_controller = BannerEditorController(self)
         self.last_render_path = EXPORT_DIR / "caption_render.png"
         self.text_library_new_text = ctk.StringVar(value="")
         self.text_library_new_category = ctk.StringVar(value="")
@@ -1224,339 +1226,58 @@ class VadafokStudio(ctk.CTk):
         return show_banner_profiles_page(self)
 
     def editor_select_banner(self, item):
-        self.editor_selected_banner = item
-        profile = ensure_profile(self.banner_profiles, item.relative)
-        self.editor_load_profile_values(profile)
-        if not profile["text_area"]["width"] or not profile["text_area"]["height"]:
-            try:
-                img = Image.open(item.path).convert("RGBA")
-                w, h = img.size
-                profile["text_area"] = {"x": int(w * 0.12), "y": int(h * 0.24), "width": int(w * 0.76), "height": int(h * 0.52)}
-                save_banner_profiles(self.banner_profiles)
-            except Exception:
-                pass
-        self.editor_draw_canvas()
+        return self.banner_editor_controller.editor_select_banner(item)
 
     def editor_profile(self):
-        if not self.editor_selected_banner:
-            return None
-        return ensure_profile(self.banner_profiles, self.editor_selected_banner.relative)
-
+        return self.banner_editor_controller.editor_profile()
 
     def editor_load_profile_values(self, profile):
-        self.editor_font_family.set(profile.get("font_family", self.caption_font_family.get()))
-        self.editor_font_size.set(int(profile.get("font_size", self.caption_font_size.get())))
-        self.editor_text_color.set(profile.get("text_color", self.caption_text_color.get()))
-        self.editor_stroke_color.set(profile.get("stroke_color", self.caption_stroke_color.get()))
-        self.editor_stroke_width.set(int(profile.get("stroke_width", self.caption_stroke_width.get())))
-        self.editor_uppercase.set(bool(profile.get("uppercase", self.caption_uppercase.get())))
+        return self.banner_editor_controller.editor_load_profile_values(profile)
 
     def editor_apply_profile_values(self):
-        profile = self.editor_profile()
-        if not profile:
-            return
-        try:
-            profile["font_family"] = self.editor_font_family.get()
-            profile["font_size"] = int(self.editor_font_size.get())
-            profile["text_color"] = self.editor_text_color.get()
-            profile["stroke_color"] = self.editor_stroke_color.get()
-            profile["stroke_width"] = int(self.editor_stroke_width.get())
-            profile["uppercase"] = bool(self.editor_uppercase.get())
-            save_banner_profiles(self.banner_profiles)
-            self.editor_update_overlay()
-        except Exception:
-            pass
+        return self.banner_editor_controller.editor_apply_profile_values()
 
     def editor_save_profile(self):
-        if not self.editor_selected_banner:
-            messagebox.showwarning("Banner Editor", "Bitte zuerst ein Banner auswählen.")
-            return
-        self.editor_apply_profile_values()
-        profile = self.editor_profile()
-        if profile:
-            field = banner_profile_to_layout_field(profile)
-            apply_layout_field_to_banner_profile(profile, field)
-        save_banner_profiles(self.banner_profiles)
-        messagebox.showinfo("Banner Editor", f"Profil gespeichert:\n{self.editor_selected_banner.name}")
-        self.show_banner_profiles_page()
-
+        return self.banner_editor_controller.editor_save_profile()
 
     def editor_reset_style(self):
-        if not self.editor_selected_banner:
-            return
-        profile = self.editor_profile()
-        reset_profile_style(profile)
-        self.editor_load_profile_values(profile)
-        save_banner_profiles(self.banner_profiles)
-        self.editor_update_overlay()
-        messagebox.showinfo("Banner Editor", "Profilwerte wurden auf Standard zurückgesetzt.")
+        return self.banner_editor_controller.editor_reset_style()
 
     def editor_reset_area(self):
-        if not self.editor_selected_banner:
-            return
-        profile = self.editor_profile()
-        img = Image.open(self.editor_selected_banner.path).convert("RGBA")
-        w, h = img.size
-        profile["text_area"] = {"x": int(w * 0.12), "y": int(h * 0.24), "width": int(w * 0.76), "height": int(h * 0.52)}
-        save_banner_profiles(self.banner_profiles)
-        self.editor_draw_canvas()
-
+        return self.banner_editor_controller.editor_reset_area()
 
     def editor_draw_canvas(self, full_redraw=True):
-        """
-        Anti-flicker drawing:
-        - full_redraw=True loads/scales the banner once.
-        - full_redraw=False updates only overlay rectangle, handles, and sample text.
-        """
-        if not hasattr(self, "editor_canvas") or not self.editor_selected_banner:
-            return
-
-        if full_redraw or self.editor_banner_image_id is None:
-            self.editor_redraw_banner()
-        self.editor_update_overlay()
+        return self.banner_editor_controller.editor_draw_canvas(full_redraw)
 
     def editor_redraw_banner(self):
-        canvas = self.editor_canvas
-        canvas.delete("all")
-        self.editor_handle_ids = []
-        self.editor_area_rect_id = None
-        self.editor_sample_text_id = None
-
-        banner = Image.open(self.editor_selected_banner.path).convert("RGBA")
-        bw, bh = banner.size
-        self.editor_canvas_banner_size = (bw, bh)
-
-        canvas.update_idletasks()
-        cw = max(400, canvas.winfo_width())
-        ch = max(260, canvas.winfo_height())
-        scale = min((cw - 30) / bw, (ch - 30) / bh)
-        self.editor_canvas_scale = scale
-
-        display_w = int(bw * scale)
-        display_h = int(bh * scale)
-        offset_x = (cw - display_w) // 2
-        offset_y = (ch - display_h) // 2
-        self.editor_canvas_offset = (offset_x, offset_y)
-
-        display = banner.resize((display_w, display_h))
-        self.editor_canvas_photo = tk.PhotoImage(data=self._pil_to_png_bytes(display))
-        self.editor_banner_image_id = canvas.create_image(
-            offset_x,
-            offset_y,
-            image=self.editor_canvas_photo,
-            anchor="nw",
-            tags="banner"
-        )
+        return self.banner_editor_controller.editor_redraw_banner()
 
     def editor_update_overlay(self):
-        canvas = self.editor_canvas
-        if not self.editor_selected_banner:
-            return
-
-        profile = self.editor_profile()
-        if not profile:
-            return
-
-        # Delete overlay only. Do NOT delete banner image. This prevents flicker.
-        for item_id in [self.editor_area_rect_id, self.editor_sample_text_id]:
-            if item_id:
-                try:
-                    canvas.delete(item_id)
-                except Exception:
-                    pass
-
-        for item_id in self.editor_handle_ids:
-            try:
-                canvas.delete(item_id)
-            except Exception:
-                pass
-        self.editor_handle_ids = []
-
-        ox, oy = self.editor_canvas_offset
-        s = self.editor_canvas_scale
-        area = profile["text_area"]
-
-        x1 = ox + int(area["x"] * s)
-        y1 = oy + int(area["y"] * s)
-        x2 = ox + int((area["x"] + area["width"]) * s)
-        y2 = oy + int((area["y"] + area["height"]) * s)
-
-        self.editor_area_rect_id = canvas.create_rectangle(
-            x1, y1, x2, y2,
-            fill="#D6A43A",
-            stipple="gray25",
-            outline=GOLD,
-            width=3,
-            tags="area"
-        )
-
-        text = (self.editor_sample_text.get() or "HELLO WORLD")
-        if self.editor_uppercase.get():
-            text = text.upper()
-        cx = (x1 + x2) // 2
-        cy = (y1 + y2) // 2
-        self.editor_sample_text_id = canvas.create_text(
-            cx, cy,
-            text=text,
-            fill=self.editor_text_color.get(),
-            font=("Arial", max(10, min(42, int(self.editor_font_size.get() / 5))), "bold"),
-            width=max(50, x2 - x1 - 20),
-            justify="center",
-            tags="sample"
-        )
-
-        for hx, hy in self.editor_handle_points(x1, y1, x2, y2):
-            hid = canvas.create_rectangle(
-                hx - 6, hy - 6, hx + 6, hy + 6,
-                fill=GOLD,
-                outline="#111111",
-                tags="handle"
-            )
-            self.editor_handle_ids.append(hid)
-
-        if hasattr(self, "editor_status_label"):
-            self.editor_status_label.configure(
-                text=f"✓ {self.editor_selected_banner.name} | Bereich {area['width']}×{area['height']}",
-                text_color="#8FE6A0"
-            )
+        return self.banner_editor_controller.editor_update_overlay()
 
     def _pil_to_png_bytes(self, image):
-        import io, base64
-        buf = io.BytesIO()
-        image.save(buf, format="PNG")
-        return base64.b64encode(buf.getvalue())
+        return self.banner_editor_controller._pil_to_png_bytes(image)
 
     def editor_draw_sample_text(self, canvas, x1, y1, x2, y2):
-        text = (self.editor_sample_text.get() or "HELLO WORLD")
-        if self.editor_uppercase.get():
-            text = text.upper()
-        cx = (x1 + x2) // 2
-        cy = (y1 + y2) // 2
-        canvas.create_text(cx, cy, text=text, fill="white", font=("Arial", 22, "bold"), width=max(50, x2-x1-20), justify="center", tags="sample")
+        return self.banner_editor_controller.editor_draw_sample_text(canvas, x1, y1, x2, y2)
 
     def editor_handle_points(self, x1, y1, x2, y2):
-        return [
-            (x1, y1), ((x1+x2)//2, y1), (x2, y1),
-            (x1, (y1+y2)//2), (x2, (y1+y2)//2),
-            (x1, y2), ((x1+x2)//2, y2), (x2, y2)
-        ]
+        return self.banner_editor_controller.editor_handle_points(x1, y1, x2, y2)
 
     def editor_hit_test(self, x, y):
-        profile = self.editor_profile()
-        if not profile:
-            return None
-        ox, oy = self.editor_canvas_offset
-        s = self.editor_canvas_scale
-        area = profile["text_area"]
-        x1 = ox + area["x"] * s
-        y1 = oy + area["y"] * s
-        x2 = ox + (area["x"] + area["width"]) * s
-        y2 = oy + (area["y"] + area["height"]) * s
-        tol = 10
-
-        near_left = abs(x - x1) <= tol
-        near_right = abs(x - x2) <= tol
-        near_top = abs(y - y1) <= tol
-        near_bottom = abs(y - y2) <= tol
-
-        if near_left and near_top: return "nw"
-        if near_right and near_top: return "ne"
-        if near_left and near_bottom: return "sw"
-        if near_right and near_bottom: return "se"
-        if near_left and y1 <= y <= y2: return "w"
-        if near_right and y1 <= y <= y2: return "e"
-        if near_top and x1 <= x <= x2: return "n"
-        if near_bottom and x1 <= x <= x2: return "s"
-        if x1 <= x <= x2 and y1 <= y <= y2: return "move"
-        return "new"
-
+        return self.banner_editor_controller.editor_hit_test(x, y)
 
     def editor_mouse_motion(self, event):
-        if not self.editor_selected_banner:
-            return
-        mode = self.editor_hit_test(event.x, event.y)
-        cursor = "crosshair"
-        if mode == "move":
-            cursor = "fleur"
-        elif mode in ("nw", "se"):
-            cursor = "size_nw_se"
-        elif mode in ("ne", "sw"):
-            cursor = "size_ne_sw"
-        elif mode in ("n", "s"):
-            cursor = "sb_v_double_arrow"
-        elif mode in ("e", "w"):
-            cursor = "sb_h_double_arrow"
-        self.editor_canvas.configure(cursor=cursor)
+        return self.banner_editor_controller.editor_mouse_motion(event)
 
     def editor_mouse_down(self, event):
-        if not self.editor_selected_banner:
-            return
-        self.editor_drag_mode = self.editor_hit_test(event.x, event.y)
-        self.editor_drag_start = (event.x, event.y)
-        profile = self.editor_profile()
-        self.editor_drag_original = dict(profile["text_area"])
-
-        if self.editor_drag_mode == "new":
-            ox, oy = self.editor_canvas_offset
-            s = self.editor_canvas_scale
-            bx = int((event.x - ox) / s)
-            by = int((event.y - oy) / s)
-            profile["text_area"] = {"x": bx, "y": by, "width": 1, "height": 1}
-            self.editor_drag_original = dict(profile["text_area"])
+        return self.banner_editor_controller.editor_mouse_down(event)
 
     def editor_mouse_drag(self, event):
-        if not self.editor_drag_mode or not self.editor_selected_banner:
-            return
-
-        profile = self.editor_profile()
-        area = dict(self.editor_drag_original)
-        sx, sy = self.editor_drag_start
-        dx = int((event.x - sx) / self.editor_canvas_scale)
-        dy = int((event.y - sy) / self.editor_canvas_scale)
-        bw, bh = self.editor_canvas_banner_size
-        mode = self.editor_drag_mode
-
-        x, y, w, h = area["x"], area["y"], area["width"], area["height"]
-
-        if mode == "move":
-            x += dx
-            y += dy
-        elif mode == "new":
-            w = dx
-            h = dy
-        else:
-            if "w" in mode:
-                x += dx
-                w -= dx
-            if "e" in mode:
-                w += dx
-            if "n" in mode:
-                y += dy
-                h -= dy
-            if "s" in mode:
-                h += dy
-
-        if w < 0:
-            x += w
-            w = abs(w)
-        if h < 0:
-            y += h
-            h = abs(h)
-
-        x = max(0, min(bw - 20, x))
-        y = max(0, min(bh - 20, y))
-        w = max(20, min(bw - x, w))
-        h = max(20, min(bh - y, h))
-
-        profile["text_area"] = {"x": int(x), "y": int(y), "width": int(w), "height": int(h)}
-        self.editor_update_overlay()
+        return self.banner_editor_controller.editor_mouse_drag(event)
 
     def editor_mouse_up(self, event):
-        if self.editor_selected_banner:
-            save_banner_profiles(self.banner_profiles)
-        self.editor_drag_mode = None
-        self.editor_drag_start = None
-        self.editor_drag_original = None
+        return self.banner_editor_controller.editor_mouse_up(event)
 
     def show_live_card_page(self):
         """Compatibility alias used by Silent Director."""
