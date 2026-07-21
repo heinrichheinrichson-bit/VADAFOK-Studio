@@ -204,8 +204,8 @@ def drag_release(app: Any, event=None):
             "Silent Director action reordered by drag and drop"
         )
 
-    # Exactly one rebuild after release.
-    app.silent_director_render_actions_list()
+    # Reuse the existing cards so reordering does not flash the timeline.
+    app.silent_director_refresh_action_cards()
     return "break"
 
 

@@ -35,6 +35,7 @@ def drag_app(**overrides):
         silent_director_edit_index=3,
         silent_director_presets=[],
         silent_director_render_actions_list=Mock(),
+        silent_director_refresh_action_cards=Mock(),
         obs_workflow_mark_command=Mock(),
         unbind_all=Mock(),
     )
@@ -65,7 +66,7 @@ class SilentDirectorDragControllerTests(unittest.TestCase):
 
         self.assertEqual(result, "break")
         move_action_to.assert_called_once_with("Show", 0, 2)
-        app.silent_director_render_actions_list.assert_called_once_with()
+        app.silent_director_refresh_action_cards.assert_called_once_with()
         self.assertFalse(app.silent_director_drag_active)
         self.assertIsNone(app.silent_director_dragged_card)
 
@@ -78,6 +79,7 @@ class SilentDirectorDragControllerTests(unittest.TestCase):
         self.assertEqual(result, "break")
         move_action_to.assert_not_called()
         app.silent_director_render_actions_list.assert_not_called()
+        app.silent_director_refresh_action_cards.assert_not_called()
         self.assertFalse(app.silent_director_drag_active)
 
 

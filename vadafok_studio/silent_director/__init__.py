@@ -10,7 +10,7 @@ from .drag_controller import (
     hide_floating_drop_indicator,
     show_floating_drop_indicator,
 )
-from .page import show_silent_director_page
+from .page import refresh_selected_editor, show_silent_director_page
 from .preset_list_view import render_filtered_presets
 from .runner import run_preset
 
@@ -19,6 +19,7 @@ __all__ = [
     "render_filtered_presets",
     "run_preset",
     "show_silent_director_page",
+    "refresh_selected_editor",
     "drag_cancel",
     "drag_motion",
     "drag_release",

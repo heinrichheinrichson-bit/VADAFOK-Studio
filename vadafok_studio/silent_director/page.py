@@ -14,6 +14,32 @@ PANEL = "#111111"
 TEXT = "#F2E2B6"
 
 
+def refresh_selected_editor(app: Any) -> bool:
+    """Update the selected preset editor without rebuilding the whole page."""
+    preset = app.silent_director_get_selected_preset()
+    if not preset:
+        return False
+    app.silent_director_load_editor(preset)
+    try:
+        app.silent_director_banner_textbox.delete("1.0", "end")
+        app.silent_director_banner_textbox.insert("1.0", preset.get("banner_text", ""))
+    except Exception:
+        pass
+    actions, seconds = app.silent_director_preset_stats(preset)
+    for attr, value in (
+        ("silent_director_preset_name_label", preset.get("name", "Untitled")),
+        ("silent_director_action_count_label", str(actions)),
+        ("silent_director_duration_label", app.silent_director_format_duration(seconds)),
+    ):
+        try:
+            getattr(app, attr).configure(text=value)
+        except Exception:
+            pass
+    app.silent_director_render_actions_list()
+    app.silent_director_render_filtered_presets()
+    return True
+
+
 def show_silent_director_page(app: Any) -> None:
     """Build and display the Silent Director workspace."""
     app.set_active("Silent Director")
@@ -113,7 +139,7 @@ def show_silent_director_page(app: Any) -> None:
     stats_bar.grid_columnconfigure(1, weight=1)
     stats_bar.grid_columnconfigure(3, weight=1)
 
-    ctk.CTkLabel(
+    app.silent_director_preset_name_label = ctk.CTkLabel(
         stats_bar,
         text="PRESET",
         text_color="#777777",
@@ -125,9 +151,10 @@ def show_silent_director_page(app: Any) -> None:
         text=str(preset.get("name", "Untitled")),
         text_color=TEXT,
         font=ctk.CTkFont(size=14, weight="bold")
-    ).grid(row=1, column=0, padx=(12, 16), pady=(0, 10), sticky="w")
+    )
+    app.silent_director_preset_name_label.grid(row=1, column=0, padx=(12, 16), pady=(0, 10), sticky="w")
 
-    ctk.CTkLabel(
+    app.silent_director_action_count_label = ctk.CTkLabel(
         stats_bar,
         text="ACTIONS",
         text_color="#777777",
@@ -139,9 +166,10 @@ def show_silent_director_page(app: Any) -> None:
         text=str(stats_actions),
         text_color=GOLD,
         font=ctk.CTkFont(size=16, weight="bold")
-    ).grid(row=1, column=1, padx=6, pady=(0, 10), sticky="w")
+    )
+    app.silent_director_action_count_label.grid(row=1, column=1, padx=6, pady=(0, 10), sticky="w")
 
-    ctk.CTkLabel(
+    app.silent_director_duration_label = ctk.CTkLabel(
         stats_bar,
         text="GESAMTDAUER",
         text_color="#777777",
@@ -153,7 +181,8 @@ def show_silent_director_page(app: Any) -> None:
         text=app.silent_director_format_duration(stats_seconds),
         text_color="#6EA6E8",
         font=ctk.CTkFont(size=16, weight="bold")
-    ).grid(row=1, column=2, padx=6, pady=(0, 10), sticky="w")
+    )
+    app.silent_director_duration_label.grid(row=1, column=2, padx=6, pady=(0, 10), sticky="w")
 
     ctk.CTkLabel(
         stats_bar,

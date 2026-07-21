@@ -82,9 +82,11 @@ from .live_card import (
     update_render_preview as update_live_card_render_preview,
 )
 from .silent_director import render_actions_list
+from .silent_director.action_list_view import refresh_action_cards
 from .silent_director import render_filtered_presets
 from .silent_director import run_preset as run_silent_director_preset
 from .silent_director import show_silent_director_page as build_silent_director_page
+from .silent_director import refresh_selected_editor as refresh_silent_director_selected_editor
 from .silent_director.drag_controller import (
     drag_cancel as cancel_silent_director_drag,
     drag_motion as move_silent_director_drag,
@@ -2250,6 +2252,9 @@ class VadafokStudio(ctk.CTk):
     def silent_director_reload(self):
         return director_management.reload_presets(self)
 
+    def silent_director_select_preset(self, name):
+        return director_management.select_preset(self, name)
+
     def silent_director_get_selected_preset(self):
         return director_management.get_selected_preset(self)
 
@@ -2358,6 +2363,9 @@ class VadafokStudio(ctk.CTk):
     def silent_director_render_actions_list(self):
         return render_actions_list(self)
 
+    def silent_director_refresh_action_cards(self):
+        return refresh_action_cards(self)
+
 
 
 
@@ -2402,6 +2410,9 @@ class VadafokStudio(ctk.CTk):
 
     def show_silent_director_page(self):
         return build_silent_director_page(self)
+
+    def silent_director_refresh_selected_editor(self):
+        return refresh_silent_director_selected_editor(self)
 
 
     def show_obs_workflow_page(self):

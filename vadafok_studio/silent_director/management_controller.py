@@ -17,6 +17,24 @@ def _name_exists(app: Any, name: str, exclude: str = "") -> bool:
         for item in getattr(app, "silent_director_presets", [])
     )
 
+
+def _refresh_selected_without_page_flash(app: Any) -> None:
+    try:
+        if app.silent_director_refresh_selected_editor():
+            return
+    except Exception:
+        pass
+    app.show_silent_director_page()
+
+
+def select_preset(app: Any, name: str):
+    name = str(name or "").strip()
+    if not name or name == app.silent_director_selected.get():
+        return False
+    app.silent_director_selected.set(name)
+    _refresh_selected_without_page_flash(app)
+    return True
+
 def reload_presets(app: Any):
     try:
         app.silent_director_presets = silent_director.load_presets()
@@ -47,7 +65,7 @@ def create_preset(app: Any):
     app.silent_director_presets = silent_director.add_preset(name, scene=scene, banner_text="", show_banner=False)
     app.silent_director_selected.set(name)
     app.silent_director_new_name.set("")
-    app.show_silent_director_page()
+    _refresh_selected_without_page_flash(app)
 
 
 def duplicate_preset(app: Any, preset=None):
@@ -74,7 +92,7 @@ def duplicate_preset(app: Any, preset=None):
     app.silent_director_edit_index = None
     app.silent_director_action_button_text.set("+ ADD ACTION")
     app.obs_workflow_mark_command(f"Silent Director preset duplicated: {original_name}")
-    app.show_silent_director_page()
+    _refresh_selected_without_page_flash(app)
 
 
 def delete_selected_preset(app: Any):
@@ -86,7 +104,7 @@ def delete_selected_preset(app: Any):
         return
     app.silent_director_presets = silent_director.delete_preset(name)
     app.silent_director_selected.set(app.silent_director_presets[0]["name"] if app.silent_director_presets else "")
-    app.show_silent_director_page()
+    _refresh_selected_without_page_flash(app)
 
 
 def load_editor(app: Any, preset):
@@ -137,7 +155,7 @@ def save_selected_preset(app: Any):
     app.silent_director_selected.set(new_name)
     app.obs_workflow_mark_command(f"Silent Director preset saved: {new_name}")
     messagebox.showinfo("Silent Director", f"Preset '{new_name}' gespeichert.")
-    app.show_silent_director_page()
+    _refresh_selected_without_page_flash(app)
 
 
 def cancel_action_edit(app: Any):
@@ -200,7 +218,7 @@ def duplicate_action(app: Any, index):
         app.silent_director_update_action_fields()
 
     app.obs_workflow_mark_command("Silent Director action duplicated")
-    app.silent_director_render_actions_list()
+    app.silent_director_refresh_action_cards()
 
 
 def move_action(app: Any, index, direction):
@@ -213,7 +231,7 @@ def move_action(app: Any, index, direction):
     app.silent_director_edit_index = None
     app.silent_director_action_button_text.set("+ ADD ACTION")
     app.obs_workflow_mark_command("Silent Director action moved")
-    app.silent_director_render_actions_list()
+    app.silent_director_refresh_action_cards()
 
 
 def add_action(app: Any):

@@ -10,6 +10,17 @@ import customtkinter as ctk
 TEXT = "#F2E2B6"
 
 
+def _refresh_stats(app: Any, preset: dict) -> None:
+    try:
+        actions, seconds = app.silent_director_preset_stats(preset)
+        app.silent_director_action_count_label.configure(text=str(actions))
+        app.silent_director_duration_label.configure(
+            text=app.silent_director_format_duration(seconds),
+        )
+    except Exception:
+        pass
+
+
 def render_actions_list(app: Any) -> None:
     """Rebuild the selected preset's timeline action cards."""
     frame = getattr(app, "silent_director_actions_frame", None)
@@ -24,6 +35,7 @@ def render_actions_list(app: Any) -> None:
     preset = app.silent_director_get_selected_preset()
     if not preset:
         return
+    _refresh_stats(app, preset)
 
     actions = list(preset.get("actions", []) or [])
     if not actions:
@@ -40,6 +52,34 @@ def render_actions_list(app: Any) -> None:
     app.director_set_active_action(
         getattr(app, "director_active_action_index", None)
     )
+
+
+def refresh_action_cards(app: Any) -> bool:
+    """Refresh action data in existing cards without destroying the timeline."""
+    preset = app.silent_director_get_selected_preset()
+    actions = list(preset.get("actions", []) or []) if preset else []
+    if preset:
+        _refresh_stats(app, preset)
+    widgets_map = getattr(app, "director_action_card_widgets", {}) or {}
+    if len(actions) != len(widgets_map):
+        render_actions_list(app)
+        return False
+    for index, action in enumerate(actions):
+        widgets = widgets_map.get(index, {})
+        style = app.silent_director_timeline_style(str(action.get("type", "") or ""))
+        widgets["style"] = dict(style)
+        widgets["step_text"] = f"Timeline step {index + 1} of {len(actions)}"
+        widgets["card"].configure(fg_color=style["card"], border_color=style["accent"])
+        widgets["title"].configure(
+            text=f"{index + 1}. {style['title']}", text_color=style["accent"],
+        )
+        widgets["badge"].configure(
+            text=style["badge"], fg_color=style["accent"],
+        )
+        widgets["detail"].configure(text=app.silent_director_timeline_detail(action))
+        widgets["runtime"].configure(text=widgets["step_text"])
+    app.director_set_active_action(None)
+    return True
 
 
 def _render_action_card(
@@ -122,7 +162,7 @@ def _render_action_card(
         command=lambda i=index: app.silent_director_edit_action(i),
     )
     title_button.grid(row=0, column=1, padx=(6, 8), pady=(8, 0), sticky="ew")
-    ctk.CTkLabel(
+    detail_label = ctk.CTkLabel(
         card,
         text=detail,
         text_color=TEXT,
@@ -130,7 +170,8 @@ def _render_action_card(
         justify="left",
         wraplength=470,
         font=ctk.CTkFont(size=13),
-    ).grid(row=1, column=1, padx=(12, 8), pady=(2, 2), sticky="ew")
+    )
+    detail_label.grid(row=1, column=1, padx=(12, 8), pady=(2, 2), sticky="ew")
 
     step_text = f"Timeline step {index + 1} of {len(actions)}"
     runtime_label = ctk.CTkLabel(
@@ -145,6 +186,7 @@ def _render_action_card(
         "card": card,
         "title": title_button,
         "badge": badge,
+        "detail": detail_label,
         "runtime": runtime_label,
         "style": dict(style),
         "step_text": step_text,

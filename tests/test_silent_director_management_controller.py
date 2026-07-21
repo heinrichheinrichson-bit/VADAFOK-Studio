@@ -42,6 +42,7 @@ def action_app(preset):
         silent_director_cancel_action_edit=Mock(),
         silent_director_update_action_fields=Mock(),
         silent_director_render_actions_list=Mock(),
+        silent_director_refresh_action_cards=Mock(),
         obs_workflow_mark_command=Mock(),
     )
 
@@ -110,7 +111,7 @@ class SilentDirectorManagementControllerTests(unittest.TestCase):
         self.assertEqual(app.silent_director_action_button_text.get(), "UPDATE ACTION")
 
     @patch("vadafok_studio.silent_director.management_controller.silent_director.move_action")
-    def test_move_action_delegates_and_rebuilds(self, store_move):
+    def test_move_action_refreshes_existing_cards_without_rebuild(self, store_move):
         preset = {"name": "Show", "actions": [{"type": "wait"}]}
         app = action_app(preset)
         store_move.return_value = [preset]
@@ -118,7 +119,8 @@ class SilentDirectorManagementControllerTests(unittest.TestCase):
         move_action(app, 0, 1)
 
         store_move.assert_called_once_with("Show", 0, 1)
-        app.silent_director_render_actions_list.assert_called_once_with()
+        app.silent_director_refresh_action_cards.assert_called_once_with()
+        app.silent_director_render_actions_list.assert_not_called()
 
 
 if __name__ == "__main__":

@@ -94,10 +94,7 @@ def _render_preset_row(app: Any, preset_list: Any, preset: dict, row_index: int)
         fg_color="transparent",
         hover_color="#2C2C2C",
         text_color=GOLD if selected or is_favorite else TEXT,
-        command=lambda n=name: (
-            app.silent_director_selected.set(n),
-            app.show_silent_director_page(),
-        ),
+        command=lambda n=name: app.silent_director_select_preset(n),
     ).grid(row=0, column=2, sticky="ew", padx=6, pady=(5, 0))
     ctk.CTkLabel(
         row,
