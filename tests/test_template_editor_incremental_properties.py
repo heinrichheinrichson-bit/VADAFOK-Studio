@@ -6,12 +6,19 @@ import unittest
 
 
 APP_PATH = Path(__file__).resolve().parents[1] / "vadafok_studio" / "app.py"
+PROPERTIES_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "vadafok_studio"
+    / "template_editor"
+    / "properties_view.py"
+)
 
 
 class TemplateEditorIncrementalPropertiesTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.source = APP_PATH.read_text(encoding="utf-8")
+        cls.properties_source = PROPERTIES_PATH.read_text(encoding="utf-8")
         cls.tree = ast.parse(cls.source)
         cls.functions = {
             node.name: node
@@ -24,13 +31,13 @@ class TemplateEditorIncrementalPropertiesTests(unittest.TestCase):
         return ast.get_source_segment(self.source, node) or ""
 
     def test_properties_panel_caches_widgets(self):
-        source = self.function_source("template_build_properties_panel")
+        source = self.properties_source
         self.assertIn("_template_properties_body_ref", source)
         self.assertIn("_template_properties_editor", source)
         self.assertIn("cache_valid", source)
 
     def test_selection_switches_visibility_instead_of_rebuilding_widgets(self):
-        source = self.function_source("template_build_properties_panel")
+        source = self.properties_source
         self.assertIn("editor.grid_remove()", source)
         self.assertIn("empty_label.grid_remove()", source)
         self.assertEqual(source.count("widget.destroy()"), 1)
