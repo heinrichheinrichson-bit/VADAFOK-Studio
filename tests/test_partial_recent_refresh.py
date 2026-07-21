@@ -9,12 +9,14 @@ APP_FILE = PROJECT_ROOT / "vadafok_studio" / "app.py"
 CONTROLLER_FILE = (
     PROJECT_ROOT / "vadafok_studio" / "card_creator" / "controller.py"
 )
+PAGE_FILE = PROJECT_ROOT / "vadafok_studio" / "card_creator" / "page.py"
 
 
 class PartialRecentRefreshTests(unittest.TestCase):
     def setUp(self) -> None:
         self.app_source = APP_FILE.read_text(encoding="utf-8")
         self.controller_source = CONTROLLER_FILE.read_text(encoding="utf-8")
+        self.page_source = PAGE_FILE.read_text(encoding="utf-8")
 
     def test_recent_refresh_method_exists(self) -> None:
         self.assertIn(
@@ -43,8 +45,8 @@ class PartialRecentRefreshTests(unittest.TestCase):
 
     def test_dedicated_recent_container_exists(self) -> None:
         self.assertIn(
-            "self.card_recent_templates_frame = ctk.CTkFrame",
-            self.app_source,
+            "app.card_recent_templates_frame = ctk.CTkFrame",
+            self.page_source,
         )
 
     def test_refresh_only_destroys_recent_children(self) -> None:

@@ -9,12 +9,14 @@ APP_FILE = PROJECT_ROOT / "vadafok_studio" / "app.py"
 CONTROLLER_FILE = (
     PROJECT_ROOT / "vadafok_studio" / "card_creator" / "controller.py"
 )
+PAGE_FILE = PROJECT_ROOT / "vadafok_studio" / "card_creator" / "page.py"
 
 
 class PartialTemplateSelectionTests(unittest.TestCase):
     def setUp(self) -> None:
         self.app_source = APP_FILE.read_text(encoding="utf-8")
         self.controller_source = CONTROLLER_FILE.read_text(encoding="utf-8")
+        self.page_source = PAGE_FILE.read_text(encoding="utf-8")
 
     def test_selection_delegates_to_controller(self) -> None:
         start = self.app_source.index("def card_select_template")
@@ -42,7 +44,7 @@ class PartialTemplateSelectionTests(unittest.TestCase):
         self.assertNotIn("show_card_creator_page", method)
 
     def test_all_template_buttons_are_reused(self) -> None:
-        self.assertIn("self.card_template_buttons = {}", self.app_source)
+        self.assertIn("app.card_template_buttons = {}", self.page_source)
         self.assertIn(
             "def card_refresh_all_templates(self):",
             self.app_source,
@@ -54,12 +56,12 @@ class PartialTemplateSelectionTests(unittest.TestCase):
 
     def test_template_list_has_dedicated_container(self) -> None:
         self.assertIn(
-            "self.card_all_templates_frame = ctk.CTkFrame",
-            self.app_source,
+            "app.card_all_templates_frame = ctk.CTkFrame",
+            self.page_source,
         )
         self.assertIn(
-            "self.card_all_templates_label.pack(",
-            self.app_source,
+            "app.card_all_templates_label.pack(",
+            self.page_source,
         )
 
 
