@@ -55,6 +55,8 @@ from .template_editor.ui_state import refresh_toolbar_state
 from .template_editor import history_controller
 from .template_editor import keyboard_controller, rename_controller
 from .template_editor.style_presets_view import build_style_presets_panel
+from .template_editor.dialogs import ask_template_name
+from .template_editor import background_actions, management_controller
 from .library import LibraryController
 from .library.page import show_library_page
 from .library.grid_view import render_asset_grid, render_folder_overview
@@ -915,183 +917,40 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_background_status(self):
-        template = self.template_current()
-        bg = template.get("background", "")
-        if not bg:
-            return "kein Hintergrund"
-        return f"{Path(bg).name} ({'OK' if Path(bg).exists() else 'FEHLT'})"
+        return background_actions.background_status(self)
 
 
 
 
 
     def template_choose_background_file(self):
-        path = filedialog.askopenfilename(
-            title="Template Hintergrund auswählen",
-            filetypes=[
-                ("Image files", "*.png *.jpg *.jpeg *.webp"),
-                ("PNG files", "*.png"),
-                ("All files", "*.*"),
-            ],
-        )
-        if not path:
-            return
-        self.template_set_background_path(path)
-        messagebox.showinfo("Template Background", f"Hintergrund gesetzt:\n{Path(path).name}")
+        return background_actions.choose_background_file(self)
 
 
 
     def template_set_background_from_selected(self):
         self.library_controller.open_template_background_picker()
     def template_clear_background(self):
-        template = self.template_current()
-        template["background"] = "background.png"
-        save_template(self.template_selected_name, template)
-        self.template_draw_canvas()
-        messagebox.showinfo("Template Background", "Hintergrund entfernt.")
+        return background_actions.clear_background(self)
 
 
 
     def template_delete_current(self):
-        names = list_templates()
-        if not names:
-            return
-        name = self.template_selected_name
-        if not messagebox.askyesno("Template löschen", f"Template wirklich löschen?\n\n{name}"):
-            return
-        try:
-            delete_template(name)
-            if hasattr(self, 'card_selected_template') and self.card_selected_template.get() == name:
-                self.card_selected_template.set('')
-        except Exception as e:
-            messagebox.showerror("Template löschen", str(e))
-            return
-
-        names = list_templates()
-        if names:
-            default_name = get_default_template()
-            self.template_selected_name = default_name if default_name in names else names[0]
-            self.template_working_data = load_template(self.template_selected_name)
-        else:
-            data = create_template("Default Stream Plan")
-            self.template_selected_name = data["name"]
-            self.template_working_data = data
-
-        self.template_selected_field = None
-        self.template_selected_fields = set()
-        self.show_template_editor_page()
+        return management_controller.delete_current(self)
 
     def template_duplicate_current(self):
-        try:
-            data = duplicate_template(self.template_selected_name)
-            self.template_selected_name = data["name"]
-            self.template_working_data = data
-            self.template_selected_field = None
-            self.show_template_editor_page()
-        except Exception as e:
-            messagebox.showerror("Template duplizieren", str(e))
+        return management_controller.duplicate_current(self)
 
 
     def ask_template_name_dialog(self, title, initial_value):
-        result = {"value": None}
-
-        dialog = ctk.CTkToplevel(self)
-        dialog.title(title)
-        dialog.geometry("520x210")
-        dialog.resizable(False, False)
-        dialog.transient(self)
-        dialog.grab_set()
-
-        dialog.grid_columnconfigure(0, weight=1)
-
-        ctk.CTkLabel(
-            dialog,
-            text=title,
-            text_color=GOLD,
-            font=ctk.CTkFont(size=22, weight="bold")
-        ).grid(row=0, column=0, padx=24, pady=(24, 8), sticky="w")
-
-        ctk.CTkLabel(
-            dialog,
-            text="Neuer Name",
-            text_color="#BCA870",
-            font=ctk.CTkFont(size=14)
-        ).grid(row=1, column=0, padx=24, pady=(0, 4), sticky="w")
-
-        entry = ctk.CTkEntry(dialog, height=42, font=ctk.CTkFont(size=18))
-        entry.grid(row=2, column=0, padx=24, pady=(0, 18), sticky="ew")
-        entry.insert(0, initial_value or "")
-        entry.focus_set()
-        entry.select_range(0, "end")
-
-        buttons = ctk.CTkFrame(dialog, fg_color="transparent")
-        buttons.grid(row=3, column=0, padx=24, pady=(0, 24), sticky="ew")
-        buttons.grid_columnconfigure(0, weight=1)
-        buttons.grid_columnconfigure(1, weight=1)
-
-        def save():
-            value = entry.get().strip()
-            if value:
-                result["value"] = value
-                dialog.destroy()
-
-        def cancel():
-            result["value"] = None
-            dialog.destroy()
-
-        ctk.CTkButton(
-            buttons,
-            text="Speichern",
-            height=38,
-            fg_color=GOLD,
-            text_color="#111111",
-            hover_color=GOLD_DARK,
-            command=save
-        ).grid(row=0, column=0, padx=(0, 8), sticky="ew")
-
-        ctk.CTkButton(
-            buttons,
-            text="Abbrechen",
-            height=38,
-            fg_color="#333333",
-            hover_color="#444444",
-            command=cancel
-        ).grid(row=0, column=1, padx=(8, 0), sticky="ew")
-
-        dialog.bind("<Return>", lambda _e: save())
-        dialog.bind("<Escape>", lambda _e: cancel())
-
-        self.wait_window(dialog)
-        return result["value"]
+        return ask_template_name(self, title, initial_value)
 
 
     def template_rename_current(self):
-        new_name = self.ask_template_name_dialog(
-            "Template umbenennen",
-            self.template_selected_name
-        )
-        if not new_name:
-            return
-        new_name = new_name.strip()
-        if not new_name:
-            return
-        try:
-            was_default = get_default_template() == self.template_selected_name
-            data = rename_template(self.template_selected_name, new_name)
-            self.template_selected_name = data["name"]
-            self.template_working_data = data
-            if was_default:
-                set_default_template(self.template_selected_name)
-            self.show_template_editor_page()
-        except Exception as e:
-            messagebox.showerror("Template umbenennen", str(e))
+        return management_controller.rename_current(self)
 
     def template_set_current_default(self):
-        if not self.template_selected_name:
-            return
-        set_default_template(self.template_selected_name)
-        messagebox.showinfo("Default Template", f"Als Default gesetzt:\n{self.template_selected_name}")
-        self.show_template_editor_page()
+        return management_controller.set_current_default(self)
 
 
 
