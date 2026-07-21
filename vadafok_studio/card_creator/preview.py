@@ -11,6 +11,18 @@ from PIL import Image
 from .state import CardCreatorState
 
 
+def preview_bounds(frame: Any) -> tuple[int, int]:
+    """Return safe, capped image bounds for the currently visible preview."""
+    try:
+        width = int(frame.winfo_width()) - 28
+        height = int(frame.winfo_height()) - 28
+    except (TypeError, ValueError):
+        return 760, 620
+    if width < 120 or height < 120:
+        return 760, 620
+    return min(width, 1200), min(height, 960)
+
+
 class CardPreviewController:
     def __init__(
         self,
@@ -84,7 +96,7 @@ class CardPreviewController:
             image = self._export_engine.apply_export_profile(
                 image, profile_name
             )
-            image.thumbnail((760, 620), Image.LANCZOS)
+            image.thumbnail(preview_bounds(self.app.card_preview_frame), Image.LANCZOS)
 
             if hasattr(self.app, "card_preview_info"):
                 self.app.card_preview_info.configure(

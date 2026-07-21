@@ -9,3 +9,6 @@ class CardCreatorResizableWorkspaceTests(unittest.TestCase):
         assert 'workspace.add_section("card_data", "Card Data")' in source
         assert 'workspace.add_section("batch_cards", "Batch Cards")' in source
         assert 'workspace.add_section("output", "Output")' in source
+        assert 'text="FOCUS PREVIEW"' in source
+        assert "left.grid_remove()" in source
+        assert "form.grid_remove()" in source

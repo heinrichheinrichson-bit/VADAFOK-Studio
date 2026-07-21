@@ -151,14 +151,62 @@ def show_card_creator_page(app):
 
     preview_actions = ctk.CTkFrame(preview, fg_color="transparent")
     preview_actions.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 8))
-    preview_actions.grid_columnconfigure((0, 1, 2, 3), weight=1)
+    preview_actions.grid_columnconfigure((0, 1, 2, 3, 4), weight=1)
     ctk.CTkButton(preview_actions, text="UPDATE PREVIEW", fg_color="#333333", hover_color="#444444", command=app.card_update_preview).grid(row=0, column=0, padx=(0, 4), sticky="ew")
     ctk.CTkButton(preview_actions, text="OPEN EXPORTS", fg_color="#333333", hover_color="#444444", command=app.card_open_export_folder).grid(row=0, column=1, padx=4, sticky="ew")
     ctk.CTkButton(preview_actions, text="REFRESH STYLES", fg_color="#333333", hover_color="#444444", command=app.card_build_form).grid(row=0, column=2, padx=4, sticky="ew")
     ctk.CTkButton(preview_actions, text="COPY LAST PATH", fg_color="#333333", hover_color="#444444", command=app.card_copy_last_path).grid(row=0, column=3, padx=(4, 0), sticky="ew")
 
+    focus_state = {"active": False, "resize_job": None, "last_size": None}
+
+    def set_preview_focus():
+        focus_state["active"] = not focus_state["active"]
+        if focus_state["active"]:
+            left.grid_remove()
+            form.grid_remove()
+            outer.grid_columnconfigure(0, weight=0)
+            outer.grid_columnconfigure(1, weight=1)
+            outer.grid_columnconfigure(2, weight=0)
+            focus_button.configure(text="SHOW SIDEBARS")
+        else:
+            left.grid()
+            form.grid()
+            outer.grid_columnconfigure(0, weight=1)
+            outer.grid_columnconfigure(1, weight=4)
+            outer.grid_columnconfigure(2, weight=2)
+            focus_button.configure(text="FOCUS PREVIEW")
+        app.after_idle(app.card_update_preview)
+
+    focus_button = ctk.CTkButton(
+        preview_actions,
+        text="FOCUS PREVIEW",
+        fg_color="#333333",
+        hover_color="#444444",
+        command=set_preview_focus,
+    )
+    focus_button.grid(row=0, column=4, padx=(8, 0), sticky="ew")
+
     app.card_preview_frame = ctk.CTkFrame(preview, fg_color="#050505", corner_radius=14, border_color="#3A2A0D", border_width=1)
     app.card_preview_frame.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
+
+    def preview_resized(event):
+        size = (event.width, event.height)
+        if size == focus_state["last_size"] or min(size) < 120:
+            return
+        focus_state["last_size"] = size
+        if focus_state["resize_job"] is not None:
+            try:
+                app.after_cancel(focus_state["resize_job"])
+            except Exception:
+                pass
+
+        def refresh_after_resize():
+            focus_state["resize_job"] = None
+            app.card_update_preview()
+
+        focus_state["resize_job"] = app.after(140, refresh_after_resize)
+
+    app.card_preview_frame.bind("<Configure>", preview_resized, add="+")
 
     form = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
     form.grid(row=0, column=2, sticky="nsew", padx=(12, 0))

@@ -7,11 +7,19 @@ from unittest.mock import Mock, patch
 
 from PIL import Image
 
-from vadafok_studio.card_creator.preview import CardPreviewController
+from vadafok_studio.card_creator.preview import CardPreviewController, preview_bounds
 from vadafok_studio.card_creator.state import CardCreatorState
 
 
 class CardPreviewControllerTests(unittest.TestCase):
+    def test_preview_bounds_follow_available_space_and_are_capped(self):
+        frame = SimpleNamespace(winfo_width=lambda: 1500, winfo_height=lambda: 1100)
+        self.assertEqual(preview_bounds(frame), (1200, 960))
+
+    def test_preview_bounds_fall_back_before_widget_has_geometry(self):
+        frame = SimpleNamespace(winfo_width=lambda: 1, winfo_height=lambda: 1)
+        self.assertEqual(preview_bounds(frame), (760, 620))
+
     def test_changed_schedules_save_and_fast_preview(self):
         jobs = iter(("save-job", "preview-job"))
         app = SimpleNamespace(
