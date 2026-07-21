@@ -7,6 +7,7 @@ from .export_controller import CardExportController
 from .preview import CardPreviewController
 from .data_controller import CardDataController
 from .style_controller import CardStyleController
+from .render_service import CardRenderService
 
 __all__ = [
     "CardBatchController",
@@ -16,4 +17,5 @@ __all__ = [
     "CardPreviewController",
     "CardDataController",
     "CardStyleController",
+    "CardRenderService",
 ]

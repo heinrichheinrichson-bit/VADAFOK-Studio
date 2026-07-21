@@ -24,6 +24,7 @@ from .card_creator import (
     CardPreviewController,
     CardDataController,
     CardStyleController,
+    CardRenderService,
 )
 from .card_creator.page import (
     build_batch_panel,
@@ -181,6 +182,9 @@ class VadafokStudio(ctk.CTk):
         )
         self.card_style_controller = CardStyleController(
             self, style_engine, load_template, save_template
+        )
+        self.card_render_service = CardRenderService(
+            self, load_template, background_path, template_dir
         )
         self.card_batch_controller = CardBatchController(
             self, self.card_creator_state, list_templates, batch_engine
@@ -4679,32 +4683,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def card_background_path(self):
-        template_name = self.card_selected_template.get()
-        if not template_name:
-            return ""
-
-        template = load_template(template_name)
-
-        bg = background_path(template_name, template)
-        if bg.exists():
-            return str(bg)
-
-        folder = template_dir(template_name)
-        for candidate in [
-            folder / "background.png",
-            folder / "background.jpg",
-            folder / "background.jpeg",
-            folder / "background.webp",
-        ]:
-            if candidate.exists():
-                return str(candidate)
-
-        for ext in ("*.png", "*.jpg", "*.jpeg", "*.webp"):
-            matches = list(folder.glob(ext))
-            if matches:
-                return str(matches[0])
-
-        return ""
+        return self.card_render_service.resolve_background_path()
 
 
     def card_render_to_file(self, final=False, output_dir=None, output_path=None):
