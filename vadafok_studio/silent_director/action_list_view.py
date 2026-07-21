@@ -27,10 +27,8 @@ def render_actions_list(app: Any) -> None:
     if frame is None:
         return
 
-    old_children = list(frame.winfo_children())
-    content = ctk.CTkFrame(frame, fg_color="transparent")
-    content.grid(row=0, column=0, sticky="ew")
-    content.grid_columnconfigure(0, weight=1)
+    for child in frame.winfo_children():
+        child.destroy()
 
     app.silent_director_action_rows = []
     app.director_action_card_widgets = {}
@@ -42,25 +40,63 @@ def render_actions_list(app: Any) -> None:
     actions = list(preset.get("actions", []) or [])
     if not actions:
         ctk.CTkLabel(
-            content,
+            frame,
             text="No actions yet. Add one below.",
             text_color="#777777",
         ).grid(row=0, column=0, padx=12, pady=8, sticky="w")
-        for child in old_children:
-            child.destroy()
-        app.silent_director_actions_content = content
         return
 
     for index, action in enumerate(actions):
-        _render_action_card(app, content, actions, action, index)
-
-    for child in old_children:
-        child.destroy()
-    app.silent_director_actions_content = content
+        _render_action_card(app, frame, actions, action, index)
 
     app.director_set_active_action(
-        getattr(app, "director_active_action_index", None)
+        getattr(app, "director_active_action_index", None), False,
     )
+
+
+def schedule_actions_list(app: Any) -> None:
+    """Build timeline cards over several UI ticks so page entry stays responsive."""
+    frame = getattr(app, "silent_director_actions_frame", None)
+    if frame is None:
+        return
+    app.director_action_render_generation = (
+        int(getattr(app, "director_action_render_generation", 0)) + 1
+    )
+    generation = app.director_action_render_generation
+    for child in frame.winfo_children():
+        child.destroy()
+    app.silent_director_action_rows = []
+    app.director_action_card_widgets = {}
+    preset = app.silent_director_get_selected_preset()
+    actions = list(preset.get("actions", []) or []) if preset else []
+    if not actions:
+        render_actions_list(app)
+        return
+    _refresh_stats(app, preset)
+    loading = ctk.CTkLabel(
+        frame, text="Timeline wird geladen …", text_color="#777777",
+    )
+    loading.grid(row=0, column=0, padx=12, pady=8, sticky="w")
+
+    def render_next(index=0):
+        if generation != getattr(app, "director_action_render_generation", None):
+            return
+        try:
+            if not frame.winfo_exists():
+                return
+        except Exception:
+            return
+        if index == 0:
+            loading.destroy()
+        if index >= len(actions):
+            app.director_set_active_action(
+                getattr(app, "director_active_action_index", None), False,
+            )
+            return
+        _render_action_card(app, frame, actions, actions[index], index)
+        app.after(1, lambda: render_next(index + 1))
+
+    app.after(1, render_next)
 
 
 def refresh_action_cards(app: Any) -> bool:
@@ -87,7 +123,7 @@ def refresh_action_cards(app: Any) -> bool:
         )
         widgets["detail"].configure(text=app.silent_director_timeline_detail(action))
         widgets["runtime"].configure(text=widgets["step_text"])
-    app.director_set_active_action(None)
+    app.director_set_active_action(None, False)
     return True
 
 

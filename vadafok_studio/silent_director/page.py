@@ -35,7 +35,7 @@ def refresh_selected_editor(app: Any) -> bool:
             getattr(app, attr).configure(text=value)
         except Exception:
             pass
-    app.silent_director_render_actions_list()
+    app.silent_director_refresh_action_cards()
     app.silent_director_render_filtered_presets()
     return True
 
@@ -105,6 +105,7 @@ def show_silent_director_page(app: Any) -> None:
     preset_list.grid(row=3, column=0, sticky="nsew", padx=18, pady=(0, 18))
     preset_list.grid_columnconfigure(0, weight=1)
     app.silent_director_preset_list_frame = preset_list
+    app.silent_director_preset_row_widgets = {}
     app.silent_director_render_filtered_presets()
 
     right = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
@@ -281,7 +282,7 @@ def show_silent_director_page(app: Any) -> None:
         sticky="ew", padx=12, pady=(0, 6)
     )
     app.silent_director_actions_frame.grid_columnconfigure(0, weight=1)
-    app.silent_director_render_actions_list()
+    app.silent_director_schedule_actions_list()
 
     action_row_start = 6
 

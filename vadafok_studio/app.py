@@ -83,6 +83,7 @@ from .live_card import (
 )
 from .silent_director import render_actions_list
 from .silent_director.action_list_view import refresh_action_cards
+from .silent_director.action_list_view import schedule_actions_list
 from .silent_director import render_filtered_presets
 from .silent_director import run_preset as run_silent_director_preset
 from .silent_director import show_silent_director_page as build_silent_director_page
@@ -2268,8 +2269,8 @@ class VadafokStudio(ctk.CTk):
         return director_management.delete_selected_preset(self)
 
 
-    def director_set_active_action(self, index=None):
-        return director_support.director_set_active_action(self, index)
+    def director_set_active_action(self, index=None, flush=True):
+        return director_support.director_set_active_action(self, index, flush)
 
     def director_clear_active_action(self):
         self.director_set_active_action(None)
@@ -2365,6 +2366,9 @@ class VadafokStudio(ctk.CTk):
 
     def silent_director_refresh_action_cards(self):
         return refresh_action_cards(self)
+
+    def silent_director_schedule_actions_list(self):
+        return schedule_actions_list(self)
 
 
 

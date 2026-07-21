@@ -1,6 +1,6 @@
 """Silent Director user-interface components."""
 
-from .action_list_view import render_actions_list
+from .action_list_view import render_actions_list, schedule_actions_list
 from .drag_controller import (
     drag_cancel,
     drag_motion,
@@ -16,6 +16,7 @@ from .runner import run_preset
 
 __all__ = [
     "render_actions_list",
+    "schedule_actions_list",
     "render_filtered_presets",
     "run_preset",
     "show_silent_director_page",

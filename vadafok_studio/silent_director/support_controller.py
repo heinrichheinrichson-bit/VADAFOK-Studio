@@ -10,7 +10,7 @@ from ..core import silent_director
 
 GOLD = "#D6A43A"
 
-def director_set_active_action(app: Any, index=None):
+def director_set_active_action(app: Any, index=None, flush=True):
     """Highlight the currently running timeline action without rebuilding the page."""
     app.director_active_action_index = index
 
@@ -61,10 +61,11 @@ def director_set_active_action(app: Any, index=None):
         except Exception:
             pass
 
-    try:
-        app.update_idletasks()
-    except Exception:
-        pass
+    if flush:
+        try:
+            app.update_idletasks()
+        except Exception:
+            pass
 
 
 def director_log_add(app: Any, message):

@@ -3,7 +3,10 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock, patch
 
-from vadafok_studio.silent_director.action_list_view import render_actions_list
+from vadafok_studio.silent_director.action_list_view import (
+    render_actions_list,
+    schedule_actions_list,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,7 +50,7 @@ class SilentDirectorActionListViewTests(unittest.TestCase):
     ):
         container = Mock()
         container.winfo_children.return_value = []
-        widgets = [Mock() for _ in range(5)]
+        widgets = [Mock() for _ in range(4)]
         frame_class.side_effect = widgets
         badge, drag_handle, detail_label, runtime_label = [Mock() for _ in range(4)]
         label_class.side_effect = [badge, drag_handle, detail_label, runtime_label]
@@ -78,6 +81,35 @@ class SilentDirectorActionListViewTests(unittest.TestCase):
         retained = app.director_action_card_widgets[0]
         self.assertIs(retained["title"], title_button)
         self.assertIs(retained["runtime"], runtime_label)
+
+    @patch("vadafok_studio.silent_director.action_list_view._refresh_stats")
+    @patch("vadafok_studio.silent_director.action_list_view._render_action_card")
+    @patch("vadafok_studio.silent_director.action_list_view.ctk.CTkLabel")
+    def test_page_entry_schedules_timeline_one_card_at_a_time(
+        self, label_class, render_card, _stats,
+    ):
+        callbacks = []
+        frame = Mock()
+        frame.winfo_children.return_value = []
+        frame.winfo_exists.return_value = True
+        label_class.return_value = Mock()
+        app = SimpleNamespace(
+            silent_director_actions_frame=frame,
+            silent_director_get_selected_preset=Mock(
+                return_value={"actions": [{"type": "wait"}, {"type": "wait"}]},
+            ),
+            after=lambda _delay, callback: callbacks.append(callback),
+            director_action_render_generation=0,
+            director_active_action_index=None,
+            director_set_active_action=Mock(),
+        )
+
+        schedule_actions_list(app)
+        self.assertEqual(render_card.call_count, 0)
+        callbacks.pop(0)()
+        self.assertEqual(render_card.call_count, 1)
+        callbacks.pop(0)()
+        self.assertEqual(render_card.call_count, 2)
 
 
 if __name__ == "__main__":

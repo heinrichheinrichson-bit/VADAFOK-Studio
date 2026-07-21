@@ -38,6 +38,24 @@ class SilentDirectorPresetListViewTests(unittest.TestCase):
         self.assertEqual(button.call_args.kwargs["text"], "CLEAR SEARCH")
         self.assertIs(button.call_args.kwargs["command"], app.silent_director_clear_search)
 
+    @patch("vadafok_studio.silent_director.preset_list_view._update_preset_row")
+    @patch("vadafok_studio.silent_director.preset_list_view._render_preset_row")
+    def test_existing_rows_are_updated_without_recreation(self, render_row, update_row):
+        row_widgets = {"row": Mock()}
+        frame = Mock()
+        frame.winfo_children.return_value = []
+        app = SimpleNamespace(
+            silent_director_preset_list_frame=frame,
+            silent_director_preset_row_widgets={"Show": row_widgets},
+            silent_director_filtered_presets=Mock(return_value=[{"name": "Show"}]),
+            silent_director_search_var=SimpleNamespace(get=lambda: ""),
+        )
+
+        render_filtered_presets(app)
+
+        render_row.assert_not_called()
+        update_row.assert_called_once_with(app, row_widgets, {"name": "Show"}, 0)
+
 
 if __name__ == "__main__":
     unittest.main()
