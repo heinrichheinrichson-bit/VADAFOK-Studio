@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from vadafok_studio.card_creator.batch_controller import CardBatchController
+from vadafok_studio.card_creator.state import CardCreatorState
 
 
 class Variable:
@@ -18,13 +19,32 @@ class Variable:
         self.value = value
 
 
+class TestApp(SimpleNamespace):
+    """Expose legacy names only inside tests while assertions migrate."""
+
+    @property
+    def card_batch_items(self):
+        return self.card_creator_state.batch_items
+
+    @card_batch_items.setter
+    def card_batch_items(self, items):
+        self.card_creator_state.batch_items = items
+
+    @property
+    def card_batch_selected_index(self):
+        return self.card_creator_state.batch_selected_index
+
+    @card_batch_selected_index.setter
+    def card_batch_selected_index(self, index):
+        self.card_creator_state.batch_selected_index = index
+
+
 def make_app():
-    return SimpleNamespace(
+    return TestApp(
         card_output_name=Variable("show_card"),
         card_selected_template=Variable("Default"),
         card_export_profile=Variable("Broadcast PNG"),
-        card_batch_items=[],
-        card_batch_selected_index=None,
+        card_creator_state=CardCreatorState(),
         card_creator_values={"Default": {"title": Variable("")}},
         card_default_output_name=Mock(return_value="default_card"),
         card_save_values=Mock(),
@@ -40,6 +60,7 @@ def make_app():
 def make_controller(app, batch_engine=None):
     return CardBatchController(
         app,
+        app.card_creator_state,
         lambda: ["Default"],
         batch_engine or Mock(),
     )
@@ -74,6 +95,8 @@ class CardBatchControllerTests(unittest.TestCase):
         self.assertIn("self.card_creator_state = CardCreatorState()", source)
         self.assertNotIn("self.card_batch_items = []", source)
         self.assertNotIn("self.card_batch_selected_index = None", source)
+        self.assertNotIn("def card_batch_items(self)", source)
+        self.assertNotIn("def card_batch_selected_index(self)", source)
 
     def test_add_current_captures_values_and_selects_new_item(self):
         app = make_app()

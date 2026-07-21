@@ -31,7 +31,8 @@ def build_batch_panel(app):
     for widget in app.card_batch_body.winfo_children():
         widget.destroy()
 
-    if not app.card_batch_items:
+    state = app.card_creator_state
+    if not state.batch_items:
         ctk.CTkLabel(
             app.card_batch_body,
             text="Noch keine Batch-Karten.\nKlicke + ADD CURRENT.",
@@ -41,8 +42,8 @@ def build_batch_panel(app):
         ).grid(row=0, column=0, padx=8, pady=8, sticky="w")
         return
 
-    for row, item in enumerate(app.card_batch_items):
-        active = row == app.card_batch_selected_index
+    for row, item in enumerate(state.batch_items):
+        active = row == state.batch_selected_index
         title = f"{row + 1}. {item.get('output_name', 'card')}"
         subtitle = f"{item.get('template', '')} · {item.get('profile', '')}"
 

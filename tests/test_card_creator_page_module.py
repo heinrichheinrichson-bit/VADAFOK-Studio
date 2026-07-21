@@ -55,6 +55,9 @@ class CardCreatorPageModuleTests(unittest.TestCase):
         self.assertIn("return build_batch_panel(self)", block)
         self.assertIn("def build_batch_panel(app):", page_source)
         self.assertIn("app.card_batch_select(index)", page_source)
+        self.assertIn("state = app.card_creator_state", page_source)
+        self.assertNotIn("app.card_batch_items", page_source)
+        self.assertNotIn("app.card_batch_selected_index", page_source)
 
 
 if __name__ == "__main__":

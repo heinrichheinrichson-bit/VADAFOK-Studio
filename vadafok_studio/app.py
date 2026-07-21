@@ -153,7 +153,7 @@ class VadafokStudio(ctk.CTk):
         self.card_export_profile = ctk.StringVar(value="Broadcast PNG")
         self.card_creator_state = CardCreatorState()
         self.card_batch_controller = CardBatchController(
-            self, list_templates, batch_engine
+            self, self.card_creator_state, list_templates, batch_engine
         )
         self.card_data_undo_stack = []
         self.card_data_redo_stack = []
@@ -4685,26 +4685,6 @@ class VadafokStudio(ctk.CTk):
     def card_open_template_editor_for_styles(self):
         self.template_selected_name = self.card_selected_template.get()
         self.show_template_editor_page()
-
-    @property
-    def card_batch_items(self):
-        """Compatibility alias while callbacks migrate to CardCreatorState."""
-        return self.card_creator_state.batch_items
-
-    @card_batch_items.setter
-    def card_batch_items(self, items):
-        self.card_creator_state.batch_items = items
-
-    @property
-    def card_batch_selected_index(self):
-        """Compatibility alias while callbacks migrate to CardCreatorState."""
-        return self.card_creator_state.batch_selected_index
-
-    @card_batch_selected_index.setter
-    def card_batch_selected_index(self, index):
-        self.card_creator_state.batch_selected_index = index
-
-
 
     def card_batch_current_item_name(self):
         return self.card_batch_controller.current_item_name()

@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Any, Callable, Iterable
 from tkinter import filedialog, messagebox
 
+from .state import CardCreatorState
+
 
 class CardBatchController:
     """Manage the in-memory batch through the existing application host."""
@@ -13,10 +15,12 @@ class CardBatchController:
     def __init__(
         self,
         app: Any,
+        state: CardCreatorState,
         list_templates: Callable[[], Iterable[str]],
         batch_engine: Any,
     ) -> None:
         self.app = app
+        self.state = state
         self._list_templates = list_templates
         self._batch_engine = batch_engine
 
@@ -28,62 +32,62 @@ class CardBatchController:
     def add_current(self) -> None:
         try:
             self.app.card_save_values()
-            self.app.card_batch_items.append({
+            self.state.batch_items.append({
                 "template": self.app.card_selected_template.get(),
                 "output_name": self.current_item_name(),
                 "profile": self.app.card_export_profile.get(),
                 "values": dict(self.app.card_values_plain()),
             })
-            self.app.card_batch_selected_index = len(self.app.card_batch_items) - 1
+            self.state.batch_selected_index = len(self.state.batch_items) - 1
             self.app.card_build_batch_panel()
             status = getattr(self.app, "card_render_status", None)
             if status is not None:
                 status.configure(
-                    text=f"Batch: {len(self.app.card_batch_items)} Karte(n) in der Liste.",
+                    text=f"Batch: {len(self.state.batch_items)} Karte(n) in der Liste.",
                     text_color="#8FE6A0",
                 )
         except Exception as exc:
             messagebox.showerror("Batch Cards", f"Add Current fehlgeschlagen:\n{exc}")
 
     def duplicate_selected(self) -> None:
-        index = self.app.card_batch_selected_index
-        if index is None or not (0 <= index < len(self.app.card_batch_items)):
+        index = self.state.batch_selected_index
+        if index is None or not (0 <= index < len(self.state.batch_items)):
             messagebox.showinfo("Batch Cards", "Bitte zuerst einen Batch-Eintrag auswählen.")
             return
-        original = self.app.card_batch_items[index]
-        self.app.card_batch_items.insert(index + 1, {
+        original = self.state.batch_items[index]
+        self.state.batch_items.insert(index + 1, {
             "template": original.get("template", ""),
             "output_name": str(original.get("output_name", "card")) + "_copy",
             "profile": original.get("profile", "Broadcast PNG"),
             "values": dict(original.get("values", {})),
         })
-        self.app.card_batch_selected_index = index + 1
+        self.state.batch_selected_index = index + 1
         self.app.card_build_batch_panel()
 
     def remove_selected(self) -> None:
-        index = self.app.card_batch_selected_index
-        if index is None or not (0 <= index < len(self.app.card_batch_items)):
+        index = self.state.batch_selected_index
+        if index is None or not (0 <= index < len(self.state.batch_items)):
             messagebox.showinfo("Batch Cards", "Bitte zuerst einen Batch-Eintrag auswählen.")
             return
-        self.app.card_batch_items.pop(index)
-        self.app.card_batch_selected_index = None
+        self.state.batch_items.pop(index)
+        self.state.batch_selected_index = None
         self.app.card_build_batch_panel()
 
     def clear(self) -> None:
-        if not self.app.card_batch_items:
+        if not self.state.batch_items:
             return
         if not messagebox.askyesno("Batch Cards", "Batch-Liste wirklich leeren?"):
             return
-        self.app.card_batch_items.clear()
-        self.app.card_batch_selected_index = None
+        self.state.batch_items.clear()
+        self.state.batch_selected_index = None
         self.app.card_build_batch_panel()
 
     def select(self, index: int) -> None:
-        if not (0 <= index < len(self.app.card_batch_items)):
+        if not (0 <= index < len(self.state.batch_items)):
             return
 
-        self.app.card_batch_selected_index = index
-        item = self.app.card_batch_items[index]
+        self.state.batch_selected_index = index
+        item = self.state.batch_items[index]
         template_name = item.get("template", "")
         if template_name in self._list_templates():
             self.app.card_selected_template.set(template_name)
@@ -110,7 +114,7 @@ class CardBatchController:
 
     def save_project(self) -> None:
         try:
-            if not self.app.card_batch_items:
+            if not self.state.batch_items:
                 messagebox.showinfo("Batch Project", "Die Batch-Liste ist leer.")
                 return
 
@@ -130,7 +134,7 @@ class CardBatchController:
                 return
 
             saved_path = self._batch_engine.save_batch_project_file(
-                path, self.app.card_batch_items
+                path, self.state.batch_items
             )
             self._set_status("Batch Project gespeichert.", "#8FE6A0")
             messagebox.showinfo(
@@ -157,8 +161,8 @@ class CardBatchController:
                 return
 
             items = self._batch_engine.load_batch_project_file(path)
-            self.app.card_batch_items = items
-            self.app.card_batch_selected_index = 0 if items else None
+            self.state.batch_items = items
+            self.state.batch_selected_index = 0 if items else None
             self.app.card_build_batch_panel()
             if items:
                 self.select(0)
@@ -224,9 +228,9 @@ class CardBatchController:
                 )
                 return
 
-            self.app.card_batch_items.extend(matched)
-            self.app.card_batch_selected_index = (
-                len(self.app.card_batch_items) - len(matched)
+            self.state.batch_items.extend(matched)
+            self.state.batch_selected_index = (
+                len(self.state.batch_items) - len(matched)
             )
             self.app.card_build_batch_panel()
             self._set_status(
@@ -244,7 +248,7 @@ class CardBatchController:
             )
 
     def render(self) -> None:
-        if not self.app.card_batch_items:
+        if not self.state.batch_items:
             messagebox.showinfo("Batch Cards", "Batch-Liste ist leer.")
             return
 
@@ -259,7 +263,7 @@ class CardBatchController:
         old_values = self.app.card_values_plain()
 
         try:
-            for item in self.app.card_batch_items:
+            for item in self.state.batch_items:
                 template_name = item.get("template", "")
                 if template_name not in self._list_templates():
                     continue
