@@ -10,6 +10,9 @@ CONTROLLER_FILE = (
     PROJECT_ROOT / "vadafok_studio" / "card_creator" / "controller.py"
 )
 PAGE_FILE = PROJECT_ROOT / "vadafok_studio" / "card_creator" / "page.py"
+TEMPLATE_LIST_FILE = (
+    PROJECT_ROOT / "vadafok_studio" / "card_creator" / "template_list_view.py"
+)
 
 
 class PartialRecentRefreshTests(unittest.TestCase):
@@ -17,6 +20,7 @@ class PartialRecentRefreshTests(unittest.TestCase):
         self.app_source = APP_FILE.read_text(encoding="utf-8")
         self.controller_source = CONTROLLER_FILE.read_text(encoding="utf-8")
         self.page_source = PAGE_FILE.read_text(encoding="utf-8")
+        self.template_list_source = TEMPLATE_LIST_FILE.read_text(encoding="utf-8")
 
     def test_recent_refresh_method_exists(self) -> None:
         self.assertIn(
@@ -26,8 +30,8 @@ class PartialRecentRefreshTests(unittest.TestCase):
 
     def test_remove_button_calls_controller_directly(self) -> None:
         self.assertIn(
-            "self.card_creator_controller.remove_recent(n)",
-            self.app_source,
+            "app.card_creator_controller.remove_recent(",
+            self.template_list_source,
         )
         self.assertNotIn("def card_remove_recent_template", self.app_source)
 
@@ -46,12 +50,12 @@ class PartialRecentRefreshTests(unittest.TestCase):
         )
 
     def test_refresh_only_destroys_recent_children(self) -> None:
-        start = self.app_source.index("def card_refresh_recent_templates")
-        end = self.app_source.index("def card_template", start)
-        method = self.app_source[start:end]
+        method = self.template_list_source.split(
+            "def refresh_recent_templates", 1
+        )[1]
 
         self.assertIn(
-            "for child in self.card_recent_templates_frame.winfo_children():",
+            "for child in frame.winfo_children():",
             method,
         )
         self.assertIn("child.destroy()", method)

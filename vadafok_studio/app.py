@@ -29,6 +29,11 @@ from .card_creator.page import (
     show_card_creator_page as build_card_creator_page,
 )
 from .card_creator.form_view import build_card_form
+from .card_creator.template_list_view import (
+    build_all_template_buttons,
+    refresh_all_templates,
+    refresh_recent_templates,
+)
 from .template_editor import TemplateEditorController, TemplateRefreshManager
 from .library import LibraryController
 from .banner_editor.controller import BannerEditorController
@@ -4674,113 +4679,13 @@ class VadafokStudio(ctk.CTk):
         return build_card_creator_page(self)
 
     def card_build_all_template_buttons(self):
-        frame = getattr(self, "card_all_templates_frame", None)
-        if frame is None:
-            return
-
-        try:
-            if not frame.winfo_exists():
-                return
-        except Exception:
-            return
-
-        for child in frame.winfo_children():
-            child.destroy()
-
-        self.card_template_buttons = {}
-        for name in sorted(list_templates()):
-            prefix = "✓ " if name == self.card_selected_template.get() else ""
-            button = ctk.CTkButton(
-                frame,
-                text=prefix + name,
-                anchor="w",
-                fg_color="#171717",
-                hover_color="#2C2C2C",
-                command=lambda n=name: self.card_creator_controller.select_template(n),
-            )
-            button.pack(fill="x", padx=8, pady=4)
-            self.card_template_buttons[name] = button
+        return build_all_template_buttons(self)
 
     def card_refresh_all_templates(self):
-        buttons = getattr(self, "card_template_buttons", {})
-        available_names = sorted(list_templates())
-
-        if set(buttons) != set(available_names):
-            self.card_build_all_template_buttons()
-            return
-
-        selected = self.card_selected_template.get()
-        for name, button in buttons.items():
-            try:
-                prefix = "✓ " if name == selected else ""
-                button.configure(text=prefix + name)
-            except Exception:
-                self.card_build_all_template_buttons()
-                return
+        return refresh_all_templates(self)
 
     def card_refresh_recent_templates(self):
-        frame = getattr(self, "card_recent_templates_frame", None)
-        if frame is None:
-            return
-
-        try:
-            if not frame.winfo_exists():
-                return
-        except Exception:
-            return
-
-        for child in self.card_recent_templates_frame.winfo_children():
-            child.destroy()
-
-        recent_names = load_recent_templates(list_templates())
-        self.card_recent_templates = recent_names
-
-        if not recent_names:
-            self.card_recent_templates_frame.pack_forget()
-            return
-
-        self.card_recent_templates_frame.pack(
-            fill="x", padx=0, pady=0, before=self.card_all_templates_label
-        )
-
-        ctk.CTkLabel(
-            self.card_recent_templates_frame,
-            text="RECENT TEMPLATES",
-            text_color=GOLD,
-            anchor="w",
-            font=ctk.CTkFont(size=12, weight="bold"),
-        ).pack(fill="x", padx=8, pady=(8, 3))
-
-        for recent_name in recent_names:
-            recent_row = ctk.CTkFrame(
-                self.card_recent_templates_frame,
-                fg_color="transparent",
-            )
-            recent_row.pack(fill="x", padx=8, pady=3)
-            recent_row.grid_columnconfigure(0, weight=1)
-
-            prefix = (
-                "✓ "
-                if recent_name == self.card_selected_template.get()
-                else "↶ "
-            )
-            ctk.CTkButton(
-                recent_row,
-                text=prefix + recent_name,
-                anchor="w",
-                fg_color="#3A2A0D",
-                hover_color="#5A4318",
-                command=lambda n=recent_name: self.card_creator_controller.select_template(n),
-            ).grid(row=0, column=0, sticky="ew", padx=(0, 4))
-
-            ctk.CTkButton(
-                recent_row,
-                text="✕",
-                width=28,
-                fg_color="#5A2424",
-                hover_color="#7A3030",
-                command=lambda n=recent_name: self.card_creator_controller.remove_recent(n),
-            ).grid(row=0, column=1)
+        return refresh_recent_templates(self)
 
     def card_template(self):
         names = list_templates()

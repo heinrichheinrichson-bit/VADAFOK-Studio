@@ -10,6 +10,9 @@ CONTROLLER_FILE = (
     PROJECT_ROOT / "vadafok_studio" / "card_creator" / "controller.py"
 )
 PAGE_FILE = PROJECT_ROOT / "vadafok_studio" / "card_creator" / "page.py"
+TEMPLATE_LIST_FILE = (
+    PROJECT_ROOT / "vadafok_studio" / "card_creator" / "template_list_view.py"
+)
 
 
 class PartialTemplateSelectionTests(unittest.TestCase):
@@ -17,11 +20,12 @@ class PartialTemplateSelectionTests(unittest.TestCase):
         self.app_source = APP_FILE.read_text(encoding="utf-8")
         self.controller_source = CONTROLLER_FILE.read_text(encoding="utf-8")
         self.page_source = PAGE_FILE.read_text(encoding="utf-8")
+        self.template_list_source = TEMPLATE_LIST_FILE.read_text(encoding="utf-8")
 
     def test_selection_buttons_call_controller_directly(self) -> None:
         self.assertIn(
-            "self.card_creator_controller.select_template(n)",
-            self.app_source,
+            "app.card_creator_controller.select_template(",
+            self.template_list_source,
         )
         self.assertNotIn("def card_select_template", self.app_source)
 
@@ -47,7 +51,7 @@ class PartialTemplateSelectionTests(unittest.TestCase):
         )
         self.assertIn(
             "button.configure(text=prefix + name)",
-            self.app_source,
+            self.template_list_source,
         )
 
     def test_template_list_has_dedicated_container(self) -> None:
