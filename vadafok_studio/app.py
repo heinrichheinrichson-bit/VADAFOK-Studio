@@ -484,9 +484,12 @@ class VadafokStudio(ctk.CTk):
     def reload_library(self):
         return self.library_controller.reload_section()
 
-
+    def item_key(self, item):
         return self.library_controller.item_key(item)
+
+    def item_is_favorite(self, item):
         return self.library_controller.item_is_favorite(item)
+
     def item_tags(self, item):
         return self.library_controller.item_tags(item)
 
