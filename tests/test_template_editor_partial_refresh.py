@@ -6,6 +6,7 @@ import unittest
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 APP_FILE = PROJECT_ROOT / "vadafok_studio" / "app.py"
+PAGE_FILE = PROJECT_ROOT / "vadafok_studio" / "template_editor" / "page.py"
 CONTROLLER_FILE = (
     PROJECT_ROOT / "vadafok_studio" / "template_editor" / "controller.py"
 )
@@ -15,6 +16,7 @@ class TemplateEditorPartialRefreshTests(unittest.TestCase):
     def setUp(self) -> None:
         self.app_source = APP_FILE.read_text(encoding="utf-8")
         self.controller_source = CONTROLLER_FILE.read_text(encoding="utf-8")
+        self.page_source = PAGE_FILE.read_text(encoding="utf-8")
 
     def test_controller_calls_partial_refresh(self) -> None:
         start = self.controller_source.index("def select_template")
@@ -37,10 +39,10 @@ class TemplateEditorPartialRefreshTests(unittest.TestCase):
         )
 
     def test_app_has_template_button_registry(self) -> None:
-        self.assertIn("self.template_list_buttons = {}", self.app_source)
+        self.assertIn("app.template_list_buttons = {}", self.page_source)
         self.assertIn(
-            "self.template_list_buttons[name] = button",
-            self.app_source,
+            "app.template_list_buttons[name] = button",
+            self.page_source,
         )
 
     def test_partial_refresh_updates_targeted_areas(self) -> None:

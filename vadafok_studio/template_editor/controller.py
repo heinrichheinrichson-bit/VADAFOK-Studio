@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any, Callable, Iterable
 
+from .page import show_template_editor_page
+
 
 class TemplateEditorController:
     """Coordinate Template Editor state without owning GUI widgets."""
@@ -15,6 +17,9 @@ class TemplateEditorController:
 
     def available_templates(self) -> list[str]:
         return list(self._list_templates())
+
+    def show_page(self):
+        return show_template_editor_page(self.app)
 
     def select_template(self, name: str) -> bool:
         available = self.available_templates()
