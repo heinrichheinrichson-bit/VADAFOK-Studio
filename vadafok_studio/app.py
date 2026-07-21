@@ -45,6 +45,7 @@ from .template_editor import (
     update_fields_overlay,
 )
 from .template_editor import smart_guides
+from .template_editor import mouse_controller
 from .library import LibraryController
 from .banner_editor.controller import BannerEditorController
 from .obs_workflow.controller import OBSWorkflowController
@@ -3635,16 +3636,7 @@ class VadafokStudio(ctk.CTk):
         return x1, y1, x2, y2
 
     def template_handle_points(self, x1, y1, x2, y2):
-        return [
-            ("nw", x1, y1),
-            ("n", (x1+x2)//2, y1),
-            ("ne", x2, y1),
-            ("w", x1, (y1+y2)//2),
-            ("e", x2, (y1+y2)//2),
-            ("sw", x1, y2),
-            ("s", (x1+x2)//2, y2),
-            ("se", x2, y2),
-        ]
+        return mouse_controller.handle_points(self, x1,y1,x2,y2)
 
     def template_draw_handles(self, canvas, x1, y1, x2, y2):
         for _name, hx, hy in self.template_handle_points(x1, y1, x2, y2):
@@ -3655,56 +3647,13 @@ class VadafokStudio(ctk.CTk):
             )
 
     def template_hit_test(self, x, y):
-        template = self.template_current()
-        tol = 10
-
-        # selected field handles first
-        if self.template_selected_field is not None and 0 <= self.template_selected_field < len(template["fields"]):
-            f = template["fields"][self.template_selected_field]
-            x1, y1, x2, y2 = self.template_field_screen_rect(f)
-            for name, hx, hy in self.template_handle_points(x1, y1, x2, y2):
-                if abs(x - hx) <= tol and abs(y - hy) <= tol:
-                    return self.template_selected_field, name
-
-            near_left = abs(x - x1) <= tol and y1 <= y <= y2
-            near_right = abs(x - x2) <= tol and y1 <= y <= y2
-            near_top = abs(y - y1) <= tol and x1 <= x <= x2
-            near_bottom = abs(y - y2) <= tol and x1 <= x <= x2
-            if near_left:
-                return self.template_selected_field, "w"
-            if near_right:
-                return self.template_selected_field, "e"
-            if near_top:
-                return self.template_selected_field, "n"
-            if near_bottom:
-                return self.template_selected_field, "s"
-
-        # any field body
-        for idx in reversed(range(len(template["fields"]))):
-            f = template["fields"][idx]
-            if f.get("hidden", False):
-                continue
-            x1, y1, x2, y2 = self.template_field_screen_rect(f)
-            if x1 <= x <= x2 and y1 <= y <= y2:
-                return idx, "move"
-        return None, None
+        return mouse_controller.hit_test(self, x,y)
 
     def template_cursor_for_mode(self, mode):
-        if mode == "move":
-            return "fleur"
-        if mode in ("nw", "se"):
-            return "size_nw_se"
-        if mode in ("ne", "sw"):
-            return "size_ne_sw"
-        if mode in ("n", "s"):
-            return "sb_v_double_arrow"
-        if mode in ("e", "w"):
-            return "sb_h_double_arrow"
-        return "crosshair"
+        return mouse_controller.cursor_for_mode(self, mode)
 
     def template_mouse_motion(self, event):
-        _idx, mode = self.template_hit_test(event.x, event.y)
-        self.template_canvas.configure(cursor=self.template_cursor_for_mode(mode))
+        return mouse_controller.mouse_motion(self, event)
 
 
     def template_marquee_clear(self):
@@ -3802,172 +3751,15 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_mouse_down(self, event):
-        try:
-            self.template_canvas.focus_set()
-        except Exception:
-            pass
-        idx, mode = self.template_hit_test(event.x, event.y)
-        multi_pressed = self.template_multi_select_modifier(event)
-
-        if idx is None:
-            # Empty canvas drag starts marquee selection.
-            # Plain drag replaces selection. Ctrl/Cmd-like modifier drag adds to selection.
-            self.template_marquee_start_select(event, add_mode=multi_pressed)
-            return
-
-        selected = set(getattr(self, "template_selected_fields", set()))
-
-        if multi_pressed:
-            # Ctrl/Shift + click toggles membership.
-            self.template_toggle_selection(idx)
-        else:
-            # Important group-drag behavior:
-            # If multiple fields are already selected and the user clicks one of them,
-            # keep the whole selection. This allows dragging the group.
-            if idx in selected and len(selected) > 1:
-                self.template_selected_field = idx
-            else:
-                self.template_set_single_selection(idx)
-
-        self.template_refresh_selection_ui()
-
-        if self.template_is_field_locked(idx):
-            self.template_drag_mode = None
-            self.template_drag_start = None
-            self.template_drag_original = None
-            self.template_group_drag_originals = None
-            return
-
-        self.template_drag_history_snapshot = self.template_snapshot()
-        self.template_drag_mode = mode
-        self.template_drag_start = (event.x, event.y)
-        template = self.template_current()
-        self.template_drag_original = dict(template["fields"][idx])
-
-        selected = set(getattr(self, "template_selected_fields", set()))
-        if idx in selected and len(selected) > 1 and mode == "move":
-            self.template_group_drag_originals = {
-                i: dict(template["fields"][i])
-                for i in selected
-                if 0 <= i < len(template.get("fields", [])) and not self.template_is_field_locked(i)
-            }
-            if not self.template_group_drag_originals:
-                self.template_group_drag_originals = None
-        else:
-            self.template_group_drag_originals = None
-
-        self.template_update_fields_overlay()
+        return mouse_controller.mouse_down(self, event)
 
 
     def template_mouse_drag(self, event):
-        if self.template_marquee_drag(event):
-            return
-        if self.template_selected_field is None or self.template_drag_original is None:
-            return
-
-        template = self.template_current()
-        sx, sy = self.template_drag_start
-        dx = int((event.x - sx) / self.template_canvas_scale)
-        dy = int((event.y - sy) / self.template_canvas_scale)
-
-        # Group move: if multiple fields are selected and one selected field is dragged,
-        # move all selected fields together. Resizing remains single-field for now.
-        group_originals = getattr(self, "template_group_drag_originals", None)
-        if group_originals and (self.template_drag_mode or "move") == "move":
-            design_w, design_h = getattr(self, "template_canvas_design_size", (1280, 720))
-
-            # Keep the entire group inside the template bounds.
-            min_dx = max(-int(f.get("x", 0)) for f in group_originals.values())
-            min_dy = max(-int(f.get("y", 0)) for f in group_originals.values())
-            max_dx = min(design_w - (int(f.get("x", 0)) + int(f.get("width", 0))) for f in group_originals.values())
-            max_dy = min(design_h - (int(f.get("y", 0)) + int(f.get("height", 0))) for f in group_originals.values())
-            dx = max(min_dx, min(max_dx, dx))
-            dy = max(min_dy, min(max_dy, dy))
-
-            template = self.template_current()
-            for idx, original in group_originals.items():
-                f = dict(original)
-                f["x"] = int(f.get("x", 0)) + dx
-                f["y"] = int(f.get("y", 0)) + dy
-                template["fields"][idx] = f
-
-            self.template_update_fields_overlay(
-                refresh_layers=False,
-                refresh_status=False,
-            )
-            return
-
-        f = dict(self.template_drag_original)
-        x, y, w, h = f["x"], f["y"], f["width"], f["height"]
-        mode = self.template_drag_mode or "move"
-
-        if mode == "move":
-            x += dx
-            y += dy
-        else:
-            if "w" in mode:
-                x += dx
-                w -= dx
-            if "e" in mode:
-                w += dx
-            if "n" in mode:
-                y += dy
-                h -= dy
-            if "s" in mode:
-                h += dy
-
-        if w < 0:
-            x += w
-            w = abs(w)
-        if h < 0:
-            y += h
-            h = abs(h)
-
-        min_w, min_h = 40, 30
-        design_w, design_h = getattr(self, "template_canvas_design_size", (1280, 720))
-        x = max(0, min(design_w - min_w, x))
-        y = max(0, min(design_h - min_h, y))
-        w = max(min_w, min(design_w - x, w))
-        h = max(min_h, min(design_h - y, h))
-
-        # Smart Guides / Smart Snap before final constraints.
-        x, y, w, h, guides_x, guides_y = self.template_apply_smart_snap(x, y, w, h, mode)
-
-        min_w, min_h = 40, 30
-        design_w, design_h = getattr(self, "template_canvas_design_size", (1280, 720))
-        x = max(0, min(design_w - min_w, x))
-        y = max(0, min(design_h - min_h, y))
-        w = max(min_w, min(design_w - x, w))
-        h = max(min_h, min(design_h - y, h))
-
-        f["x"], f["y"], f["width"], f["height"] = int(x), int(y), int(w), int(h)
-        template["fields"][self.template_selected_field] = f
-        self.template_update_fields_overlay(
-            refresh_layers=False,
-            refresh_status=False,
-        )
-        self.template_draw_smart_guides(guides_x, guides_y)
+        return mouse_controller.mouse_drag(self, event)
 
 
     def template_mouse_up(self, event):
-        if self.template_marquee_finish(event):
-            return
-        self.template_clear_smart_guides()
-        if getattr(self, "template_drag_history_snapshot", None) is not None:
-            current = self.template_current()
-            if current != self.template_drag_history_snapshot:
-                self.template_undo_stack.append(self.template_drag_history_snapshot)
-                limit = int(getattr(self, "template_history_limit", 80))
-                if len(self.template_undo_stack) > limit:
-                    self.template_undo_stack = self.template_undo_stack[-limit:]
-                self.template_redo_stack.clear()
-            self.template_drag_history_snapshot = None
-        save_template(self.template_selected_name, self.template_current())
-        self.template_update_fields_overlay(refresh_layers=False)
-        self.template_drag_mode = None
-        self.template_drag_start = None
-        self.template_drag_original = None
-        self.template_group_drag_originals = None
+        return mouse_controller.mouse_up(self, event)
 
 
 

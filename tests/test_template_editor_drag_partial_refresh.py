@@ -12,11 +12,21 @@ OVERLAY_PATH = (
     / "template_editor"
     / "overlay_view.py"
 )
+MOUSE_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "vadafok_studio"
+    / "template_editor"
+    / "mouse_controller.py"
+)
 
 
 def method_source(name: str) -> str:
-    path = OVERLAY_PATH if name == "template_update_fields_overlay" else APP_PATH
-    lookup_name = "update_fields_overlay" if name == "template_update_fields_overlay" else name
+    if name == "template_update_fields_overlay":
+        path, lookup_name = OVERLAY_PATH, "update_fields_overlay"
+    elif name in ("template_mouse_drag", "template_mouse_up"):
+        path, lookup_name = MOUSE_PATH, name.removeprefix("template_")
+    else:
+        path, lookup_name = APP_PATH, name
     source = path.read_text(encoding="utf-8")
     tree = ast.parse(source)
     for node in ast.walk(tree):
