@@ -51,6 +51,7 @@ from .template_editor import layer_controller
 from .library import LibraryController
 from .library.page import show_library_page
 from .library.grid_view import render_asset_grid, render_folder_overview
+from .library.preview_view import make_thumbnail_label, select_library_item
 from .banner_editor.controller import BannerEditorController
 from .obs_workflow.controller import OBSWorkflowController
 from .settings.controller import SettingsController
@@ -524,38 +525,10 @@ class VadafokStudio(ctk.CTk):
 
 
     def make_thumb_label(self, parent, path):
-        try:
-            if path.suffix.lower() in [".png", ".jpg", ".jpeg", ".webp"]:
-                img = Image.open(path).convert("RGBA")
-                img.thumbnail((220, 124))
-                thumb = ctk.CTkImage(light_image=img, dark_image=img, size=img.size)
-                self.thumbnail_refs.append(thumb)
-                return ctk.CTkLabel(parent, image=thumb, text="")
-            return ctk.CTkLabel(parent, text="♪ SOUND", text_color=GOLD, width=220, height=124, fg_color="#050505", corner_radius=8)
-        except Exception:
-            return ctk.CTkLabel(parent, text="[kann nicht geladen werden]", text_color="#D86A6A", width=220, height=124)
+        return make_thumbnail_label(self, parent, path)
 
     def select_library_item(self, item):
-        self.selected_item = item
-        self.preview_refs = []
-        if hasattr(self, "selection_preview"):
-            for w in self.selection_preview.winfo_children(): w.destroy()
-        try:
-            if item.kind == "image":
-                img = Image.open(item.path).convert("RGBA")
-                img.thumbnail((320, 280))
-                preview = ctk.CTkImage(light_image=img, dark_image=img, size=img.size)
-                self.preview_refs.append(preview)
-                ctk.CTkLabel(self.selection_preview, image=preview, text="").place(relx=0.5, rely=0.5, anchor="center")
-            else:
-                ctk.CTkLabel(self.selection_preview, text="♪ SOUND", text_color=GOLD, font=ctk.CTkFont(size=28, weight="bold")).place(relx=0.5, rely=0.5, anchor="center")
-        except Exception:
-            ctk.CTkLabel(self.selection_preview, text="Asset kann nicht geladen werden", text_color="#D86A6A").place(relx=0.5, rely=0.5, anchor="center")
-        fav = "⭐ " if self.item_is_favorite(item) else ""
-        self.selection_name.configure(text=fav + item.name)
-        tags = ", ".join(self.item_tags(item)) or "keine"
-        self.selection_meta.configure(text=f"{item.section} / {item.category}\n{item.relative}\nTags: {tags}\nTyp: {item.kind}")
-        self.render_library_grid()
+        return select_library_item(self, item)
 
     def library_item_double_click(self, item):
         self.select_library_item(item)
