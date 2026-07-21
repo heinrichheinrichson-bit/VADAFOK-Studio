@@ -59,6 +59,7 @@ from .quick_cards import (
     build_quick_cards_tree,
     show_quick_cards_page,
 )
+from .voice_control.lifecycle import VoiceLifecycleController
 from .banner_editor.controller import BannerEditorController
 from .obs_workflow.controller import OBSWorkflowController
 from .settings.controller import SettingsController
@@ -335,6 +336,7 @@ class VadafokStudio(ctk.CTk):
         self.voice_process = None
         self.voice_reader_thread = None
         self.voice_stop_requested = False
+        self.voice_lifecycle_controller = VoiceLifecycleController(self)
 
         self.host = ctk.StringVar(value=self.config_data["host"])
         self.port = ctk.StringVar(value=self.config_data["port"])
@@ -3032,11 +3034,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def voice_script_path(self):
-        return (
-            Path(__file__).resolve().parent
-            / "tools"
-            / "voice_listener.ps1"
-        )
+        return self.voice_lifecycle_controller.script_path()
 
     def normalize_voice_text(self, value):
         return " ".join(str(value or "").strip().casefold().split())
@@ -3087,96 +3085,22 @@ class VadafokStudio(ctk.CTk):
                 self.after(0, lambda: self.voice_status_var.set("STOPPED"))
 
     def start_voice_trigger(self):
-        if sys.platform != "win32":
-            self.voice_status_var.set("WINDOWS ONLY")
-            return
-
-        if self.voice_process is not None:
-            try:
-                if self.voice_process.poll() is None:
-                    self.voice_status_var.set("LISTENING")
-                    return
-            except Exception:
-                pass
-
-        script = self.voice_script_path()
-        if not script.exists():
-            self.voice_status_var.set("ERROR: voice_listener.ps1 missing")
-            return
-
-        self.voice_stop_requested = False
-        self.voice_status_var.set("STARTING...")
-
-        command = [
-            "powershell.exe",
-            "-NoProfile",
-            "-ExecutionPolicy", "Bypass",
-            "-File", str(script),
-            "-Culture", self.voice_culture.get().strip(),
-        ]
-
-        try:
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-
-            self.voice_process = subprocess.Popen(
-                command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                bufsize=1,
-                startupinfo=startupinfo,
-                creationflags=subprocess.CREATE_NO_WINDOW,
-            )
-
-            self.voice_reader_thread = threading.Thread(
-                target=self.voice_reader_loop,
-                args=(self.voice_process,),
-                daemon=True,
-            )
-            self.voice_reader_thread.start()
-        except Exception as exc:
-            self.voice_process = None
-            self.voice_status_var.set(f"ERROR: {str(exc)[:70]}")
+        return self.voice_lifecycle_controller.start()
 
     def stop_voice_trigger(self):
-        self.voice_stop_requested = True
-        process = self.voice_process
-        self.voice_process = None
-
-        if process is not None:
-            try:
-                process.terminate()
-                process.wait(timeout=1.2)
-            except Exception:
-                try:
-                    process.kill()
-                except Exception:
-                    pass
-
-        self.voice_status_var.set("OFF")
+        return self.voice_lifecycle_controller.stop()
 
     def restart_voice_trigger(self):
-        self.stop_voice_trigger()
-        if self.voice_enabled.get():
-            self.after(250, self.start_voice_trigger)
+        return self.voice_lifecycle_controller.restart()
 
     def toggle_voice_trigger(self):
-        self.save_config()
-        if self.voice_enabled.get():
-            self.start_voice_trigger()
-        else:
-            self.stop_voice_trigger()
+        return self.voice_lifecycle_controller.toggle()
 
     def test_voice_trigger(self):
-        self.voice_last_heard_var.set("Manual F8 test")
-        self.open_quick_caption()
+        return self.voice_lifecycle_controller.test_trigger()
 
     def on_app_close(self):
-        self.stop_voice_trigger()
-        self.destroy()
+        return self.voice_lifecycle_controller.close_app()
 
     def show_settings_page(self):
         return self.settings_controller.show_settings_page()
