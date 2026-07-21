@@ -5,6 +5,8 @@ continues to provide its established state and callbacks. No behavior is
 changed by this extraction.
 """
 
+import tkinter as tk
+
 import customtkinter as ctk
 
 from ..core import export_engine
@@ -104,24 +106,45 @@ def show_card_creator_page(app):
     form = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
     form.grid(row=0, column=2, sticky="nsew", padx=(12, 0))
     form.grid_columnconfigure(0, weight=1)
-    form.grid_rowconfigure(1, weight=3)
-    form.grid_rowconfigure(2, weight=2)
+    form.grid_rowconfigure(0, weight=1)
 
-    ctk.CTkLabel(form, text="Card Data", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+    # A plain vertical PanedWindow deliberately keeps the workspace simple:
+    # the user controls the height of every section directly with the two
+    # sash handles. No automatic geometry state is involved.
+    workspace = tk.PanedWindow(
+        form,
+        orient=tk.VERTICAL,
+        bg=PANEL,
+        bd=0,
+        relief=tk.FLAT,
+        sashwidth=8,
+        sashrelief=tk.FLAT,
+        showhandle=False,
+        opaqueresize=True,
+    )
+    workspace.grid(row=0, column=0, sticky="nsew", padx=18, pady=18)
+    app.card_workspace_paned = workspace
 
-    app.card_form_frame = ctk.CTkScrollableFrame(form, fg_color="#0B0B0B", corner_radius=12)
-    app.card_form_frame.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 12))
+    card_pane = ctk.CTkFrame(workspace, fg_color="#0B0B0B", corner_radius=12)
+    card_pane.grid_columnconfigure(0, weight=1)
+    card_pane.grid_rowconfigure(1, weight=1)
+    ctk.CTkLabel(
+        card_pane, text="Card Data", text_color=GOLD,
+        font=ctk.CTkFont(size=18, weight="bold")
+    ).grid(row=0, column=0, padx=12, pady=(12, 8), sticky="w")
+
+    app.card_form_frame = ctk.CTkScrollableFrame(
+        card_pane, fg_color="#080808", corner_radius=10
+    )
+    app.card_form_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
     app.card_form_frame.grid_columnconfigure(0, weight=1)
 
-    batch_box = ctk.CTkFrame(form, fg_color="#0B0B0B", corner_radius=12)
-    batch_box.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 12))
+    batch_box = ctk.CTkFrame(workspace, fg_color="#0B0B0B", corner_radius=12)
     batch_box.grid_columnconfigure(0, weight=1)
     batch_box.grid_rowconfigure(2, weight=1)
 
     ctk.CTkLabel(
-        batch_box,
-        text="Batch Cards",
-        text_color=GOLD,
+        batch_box, text="Batch Cards", text_color=GOLD,
         font=ctk.CTkFont(size=16, weight="bold")
     ).grid(row=0, column=0, padx=10, pady=(10, 6), sticky="w")
 
@@ -136,50 +159,64 @@ def show_card_creator_page(app):
     ctk.CTkButton(batch_actions, text="DUPLICATE", fg_color="#333333", hover_color="#444444", command=app.card_batch_duplicate_selected).grid(row=3, column=0, padx=(0, 4), pady=2, sticky="ew")
     ctk.CTkButton(batch_actions, text="REMOVE", fg_color="#5A1F1F", hover_color="#7A2A2A", command=app.card_batch_remove_selected).grid(row=3, column=1, padx=(4, 0), pady=2, sticky="ew")
 
-    app.card_batch_body = ctk.CTkScrollableFrame(batch_box, fg_color="#080808", corner_radius=10, height=190)
+    app.card_batch_body = ctk.CTkScrollableFrame(
+        batch_box, fg_color="#080808", corner_radius=10
+    )
     app.card_batch_body.grid(row=2, column=0, sticky="nsew", padx=10, pady=(0, 10))
 
-    export_box = ctk.CTkFrame(form, fg_color="#0B0B0B", corner_radius=12)
-    export_box.grid(row=3, column=0, sticky="ew", padx=18, pady=(0, 12))
-    export_box.grid_columnconfigure(0, weight=1)
+    output_pane = ctk.CTkFrame(workspace, fg_color="#0B0B0B", corner_radius=12)
+    output_pane.grid_columnconfigure(0, weight=1)
+    output_pane.grid_rowconfigure(1, weight=1)
+    ctk.CTkLabel(
+        output_pane, text="Output", text_color=GOLD,
+        font=ctk.CTkFont(size=16, weight="bold")
+    ).grid(row=0, column=0, padx=10, pady=(10, 6), sticky="w")
 
-    ctk.CTkLabel(export_box, text="Output Name", text_color="#BCA870").grid(row=0, column=0, padx=10, pady=(10, 2), sticky="w")
-    ctk.CTkEntry(export_box, textvariable=app.card_output_name).grid(row=1, column=0, padx=10, pady=(0, 8), sticky="ew")
+    output_scroll = ctk.CTkScrollableFrame(
+        output_pane, fg_color="#080808", corner_radius=10
+    )
+    output_scroll.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
+    output_scroll.grid_columnconfigure(0, weight=1)
 
-    ctk.CTkLabel(export_box, text="Export Profile", text_color="#BCA870").grid(row=2, column=0, padx=10, pady=(2, 2), sticky="w")
+    ctk.CTkLabel(output_scroll, text="Output Name", text_color="#BCA870").grid(row=0, column=0, padx=10, pady=(10, 2), sticky="w")
+    ctk.CTkEntry(output_scroll, textvariable=app.card_output_name).grid(row=1, column=0, padx=10, pady=(0, 8), sticky="ew")
+
+    ctk.CTkLabel(output_scroll, text="Export Profile", text_color="#BCA870").grid(row=2, column=0, padx=10, pady=(2, 2), sticky="w")
     ctk.CTkOptionMenu(
-        export_box,
-        values=export_engine.list_export_profiles(),
-        variable=app.card_export_profile,
-        fg_color="#333333",
-        button_color="#444444",
-        button_hover_color="#555555",
+        output_scroll, values=export_engine.list_export_profiles(),
+        variable=app.card_export_profile, fg_color="#333333",
+        button_color="#444444", button_hover_color="#555555",
         command=lambda _v: app.card_update_preview()
     ).grid(row=3, column=0, padx=10, pady=(0, 8), sticky="ew")
 
-    app.card_export_profile_info = ctk.CTkLabel(export_box, text="", text_color="#777777", wraplength=240, justify="left")
+    app.card_export_profile_info = ctk.CTkLabel(
+        output_scroll, text="", text_color="#777777",
+        wraplength=240, justify="left"
+    )
     app.card_export_profile_info.grid(row=4, column=0, padx=10, pady=(0, 8), sticky="w")
 
     ctk.CTkCheckBox(
-        export_box,
-        text="Auto Preview",
-        variable=app.card_auto_preview,
-        text_color="#BCA870",
-        fg_color=GOLD,
-        hover_color=GOLD_DARK
+        output_scroll, text="Auto Preview", variable=app.card_auto_preview,
+        text_color="#BCA870", fg_color=GOLD, hover_color=GOLD_DARK
     ).grid(row=5, column=0, padx=10, pady=(0, 10), sticky="w")
 
-    buttons = ctk.CTkFrame(form, fg_color="transparent")
-    buttons.grid(row=4, column=0, sticky="ew", padx=18, pady=(0, 18))
+    buttons = ctk.CTkFrame(output_scroll, fg_color="transparent")
+    buttons.grid(row=6, column=0, sticky="ew", padx=10, pady=(0, 10))
     buttons.grid_columnconfigure((0, 1), weight=1)
     ctk.CTkButton(buttons, text="CLEAR FIELDS", fg_color="#333333", hover_color="#444444", command=app.card_clear_values).grid(row=0, column=0, padx=(0, 4), pady=4, sticky="ew")
     ctk.CTkButton(buttons, text="RENDER CARD", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=app.card_render_final).grid(row=0, column=1, padx=(4, 0), pady=4, sticky="ew")
-
     ctk.CTkButton(buttons, text="UNDO DATA", fg_color="#333333", hover_color="#444444", command=app.card_undo_data).grid(row=1, column=0, padx=(0, 4), pady=4, sticky="ew")
     ctk.CTkButton(buttons, text="REDO DATA", fg_color="#333333", hover_color="#444444", command=app.card_redo_data).grid(row=1, column=1, padx=(4, 0), pady=4, sticky="ew")
 
-    app.card_render_status = ctk.CTkLabel(buttons, text="Noch nicht gerendert.", text_color="#BCA870", wraplength=260, justify="left")
+    app.card_render_status = ctk.CTkLabel(
+        buttons, text="Noch nicht gerendert.", text_color="#BCA870",
+        wraplength=260, justify="left"
+    )
     app.card_render_status.grid(row=2, column=0, columnspan=2, pady=(8, 0), sticky="w")
+
+    workspace.add(card_pane, minsize=90, stretch="always")
+    workspace.add(batch_box, minsize=90, stretch="always")
+    workspace.add(output_pane, minsize=90, stretch="always")
 
     app.card_build_form()
     app.card_build_batch_panel()
