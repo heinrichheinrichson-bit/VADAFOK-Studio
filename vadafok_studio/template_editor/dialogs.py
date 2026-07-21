@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import customtkinter as ctk
+from ..core.window_icon import apply_window_icon
 
 GOLD = "#D6A43A"
 GOLD_DARK = "#8A641D"
@@ -13,6 +14,7 @@ GOLD_DARK = "#8A641D"
 def ask_template_name(app: Any, title: str, initial_value: str) -> str | None:
     result = {"value": None}
     dialog = ctk.CTkToplevel(app)
+    apply_window_icon(dialog, app)
     dialog.title(title)
     dialog.geometry("520x210")
     dialog.resizable(False, False)

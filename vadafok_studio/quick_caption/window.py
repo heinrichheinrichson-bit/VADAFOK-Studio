@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 import customtkinter as ctk
+from ..core.window_icon import apply_window_icon
 
 
 GOLD = "#D9A928"
@@ -45,6 +46,7 @@ def open_quick_caption_window(app: Any) -> None:
         return
 
     app.quick_window = ctk.CTkToplevel(app)
+    apply_window_icon(app.quick_window, app)
     app.quick_window.title("Quick Caption")
     app.quick_window.geometry("520x340")
     app.quick_window.minsize(520, 320)

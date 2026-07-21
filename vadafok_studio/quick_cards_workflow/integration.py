@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
+from ..core.window_icon import apply_window_icon
 
 _INSTALLED = False
 _ROOT = Path(__file__).resolve().parents[2]
@@ -85,6 +86,7 @@ def _open_workflow(app: Any) -> None:
         pass
 
     window = ctk.CTkToplevel(app)
+    apply_window_icon(window, app)
     app.quick_cards_workflow_window = window
     window.title("Quick Cards Workflow")
     window.geometry("860x620")

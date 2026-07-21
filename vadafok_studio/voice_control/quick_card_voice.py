@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .voice_help import add_voice_help
+from ..core.window_icon import apply_window_icon
 
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -339,6 +340,7 @@ def show_quick_card_matches(
 
     try:
         window = ctk.CTkToplevel(parent)
+        apply_window_icon(window, parent)
         app.voice_quick_card_window = window
         window.title("Voice Quick Card – Auswahl")
         window.minsize(580, 470)

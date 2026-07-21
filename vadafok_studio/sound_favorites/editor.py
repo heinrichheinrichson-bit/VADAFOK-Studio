@@ -10,6 +10,7 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox
 
 from ..core.config import save_config
+from ..core.window_icon import apply_window_icon
 from ..services.sound_effect_selection import portable_effect_path
 
 GOLD = "#D6A43A"
@@ -21,6 +22,7 @@ def open_sound_favorites_editor_window(app):
     """Open the four-slot sound favorites editor for *app*."""
     favorites = [dict(item) for item in app._ensure_sound_favorites()]
     dialog = ctk.CTkToplevel(app)
+    apply_window_icon(dialog, app)
     dialog.title("Sound-Favoriten bearbeiten")
     dialog.geometry("680x430")
     dialog.minsize(620, 390)
