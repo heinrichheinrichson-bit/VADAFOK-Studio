@@ -450,26 +450,7 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkLabel(self.main, text=text, font=ctk.CTkFont(size=28, weight="bold"), text_color=GOLD).grid(row=0, column=0, padx=28, pady=(24, 12), sticky="w")
 
     def open_library_section(self, section):
-        """Open one Library folder and load only its files."""
-        section = str(section or "").strip()
-
-        if section in {"", "Folder Overview"}:
-            self.library_section.set("Folder Overview")
-            self.library_items = []
-            self.selected_item = None
-            self.render_library_grid()
-            return
-
-        if section not in ROOT_FOLDERS:
-            return
-
-        self.library_section.set(section)
-        self.selected_item = None
-        self.library_items = scan_library_section(
-            self.project_folder.get(),
-            section,
-        )
-        self.render_library_grid()
+        return self.library_controller.open_section(section)
 
     def library_section_changed(self, section):
         self.open_library_section(section)
@@ -501,26 +482,13 @@ class VadafokStudio(ctk.CTk):
 
 
     def reload_library(self):
-        section = str(self.library_section.get() or "").strip()
-
-        if section in {"", "All", "Folder Overview"}:
-            self.library_items = []
-            self.render_library_folder_overview()
-            return
-
-        self.library_items = scan_library_section(
-            self.project_folder.get(),
-            section,
-        )
-        self.selected_item = None
-        self.render_library_grid()
+        return self.library_controller.reload_section()
 
 
-    def item_key(self, item): return item.relative
-    def item_is_favorite(self, item): return self.item_key(item) in self.asset_meta.get("favorites", [])
+        return self.library_controller.item_key(item)
+        return self.library_controller.item_is_favorite(item)
     def item_tags(self, item):
-        stored = self.asset_meta.get("tags", {}).get(self.item_key(item), [])
-        return list(dict.fromkeys(stored + guessed_tags(item)))
+        return self.library_controller.item_tags(item)
 
     def render_library_grid(self):
         return render_asset_grid(self)

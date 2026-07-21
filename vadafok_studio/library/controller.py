@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..core.library import ROOT_FOLDERS, guessed_tags, scan_library_section
+
 
 class LibraryController:
     """Own transient Library workflow state outside the Library page widgets."""
@@ -66,3 +68,44 @@ class LibraryController:
         self._return_page = None
         self.app.library_template_background_picker_mode = False
         self.app.library_return_page = None
+
+    def open_section(self, section: str) -> None:
+        """Open a Library section and load only that section's assets."""
+        section = str(section or "").strip()
+        if section in {"", "Folder Overview"}:
+            self.app.library_section.set("Folder Overview")
+            self.app.library_items = []
+            self.app.selected_item = None
+            self.app.render_library_grid()
+            return
+        if section not in ROOT_FOLDERS:
+            return
+        self.app.library_section.set(section)
+        self.app.selected_item = None
+        self.app.library_items = scan_library_section(
+            self.app.project_folder.get(), section,
+        )
+        self.app.render_library_grid()
+
+    def reload_section(self) -> None:
+        section = str(self.app.library_section.get() or "").strip()
+        if section in {"", "All", "Folder Overview"}:
+            self.app.library_items = []
+            self.app.render_library_folder_overview()
+            return
+        self.app.library_items = scan_library_section(
+            self.app.project_folder.get(), section,
+        )
+        self.app.selected_item = None
+        self.app.render_library_grid()
+
+    @staticmethod
+    def item_key(item: Any) -> str:
+        return item.relative
+
+    def item_is_favorite(self, item: Any) -> bool:
+        return self.item_key(item) in self.app.asset_meta.get("favorites", [])
+
+    def item_tags(self, item: Any) -> list[str]:
+        stored = self.app.asset_meta.get("tags", {}).get(self.item_key(item), [])
+        return list(dict.fromkeys(stored + guessed_tags(item)))
