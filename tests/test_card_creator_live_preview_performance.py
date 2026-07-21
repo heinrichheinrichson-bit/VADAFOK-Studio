@@ -5,6 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 APP = (ROOT / "vadafok_studio" / "app.py").read_text(encoding="utf-8")
 LAYOUT = (ROOT / "vadafok_studio" / "core" / "layout_engine.py").read_text(encoding="utf-8")
 PREVIEW = (ROOT / "vadafok_studio" / "card_creator" / "preview.py").read_text(encoding="utf-8")
+FORM = (ROOT / "vadafok_studio" / "card_creator" / "form_view.py").read_text(encoding="utf-8")
 
 
 class CardCreatorLivePreviewPerformanceTests(unittest.TestCase):
@@ -19,9 +20,8 @@ class CardCreatorLivePreviewPerformanceTests(unittest.TestCase):
 
 
     def test_form_uses_stringvar_trace_for_all_value_changes(self):
-        assert 'trace_add("write", self.card_preview_changed)' in APP
-        method = APP.split('    def card_build_form', 1)[1].split('    def card_save_values', 1)[0]
-        assert 'entry.bind("<KeyRelease>"' not in method
+        assert 'trace_add("write", app.card_preview_changed)' in FORM
+        assert 'entry.bind("<KeyRelease>"' not in FORM
 
 
     def test_preview_renders_in_memory_without_temp_export_file(self):

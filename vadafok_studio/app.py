@@ -28,6 +28,7 @@ from .card_creator.page import (
     build_batch_panel,
     show_card_creator_page as build_card_creator_page,
 )
+from .card_creator.form_view import build_card_form
 from .template_editor import TemplateEditorController, TemplateRefreshManager
 from .library import LibraryController
 from .banner_editor.controller import BannerEditorController
@@ -4803,68 +4804,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def card_build_form(self):
-        for w in self.card_form_frame.winfo_children():
-            w.destroy()
-        template = self.card_template()
-        fields = template.get("fields", [])
-        if self.card_selected_template.get() not in self.card_creator_values:
-            self.card_creator_values[self.card_selected_template.get()] = {}
-        values = self.card_creator_values[self.card_selected_template.get()]
-
-        if not fields:
-            ctk.CTkLabel(self.card_form_frame, text="Dieses Template hat keine Felder.", text_color="#BCA870").grid(row=0, column=0, padx=12, pady=12, sticky="w")
-            return
-
-        available_styles = style_engine.list_styles()
-        style_options = ["Select Style"] + available_styles
-
-        for row, field in enumerate(fields):
-            name = field.get("name", f"field_{row+1}")
-            saved = self.card_saved_values.get(self.card_selected_template.get(), {})
-            if name not in values or not hasattr(values.get(name), "get"):
-                values[name] = ctk.StringVar(value=str(saved.get(name, "")))
-
-            label = name.replace("_", " ").title()
-
-            field_box = ctk.CTkFrame(self.card_form_frame, fg_color="#111111", corner_radius=10)
-            field_box.grid(row=row, column=0, padx=10, pady=(8, 4), sticky="ew")
-            field_box.grid_columnconfigure(0, weight=1)
-
-            ctk.CTkLabel(field_box, text=label, text_color="#BCA870").grid(row=0, column=0, padx=10, pady=(8, 2), sticky="w")
-
-            entry = ctk.CTkEntry(field_box, textvariable=values[name])
-            entry.grid(row=1, column=0, padx=10, pady=(0, 8), sticky="ew")
-            # Trace the value itself so typing, paste, undo and programmatic
-            # changes all use the same low-latency preview path. Variables are
-            # reused when the form is rebuilt, so attach the trace only once.
-            if not getattr(values[name], "_vadafok_card_preview_trace", None):
-                trace_id = values[name].trace_add("write", self.card_preview_changed)
-                values[name]._vadafok_card_preview_trace = trace_id
-
-            style_row = ctk.CTkFrame(field_box, fg_color="transparent")
-            style_row.grid(row=2, column=0, padx=10, pady=(0, 10), sticky="ew")
-            style_row.grid_columnconfigure(0, weight=1)
-
-            style_var = ctk.StringVar(value="Select Style")
-            style_menu = ctk.CTkOptionMenu(
-                style_row,
-                values=style_options,
-                variable=style_var,
-                fg_color="#333333",
-                button_color="#444444",
-                button_hover_color="#555555",
-                command=lambda selected, field_name=name: self.card_apply_style_to_field(field_name, selected)
-            )
-            style_menu.grid(row=0, column=0, padx=(0, 6), sticky="ew")
-
-            ctk.CTkButton(
-                style_row,
-                text="EDIT",
-                width=54,
-                fg_color="#333333",
-                hover_color="#444444",
-                command=self.card_open_template_editor_for_styles
-            ).grid(row=0, column=1, sticky="e")
+        return build_card_form(self)
 
 
     def card_save_values(self):
