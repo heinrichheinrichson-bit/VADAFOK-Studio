@@ -52,6 +52,8 @@ class CardCreatorController:
         self.app.card_data_undo_stack = []
         self.app.card_data_redo_stack = []
         self.app.card_creator_preview_image = None
+        self.app.card_preview_background_cache = None
+        self.app.card_preview_background_key = None
         self.app.card_creator_last_render = None
 
         self.app.card_refresh_recent_templates()

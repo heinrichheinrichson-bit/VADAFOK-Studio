@@ -25,7 +25,7 @@ from .obs_workflow.controller import OBSWorkflowController
 from .settings.controller import SettingsController
 from .live_card.controller import LiveCardController
 from .core.image_view import load_rgba, fit_image_to_box, pil_to_tk_photo_data, image_status
-from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card
+from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card, render_template_card_image
 from .core import style_engine
 from .core import export_engine
 from .core import batch_engine
@@ -135,6 +135,11 @@ class VadafokStudio(ctk.CTk):
         self.card_creator_values = {}
         self.card_saved_values = load_json(CARD_VALUES_PATH, {})
         self.card_creator_preview_image = None
+        self.card_creator_preview_label = None
+        self.card_preview_update_job = None
+        self.card_values_save_job = None
+        self.card_preview_background_cache = None
+        self.card_preview_background_key = None
         self.card_creator_last_render = None
         self.card_output_name = ctk.StringVar(value="")
         self.card_auto_preview = ctk.BooleanVar(value=True)
@@ -4523,10 +4528,26 @@ class VadafokStudio(ctk.CTk):
         )
         return Path(selected) if selected else None
 
-    def card_preview_changed(self):
-        self.card_save_values()
-        if getattr(self, "card_auto_preview", None) is None or self.card_auto_preview.get():
-            self.card_update_preview()
+    def card_preview_changed(self, *_args):
+        """Queue a fast live preview and persist values after typing settles."""
+        if self.card_values_save_job is not None:
+            try:
+                self.after_cancel(self.card_values_save_job)
+            except Exception:
+                pass
+        self.card_values_save_job = self.after(350, self.card_save_values)
+
+        if getattr(self, "card_auto_preview", None) is not None and not self.card_auto_preview.get():
+            return
+
+        if self.card_preview_update_job is not None:
+            try:
+                self.after_cancel(self.card_preview_update_job)
+            except Exception:
+                pass
+        # A very small debounce combines duplicate Tk events while remaining
+        # visually immediate during normal typing.
+        self.card_preview_update_job = self.after(25, self.card_update_preview)
 
     def card_clear_values(self):
         self.card_push_data_history()
@@ -5156,7 +5177,12 @@ class VadafokStudio(ctk.CTk):
 
             entry = ctk.CTkEntry(field_box, textvariable=values[name])
             entry.grid(row=1, column=0, padx=10, pady=(0, 8), sticky="ew")
-            entry.bind("<KeyRelease>", lambda e: self.card_preview_changed())
+            # Trace the value itself so typing, paste, undo and programmatic
+            # changes all use the same low-latency preview path. Variables are
+            # reused when the form is rebuilt, so attach the trace only once.
+            if not getattr(values[name], "_vadafok_card_preview_trace", None):
+                trace_id = values[name].trace_add("write", self.card_preview_changed)
+                values[name]._vadafok_card_preview_trace = trace_id
 
             style_row = ctk.CTkFrame(field_box, fg_color="transparent")
             style_row.grid(row=2, column=0, padx=10, pady=(0, 10), sticky="ew")
@@ -5185,6 +5211,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def card_save_values(self):
+        self.card_values_save_job = None
         template_name = self.card_selected_template.get()
         plain = self.card_values_plain()
         self.card_saved_values[template_name] = plain
@@ -5248,19 +5275,31 @@ class VadafokStudio(ctk.CTk):
 
 
     def card_update_preview(self):
+        """Refresh the on-screen preview entirely in memory."""
+        self.card_preview_update_job = None
         if not hasattr(self, "card_preview_frame"):
             return
-        for w in self.card_preview_frame.winfo_children():
-            w.destroy()
-        self.card_creator_preview_image = None
         try:
             bg_path = self.card_background_path()
             if not bg_path:
                 raise FileNotFoundError(f"Kein Background gefunden für Template: {self.card_selected_template.get()}")
-            preview_path = self.card_render_to_file(final=False)
-            img = Image.open(preview_path).convert("RGBA")
+
+            bg_file = Path(bg_path)
+            cache_key = (str(bg_file), bg_file.stat().st_mtime_ns)
+            if self.card_preview_background_key != cache_key or self.card_preview_background_cache is None:
+                with Image.open(bg_file) as source:
+                    self.card_preview_background_cache = source.convert("RGBA")
+                self.card_preview_background_key = cache_key
+
+            img = render_template_card_image(
+                self.card_template(),
+                self.card_values_plain(),
+                background_image=self.card_preview_background_cache,
+            )
             original_size = img.size
-            img.thumbnail((760, 620))
+            img = export_engine.apply_export_profile(img, self.card_export_profile.get())
+            img.thumbnail((760, 620), Image.LANCZOS)
+
             if hasattr(self, "card_preview_info"):
                 self.card_preview_info.configure(text=f"{self.card_selected_template.get()} | {original_size[0]}×{original_size[1]} | {self.card_export_profile.get()}")
 
@@ -5269,10 +5308,32 @@ class VadafokStudio(ctk.CTk):
                 size_text = "Originalgröße" if not profile.get("size") else f"{profile.get('size')[0]}×{profile.get('size')[1]}"
                 fmt = profile.get("format", "PNG")
                 self.card_export_profile_info.configure(text=f"{fmt} | {size_text}")
+
             self.card_creator_preview_image = ctk.CTkImage(light_image=img, dark_image=img, size=img.size)
-            ctk.CTkLabel(self.card_preview_frame, image=self.card_creator_preview_image, text="").place(relx=0.5, rely=0.5, anchor="center")
+            if self.card_creator_preview_label is None or not self.card_creator_preview_label.winfo_exists():
+                self.card_creator_preview_label = ctk.CTkLabel(
+                    self.card_preview_frame,
+                    image=self.card_creator_preview_image,
+                    text="",
+                )
+                self.card_creator_preview_label.place(relx=0.5, rely=0.5, anchor="center")
+            else:
+                self.card_creator_preview_label.configure(
+                    image=self.card_creator_preview_image,
+                    text="",
+                    text_color="#F2E2B6",
+                )
         except Exception as e:
-            ctk.CTkLabel(self.card_preview_frame, text=f"Preview Fehler:\\n{e}", text_color="#D86A6A", wraplength=420, justify="center").place(relx=0.5, rely=0.5, anchor="center")
+            if self.card_creator_preview_label is None or not self.card_creator_preview_label.winfo_exists():
+                self.card_creator_preview_label = ctk.CTkLabel(self.card_preview_frame, text="")
+                self.card_creator_preview_label.place(relx=0.5, rely=0.5, anchor="center")
+            self.card_creator_preview_label.configure(
+                image=None,
+                text=f"Preview Fehler:\n{e}",
+                text_color="#D86A6A",
+                wraplength=420,
+                justify="center",
+            )
 
     def card_render_final(self):
         try:

@@ -9,14 +9,14 @@ from vadafok_studio.version import (
 
 
 def test_current_version():
-    assert VERSION == "2.29.0.13"
+    assert VERSION == "2.29.0.14"
 
 
 def test_runtime_version_constants_are_available():
     assert PRODUCT_NAME == "VADAFOK Studio"
-    assert APP_TITLE == "VADAFOK Studio 2.29.0.13"
-    assert SIDEBAR_VERSION == "Studio 2.29.0.13"
-    assert APP_USER_MODEL_ID == "VADAFOK.Studio.2.29.0.13"
+    assert APP_TITLE == "VADAFOK Studio 2.29.0.14"
+    assert SIDEBAR_VERSION == "Studio 2.29.0.14"
+    assert APP_USER_MODEL_ID == "VADAFOK.Studio.2.29.0.14"
 
 
 def test_version_info_contains_runtime_values():

@@ -135,15 +135,16 @@ def _card_fit(draw, text, field):
     font = _card_font(family, 8)
     return font, _card_wrap(draw, text, font, max_w, stroke_width), 8, 1
 
-def render_template_card(template, values, output_path, background_path=None, size=None):
-    output_path = Path(output_path)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
+def render_template_card_image(template, values, background_path=None, size=None, background_image=None):
+    """Render a template to a PIL image without writing a temporary file."""
     bg = None
-    if background_path:
+    if background_image is not None:
+        bg = background_image.convert("RGBA")
+    elif background_path:
         p = Path(background_path)
         if p.exists():
-            bg = Image.open(p).convert("RGBA")
+            with Image.open(p) as source:
+                bg = source.convert("RGBA")
 
     if bg is not None:
         img = bg.copy()
@@ -154,7 +155,6 @@ def render_template_card(template, values, output_path, background_path=None, si
             size = (1280, 720)
         img = Image.new("RGBA", size, (10, 10, 10, 255))
 
-    size = img.size
     draw = ImageDraw.Draw(img)
 
     for field in template.get("fields", []):
@@ -189,5 +189,18 @@ def render_template_card(template, values, output_path, background_path=None, si
             )
             cy += line_h + spacing
 
+    return img
+
+
+def render_template_card(template, values, output_path, background_path=None, size=None):
+    """Render a template and save it to *output_path*."""
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    img = render_template_card_image(
+        template,
+        values,
+        background_path=background_path,
+        size=size,
+    )
     img.save(output_path)
     return output_path
