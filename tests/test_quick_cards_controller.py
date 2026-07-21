@@ -42,17 +42,20 @@ class QuickCardsControllerTests(unittest.TestCase):
         app.quick_cards_build_tree.assert_called_once()
         app.show_quick_cards.assert_not_called()
 
+    @patch("vadafok_studio.quick_cards.controller.build_category_body")
     @patch("vadafok_studio.quick_cards.controller.text_library_engine.add_text")
-    def test_add_text_keeps_page_and_scroll_context(self, add_text):
+    def test_add_text_updates_only_target_category(self, add_text, build_body):
         app = self.make_app()
         app.text_library_new_text.set("Hello chat")
         add_text.return_value = {"Chat": ["Hello chat"]}
+        build_body.return_value = True
         controller = QuickCardsController(app)
         controller.add_text()
         add_text.assert_called_once_with("Chat", "Hello chat")
         self.assertEqual(app.live_card_pending_text, "Hello chat")
         self.assertEqual(app.text_library_new_text.get(), "")
-        app.quick_cards_build_tree.assert_called_once()
+        build_body.assert_called_once_with(app, "Chat")
+        app.quick_cards_build_tree.assert_not_called()
         app.show_quick_cards.assert_not_called()
 
     def test_cancel_edit_clears_state_and_refreshes_tree(self):
