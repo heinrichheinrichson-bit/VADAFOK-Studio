@@ -8,15 +8,20 @@ class OBSController:
     def __init__(self):
         self.client = None
         self.connected = False
+        self.last_version = None
 
     def connect(self, host, port, password):
         self.disconnect()
         if obs is None:
             raise RuntimeError("obsws-python fehlt. Installiere: py -m pip install -r requirements.txt")
-        self.client = obs.ReqClient(host=host, port=int(port), password=password)
-        self.client.get_version()
-        self.connected = True
-        return True
+        try:
+            self.client = obs.ReqClient(host=host, port=int(port), password=password)
+            self.last_version = self.client.get_version()
+            self.connected = True
+            return True
+        except Exception:
+            self.disconnect()
+            raise
 
     def disconnect(self):
         """Hard-disconnect OBS client and clear local connection state."""
@@ -47,6 +52,7 @@ class OBSController:
 
         self.client = None
         self.connected = False
+        self.last_version = None
         return True
 
     def is_connected(self):
@@ -69,9 +75,31 @@ class OBSController:
             self.connected = True
             return True
         except Exception:
-            self.connected = False
-            self.client = None
+            self.disconnect()
             return False
+
+    def version_summary(self):
+        """Return a compact, best-effort OBS/WebSocket version description."""
+        version = self.last_version
+        if version is None:
+            return ""
+        obs_version = (
+            getattr(version, "obs_version", None)
+            or getattr(version, "obsVersion", None)
+            or ""
+        )
+        websocket_version = (
+            getattr(version, "obs_web_socket_version", None)
+            or getattr(version, "obs_websocket_version", None)
+            or getattr(version, "obsWebSocketVersion", None)
+            or ""
+        )
+        parts = []
+        if obs_version:
+            parts.append(f"OBS {obs_version}")
+        if websocket_version:
+            parts.append(f"WebSocket {websocket_version}")
+        return " · ".join(parts)
 
 
     def get_scene_list(self):

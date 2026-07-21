@@ -74,6 +74,7 @@ from .banner_editor.controller import BannerEditorController
 from .obs_workflow.controller import OBSWorkflowController
 from .settings.controller import SettingsController
 from .caption_engine import CaptionEngineController
+from .obs_connection import OBSConnectionController
 from .live_card import (
     LiveCardController,
     LiveCardShowController,
@@ -149,6 +150,7 @@ class VadafokStudio(ctk.CTk):
         self.config_data = load_config()
         self.settings_controller = SettingsController(self)
         self.caption_engine_controller = CaptionEngineController(self)
+        self.obs_connection_controller = OBSConnectionController(self)
         self.favorites = load_favorites()
         self.asset_meta = load_asset_meta()
         self.banner_profiles = load_banner_profiles()
@@ -2098,31 +2100,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def show_obs_page(self):
-        self.set_active("OBS Connection")
-        self.clear_main()
-        self.page_title("OBS Connection")
-        box = ctk.CTkFrame(self.main, fg_color=PANEL, corner_radius=18)
-        box.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
-        rows = [
-            ("Host", self.host, False),
-            ("Port", self.port, False),
-            ("Password", self.password, True),
-            ("Scene optional", self.scene_name, False),
-            ("Caption Group", self.caption_group, False),
-            ("Text Source", self.caption_text, False),
-            ("Caption Banner Source", self.caption_banner_source, False),
-            ("Caption Render Source", self.caption_render_source, False),
-            ("Scene Card Source", self.scene_card_source, False),
-        ]
-        for label, var, hidden in rows:
-            row = ctk.CTkFrame(box, fg_color="transparent")
-            row.pack(fill="x", padx=24, pady=8)
-            ctk.CTkLabel(row, text=label, width=190, anchor="w", text_color="#BCA870").pack(side="left")
-            ctk.CTkEntry(row, textvariable=var, show="*" if hidden else None).pack(side="left", fill="x", expand=True)
-        btnrow = ctk.CTkFrame(box, fg_color="transparent")
-        btnrow.pack(fill="x", padx=24, pady=18)
-        ctk.CTkButton(btnrow, text="CONNECT", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.connect_obs).pack(side="left", padx=(0, 8))
-        ctk.CTkButton(btnrow, text="SAVE SETTINGS", fg_color="#333333", command=self.save_config).pack(side="left", padx=8)
+        return self.obs_connection_controller.show_page()
 
 
 
@@ -2471,14 +2449,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def connect_obs(self):
-        try:
-            self.obs.connect(self.host.get().strip(), self.port.get().strip(), self.password.get())
-            self.obs_workflow_set_sidebar_status(True) if hasattr(self, "obs_workflow_set_sidebar_status") else self.status_label.configure(text="● Connected", text_color="#6EE08C")
-            self.save_config()
-            messagebox.showinfo("OBS", "Verbindung erfolgreich.")
-        except Exception as e:
-            self.obs_workflow_set_sidebar_status(False) if hasattr(self, "obs_workflow_set_sidebar_status") else self.status_label.configure(text="● Not connected", text_color="#D86A6A")
-            messagebox.showerror("OBS Verbindung fehlgeschlagen", str(e))
+        return self.obs_connection_controller.connect()
 
     def save_config(self):
         return self.settings_controller.save_config()
