@@ -139,14 +139,14 @@ def show_silent_director_page(app: Any) -> None:
     stats_bar.grid_columnconfigure(1, weight=1)
     stats_bar.grid_columnconfigure(3, weight=1)
 
-    app.silent_director_preset_name_label = ctk.CTkLabel(
+    ctk.CTkLabel(
         stats_bar,
         text="PRESET",
         text_color="#777777",
         font=ctk.CTkFont(size=11, weight="bold")
     ).grid(row=0, column=0, padx=(12, 6), pady=(9, 2), sticky="w")
 
-    ctk.CTkLabel(
+    app.silent_director_preset_name_label = ctk.CTkLabel(
         stats_bar,
         text=str(preset.get("name", "Untitled")),
         text_color=TEXT,
@@ -154,14 +154,14 @@ def show_silent_director_page(app: Any) -> None:
     )
     app.silent_director_preset_name_label.grid(row=1, column=0, padx=(12, 16), pady=(0, 10), sticky="w")
 
-    app.silent_director_action_count_label = ctk.CTkLabel(
+    ctk.CTkLabel(
         stats_bar,
         text="ACTIONS",
         text_color="#777777",
         font=ctk.CTkFont(size=11, weight="bold")
     ).grid(row=0, column=1, padx=6, pady=(9, 2), sticky="w")
 
-    ctk.CTkLabel(
+    app.silent_director_action_count_label = ctk.CTkLabel(
         stats_bar,
         text=str(stats_actions),
         text_color=GOLD,
@@ -169,14 +169,14 @@ def show_silent_director_page(app: Any) -> None:
     )
     app.silent_director_action_count_label.grid(row=1, column=1, padx=6, pady=(0, 10), sticky="w")
 
-    app.silent_director_duration_label = ctk.CTkLabel(
+    ctk.CTkLabel(
         stats_bar,
         text="GESAMTDAUER",
         text_color="#777777",
         font=ctk.CTkFont(size=11, weight="bold")
     ).grid(row=0, column=2, padx=6, pady=(9, 2), sticky="w")
 
-    ctk.CTkLabel(
+    app.silent_director_duration_label = ctk.CTkLabel(
         stats_bar,
         text=app.silent_director_format_duration(stats_seconds),
         text_color="#6EA6E8",
