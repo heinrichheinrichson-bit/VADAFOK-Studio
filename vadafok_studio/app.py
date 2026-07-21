@@ -53,6 +53,7 @@ from .library.page import show_library_page
 from .library.grid_view import render_asset_grid, render_folder_overview
 from .library.preview_view import make_thumbnail_label, select_library_item
 from .library import asset_actions as library_asset_actions
+from .library import use_actions as library_use_actions
 from .banner_editor.controller import BannerEditorController
 from .obs_workflow.controller import OBSWorkflowController
 from .settings.controller import SettingsController
@@ -665,103 +666,14 @@ class VadafokStudio(ctk.CTk):
         return dest
 
     def use_selected_as_caption_banner(self):
-        item = getattr(self, "selected_item", None)
-        if item is None:
-            messagebox.showwarning(
-                "Banner",
-                "Bitte zuerst ein Banner auswählen."
-            )
-            return
-
-        if item.kind != "image":
-            messagebox.showwarning(
-                "Banner",
-                "Nur Bilder können als Caption-Banner verwendet werden."
-            )
-            return
-
-        picker_mode = bool(
-            getattr(self, "library_banner_picker_mode", False)
-        )
-
-        # Save the selected banner first. This is the authoritative change.
-        self.config_data["selected_banner_path"] = str(item.path)
-        save_config(self.config_data)
-
-        obs_warning = None
-        if self.ensure_obs_ready():
-            try:
-                self.obs.set_image_file(
-                    self.caption_banner_source.get().strip(),
-                    item.path
-                )
-            except Exception:
-                obs_warning = (
-                    "Das Banner wurde im Studio gespeichert, aber die "
-                    f"OBS-Bildquelle '{self.caption_banner_source.get().strip()}' "
-                    "wurde nicht gefunden."
-                )
-
-        # Banner Picker workflow: no blocking popup, return immediately.
-        if picker_mode:
-            self.library_banner_picker_mode = False
-            self.library_return_page = None
-            self.show_live_card()
-
-            try:
-                self.update_render_preview()
-            except Exception:
-                pass
-
-            if obs_warning:
-                self.after(
-                    150,
-                    lambda text=obs_warning: messagebox.showwarning(
-                        "Caption Banner Source nicht gefunden",
-                        text
-                    )
-                )
-            return
-
-        # Normal Library workflow keeps the existing confirmation behavior.
-        if hasattr(self, "message_box"):
-            try:
-                self.update_render_preview()
-            except Exception:
-                pass
-
-        if obs_warning:
-            messagebox.showwarning(
-                "Caption Banner Source nicht gefunden",
-                obs_warning
-            )
-        else:
-            messagebox.showinfo(
-                "Banner",
-                f"Caption-Banner gewechselt:\n{item.name}"
-            )
+        return library_use_actions.use_as_caption_banner(self)
 
 
     def show_selected_scene_card(self):
-        if not self.selected_item: return
-        if self.selected_item.kind != "image":
-            messagebox.showwarning("Scene Card", "Nur Bilder können als Scene Card angezeigt werden.")
-            return
-        if not self.obs.connected:
-            messagebox.showwarning("Nicht verbunden", "Bitte zuerst OBS verbinden.")
-            return
-        try:
-            scene = self.current_scene()
-            source = self.scene_card_source.get().strip()
-            self.obs.set_image_file(source, self.selected_item.path)
-            self.obs.enable_source(scene, source, True)
-        except Exception as e:
-            messagebox.showerror("Scene Card fehlgeschlagen", str(e))
+        return library_use_actions.show_as_scene_card(self)
 
     def open_selected_live_card(self):
-        if not self.selected_item: return
-        self.show_live_card()
-        self.set_message(self.selected_item.path.stem.replace("_", " ").replace("-", " ").upper())
+        return library_use_actions.open_live_card(self)
 
     def toggle_selected_favorite(self):
         return library_asset_actions.toggle_favorite(self)
