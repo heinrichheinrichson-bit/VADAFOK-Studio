@@ -53,6 +53,8 @@ from .template_editor import layout_actions
 from .template_editor import group_controller
 from .template_editor.ui_state import refresh_toolbar_state
 from .template_editor import history_controller
+from .template_editor import keyboard_controller, rename_controller
+from .template_editor.style_presets_view import build_style_presets_panel
 from .library import LibraryController
 from .library.page import show_library_page
 from .library.grid_view import render_asset_grid, render_folder_overview
@@ -1288,80 +1290,11 @@ class VadafokStudio(ctk.CTk):
 
     def template_shortcuts_allowed(self, event=None):
         # Template shortcuts must only work while the Template Editor page is active.
-        try:
-            if getattr(self, "active_page", None) != "Template Editor":
-                return False
-        except Exception:
-            pass
-
-        # Do not steal Delete/Backspace/Ctrl+A/etc. from text input widgets.
-        widget = getattr(event, "widget", None) if event is not None else None
-        try:
-            widget_class = widget.winfo_class() if widget is not None else ""
-        except Exception:
-            widget_class = ""
-
-        blocked_classes = {
-            "Entry",
-            "Text",
-            "Spinbox",
-            "TEntry",
-            "TCombobox",
-            "CTkEntry",
-            "CTkTextbox",
-            "CTkComboBox",
-        }
-
-        if widget_class in blocked_classes:
-            return False
-
-        # CustomTkinter wraps widgets; class names vary, so also check repr/name.
-        widget_text = str(widget).lower() if widget is not None else ""
-        if any(token in widget_text for token in ("entry", "textbox", "text", "combobox")):
-            return False
-
-        return True
+        return keyboard_controller.shortcuts_allowed(self, event)
 
 
     def template_keyboard_handler(self, event):
-        if not self.template_shortcuts_allowed(event):
-            return None
-
-        key = getattr(event, "keysym", "")
-        state = int(getattr(event, "state", 0) or 0)
-        ctrl = bool(state & 0x0004) or bool(getattr(self, "template_ctrl_down", False))
-        shift = bool(state & 0x0001) or bool(getattr(self, "template_shift_down", False))
-
-        if ctrl and key.lower() == "z":
-            return self.template_undo()
-
-        if ctrl and key.lower() == "y":
-            return self.template_redo()
-
-        if ctrl and key.lower() == "a":
-            return self.template_keyboard_select_all()
-
-        if ctrl and key.lower() == "d":
-            return self.template_keyboard_duplicate_selected()
-
-        if key in ("Delete", "BackSpace"):
-            return self.template_keyboard_delete_selected()
-
-        if key == "Escape":
-            return self.template_keyboard_clear_selection()
-
-        step = 10 if shift else 1
-
-        if key == "Left":
-            return self.template_keyboard_move_selected(-step, 0)
-        if key == "Right":
-            return self.template_keyboard_move_selected(step, 0)
-        if key == "Up":
-            return self.template_keyboard_move_selected(0, -step)
-        if key == "Down":
-            return self.template_keyboard_move_selected(0, step)
-
-        return None
+        return keyboard_controller.handle_key(self, event)
 
 
 
@@ -1552,52 +1485,7 @@ class VadafokStudio(ctk.CTk):
         return "break"
 
     def template_commit_inline_rename(self, event=None):
-        if self.template_rename_entry is None:
-            return "break"
-
-        value = self.template_rename_entry.get().strip()
-        kind = self.template_renaming_kind
-        target = self.template_renaming_target
-
-        try:
-            self.template_rename_entry.destroy()
-        except Exception:
-            pass
-
-        self.template_rename_entry = None
-        self.template_renaming_kind = None
-        self.template_renaming_target = None
-
-        if not value:
-            self.template_build_layers_panel()
-            return "break"
-
-        template = self.template_current()
-
-        if kind == "group":
-            group = self.template_find_group(target)
-            if group and group.get("name") != value:
-                if hasattr(self, "template_push_history"):
-                    self.template_push_history("rename group")
-                group["name"] = value
-                save_template(self.template_selected_name, template)
-
-        elif kind == "field":
-            idx = target
-            fields = template.get("fields", [])
-            if idx is not None and 0 <= idx < len(fields) and fields[idx].get("name") != value:
-                if hasattr(self, "template_push_history"):
-                    self.template_push_history("rename field")
-                fields[idx]["name"] = value
-                save_template(self.template_selected_name, template)
-                if idx == self.template_selected_field:
-                    self.template_load_selected_properties()
-                    if hasattr(self, "template_props_body"):
-                        self.template_build_properties_panel()
-
-        self.template_draw_canvas()
-        self.template_build_layers_panel()
-        return "break"
+        return rename_controller.commit_inline_rename(self, event)
 
     def template_start_inline_rename_group(self, group_id):
         template = self.template_current()
@@ -1846,44 +1734,7 @@ class VadafokStudio(ctk.CTk):
         return sorted(i for i in selected if 0 <= i < count)
 
     def template_build_style_presets_panel(self):
-        if not hasattr(self, "template_styles_body"):
-            return
-
-        for w in self.template_styles_body.winfo_children():
-            w.destroy()
-
-        styles = style_engine.list_styles()
-        if not styles:
-            ctk.CTkLabel(
-                self.template_styles_body,
-                text="Noch keine Styles gespeichert.",
-                text_color="#777777",
-                wraplength=170,
-                justify="left"
-            ).grid(row=0, column=0, columnspan=2, padx=8, pady=8, sticky="w")
-            return
-
-        for row, name in enumerate(styles):
-            ctk.CTkButton(
-                self.template_styles_body,
-                text=name,
-                anchor="w",
-                fg_color="#171717",
-                hover_color="#2C2C2C",
-                text_color="#D9C58C",
-                command=lambda n=name: self.template_apply_style_preset(n)
-            ).grid(row=row, column=0, padx=(8, 4), pady=3, sticky="ew")
-
-            ctk.CTkButton(
-                self.template_styles_body,
-                text="DEL",
-                width=44,
-                fg_color="#5A1F1F",
-                hover_color="#7A2A2A",
-                command=lambda n=name: self.template_delete_style_preset(n)
-            ).grid(row=row, column=1, padx=(2, 8), pady=3, sticky="ew")
-
-        self.template_styles_body.grid_columnconfigure(0, weight=1)
+        return build_style_presets_panel(self)
 
     def template_save_style_preset(self):
         indices = self.template_selected_style_indices()
