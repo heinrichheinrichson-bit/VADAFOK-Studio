@@ -18,32 +18,37 @@ def render_filtered_presets(app: Any, *_args: Any) -> None:
     if preset_list is None:
         return
 
-    for child in preset_list.winfo_children():
-        child.destroy()
+    old_children = list(preset_list.winfo_children())
+    content = ctk.CTkFrame(preset_list, fg_color="transparent")
+    content.grid(row=0, column=0, sticky="ew")
+    content.grid_columnconfigure(0, weight=1)
 
     filtered = app.silent_director_filtered_presets()
     query = str(app.silent_director_search_var.get() or "").strip()
 
     if not filtered:
         message = "No matching presets." if query else "No presets yet."
-        ctk.CTkLabel(preset_list, text=message, text_color="#777777").grid(
+        ctk.CTkLabel(content, text=message, text_color="#777777").grid(
             row=0, column=0, padx=10, pady=(12, 4), sticky="w"
         )
         if query:
             ctk.CTkButton(
-                preset_list,
+                content,
                 text="CLEAR SEARCH",
                 width=120,
                 fg_color="#333333",
                 hover_color="#444444",
                 command=app.silent_director_clear_search,
             ).grid(row=1, column=0, padx=10, pady=(4, 12), sticky="w")
+        for child in old_children:
+            child.destroy()
+        app.silent_director_preset_list_content = content
         return
 
     row_offset = 0
     if query:
         ctk.CTkLabel(
-            preset_list,
+            content,
             text=f"{len(filtered)} Treffer",
             text_color="#777777",
             font=ctk.CTkFont(size=11),
@@ -51,7 +56,11 @@ def render_filtered_presets(app: Any, *_args: Any) -> None:
         row_offset = 1
 
     for idx, preset in enumerate(filtered):
-        _render_preset_row(app, preset_list, preset, idx + row_offset)
+        _render_preset_row(app, content, preset, idx + row_offset)
+
+    for child in old_children:
+        child.destroy()
+    app.silent_director_preset_list_content = content
 
 
 def _render_preset_row(app: Any, preset_list: Any, preset: dict, row_index: int) -> None:

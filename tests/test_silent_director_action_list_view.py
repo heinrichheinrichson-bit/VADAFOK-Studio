@@ -16,11 +16,13 @@ class SilentDirectorActionListViewTests(unittest.TestCase):
         self.assertIn("return render_actions_list(self)", source)
         self.assertNotIn("No actions yet. Add one below.", source)
 
+    @patch("vadafok_studio.silent_director.action_list_view.ctk.CTkFrame")
     @patch("vadafok_studio.silent_director.action_list_view.ctk.CTkLabel")
-    def test_empty_timeline_renders_hint_and_resets_widget_state(self, label):
+    def test_empty_timeline_renders_hint_and_resets_widget_state(self, label, frame_class):
         child = Mock()
         frame = Mock()
         frame.winfo_children.return_value = [child]
+        frame_class.return_value = Mock()
         app = SimpleNamespace(
             silent_director_actions_frame=frame,
             silent_director_action_rows=[Mock()],
@@ -45,7 +47,7 @@ class SilentDirectorActionListViewTests(unittest.TestCase):
     ):
         container = Mock()
         container.winfo_children.return_value = []
-        widgets = [Mock() for _ in range(4)]
+        widgets = [Mock() for _ in range(5)]
         frame_class.side_effect = widgets
         badge, drag_handle, detail_label, runtime_label = [Mock() for _ in range(4)]
         label_class.side_effect = [badge, drag_handle, detail_label, runtime_label]

@@ -27,8 +27,10 @@ def render_actions_list(app: Any) -> None:
     if frame is None:
         return
 
-    for child in frame.winfo_children():
-        child.destroy()
+    old_children = list(frame.winfo_children())
+    content = ctk.CTkFrame(frame, fg_color="transparent")
+    content.grid(row=0, column=0, sticky="ew")
+    content.grid_columnconfigure(0, weight=1)
 
     app.silent_director_action_rows = []
     app.director_action_card_widgets = {}
@@ -40,14 +42,21 @@ def render_actions_list(app: Any) -> None:
     actions = list(preset.get("actions", []) or [])
     if not actions:
         ctk.CTkLabel(
-            frame,
+            content,
             text="No actions yet. Add one below.",
             text_color="#777777",
         ).grid(row=0, column=0, padx=12, pady=8, sticky="w")
+        for child in old_children:
+            child.destroy()
+        app.silent_director_actions_content = content
         return
 
     for index, action in enumerate(actions):
-        _render_action_card(app, frame, actions, action, index)
+        _render_action_card(app, content, actions, action, index)
+
+    for child in old_children:
+        child.destroy()
+    app.silent_director_actions_content = content
 
     app.director_set_active_action(
         getattr(app, "director_active_action_index", None)

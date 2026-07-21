@@ -22,9 +22,11 @@ class SilentDirectorPresetListViewTests(unittest.TestCase):
 
     @patch("vadafok_studio.silent_director.preset_list_view.ctk.CTkButton")
     @patch("vadafok_studio.silent_director.preset_list_view.ctk.CTkLabel")
-    def test_empty_search_result_offers_clear_search(self, label, button):
+    @patch("vadafok_studio.silent_director.preset_list_view.ctk.CTkFrame")
+    def test_empty_search_result_offers_clear_search(self, frame_class, label, button):
         frame = Mock()
         frame.winfo_children.return_value = []
+        frame_class.return_value = Mock()
         app = SimpleNamespace(
             silent_director_preset_list_frame=frame,
             silent_director_filtered_presets=Mock(return_value=[]),
