@@ -5,8 +5,6 @@ continues to provide its established state and callbacks. No behavior is
 changed by this extraction.
 """
 
-import tkinter as tk
-
 import customtkinter as ctk
 
 from ..core import export_engine
@@ -16,6 +14,7 @@ from ..core.template_store import (
     get_default_template,
     list_templates,
 )
+from .workspace_view import CardWorkspaceAccordion
 
 GOLD = "#D6A43A"
 GOLD_DARK = "#8A641D"
@@ -166,48 +165,34 @@ def show_card_creator_page(app):
     form.grid_columnconfigure(0, weight=1)
     form.grid_rowconfigure(0, weight=1)
 
-    # A plain vertical PanedWindow deliberately keeps the workspace simple:
-    # the user controls the height of every section directly with the two
-    # sash handles. No automatic geometry state is involved.
-    workspace = tk.PanedWindow(
-        form,
-        orient=tk.VERTICAL,
-        bg=PANEL,
-        bd=0,
-        relief=tk.FLAT,
-        sashwidth=8,
-        sashrelief=tk.FLAT,
-        showhandle=False,
-        opaqueresize=True,
-    )
-    workspace.grid(row=0, column=0, sticky="nsew", padx=18, pady=18)
-    app.card_workspace_paned = workspace
+    def remember_workspace_section(section_key):
+        app.config_data["card_workspace_section"] = section_key
+        save_config(app.config_data)
 
-    card_pane = ctk.CTkFrame(workspace, fg_color="#0B0B0B", corner_radius=12)
+    workspace = CardWorkspaceAccordion(
+        form,
+        active_key=app.config_data.get("card_workspace_section", "card_data"),
+        on_change=remember_workspace_section,
+    )
+    workspace.frame.grid(row=0, column=0, sticky="nsew", padx=18, pady=18)
+    app.card_workspace_accordion = workspace
+
+    card_pane = workspace.add_section("card_data", "Card Data")
     card_pane.grid_columnconfigure(0, weight=1)
-    card_pane.grid_rowconfigure(1, weight=1)
-    ctk.CTkLabel(
-        card_pane, text="Card Data", text_color=GOLD,
-        font=ctk.CTkFont(size=18, weight="bold")
-    ).grid(row=0, column=0, padx=12, pady=(12, 8), sticky="w")
+    card_pane.grid_rowconfigure(0, weight=1)
 
     app.card_form_frame = ctk.CTkScrollableFrame(
         card_pane, fg_color="#080808", corner_radius=10
     )
-    app.card_form_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
+    app.card_form_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
     app.card_form_frame.grid_columnconfigure(0, weight=1)
 
-    batch_box = ctk.CTkFrame(workspace, fg_color="#0B0B0B", corner_radius=12)
+    batch_box = workspace.add_section("batch_cards", "Batch Cards")
     batch_box.grid_columnconfigure(0, weight=1)
     batch_box.grid_rowconfigure(2, weight=1)
 
-    ctk.CTkLabel(
-        batch_box, text="Batch Cards", text_color=GOLD,
-        font=ctk.CTkFont(size=16, weight="bold")
-    ).grid(row=0, column=0, padx=10, pady=(10, 6), sticky="w")
-
     batch_actions = ctk.CTkFrame(batch_box, fg_color="transparent")
-    batch_actions.grid(row=1, column=0, padx=10, pady=(0, 6), sticky="ew")
+    batch_actions.grid(row=0, column=0, padx=10, pady=(8, 6), sticky="ew")
     batch_actions.grid_columnconfigure((0, 1), weight=1)
     ctk.CTkButton(batch_actions, text="+ ADD CURRENT", fg_color="#333333", hover_color="#444444", command=app.card_batch_add_current).grid(row=0, column=0, padx=(0, 4), pady=2, sticky="ew")
     ctk.CTkButton(batch_actions, text="RENDER BATCH", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=app.card_render_batch).grid(row=0, column=1, padx=(4, 0), pady=2, sticky="ew")
@@ -222,18 +207,13 @@ def show_card_creator_page(app):
     )
     app.card_batch_body.grid(row=2, column=0, sticky="nsew", padx=10, pady=(0, 10))
 
-    output_pane = ctk.CTkFrame(workspace, fg_color="#0B0B0B", corner_radius=12)
+    output_pane = workspace.add_section("output", "Output")
     output_pane.grid_columnconfigure(0, weight=1)
-    output_pane.grid_rowconfigure(1, weight=1)
-    ctk.CTkLabel(
-        output_pane, text="Output", text_color=GOLD,
-        font=ctk.CTkFont(size=16, weight="bold")
-    ).grid(row=0, column=0, padx=10, pady=(10, 6), sticky="w")
-
+    output_pane.grid_rowconfigure(0, weight=1)
     output_scroll = ctk.CTkScrollableFrame(
         output_pane, fg_color="#080808", corner_radius=10
     )
-    output_scroll.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
+    output_scroll.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
     output_scroll.grid_columnconfigure(0, weight=1)
 
     ctk.CTkLabel(output_scroll, text="Output Name", text_color="#BCA870").grid(row=0, column=0, padx=10, pady=(10, 2), sticky="w")
@@ -271,48 +251,6 @@ def show_card_creator_page(app):
         wraplength=260, justify="left"
     )
     app.card_render_status.grid(row=2, column=0, columnspan=2, pady=(8, 0), sticky="w")
-
-    workspace.add(card_pane, minsize=90, stretch="always")
-    workspace.add(batch_box, minsize=90, stretch="always")
-    workspace.add(output_pane, minsize=90, stretch="always")
-
-    def restore_workspace_sashes():
-        """Restore the user's two splitter positions after geometry is ready."""
-        saved = app.config_data.get("card_workspace_sashes")
-        if not isinstance(saved, list) or len(saved) != 2:
-            return
-
-        try:
-            ratios = [float(value) for value in saved]
-        except (TypeError, ValueError):
-            return
-
-        height = workspace.winfo_height()
-        if height <= 1:
-            app.after(50, restore_workspace_sashes)
-            return
-
-        first = max(90, min(height - 188, round(height * ratios[0])))
-        second = max(first + 98, min(height - 90, round(height * ratios[1])))
-        workspace.sash_place(0, 0, first)
-        workspace.sash_place(1, 0, second)
-
-    def save_workspace_sashes(_event=None):
-        """Persist splitter positions when the user finishes dragging a sash."""
-        height = workspace.winfo_height()
-        if height <= 1:
-            return
-
-        try:
-            positions = [workspace.sash_coord(index)[1] / height for index in (0, 1)]
-        except tk.TclError:
-            return
-
-        app.config_data["card_workspace_sashes"] = [round(value, 6) for value in positions]
-        save_config(app.config_data)
-
-    workspace.bind("<ButtonRelease-1>", save_workspace_sashes, add="+")
-    app.after_idle(restore_workspace_sashes)
 
     app.card_build_form()
     app.card_build_batch_panel()
