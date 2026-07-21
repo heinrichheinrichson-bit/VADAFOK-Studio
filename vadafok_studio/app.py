@@ -49,6 +49,8 @@ from .template_editor import mouse_controller
 from .template_editor import selection_controller
 from .template_editor import layer_controller
 from .template_editor import field_controller
+from .template_editor import layout_actions
+from .template_editor import group_controller
 from .library import LibraryController
 from .library.page import show_library_page
 from .library.grid_view import render_asset_grid, render_folder_overview
@@ -1220,80 +1222,10 @@ class VadafokStudio(ctk.CTk):
         return sorted(idx for idx in selected if 0 <= idx < count and not template.get('fields', [])[idx].get('hidden', False))
 
     def template_align_selected(self, mode):
-        self.template_push_history('align')
-        template = self.template_current()
-        fields = template.get("fields", [])
-        selected = self.template_selected_unlocked_indices() if hasattr(self, "template_selected_unlocked_indices") else self.template_selected_indices()
-
-        if len(selected) < 2:
-            messagebox.showwarning("Template Editor", "Bitte mindestens zwei Felder auswählen.")
-            return
-
-        selected_fields = [fields[i] for i in selected]
-
-        left = min(int(f.get("x", 0)) for f in selected_fields)
-        right = max(int(f.get("x", 0)) + int(f.get("width", 0)) for f in selected_fields)
-        top = min(int(f.get("y", 0)) for f in selected_fields)
-        bottom = max(int(f.get("y", 0)) + int(f.get("height", 0)) for f in selected_fields)
-        center_x = (left + right) // 2
-        center_y = (top + bottom) // 2
-
-        for f in selected_fields:
-            w = int(f.get("width", 0))
-            h = int(f.get("height", 0))
-
-            if mode == "left":
-                f["x"] = left
-            elif mode == "center":
-                f["x"] = center_x - w // 2
-            elif mode == "right":
-                f["x"] = right - w
-            elif mode == "top":
-                f["y"] = top
-            elif mode == "middle":
-                f["y"] = center_y - h // 2
-            elif mode == "bottom":
-                f["y"] = bottom - h
-
-        save_template(self.template_selected_name, template)
-        self.template_draw_canvas()
+        return layout_actions.align_selected(self, mode)
 
     def template_distribute_selected(self, axis):
-        self.template_push_history('distribute')
-        template = self.template_current()
-        fields = template.get("fields", [])
-        selected = self.template_selected_unlocked_indices() if hasattr(self, "template_selected_unlocked_indices") else self.template_selected_indices()
-
-        if len(selected) < 3:
-            messagebox.showwarning("Template Editor", "Zum Verteilen bitte mindestens drei Felder auswählen.")
-            return
-
-        selected_fields = [fields[i] for i in selected]
-
-        if axis == "horizontal":
-            selected_fields.sort(key=lambda f: int(f.get("x", 0)))
-            first = selected_fields[0]
-            last = selected_fields[-1]
-            start = int(first.get("x", 0))
-            end = int(last.get("x", 0))
-            if len(selected_fields) > 1:
-                step = (end - start) / (len(selected_fields) - 1)
-                for i, f in enumerate(selected_fields):
-                    f["x"] = int(round(start + step * i))
-
-        elif axis == "vertical":
-            selected_fields.sort(key=lambda f: int(f.get("y", 0)))
-            first = selected_fields[0]
-            last = selected_fields[-1]
-            start = int(first.get("y", 0))
-            end = int(last.get("y", 0))
-            if len(selected_fields) > 1:
-                step = (end - start) / (len(selected_fields) - 1)
-                for i, f in enumerate(selected_fields):
-                    f["y"] = int(round(start + step * i))
-
-        save_template(self.template_selected_name, template)
-        self.template_draw_canvas()
+        return layout_actions.distribute_selected(self, axis)
 
 
 
@@ -1883,76 +1815,10 @@ class VadafokStudio(ctk.CTk):
         self.template_build_layers_panel()
 
     def template_create_group(self):
-        self.template_ensure_field_ids()
-        selected = self.template_selected_indices() if hasattr(self, "template_selected_indices") else []
-
-        if len(selected) < 2:
-            messagebox.showwarning("Template Editor", "Bitte mindestens zwei Felder auswählen.")
-            return
-
-        template = self.template_current()
-        groups = template.setdefault("groups", [])
-
-        selected_ids = [self.template_field_id(idx) for idx in selected]
-        selected_ids = [fid for fid in selected_ids if fid]
-
-        if len(selected_ids) < 2:
-            messagebox.showwarning("Template Editor", "Für eine Gruppe sind mindestens zwei gültige Felder nötig.")
-            return
-
-        if hasattr(self, "template_push_history"):
-            self.template_push_history("group fields")
-
-        # Remove selected fields from existing groups so a field belongs to only one group.
-        for group in groups:
-            group["field_ids"] = [fid for fid in group.get("field_ids", []) if fid not in selected_ids]
-            group.pop("fields", None)
-        groups[:] = [g for g in groups if g.get("field_ids")]
-
-        base = "Group"
-        existing = {g.get("name", "") for g in groups}
-        name = base
-        n = 2
-        while name in existing:
-            name = f"{base} {n}"
-            n += 1
-
-        groups.append({
-            "id": self.template_new_id(),
-            "name": name,
-            "field_ids": selected_ids,
-            "locked": False,
-            "hidden": False,
-        })
-
-        save_template(self.template_selected_name, template)
-        self.template_update_fields_overlay()
-        self.template_build_layers_panel()
+        return group_controller.create_group(self)
 
     def template_ungroup_selected(self):
-        self.template_clean_groups()
-        selected = self.template_selected_indices() if hasattr(self, "template_selected_indices") else []
-        selected_ids = {self.template_field_id(idx) for idx in selected}
-        selected_ids.discard(None)
-
-        group_ids = set()
-        for group in self.template_groups():
-            if selected_ids.intersection(set(group.get("field_ids", []))):
-                group_ids.add(group.get("id"))
-
-        if not group_ids:
-            messagebox.showwarning("Template Editor", "Keine Gruppe ausgewählt.")
-            return
-
-        if hasattr(self, "template_push_history"):
-            self.template_push_history("ungroup fields")
-
-        template = self.template_current()
-        template["groups"] = [g for g in template.get("groups", []) if g.get("id") not in group_ids]
-
-        save_template(self.template_selected_name, template)
-        self.template_update_fields_overlay()
-        self.template_build_layers_panel()
+        return group_controller.ungroup_selected(self)
 
 
 
@@ -2003,59 +1869,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_equal_spacing_selected(self, axis):
-        template = self.template_current()
-        fields = template.get("fields", [])
-
-        selected = (
-            self.template_selected_unlocked_indices()
-            if hasattr(self, "template_selected_unlocked_indices")
-            else (self.template_selected_indices() if hasattr(self, "template_selected_indices") else [])
-        )
-
-        selected = [
-            idx for idx in selected
-            if 0 <= idx < len(fields) and not fields[idx].get("hidden", False)
-        ]
-
-        if len(selected) < 3:
-            messagebox.showwarning("Template Editor", "Equal Spacing braucht mindestens drei ungesperrte, sichtbare Felder.")
-            return
-
-        if hasattr(self, "template_push_history"):
-            self.template_push_history("equal spacing")
-
-        selected_fields = [fields[i] for i in selected]
-
-        if axis == "horizontal":
-            selected_fields.sort(key=lambda f: int(f.get("x", 0)))
-            left = min(int(f.get("x", 0)) for f in selected_fields)
-            right = max(int(f.get("x", 0)) + int(f.get("width", 0)) for f in selected_fields)
-            total_width = sum(int(f.get("width", 0)) for f in selected_fields)
-            gaps = len(selected_fields) - 1
-            gap = (right - left - total_width) / gaps if gaps else 0
-
-            cursor = left
-            for f in selected_fields:
-                f["x"] = int(round(cursor))
-                cursor += int(f.get("width", 0)) + gap
-
-        elif axis == "vertical":
-            selected_fields.sort(key=lambda f: int(f.get("y", 0)))
-            top = min(int(f.get("y", 0)) for f in selected_fields)
-            bottom = max(int(f.get("y", 0)) + int(f.get("height", 0)) for f in selected_fields)
-            total_height = sum(int(f.get("height", 0)) for f in selected_fields)
-            gaps = len(selected_fields) - 1
-            gap = (bottom - top - total_height) / gaps if gaps else 0
-
-            cursor = top
-            for f in selected_fields:
-                f["y"] = int(round(cursor))
-                cursor += int(f.get("height", 0)) + gap
-
-        save_template(self.template_selected_name, template)
-        self.template_draw_canvas()
-        if hasattr(self, "template_layers_body"):
-            self.template_build_layers_panel()
+        return layout_actions.equal_spacing_selected(self, axis)
 
 
 
