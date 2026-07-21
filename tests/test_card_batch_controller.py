@@ -35,6 +35,14 @@ def make_app():
     )
 
 
+def make_controller(app, batch_engine=None):
+    return CardBatchController(
+        app,
+        lambda: ["Default"],
+        batch_engine or Mock(),
+    )
+
+
 class CardBatchControllerTests(unittest.TestCase):
     def test_app_batch_mutation_methods_are_thin_adapters(self):
         app_path = Path(__file__).resolve().parents[1] / "vadafok_studio" / "app.py"
@@ -48,6 +56,9 @@ class CardBatchControllerTests(unittest.TestCase):
             "card_batch_remove_selected": "self.card_batch_controller.remove_selected()",
             "card_batch_clear": "self.card_batch_controller.clear()",
             "card_batch_select": "self.card_batch_controller.select(idx)",
+            "card_save_batch_project": "self.card_batch_controller.save_project()",
+            "card_load_batch_project": "self.card_batch_controller.load_project()",
+            "card_import_batch_file": "self.card_batch_controller.import_file()",
         }
         methods = {node.name: node for node in studio.body if isinstance(node, ast.FunctionDef)}
 
@@ -59,7 +70,7 @@ class CardBatchControllerTests(unittest.TestCase):
 
     def test_add_current_captures_values_and_selects_new_item(self):
         app = make_app()
-        CardBatchController(app, lambda: ["Default"]).add_current()
+        make_controller(app).add_current()
         self.assertEqual(app.card_batch_items[0]["values"], {"title": "Hello"})
         self.assertEqual(app.card_batch_items[0]["output_name"], "show_card")
         self.assertEqual(app.card_batch_selected_index, 0)
@@ -71,7 +82,7 @@ class CardBatchControllerTests(unittest.TestCase):
         original = {"template": "Default", "output_name": "show_card", "profile": "Broadcast PNG", "values": {"title": "Hello"}}
         app.card_batch_items = [original]
         app.card_batch_selected_index = 0
-        CardBatchController(app, lambda: ["Default"]).duplicate_selected()
+        make_controller(app).duplicate_selected()
         self.assertEqual(app.card_batch_items[1]["output_name"], "show_card_copy")
         self.assertIsNot(app.card_batch_items[1]["values"], original["values"])
         self.assertEqual(app.card_batch_selected_index, 1)
@@ -80,7 +91,7 @@ class CardBatchControllerTests(unittest.TestCase):
         app = make_app()
         app.card_batch_items = [{"output_name": "one"}]
         with patch("vadafok_studio.card_creator.batch_controller.messagebox.showinfo") as info:
-            CardBatchController(app, lambda: ["Default"]).remove_selected()
+            make_controller(app).remove_selected()
         self.assertEqual(app.card_batch_items, [{"output_name": "one"}])
         info.assert_called_once()
         app.card_build_batch_panel.assert_not_called()
@@ -89,7 +100,7 @@ class CardBatchControllerTests(unittest.TestCase):
         app = make_app()
         app.card_batch_items = [{"output_name": "one"}]
         with patch("vadafok_studio.card_creator.batch_controller.messagebox.askyesno", return_value=True):
-            CardBatchController(app, lambda: ["Default"]).clear()
+            make_controller(app).clear()
         self.assertEqual(app.card_batch_items, [])
         self.assertIsNone(app.card_batch_selected_index)
         app.card_build_batch_panel.assert_called_once_with()
@@ -98,7 +109,7 @@ class CardBatchControllerTests(unittest.TestCase):
         app = make_app()
         app.card_output_name = Variable("  ")
         self.assertEqual(
-            CardBatchController(app, lambda: ["Default"]).current_item_name(),
+            make_controller(app).current_item_name(),
             "default_card",
         )
 
@@ -111,7 +122,7 @@ class CardBatchControllerTests(unittest.TestCase):
             "values": {"title": "Selected title"},
         }]
 
-        CardBatchController(app, lambda: ["Default"]).select(0)
+        make_controller(app).select(0)
 
         self.assertEqual(app.card_batch_selected_index, 0)
         self.assertEqual(app.card_output_name.get(), "selected_card")
@@ -128,7 +139,109 @@ class CardBatchControllerTests(unittest.TestCase):
     def test_select_ignores_out_of_range_index(self):
         app = make_app()
 
-        CardBatchController(app, lambda: ["Default"]).select(4)
+        make_controller(app).select(4)
 
         self.assertIsNone(app.card_batch_selected_index)
         app.card_build_form.assert_not_called()
+
+    def test_save_project_passes_current_items_to_engine(self):
+        app = make_app()
+        app.card_batch_items = [{"output_name": "one"}]
+        engine = Mock()
+        engine.batch_projects_dir.return_value = Path("batch_projects")
+        engine.save_batch_project_file.return_value = "saved.vbatch"
+
+        with patch(
+            "vadafok_studio.card_creator.batch_controller.filedialog.asksaveasfilename",
+            return_value="saved.vbatch",
+        ), patch("vadafok_studio.card_creator.batch_controller.messagebox.showinfo"):
+            make_controller(app, engine).save_project()
+
+        engine.save_batch_project_file.assert_called_once_with(
+            "saved.vbatch", app.card_batch_items
+        )
+
+    def test_load_project_replaces_items_and_selects_first(self):
+        app = make_app()
+        loaded = [{
+            "template": "Default",
+            "output_name": "loaded",
+            "profile": "Broadcast PNG",
+            "values": {"title": "Loaded title"},
+        }]
+        engine = Mock()
+        engine.batch_projects_dir.return_value = Path("batch_projects")
+        engine.load_batch_project_file.return_value = loaded
+
+        with patch(
+            "vadafok_studio.card_creator.batch_controller.filedialog.askopenfilename",
+            return_value="saved.vbatch",
+        ), patch("vadafok_studio.card_creator.batch_controller.messagebox.showinfo"):
+            make_controller(app, engine).load_project()
+
+        self.assertEqual(app.card_batch_items, loaded)
+        self.assertEqual(app.card_batch_selected_index, 0)
+        self.assertEqual(app.card_output_name.get(), "loaded")
+        self.assertEqual(
+            app.card_creator_values["Default"]["title"].get(), "Loaded title"
+        )
+
+    def test_cancelled_project_dialogs_do_not_change_items(self):
+        app = make_app()
+        app.card_batch_items = [{"output_name": "existing"}]
+        engine = Mock()
+        engine.batch_projects_dir.return_value = Path("batch_projects")
+
+        with patch(
+            "vadafok_studio.card_creator.batch_controller.filedialog.askopenfilename",
+            return_value="",
+        ):
+            make_controller(app, engine).load_project()
+
+        self.assertEqual(app.card_batch_items, [{"output_name": "existing"}])
+        engine.load_batch_project_file.assert_not_called()
+
+    def test_import_file_adds_only_rows_with_matching_values(self):
+        app = make_app()
+        app.card_template = Mock(return_value={"fields": [{"name": "title"}]})
+        engine = Mock()
+        engine.read_table.return_value = [{"title": "Imported"}]
+        engine.rows_to_batch_items.return_value = [
+            {"output_name": "matched", "values": {"title": "Imported"}},
+            {"output_name": "unmatched", "values": {}},
+        ]
+
+        with patch(
+            "vadafok_studio.card_creator.batch_controller.filedialog.askopenfilename",
+            return_value="cards.csv",
+        ), patch("vadafok_studio.card_creator.batch_controller.messagebox.showinfo"):
+            make_controller(app, engine).import_file()
+
+        engine.read_table.assert_called_once_with(Path("cards.csv"))
+        self.assertEqual(
+            app.card_batch_items,
+            [{"output_name": "matched", "values": {"title": "Imported"}}],
+        )
+        self.assertEqual(app.card_batch_selected_index, 0)
+        app.card_build_batch_panel.assert_called_once_with()
+
+    def test_import_file_warns_when_no_columns_match(self):
+        app = make_app()
+        app.card_template = Mock(return_value={"fields": [{"name": "title"}]})
+        engine = Mock()
+        engine.read_table.return_value = [{"other": "value"}]
+        engine.rows_to_batch_items.return_value = [
+            {"output_name": "unmatched", "values": {}}
+        ]
+
+        with patch(
+            "vadafok_studio.card_creator.batch_controller.filedialog.askopenfilename",
+            return_value="cards.csv",
+        ), patch(
+            "vadafok_studio.card_creator.batch_controller.messagebox.showwarning"
+        ) as warning:
+            make_controller(app, engine).import_file()
+
+        self.assertEqual(app.card_batch_items, [])
+        warning.assert_called_once()
+        app.card_build_batch_panel.assert_not_called()
