@@ -21,6 +21,7 @@ from .template_editor import TemplateEditorController, TemplateRefreshManager
 from .library import LibraryController
 from .banner_editor.controller import BannerEditorController
 from .obs_workflow.controller import OBSWorkflowController
+from .settings.controller import SettingsController
 from .core.image_view import load_rgba, fit_image_to_box, pil_to_tk_photo_data, image_status
 from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card
 from .core import style_engine
@@ -73,6 +74,7 @@ class VadafokStudio(ctk.CTk):
             LOGGER.warning("Unable to configure application icon", exc_info=True)
 
         self.config_data = load_config()
+        self.settings_controller = SettingsController(self)
         self.favorites = load_favorites()
         self.asset_meta = load_asset_meta()
         self.banner_profiles = load_banner_profiles()
@@ -8575,16 +8577,10 @@ class VadafokStudio(ctk.CTk):
         self.destroy()
 
     def show_settings_page(self):
-        from vadafok_studio.settings.page import show_settings_page
-
-        return show_settings_page(self)
-
+        return self.settings_controller.show_settings_page()
 
     def browse_project_folder(self):
-        folder = filedialog.askdirectory(title="VADAFOK Projektordner wählen")
-        if folder:
-            self.project_folder.set(folder)
-            self.save_config()
+        return self.settings_controller.browse_project_folder()
 
     def update_preview(self):
         if hasattr(self, "message_box"):
@@ -8639,40 +8635,7 @@ class VadafokStudio(ctk.CTk):
             messagebox.showerror("OBS Verbindung fehlgeschlagen", str(e))
 
     def save_config(self):
-        self.config_data.update({
-            "host": self.host.get(),
-            "port": self.port.get(),
-            "password": self.password.get(),
-            "scene_name": self.scene_name.get(),
-            "caption_group": self.caption_group.get(),
-            "caption_text": self.caption_text.get(),
-            "caption_banner_source": self.caption_banner_source.get(),
-            "caption_render_source": self.caption_render_source.get(),
-            "scene_card_source": self.scene_card_source.get(),
-            "duration": self.duration.get(),
-            "project_folder": self.project_folder.get(),
-            "caption_engine": self.caption_engine.get(),
-            "caption_font_family": self.caption_font_family.get(),
-            "caption_font_size": int(self.caption_font_size.get()),
-            "caption_text_color": self.caption_text_color.get(),
-            "caption_stroke_color": self.caption_stroke_color.get(),
-            "caption_stroke_width": int(self.caption_stroke_width.get()),
-            "caption_render_width": int(self.caption_render_width.get()),
-            "caption_render_height": int(self.caption_render_height.get()),
-            "caption_uppercase": bool(self.caption_uppercase.get()),
-            "caption_safe_left": int(self.caption_safe_left.get()),
-            "caption_safe_right": int(self.caption_safe_right.get()),
-            "caption_safe_top": int(self.caption_safe_top.get()),
-            "caption_safe_bottom": int(self.caption_safe_bottom.get()),
-            "voice_enabled": bool(self.voice_enabled.get()),
-            "voice_trigger_phrase": self.voice_trigger_phrase.get().strip() or "live card",
-            "voice_culture": self.voice_culture.get().strip() or "de-DE",
-            "stream_effect_source": (
-                self.stream_effect_source.get().strip()
-                or "VADAFOK Stream Effect"
-            ),
-        })
-        save_config(self.config_data)
+        return self.settings_controller.save_config()
 
     def current_scene(self):
         return self.obs.current_scene(self.scene_name.get().strip())

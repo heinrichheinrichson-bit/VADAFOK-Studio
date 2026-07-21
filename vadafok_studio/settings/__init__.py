@@ -1,5 +1,5 @@
-"""Settings page package."""
+"""Settings controller package."""
 
-from .page import show_settings_page
+from .controller import SettingsController
 
-__all__ = ["show_settings_page"]
+__all__ = ["SettingsController"]
