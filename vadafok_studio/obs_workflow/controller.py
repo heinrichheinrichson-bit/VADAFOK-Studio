@@ -11,6 +11,7 @@ from tkinter import messagebox
 
 from ..core.obs_controller import OBSController
 from ..core import obs_workflow, scene_favorites
+from .page import show_obs_workflow_page
 
 GOLD = "#D6A43A"
 TEXT = "#F2E2B6"
@@ -21,6 +22,9 @@ class OBSWorkflowController:
 
     def __init__(self, app):
         self.app = app
+
+    def show_obs_workflow_page(self):
+        return show_obs_workflow_page(self.app)
 
     def obs_workflow_set_sidebar_status(self, connected):
         app = self.app
@@ -852,6 +856,5 @@ class OBSWorkflowController:
         )
 
         app.show_obs_workflow_page()
-
 
 
