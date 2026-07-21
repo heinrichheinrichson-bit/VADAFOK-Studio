@@ -29,3 +29,13 @@ vadafok_launcher.log
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Runtime-generated Card Creator exports
+exports/*
+!exports/.gitkeep
+
+# Local Card Creator templates (keep bundled default)
+data/templates/*
+!data/templates/.gitkeep
+!data/templates/Default_Stream_Plan/
+!data/templates/Default_Stream_Plan/**

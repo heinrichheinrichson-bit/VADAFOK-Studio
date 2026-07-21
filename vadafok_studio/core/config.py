@@ -15,6 +15,9 @@ CARD_VALUES_PATH = DATA_DIR / "card_values.json"
 
 DEFAULT_CONFIG = {
     "project_folder": "",
+    "card_output_folder": "",
+    "card_batch_output_folder": "",
+    "card_ask_output_location": False,
     "host": "localhost",
     "port": "4455",
     "password": "",

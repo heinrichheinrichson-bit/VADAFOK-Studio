@@ -250,6 +250,15 @@ class VadafokStudio(ctk.CTk):
         self.duration = ctk.StringVar(value=self.config_data["duration"])
         self.style = ctk.StringVar(value=self.config_data["style"])
         self.project_folder = ctk.StringVar(value=self.config_data.get("project_folder", ""))
+        self.card_output_folder = ctk.StringVar(
+            value=str(self.config_data.get("card_output_folder", "") or EXPORT_DIR)
+        )
+        self.card_batch_output_folder = ctk.StringVar(
+            value=str(self.config_data.get("card_batch_output_folder", "") or EXPORT_DIR)
+        )
+        self.card_ask_output_location = ctk.BooleanVar(
+            value=bool(self.config_data.get("card_ask_output_location", False))
+        )
         self.sound_service = SoundService(self.project_folder.get())
         self.stream_effect_enabled = ctk.BooleanVar(
             value=bool(self.config_data.get("stream_effect_enabled", False))
@@ -4475,12 +4484,44 @@ class VadafokStudio(ctk.CTk):
     def card_default_output_name(self):
         return f"card_{self.card_template_safe_name()}"
 
-    def card_output_path(self, final=False):
+    def card_output_directory(self, batch=False):
+        var = self.card_batch_output_folder if batch else self.card_output_folder
+        value = var.get().strip() if hasattr(var, "get") else ""
+        folder = Path(value).expanduser() if value else EXPORT_DIR
+        folder.mkdir(parents=True, exist_ok=True)
+        return folder
+
+    def card_output_path(self, final=False, output_dir=None):
         base = self.card_output_name.get().strip() if hasattr(self, "card_output_name") else ""
         if not base:
             base = self.card_default_output_name()
         profile = self.card_export_profile.get() if hasattr(self, "card_export_profile") else "Broadcast PNG"
-        return export_engine.export_path(EXPORT_DIR, base, profile, final=final)
+        target_dir = Path(output_dir) if output_dir is not None else (self.card_output_directory() if final else EXPORT_DIR)
+        target_dir.mkdir(parents=True, exist_ok=True)
+        return export_engine.export_path(target_dir, base, profile, final=final)
+
+    def card_choose_final_output_path(self):
+        default_path = self.card_output_path(final=True)
+        if not self.card_ask_output_location.get():
+            return default_path
+        selected = filedialog.asksaveasfilename(
+            title="Card Creator – Karte speichern",
+            initialdir=str(default_path.parent),
+            initialfile=default_path.name,
+            defaultextension=default_path.suffix,
+            filetypes=[("Bilddatei", f"*{default_path.suffix}"), ("Alle Dateien", "*.*")],
+        )
+        return Path(selected) if selected else None
+
+    def card_choose_batch_output_directory(self):
+        default_dir = self.card_output_directory(batch=True)
+        if not self.card_ask_output_location.get():
+            return default_dir
+        selected = filedialog.askdirectory(
+            title="Card Creator – Batch-Ausgabeordner wählen",
+            initialdir=str(default_dir),
+        )
+        return Path(selected) if selected else None
 
     def card_preview_changed(self):
         self.card_save_values()
@@ -4498,10 +4539,10 @@ class VadafokStudio(ctk.CTk):
 
     def card_open_export_folder(self):
         try:
-            EXPORT_DIR.mkdir(parents=True, exist_ok=True)
-            os.startfile(str(EXPORT_DIR))
+            folder = self.card_output_directory()
+            os.startfile(str(folder))
         except Exception as e:
-            messagebox.showerror("Card Creator", f"Export-Ordner konnte nicht geöffnet werden:\\n{e}")
+            messagebox.showerror("Card Creator", f"Export-Ordner konnte nicht geöffnet werden:\n{e}")
 
     def card_copy_last_path(self):
         if not self.card_creator_last_render:
@@ -4762,6 +4803,10 @@ class VadafokStudio(ctk.CTk):
             messagebox.showinfo("Batch Cards", "Batch-Liste ist leer.")
             return
 
+        batch_output_dir = self.card_choose_batch_output_directory()
+        if batch_output_dir is None:
+            return
+
         rendered = []
         old_template = self.card_selected_template.get()
         old_output = self.card_output_name.get()
@@ -4787,7 +4832,7 @@ class VadafokStudio(ctk.CTk):
                     if hasattr(var, "set"):
                         var.set(str(item.get("values", {}).get(key, "")))
 
-                out = self.card_render_to_file(final=True)
+                out = self.card_render_to_file(final=True, output_dir=batch_output_dir)
                 rendered.append(str(out))
 
             self.card_render_status.configure(text=f"Batch gerendert: {len(rendered)} Datei(en)", text_color="#8FE6A0")
@@ -5183,12 +5228,13 @@ class VadafokStudio(ctk.CTk):
         return ""
 
 
-    def card_render_to_file(self, final=False):
+    def card_render_to_file(self, final=False, output_dir=None, output_path=None):
         # First render to a temporary PNG using the existing layout engine, then apply export profile.
+        EXPORT_DIR.mkdir(parents=True, exist_ok=True)
         temp = EXPORT_DIR / "_vadafok_card_temp_profile_source.png"
         render_template_card(self.card_template(), self.card_values_plain(), temp, self.card_background_path(), size=None)
 
-        out = self.card_output_path(final=final)
+        out = Path(output_path) if output_path is not None else self.card_output_path(final=final, output_dir=output_dir)
         profile = self.card_export_profile.get() if hasattr(self, "card_export_profile") else "Broadcast PNG"
         img = Image.open(temp).convert("RGBA")
         export_engine.save_with_profile(img, out, profile)
@@ -5231,7 +5277,10 @@ class VadafokStudio(ctk.CTk):
     def card_render_final(self):
         try:
             self.card_save_values()
-            out = self.card_render_to_file(final=True)
+            output_path = self.card_choose_final_output_path()
+            if output_path is None:
+                return
+            out = self.card_render_to_file(final=True, output_path=output_path)
             self.card_creator_last_render = out
             self.card_render_status.configure(text=f"Gerendert:\\n{out}", text_color="#8FE6A0")
             messagebox.showinfo("Card Creator", f"Karte gerendert:\\n{out}")
@@ -7901,6 +7950,18 @@ class VadafokStudio(ctk.CTk):
 
     def browse_project_folder(self):
         return self.settings_controller.browse_project_folder()
+
+    def browse_card_output_folder(self):
+        return self.settings_controller.browse_card_output_folder()
+
+    def browse_card_batch_output_folder(self):
+        return self.settings_controller.browse_card_batch_output_folder()
+
+    def open_card_output_folder(self):
+        return self.settings_controller.open_card_output_folder()
+
+    def open_card_batch_output_folder(self):
+        return self.settings_controller.open_card_batch_output_folder()
 
     def update_preview(self):
         if hasattr(self, "message_box"):

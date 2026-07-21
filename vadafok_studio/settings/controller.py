@@ -7,7 +7,9 @@ configuration persistence without changing runtime behavior.
 
 from __future__ import annotations
 
-from tkinter import filedialog
+import os
+from pathlib import Path
+from tkinter import filedialog, messagebox
 
 from ..core.config import save_config as persist_config
 
@@ -32,6 +34,34 @@ class SettingsController:
             app.project_folder.set(folder)
             self.save_config()
 
+    def _browse_output_folder(self, variable, title):
+        current = variable.get().strip()
+        folder = filedialog.askdirectory(title=title, initialdir=current or None)
+        if folder:
+            variable.set(folder)
+            self.save_config()
+
+    def browse_card_output_folder(self):
+        self._browse_output_folder(self.app.card_output_folder, "Card Creator – Ausgabeordner wählen")
+
+    def browse_card_batch_output_folder(self):
+        self._browse_output_folder(self.app.card_batch_output_folder, "Card Creator – Batch-Ausgabeordner wählen")
+
+    def _open_output_folder(self, variable, label):
+        try:
+            value = variable.get().strip()
+            folder = Path(value).expanduser() if value else Path.cwd() / "exports"
+            folder.mkdir(parents=True, exist_ok=True)
+            os.startfile(str(folder))
+        except Exception as exc:
+            messagebox.showerror("Settings", f"{label} konnte nicht geöffnet werden:\n{exc}")
+
+    def open_card_output_folder(self):
+        self._open_output_folder(self.app.card_output_folder, "Ausgabeordner")
+
+    def open_card_batch_output_folder(self):
+        self._open_output_folder(self.app.card_batch_output_folder, "Batch-Ausgabeordner")
+
     def save_config(self):
         """Persist the current application settings exactly as before."""
         app = self.app
@@ -47,6 +77,9 @@ class SettingsController:
             "scene_card_source": app.scene_card_source.get(),
             "duration": app.duration.get(),
             "project_folder": app.project_folder.get(),
+            "card_output_folder": app.card_output_folder.get().strip(),
+            "card_batch_output_folder": app.card_batch_output_folder.get().strip(),
+            "card_ask_output_location": bool(app.card_ask_output_location.get()),
             "caption_engine": app.caption_engine.get(),
             "caption_font_family": app.caption_font_family.get(),
             "caption_font_size": int(app.caption_font_size.get()),
