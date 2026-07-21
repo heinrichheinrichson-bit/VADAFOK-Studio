@@ -142,7 +142,7 @@ class CardExportControllerTests(unittest.TestCase):
             app.card_render_status.configure.assert_called_once_with(
                 text=f"Gerendert:\n{output}", text_color="#8FE6A0"
             )
-            app.card_update_preview.assert_called_once_with()
+            app.card_update_preview.assert_not_called()
 
     def test_render_final_cancel_stops_before_render(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -160,6 +160,26 @@ class CardExportControllerTests(unittest.TestCase):
             app.card_save_values.assert_called_once_with()
             app.card_render_to_file.assert_not_called()
             app.card_update_preview.assert_not_called()
+
+    def test_render_final_does_not_overwrite_without_confirmation(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "final.png"
+            output.write_bytes(b"existing")
+            app = make_app(temporary)
+            engine = Mock()
+            engine.export_path.return_value = output
+            controller = CardExportController(
+                app, engine, Path(temporary), Mock()
+            )
+
+            with patch(
+                "vadafok_studio.card_creator.export_controller.messagebox.askyesno",
+                return_value=False,
+            ):
+                controller.render_final()
+
+            app.card_render_to_file.assert_not_called()
+            self.assertEqual(output.read_bytes(), b"existing")
 
     def test_render_final_reports_render_error(self):
         with tempfile.TemporaryDirectory() as temporary:

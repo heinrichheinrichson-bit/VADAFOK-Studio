@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Dict, List, Tuple
+import tempfile
 
 
 EXPORT_PROFILES: Dict[str, Dict[str, object]] = {
@@ -96,9 +97,24 @@ def save_with_profile(image, path: Path, profile_name: str) -> Path:
     profile = get_export_profile(profile_name)
     output = apply_export_profile(image, profile_name)
     path.parent.mkdir(parents=True, exist_ok=True)
-
-    if profile.get("format") == "JPEG":
-        output.save(path, "JPEG", quality=int(profile.get("quality") or 95), optimize=True)
-    else:
-        output.save(path, "PNG")
+    handle = tempfile.NamedTemporaryFile(
+        prefix=f".{path.stem}.",
+        suffix=f".tmp{path.suffix}",
+        dir=path.parent,
+        delete=False,
+    )
+    temporary = Path(handle.name)
+    handle.close()
+    try:
+        if profile.get("format") == "JPEG":
+            output.save(
+                temporary, "JPEG",
+                quality=int(profile.get("quality") or 95), optimize=True,
+            )
+        else:
+            output.save(temporary, "PNG")
+        temporary.replace(path)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
     return path

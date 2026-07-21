@@ -32,9 +32,13 @@ class CardBatchController:
     def add_current(self) -> None:
         try:
             self.app.card_save_values()
+            output_name = self._batch_engine.unique_output_name(
+                self.current_item_name(),
+                (item.get("output_name", "") for item in self.state.batch_items),
+            )
             self.state.batch_items.append({
                 "template": self.app.card_selected_template.get(),
-                "output_name": self.current_item_name(),
+                "output_name": output_name,
                 "profile": self.app.card_export_profile.get(),
                 "values": dict(self.app.card_values_plain()),
             })
@@ -55,9 +59,13 @@ class CardBatchController:
             messagebox.showinfo("Batch Cards", "Bitte zuerst einen Batch-Eintrag auswählen.")
             return
         original = self.state.batch_items[index]
+        output_name = self._batch_engine.unique_output_name(
+            str(original.get("output_name", "card")) + "_copy",
+            (item.get("output_name", "") for item in self.state.batch_items),
+        )
         self.state.batch_items.insert(index + 1, {
             "template": original.get("template", ""),
-            "output_name": str(original.get("output_name", "card")) + "_copy",
+            "output_name": output_name,
             "profile": original.get("profile", "Broadcast PNG"),
             "values": dict(original.get("values", {})),
         })
@@ -70,8 +78,13 @@ class CardBatchController:
             messagebox.showinfo("Batch Cards", "Bitte zuerst einen Batch-Eintrag auswählen.")
             return
         self.state.batch_items.pop(index)
-        self.state.batch_selected_index = None
+        self.state.batch_selected_index = (
+            min(index, len(self.state.batch_items) - 1)
+            if self.state.batch_items else None
+        )
         self.app.card_build_batch_panel()
+        if self.state.batch_selected_index is not None:
+            self.select(self.state.batch_selected_index)
 
     def clear(self) -> None:
         if not self.state.batch_items:
@@ -110,7 +123,11 @@ class CardBatchController:
 
         self.app.card_save_values()
         self.app.card_update_preview()
-        self.app.card_build_batch_panel()
+        update_selection = getattr(self.app, "card_update_batch_selection", None)
+        if callable(update_selection):
+            update_selection()
+        else:
+            self.app.card_build_batch_panel()
 
     def save_project(self) -> None:
         try:
@@ -204,6 +221,9 @@ class CardBatchController:
                 return
 
             fields = self.app.card_template().get("fields", [])
+            matched_columns, ignored_columns = self._batch_engine.analyze_columns(
+                rows, fields
+            )
             items = self._batch_engine.rows_to_batch_items(
                 rows,
                 self.app.card_selected_template.get(),
@@ -228,19 +248,33 @@ class CardBatchController:
                 )
                 return
 
+            used_names = [
+                item.get("output_name", "") for item in self.state.batch_items
+            ]
+            for item in matched:
+                item["output_name"] = self._batch_engine.unique_output_name(
+                    item.get("output_name", "card"), used_names
+                )
+                used_names.append(item["output_name"])
+
             self.state.batch_items.extend(matched)
             self.state.batch_selected_index = (
                 len(self.state.batch_items) - len(matched)
             )
             self.app.card_build_batch_panel()
             self._set_status(
-                f"Batch Import: {len(matched)} Karte(n) hinzugefügt.",
+                f"Batch Import: {len(matched)} Karte(n), "
+                f"{len(matched_columns)} Feldspalte(n) erkannt.",
                 "#8FE6A0",
+            )
+            ignored_text = (
+                "\n\nIgnorierte Spalten:\n" + ", ".join(ignored_columns)
+                if ignored_columns else ""
             )
             messagebox.showinfo(
                 "Batch Import",
                 f"{len(matched)} Batch-Karte(n) importiert.\n\n"
-                f"Datei:\n{import_path}",
+                f"Datei:\n{import_path}{ignored_text}",
             )
         except Exception as exc:
             messagebox.showerror(
@@ -257,46 +291,89 @@ class CardBatchController:
             return
 
         rendered = []
+        errors = []
+        skipped_templates = []
+        renamed_outputs = []
+        used_output_names = []
         old_template = self.app.card_selected_template.get()
         old_output = self.app.card_output_name.get()
         old_profile = self.app.card_export_profile.get()
         old_values = self.app.card_values_plain()
 
         try:
-            for item in self.state.batch_items:
+            total = len(self.state.batch_items)
+            for position, item in enumerate(self.state.batch_items, start=1):
                 template_name = item.get("template", "")
                 if template_name not in self._list_templates():
+                    skipped_templates.append(template_name or "(ohne Namen)")
                     continue
 
-                self.app.card_selected_template.set(template_name)
-                self.app.card_output_name.set(
+                requested_name = str(
                     item.get("output_name", self.app.card_default_output_name())
                 )
-                self.app.card_export_profile.set(
-                    item.get("profile", "Broadcast PNG")
+                output_name = self._batch_engine.unique_output_name(
+                    requested_name, used_output_names
                 )
-                self.app.card_creator_values.setdefault(template_name, {})
-                self.app.card_build_form()
-                values = self.app.card_creator_values.get(template_name, {})
-                item_values = item.get("values", {})
-                for key, variable in values.items():
-                    if hasattr(variable, "set"):
-                        variable.set(str(item_values.get(key, "")))
+                used_output_names.append(output_name)
+                if output_name != requested_name:
+                    renamed_outputs.append(f"{requested_name} → {output_name}")
 
-                output = self.app.card_render_to_file(
-                    final=True, output_dir=output_directory
+                self._set_status(
+                    f"Batch wird gerendert: {position}/{total} · {output_name}",
+                    "#BCA870",
                 )
-                rendered.append(str(output))
+                update_idletasks = getattr(self.app, "update_idletasks", None)
+                if callable(update_idletasks):
+                    update_idletasks()
 
+                try:
+                    self.app.card_selected_template.set(template_name)
+                    self.app.card_output_name.set(output_name)
+                    self.app.card_export_profile.set(
+                        item.get("profile", "Broadcast PNG")
+                    )
+                    self.app.card_creator_values.setdefault(template_name, {})
+                    self.app.card_build_form()
+                    values = self.app.card_creator_values.get(template_name, {})
+                    item_values = item.get("values", {})
+                    for key, variable in values.items():
+                        if hasattr(variable, "set"):
+                            variable.set(str(item_values.get(key, "")))
+
+                    output = self.app.card_render_to_file(
+                        final=True, output_dir=output_directory
+                    )
+                    rendered.append(str(output))
+                except Exception as exc:
+                    errors.append(f"{output_name}: {exc}")
+
+            issue_count = len(errors) + len(skipped_templates)
             self._set_status(
-                f"Batch gerendert: {len(rendered)} Datei(en)", "#8FE6A0"
+                f"Batch abgeschlossen: {len(rendered)} Datei(en)"
+                + (f", {issue_count} Problem(e)" if issue_count else ""),
+                "#E0B86A" if issue_count else "#8FE6A0",
             )
-            messagebox.showinfo(
-                "Batch Cards",
-                f"Batch gerendert:\n{len(rendered)} Datei(en)",
-            )
+            details = []
+            if renamed_outputs:
+                details.append(
+                    "Doppelte Namen automatisch geschützt:\n"
+                    + "\n".join(renamed_outputs[:8])
+                )
+            if skipped_templates:
+                details.append(
+                    "Fehlende Templates übersprungen:\n"
+                    + ", ".join(dict.fromkeys(skipped_templates))
+                )
+            if errors:
+                details.append("Fehler:\n" + "\n".join(errors[:8]))
+            message = f"Batch abgeschlossen:\n{len(rendered)} Datei(en) gerendert."
+            if details:
+                message += "\n\n" + "\n\n".join(details)
+                messagebox.showwarning("Batch Cards", message)
+            else:
+                messagebox.showinfo("Batch Cards", message)
         except Exception as exc:
-            messagebox.showerror("Batch Cards", str(exc))
+            messagebox.showerror("Batch Cards", f"Batch konnte nicht gestartet werden:\n{exc}")
         finally:
             if old_template in self._list_templates():
                 self.app.card_selected_template.set(old_template)

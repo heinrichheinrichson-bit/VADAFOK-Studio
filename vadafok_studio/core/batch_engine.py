@@ -27,6 +27,34 @@ def field_name_map(fields: Iterable[dict]) -> Dict[str, str]:
     return result
 
 
+def analyze_columns(rows: List[Dict[str, str]], fields: List[dict]) -> tuple[list[str], list[str]]:
+    """Return input columns that match template fields and those ignored."""
+    if not rows:
+        return [], []
+    fmap = field_name_map(fields)
+    output_columns = {"outputname", "filename", "file"}
+    columns = list(dict.fromkeys(str(column) for row in rows for column in row))
+    matched = [column for column in columns if normalize_key(column) in fmap]
+    ignored = [
+        column for column in columns
+        if normalize_key(column) not in fmap
+        and normalize_key(column) not in output_columns
+    ]
+    return matched, ignored
+
+
+def unique_output_name(base_name: str, used_names: Iterable[str]) -> str:
+    """Return a readable case-insensitive unique name for a batch item."""
+    base = str(base_name or "card").strip() or "card"
+    used = {str(name).strip().casefold() for name in used_names}
+    if base.casefold() not in used:
+        return base
+    number = 2
+    while f"{base}_{number}".casefold() in used:
+        number += 1
+    return f"{base}_{number}"
+
+
 def read_csv(path: Path) -> List[Dict[str, str]]:
     encodings = ["utf-8-sig", "utf-8", "cp1252", "latin-1"]
     last_error = None
@@ -41,7 +69,11 @@ def read_csv(path: Path) -> List[Dict[str, str]]:
                 except Exception:
                     dialect = csv.excel
                 reader = csv.DictReader(f, dialect=dialect)
-                return [{str(k or "").strip(): str(v or "").strip() for k, v in row.items()} for row in reader]
+                rows = [
+                    {str(k or "").strip(): str(v or "").strip() for k, v in row.items()}
+                    for row in reader
+                ]
+                return [row for row in rows if any(row.values())]
         except Exception as e:
             last_error = e
 
@@ -54,24 +86,27 @@ def read_xlsx(path: Path) -> List[Dict[str, str]]:
     wb = load_workbook(path, read_only=True, data_only=True)
     ws = wb.active
 
-    rows = list(ws.iter_rows(values_only=True))
-    if not rows:
-        return []
+    try:
+        rows = list(ws.iter_rows(values_only=True))
+        if not rows:
+            return []
 
-    headers = [str(v or "").strip() for v in rows[0]]
-    result = []
+        headers = [str(v or "").strip() for v in rows[0]]
+        result = []
 
-    for row in rows[1:]:
-        item = {}
-        for idx, header in enumerate(headers):
-            if not header:
-                continue
-            value = row[idx] if idx < len(row) else ""
-            item[header] = "" if value is None else str(value).strip()
-        if any(v for v in item.values()):
-            result.append(item)
+        for row in rows[1:]:
+            item = {}
+            for idx, header in enumerate(headers):
+                if not header:
+                    continue
+                value = row[idx] if idx < len(row) else ""
+                item[header] = "" if value is None else str(value).strip()
+            if any(v for v in item.values()):
+                result.append(item)
 
-    return result
+        return result
+    finally:
+        wb.close()
 
 
 def read_table(path: Path) -> List[Dict[str, str]]:
@@ -96,14 +131,13 @@ def rows_to_batch_items(rows: List[Dict[str, str]], template_name: str, fields: 
                 values[fmap[normalized]] = value
 
         # Output name can be supplied by several common column names.
-        output_name = (
-            row.get("output_name")
-            or row.get("Output Name")
-            or row.get("filename")
-            or row.get("Filename")
-            or row.get("file")
-            or row.get("File")
-            or f"{output_prefix}_{idx:03d}"
+        output_name = next(
+            (
+                value for column, value in row.items()
+                if normalize_key(column) in {"outputname", "filename", "file"}
+                and str(value).strip()
+            ),
+            f"{output_prefix}_{idx:03d}",
         )
 
         items.append({
@@ -137,7 +171,15 @@ def save_batch_project_file(path_value, items: List[dict]) -> str:
         "items": items,
     }
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    try:
+        temporary.write_text(
+            json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        temporary.replace(path)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
     return str(path)
 
 

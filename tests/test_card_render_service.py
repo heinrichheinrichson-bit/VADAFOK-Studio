@@ -136,6 +136,23 @@ class CardRenderServiceTests(unittest.TestCase):
             engine.save_with_profile.assert_called_once()
             args = engine.save_with_profile.call_args.args
             self.assertEqual(args[1:], (output, "Broadcast PNG"))
-            self.assertFalse(
-                (folder / "_vadafok_card_temp_profile_source.png").exists()
+            self.assertEqual(list(folder.glob("_vadafok_card_*.png")), [])
+
+    def test_render_failure_still_removes_unique_temporary_file(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            folder = Path(temporary)
+            app = SimpleNamespace(
+                card_selected_template=Variable("Default"),
+                card_template=Mock(return_value={"fields": []}),
+                card_values_plain=Mock(return_value={}),
             )
+            service = self.make_service(
+                app,
+                folder,
+                render=Mock(side_effect=RuntimeError("failed")),
+            )
+
+            with self.assertRaisesRegex(RuntimeError, "failed"):
+                service.render_to_file(final=True)
+
+            self.assertEqual(list(folder.glob("_vadafok_card_*.png")), [])

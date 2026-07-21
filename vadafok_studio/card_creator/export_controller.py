@@ -109,6 +109,20 @@ class CardExportController:
             output_path = self.choose_final_output_path()
             if output_path is None:
                 return
+            asks_for_location = self.app.card_ask_output_location.get()
+            if (
+                output_path.exists()
+                and not asks_for_location
+                and not messagebox.askyesno(
+                    "Card Creator",
+                    f"Die Datei existiert bereits:\n{output_path}\n\nÜberschreiben?",
+                )
+            ):
+                self.app.card_render_status.configure(
+                    text="Rendern abgebrochen – vorhandene Datei bleibt erhalten.",
+                    text_color="#BCA870",
+                )
+                return
             output = self.app.card_render_to_file(
                 final=True, output_path=output_path
             )
@@ -119,6 +133,8 @@ class CardExportController:
             messagebox.showinfo(
                 "Card Creator", f"Karte gerendert:\n{output}"
             )
-            self.app.card_update_preview()
         except Exception as exc:
+            self.app.card_render_status.configure(
+                text=f"Render-Fehler: {exc}", text_color="#D86A6A"
+            )
             messagebox.showerror("Card Creator", str(exc))

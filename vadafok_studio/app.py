@@ -28,6 +28,7 @@ from .card_creator import (
 )
 from .card_creator.page import (
     build_batch_panel,
+    update_batch_selection,
     show_card_creator_page as build_card_creator_page,
 )
 from .card_creator.form_view import build_card_form
@@ -1989,6 +1990,9 @@ class VadafokStudio(ctk.CTk):
 
     def card_build_batch_panel(self):
         return build_batch_panel(self)
+
+    def card_update_batch_selection(self):
+        return update_batch_selection(self)
 
 
     def card_render_batch(self):

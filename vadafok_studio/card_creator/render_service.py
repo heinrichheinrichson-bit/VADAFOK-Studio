@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 from pathlib import Path
+import tempfile
 
 from PIL import Image
 
@@ -56,28 +57,36 @@ class CardRenderService:
 
     def render_to_file(self, final=False, output_dir=None, output_path=None):
         self._export_dir.mkdir(parents=True, exist_ok=True)
-        temporary = self._export_dir / "_vadafok_card_temp_profile_source.png"
-        self._render_template_card(
-            self.app.card_template(),
-            self.app.card_values_plain(),
-            temporary,
-            self.resolve_background_path(),
-            size=None,
+        handle = tempfile.NamedTemporaryFile(
+            prefix="_vadafok_card_",
+            suffix=".png",
+            dir=self._export_dir,
+            delete=False,
         )
-
-        output = (
-            Path(output_path)
-            if output_path is not None
-            else self.app.card_output_path(final=final, output_dir=output_dir)
-        )
-        profile = getattr(self.app, "card_export_profile", None)
-        profile_name = profile.get() if profile is not None else "Broadcast PNG"
-        image = Image.open(temporary).convert("RGBA")
-        self._export_engine.save_with_profile(
-            image, output, profile_name
-        )
+        temporary = Path(handle.name)
+        handle.close()
         try:
-            temporary.unlink()
-        except Exception:
-            pass
-        return output
+            self._render_template_card(
+                self.app.card_template(),
+                self.app.card_values_plain(),
+                temporary,
+                self.resolve_background_path(),
+                size=None,
+            )
+
+            output = (
+                Path(output_path)
+                if output_path is not None
+                else self.app.card_output_path(final=final, output_dir=output_dir)
+            )
+            profile = getattr(self.app, "card_export_profile", None)
+            profile_name = profile.get() if profile is not None else "Broadcast PNG"
+            with Image.open(temporary) as source:
+                image = source.convert("RGBA")
+            self._export_engine.save_with_profile(image, output, profile_name)
+            return output
+        finally:
+            try:
+                temporary.unlink()
+            except FileNotFoundError:
+                pass

@@ -58,6 +58,9 @@ class CardCreatorPageModuleTests(unittest.TestCase):
         self.assertIn("state = app.card_creator_state", page_source)
         self.assertNotIn("app.card_batch_items", page_source)
         self.assertNotIn("app.card_batch_selected_index", page_source)
+        self.assertIn("def update_batch_selection(app):", page_source)
+        self.assertIn("app.card_batch_rows = rows", page_source)
+        self.assertNotIn("for widget in app.card_batch_body.winfo_children()", page_source)
 
 
 if __name__ == "__main__":

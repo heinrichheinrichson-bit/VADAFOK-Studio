@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 
 from vadafok_studio.card_creator.batch_controller import CardBatchController
 from vadafok_studio.card_creator.state import CardCreatorState
+from vadafok_studio.core import batch_engine as real_batch_engine
 
 
 class Variable:
@@ -62,7 +63,7 @@ def make_controller(app, batch_engine=None):
         app,
         app.card_creator_state,
         lambda: ["Default"],
-        batch_engine or Mock(),
+        batch_engine or real_batch_engine,
     )
 
 
@@ -174,6 +175,21 @@ class CardBatchControllerTests(unittest.TestCase):
         self.assertIsNone(app.card_batch_selected_index)
         app.card_build_form.assert_not_called()
 
+    def test_select_updates_only_row_highlight_when_view_supports_it(self):
+        app = make_app()
+        app.card_update_batch_selection = Mock()
+        app.card_batch_items = [{
+            "template": "Default",
+            "output_name": "selected",
+            "profile": "Broadcast PNG",
+            "values": {"title": "Selected"},
+        }]
+
+        make_controller(app).select(0)
+
+        app.card_update_batch_selection.assert_called_once_with()
+        app.card_build_batch_panel.assert_not_called()
+
     def test_save_project_passes_current_items_to_engine(self):
         app = make_app()
         app.card_batch_items = [{"output_name": "one"}]
@@ -236,6 +252,8 @@ class CardBatchControllerTests(unittest.TestCase):
         app.card_template = Mock(return_value={"fields": [{"name": "title"}]})
         engine = Mock()
         engine.read_table.return_value = [{"title": "Imported"}]
+        engine.analyze_columns.return_value = (["title"], [])
+        engine.unique_output_name.side_effect = real_batch_engine.unique_output_name
         engine.rows_to_batch_items.return_value = [
             {"output_name": "matched", "values": {"title": "Imported"}},
             {"output_name": "unmatched", "values": {}},
@@ -260,6 +278,8 @@ class CardBatchControllerTests(unittest.TestCase):
         app.card_template = Mock(return_value={"fields": [{"name": "title"}]})
         engine = Mock()
         engine.read_table.return_value = [{"other": "value"}]
+        engine.analyze_columns.return_value = ([], ["other"])
+        engine.unique_output_name.side_effect = real_batch_engine.unique_output_name
         engine.rows_to_batch_items.return_value = [
             {"output_name": "unmatched", "values": {}}
         ]
@@ -296,7 +316,7 @@ class CardBatchControllerTests(unittest.TestCase):
             },
         ]
 
-        with patch("vadafok_studio.card_creator.batch_controller.messagebox.showinfo"):
+        with patch("vadafok_studio.card_creator.batch_controller.messagebox.showwarning"):
             make_controller(app).render()
 
         app.card_render_to_file.assert_called_once_with(
@@ -330,3 +350,27 @@ class CardBatchControllerTests(unittest.TestCase):
 
         app.card_render_to_file.assert_not_called()
         app.card_build_form.assert_not_called()
+
+    def test_render_continues_after_item_error_and_protects_duplicate_names(self):
+        app = make_app()
+        app.card_batch_items = [
+            {"template": "Default", "output_name": "show", "values": {}},
+            {"template": "Default", "output_name": "show", "values": {}},
+        ]
+        rendered_names = []
+
+        def render_item(**_kwargs):
+            rendered_names.append(app.card_output_name.get())
+            if len(rendered_names) == 1:
+                raise RuntimeError("first failed")
+            return Path("exports/show_2.png")
+
+        app.card_render_to_file.side_effect = render_item
+        with patch(
+            "vadafok_studio.card_creator.batch_controller.messagebox.showwarning"
+        ) as warning:
+            make_controller(app).render()
+
+        self.assertEqual(rendered_names, ["show", "show_2"])
+        self.assertEqual(app.card_render_to_file.call_count, 2)
+        warning.assert_called_once()

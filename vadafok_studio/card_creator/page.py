@@ -23,52 +23,65 @@ PANEL = "#111111"
 
 
 def build_batch_panel(app):
-    """Render the current Card Creator batch list."""
+    """Reconcile batch rows without rebuilding unchanged widgets."""
     if not hasattr(app, "card_batch_body"):
         return
 
-    for widget in app.card_batch_body.winfo_children():
-        widget.destroy()
-
     state = app.card_creator_state
+    count_label = getattr(app, "card_batch_count_label", None)
+    if count_label is not None:
+        count_label.configure(
+            text=f"{len(state.batch_items)} Karte(n) · Auswahl: "
+            + (
+                str(state.batch_selected_index + 1)
+                if state.batch_selected_index is not None else "–"
+            )
+        )
+    rows = getattr(app, "card_batch_rows", [])
+    empty_label = getattr(app, "card_batch_empty_label", None)
     if not state.batch_items:
-        ctk.CTkLabel(
-            app.card_batch_body,
-            text="Noch keine Batch-Karten.\nKlicke + ADD CURRENT.",
-            text_color="#777777",
-            wraplength=240,
-            justify="left",
-        ).grid(row=0, column=0, padx=8, pady=8, sticky="w")
+        for row_box, _title, _subtitle in rows:
+            row_box.destroy()
+        app.card_batch_rows = []
+        if empty_label is None or not empty_label.winfo_exists():
+            empty_label = ctk.CTkLabel(
+                app.card_batch_body,
+                text="Noch keine Batch-Karten.\nKlicke + ADD CURRENT.",
+                text_color="#777777",
+                wraplength=240,
+                justify="left",
+            )
+            app.card_batch_empty_label = empty_label
+        empty_label.grid(row=0, column=0, padx=8, pady=8, sticky="w")
         return
 
+    if empty_label is not None and empty_label.winfo_exists():
+        empty_label.grid_remove()
+
+    while len(rows) > len(state.batch_items):
+        row_box, _title, _subtitle = rows.pop()
+        row_box.destroy()
+
     for row, item in enumerate(state.batch_items):
-        active = row == state.batch_selected_index
         title = f"{row + 1}. {item.get('output_name', 'card')}"
         subtitle = f"{item.get('template', '')} · {item.get('profile', '')}"
 
-        row_box = ctk.CTkFrame(
-            app.card_batch_body,
-            fg_color=GOLD if active else "#171717",
-            corner_radius=8,
-        )
+        if row >= len(rows):
+            row_box = ctk.CTkFrame(
+                app.card_batch_body, fg_color="#171717", corner_radius=8
+            )
+            row_box.grid_columnconfigure(0, weight=1)
+            title_label = ctk.CTkLabel(row_box, text="", anchor="w")
+            title_label.grid(row=0, column=0, padx=10, pady=(6, 0), sticky="ew")
+            subtitle_label = ctk.CTkLabel(row_box, text="", anchor="w")
+            subtitle_label.grid(row=1, column=0, padx=10, pady=(0, 6), sticky="ew")
+            rows.append((row_box, title_label, subtitle_label))
+        else:
+            row_box, title_label, subtitle_label = rows[row]
+
         row_box.grid(row=row, column=0, padx=8, pady=4, sticky="ew")
-        row_box.grid_columnconfigure(0, weight=1)
-
-        title_label = ctk.CTkLabel(
-            row_box,
-            text=title,
-            text_color="#111111" if active else "#D9C58C",
-            anchor="w",
-        )
-        title_label.grid(row=0, column=0, padx=10, pady=(6, 0), sticky="ew")
-
-        subtitle_label = ctk.CTkLabel(
-            row_box,
-            text=subtitle,
-            text_color="#333333" if active else "#777777",
-            anchor="w",
-        )
-        subtitle_label.grid(row=1, column=0, padx=10, pady=(0, 6), sticky="ew")
+        title_label.configure(text=title)
+        subtitle_label.configure(text=subtitle)
 
         for widget in (row_box, title_label, subtitle_label):
             widget.bind(
@@ -76,7 +89,27 @@ def build_batch_panel(app):
                 lambda _event, index=row: app.card_batch_select(index),
             )
 
+    app.card_batch_rows = rows
     app.card_batch_body.grid_columnconfigure(0, weight=1)
+    update_batch_selection(app)
+
+
+def update_batch_selection(app):
+    """Update row colors only, preserving scroll position and widgets."""
+    selected = app.card_creator_state.batch_selected_index
+    count_label = getattr(app, "card_batch_count_label", None)
+    if count_label is not None:
+        count_label.configure(
+            text=f"{len(app.card_creator_state.batch_items)} Karte(n) · Auswahl: "
+            + (str(selected + 1) if selected is not None else "–")
+        )
+    for index, (row_box, title_label, subtitle_label) in enumerate(
+        getattr(app, "card_batch_rows", [])
+    ):
+        active = index == selected
+        row_box.configure(fg_color=GOLD if active else "#171717")
+        title_label.configure(text_color="#111111" if active else "#D9C58C")
+        subtitle_label.configure(text_color="#333333" if active else "#777777")
 
 
 def show_card_creator_page(app):
@@ -270,13 +303,18 @@ def show_card_creator_page(app):
     batch_actions = ctk.CTkFrame(batch_box, fg_color="transparent")
     batch_actions.grid(row=0, column=0, padx=10, pady=(8, 6), sticky="ew")
     batch_actions.grid_columnconfigure((0, 1), weight=1)
-    ctk.CTkButton(batch_actions, text="+ ADD CURRENT", fg_color="#333333", hover_color="#444444", command=app.card_batch_add_current).grid(row=0, column=0, padx=(0, 4), pady=2, sticky="ew")
-    ctk.CTkButton(batch_actions, text="RENDER BATCH", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=app.card_render_batch).grid(row=0, column=1, padx=(4, 0), pady=2, sticky="ew")
-    ctk.CTkButton(batch_actions, text="IMPORT CSV/XLSX", fg_color="#333333", hover_color="#444444", command=app.card_import_batch_file).grid(row=1, column=0, columnspan=2, padx=0, pady=2, sticky="ew")
-    ctk.CTkButton(batch_actions, text="SAVE PROJECT", fg_color="#333333", hover_color="#444444", command=app.card_save_batch_project).grid(row=2, column=0, padx=(0, 4), pady=2, sticky="ew")
-    ctk.CTkButton(batch_actions, text="LOAD PROJECT", fg_color="#333333", hover_color="#444444", command=app.card_load_batch_project).grid(row=2, column=1, padx=(4, 0), pady=2, sticky="ew")
-    ctk.CTkButton(batch_actions, text="DUPLICATE", fg_color="#333333", hover_color="#444444", command=app.card_batch_duplicate_selected).grid(row=3, column=0, padx=(0, 4), pady=2, sticky="ew")
-    ctk.CTkButton(batch_actions, text="REMOVE", fg_color="#5A1F1F", hover_color="#7A2A2A", command=app.card_batch_remove_selected).grid(row=3, column=1, padx=(4, 0), pady=2, sticky="ew")
+    app.card_batch_count_label = ctk.CTkLabel(
+        batch_actions, text="0 Karte(n) · Auswahl: –", text_color="#8A8A8A", anchor="w"
+    )
+    app.card_batch_count_label.grid(row=0, column=0, columnspan=2, pady=(0, 3), sticky="ew")
+    ctk.CTkButton(batch_actions, text="+ ADD CURRENT", fg_color="#333333", hover_color="#444444", command=app.card_batch_add_current).grid(row=1, column=0, padx=(0, 4), pady=2, sticky="ew")
+    ctk.CTkButton(batch_actions, text="RENDER BATCH", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=app.card_render_batch).grid(row=1, column=1, padx=(4, 0), pady=2, sticky="ew")
+    ctk.CTkButton(batch_actions, text="IMPORT CSV/XLSX", fg_color="#333333", hover_color="#444444", command=app.card_import_batch_file).grid(row=2, column=0, columnspan=2, padx=0, pady=2, sticky="ew")
+    ctk.CTkButton(batch_actions, text="SAVE PROJECT", fg_color="#333333", hover_color="#444444", command=app.card_save_batch_project).grid(row=3, column=0, padx=(0, 4), pady=2, sticky="ew")
+    ctk.CTkButton(batch_actions, text="LOAD PROJECT", fg_color="#333333", hover_color="#444444", command=app.card_load_batch_project).grid(row=3, column=1, padx=(4, 0), pady=2, sticky="ew")
+    ctk.CTkButton(batch_actions, text="DUPLICATE", fg_color="#333333", hover_color="#444444", command=app.card_batch_duplicate_selected).grid(row=4, column=0, padx=(0, 4), pady=2, sticky="ew")
+    ctk.CTkButton(batch_actions, text="REMOVE", fg_color="#5A1F1F", hover_color="#7A2A2A", command=app.card_batch_remove_selected).grid(row=4, column=1, padx=(4, 0), pady=2, sticky="ew")
+    ctk.CTkButton(batch_actions, text="CLEAR LIST", fg_color="#262626", hover_color="#5A1F1F", command=app.card_batch_clear).grid(row=5, column=0, columnspan=2, padx=0, pady=(2, 0), sticky="ew")
 
     app.card_batch_body = ctk.CTkScrollableFrame(
         batch_box, fg_color="#080808", corner_radius=10
