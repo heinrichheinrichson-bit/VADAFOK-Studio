@@ -1,0 +1,71 @@
+import unittest
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
+
+from vadafok_studio.quick_cards.controller import QuickCardsController
+
+
+class Variable:
+    def __init__(self, value=""):
+        self.value = value
+
+    def get(self):
+        return self.value
+
+    def set(self, value):
+        self.value = value
+
+
+class QuickCardsControllerTests(unittest.TestCase):
+    def make_app(self):
+        return SimpleNamespace(
+            quick_cards_collapsed=set(),
+            quick_cards_tree=object(),
+            quick_cards_build_tree=Mock(),
+            show_quick_cards=Mock(),
+            text_library_new_text=Variable(),
+            text_library_new_category=Variable(),
+            quick_cards_target_category=Variable("Chat"),
+            quick_cards_edit_text_var=Variable(),
+            quick_cards_editing_category=None,
+            quick_cards_editing_text=None,
+            text_library_data={"Chat": []},
+            live_card_pending_text="",
+        )
+
+    def test_toggle_refreshes_tree_without_rebuilding_page(self):
+        app = self.make_app()
+        controller = QuickCardsController(app)
+        controller.toggle_category("Chat")
+        self.assertIn("Chat", app.quick_cards_collapsed)
+        app.quick_cards_build_tree.assert_called_once()
+        app.show_quick_cards.assert_not_called()
+
+    @patch("vadafok_studio.quick_cards.controller.text_library_engine.add_text")
+    def test_add_text_keeps_page_and_scroll_context(self, add_text):
+        app = self.make_app()
+        app.text_library_new_text.set("Hello chat")
+        add_text.return_value = {"Chat": ["Hello chat"]}
+        controller = QuickCardsController(app)
+        controller.add_text()
+        add_text.assert_called_once_with("Chat", "Hello chat")
+        self.assertEqual(app.live_card_pending_text, "Hello chat")
+        self.assertEqual(app.text_library_new_text.get(), "")
+        app.quick_cards_build_tree.assert_called_once()
+        app.show_quick_cards.assert_not_called()
+
+    def test_cancel_edit_clears_state_and_refreshes_tree(self):
+        app = self.make_app()
+        app.quick_cards_editing_category = "Chat"
+        app.quick_cards_editing_text = "Old"
+        app.quick_cards_edit_text_var.set("Old")
+        controller = QuickCardsController(app)
+        controller.cancel_text_edit()
+        self.assertIsNone(app.quick_cards_editing_category)
+        self.assertIsNone(app.quick_cards_editing_text)
+        self.assertEqual(app.quick_cards_edit_text_var.get(), "")
+        app.quick_cards_build_tree.assert_called_once()
+
+
+if __name__ == "__main__":
+    unittest.main()

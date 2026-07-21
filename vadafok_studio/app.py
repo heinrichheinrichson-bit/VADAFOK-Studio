@@ -54,7 +54,11 @@ from .library.grid_view import render_asset_grid, render_folder_overview
 from .library.preview_view import make_thumbnail_label, select_library_item
 from .library import asset_actions as library_asset_actions
 from .library import use_actions as library_use_actions
-from .quick_cards import build_quick_cards_tree, show_quick_cards_page
+from .quick_cards import (
+    QuickCardsController,
+    build_quick_cards_tree,
+    show_quick_cards_page,
+)
 from .banner_editor.controller import BannerEditorController
 from .obs_workflow.controller import OBSWorkflowController
 from .settings.controller import SettingsController
@@ -310,6 +314,7 @@ class VadafokStudio(ctk.CTk):
         self.quick_cards_editing_category = None
         self.quick_cards_editing_text = None
         self.quick_cards_edit_text_var = ctk.StringVar(value="")
+        self.quick_cards_controller = QuickCardsController(self)
 
         self.voice_enabled = ctk.BooleanVar(
             value=bool(self.config_data.get("voice_enabled", False))
@@ -2681,12 +2686,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def quick_cards_categories(self):
-        try:
-            data = text_library_engine.load_library()
-            categories = sorted(data.keys())
-            return categories or ["Chat"]
-        except Exception:
-            return ["Chat"]
+        return self.quick_cards_controller.categories()
 
     def show_quick_cards(self):
         return show_quick_cards_page(self)
@@ -2707,101 +2707,39 @@ class VadafokStudio(ctk.CTk):
 
 
     def quick_cards_toggle_category(self, category):
-        if category in self.quick_cards_collapsed:
-            self.quick_cards_collapsed.remove(category)
-        else:
-            self.quick_cards_collapsed.add(category)
-        self.show_quick_cards()
+        return self.quick_cards_controller.toggle_category(category)
 
     def quick_cards_use_text(self, text):
-        self.live_card_pending_text = str(text or "").strip()
-        self.show_live_card()
-        self.after(80, self.live_card_apply_pending_text)
-        self.after(120, self.update_render_preview)
+        return self.quick_cards_controller.use_text(text)
 
     def quick_cards_add_category(self):
-        category = self.text_library_new_category.get().strip()
-        if not category:
-            messagebox.showinfo("Quick Cards", "Please enter a category name.")
-            return
-        self.text_library_data = text_library_engine.add_category(category)
-        self.text_library_new_category.set("")
-        self.quick_cards_target_category.set(category)
-        if category in self.quick_cards_collapsed:
-            self.quick_cards_collapsed.remove(category)
-        self.show_quick_cards()
+        return self.quick_cards_controller.add_category()
 
     def quick_cards_rename_category(self, category):
-        new_name = simpledialog.askstring("Quick Cards", "New category name:", initialvalue=category)
-        if not new_name:
-            return
-        new_name = new_name.strip()
-        if not new_name:
-            return
-        self.text_library_data = text_library_engine.rename_category(category, new_name)
-        self.quick_cards_target_category.set(new_name)
-        self.show_quick_cards()
+        return self.quick_cards_controller.rename_category(category)
 
     def quick_cards_delete_category(self, category):
-        if not messagebox.askyesno("Quick Cards", f"Delete category '{category}'?\\nAll texts inside will be removed."):
-            return
-        self.text_library_data = text_library_engine.delete_category(category)
-        self.show_quick_cards()
+        return self.quick_cards_controller.delete_category(category)
 
     def quick_cards_add_text(self):
-        text = self.text_library_new_text.get().strip()
-        if not text:
-            messagebox.showinfo("Quick Cards", "Please enter a text first.")
-            return
-        category = self.quick_cards_target_category.get()
-        self.text_library_data = text_library_engine.add_text(category, text)
-        self.text_library_new_text.set("")
-        self.live_card_pending_text = text
-        self.show_quick_cards()
+        return self.quick_cards_controller.add_text()
 
     def quick_cards_save_live_text(self):
-        text = self.live_card_get_message_text()
-        if not text:
-            messagebox.showinfo("Quick Cards", "No Live Card text found.")
-            return
-        categories = self.quick_cards_categories()
-        if self.quick_cards_target_category.get() not in categories:
-            self.quick_cards_target_category.set("Chat" if "Chat" in categories else categories[0])
-        category = self.quick_cards_target_category.get()
-        self.text_library_data = text_library_engine.add_text(category, text)
-        messagebox.showinfo("Quick Cards", f"Text saved.\nCategory: {category}")
-        self.show_quick_cards()
+        return self.quick_cards_controller.save_live_text()
 
 
 
     def quick_cards_start_text_edit(self, category, text):
-        self.quick_cards_editing_category = category
-        self.quick_cards_editing_text = text
-        self.quick_cards_edit_text_var.set(text)
-        self.show_quick_cards()
+        return self.quick_cards_controller.start_text_edit(category, text)
 
     def quick_cards_commit_text_edit(self, category, text):
-        new_text = self.quick_cards_edit_text_var.get().strip()
-        if not new_text:
-            messagebox.showinfo("Quick Cards", "Text cannot be empty.")
-            return
-        self.text_library_data = text_library_engine.edit_text(category, text, new_text)
-        self.quick_cards_editing_category = None
-        self.quick_cards_editing_text = None
-        self.quick_cards_edit_text_var.set("")
-        self.show_quick_cards()
+        return self.quick_cards_controller.commit_text_edit(category, text)
 
     def quick_cards_cancel_text_edit(self):
-        self.quick_cards_editing_category = None
-        self.quick_cards_editing_text = None
-        self.quick_cards_edit_text_var.set("")
-        self.show_quick_cards()
+        return self.quick_cards_controller.cancel_text_edit()
 
     def quick_cards_delete_text(self, category, text):
-        if not messagebox.askyesno("Quick Cards", "Delete this text?"):
-            return
-        self.text_library_data = text_library_engine.delete_text(category, text)
-        self.show_quick_cards()
+        return self.quick_cards_controller.delete_text(category, text)
 
 
     def show_obs_page(self):
