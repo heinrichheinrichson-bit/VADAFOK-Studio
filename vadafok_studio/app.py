@@ -4696,7 +4696,7 @@ class VadafokStudio(ctk.CTk):
                 anchor="w",
                 fg_color="#171717",
                 hover_color="#2C2C2C",
-                command=lambda n=name: self.card_select_template(n),
+                command=lambda n=name: self.card_creator_controller.select_template(n),
             )
             button.pack(fill="x", padx=8, pady=4)
             self.card_template_buttons[name] = button
@@ -4770,7 +4770,7 @@ class VadafokStudio(ctk.CTk):
                 anchor="w",
                 fg_color="#3A2A0D",
                 hover_color="#5A4318",
-                command=lambda n=recent_name: self.card_select_template(n),
+                command=lambda n=recent_name: self.card_creator_controller.select_template(n),
             ).grid(row=0, column=0, sticky="ew", padx=(0, 4))
 
             ctk.CTkButton(
@@ -4779,14 +4779,8 @@ class VadafokStudio(ctk.CTk):
                 width=28,
                 fg_color="#5A2424",
                 hover_color="#7A3030",
-                command=lambda n=recent_name: self.card_remove_recent_template(n),
+                command=lambda n=recent_name: self.card_creator_controller.remove_recent(n),
             ).grid(row=0, column=1)
-
-    def card_remove_recent_template(self, name):
-        self.card_creator_controller.remove_recent(name)
-
-    def card_select_template(self, name):
-        self.card_creator_controller.select_template(name)
 
     def card_template(self):
         names = list_templates()

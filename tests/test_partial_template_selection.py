@@ -18,16 +18,12 @@ class PartialTemplateSelectionTests(unittest.TestCase):
         self.controller_source = CONTROLLER_FILE.read_text(encoding="utf-8")
         self.page_source = PAGE_FILE.read_text(encoding="utf-8")
 
-    def test_selection_delegates_to_controller(self) -> None:
-        start = self.app_source.index("def card_select_template")
-        end = self.app_source.index("def card_template", start)
-        method = self.app_source[start:end]
-
+    def test_selection_buttons_call_controller_directly(self) -> None:
         self.assertIn(
-            "self.card_creator_controller.select_template(name)",
-            method,
+            "self.card_creator_controller.select_template(n)",
+            self.app_source,
         )
-        self.assertNotIn("show_card_creator_page", method)
+        self.assertNotIn("def card_select_template", self.app_source)
 
     def test_controller_uses_targeted_updates(self) -> None:
         start = self.controller_source.index("def select_template")

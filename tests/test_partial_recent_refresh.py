@@ -24,16 +24,12 @@ class PartialRecentRefreshTests(unittest.TestCase):
             self.app_source,
         )
 
-    def test_remove_delegates_to_controller(self) -> None:
-        start = self.app_source.index("def card_remove_recent_template")
-        end = self.app_source.index("def card_select_template", start)
-        method = self.app_source[start:end]
-
+    def test_remove_button_calls_controller_directly(self) -> None:
         self.assertIn(
-            "self.card_creator_controller.remove_recent(name)",
-            method,
+            "self.card_creator_controller.remove_recent(n)",
+            self.app_source,
         )
-        self.assertNotIn("self.show_card_creator_page()", method)
+        self.assertNotIn("def card_remove_recent_template", self.app_source)
 
     def test_controller_refreshes_only_recent_area(self) -> None:
         start = self.controller_source.index("def remove_recent")
@@ -51,7 +47,7 @@ class PartialRecentRefreshTests(unittest.TestCase):
 
     def test_refresh_only_destroys_recent_children(self) -> None:
         start = self.app_source.index("def card_refresh_recent_templates")
-        end = self.app_source.index("def card_remove_recent_template", start)
+        end = self.app_source.index("def card_template", start)
         method = self.app_source[start:end]
 
         self.assertIn(
