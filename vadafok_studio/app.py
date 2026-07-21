@@ -46,6 +46,7 @@ from .template_editor import (
 )
 from .template_editor import smart_guides
 from .template_editor import mouse_controller
+from .template_editor import selection_controller
 from .library import LibraryController
 from .banner_editor.controller import BannerEditorController
 from .obs_workflow.controller import OBSWorkflowController
@@ -1836,19 +1837,7 @@ class VadafokStudio(ctk.CTk):
             self.template_ctrl_down = False
 
     def template_multi_select_modifier(self, event):
-        state = int(getattr(event, "state", 0) or 0)
-
-        # Tk modifier masks differ a bit by platform/theme.
-        # Common masks:
-        # Shift = 0x0001
-        # Ctrl  = 0x0004
-        # Also use our explicit key state fallback.
-        return (
-            bool(state & 0x0001)
-            or bool(state & 0x0004)
-            or bool(getattr(self, "template_shift_down", False))
-            or bool(getattr(self, "template_ctrl_down", False))
-        )
+        return selection_controller.multi_select_modifier(self, event)
 
 
 
@@ -3588,37 +3577,19 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_sync_selection_set(self):
-        if not hasattr(self, "template_selected_fields"):
-            self.template_selected_fields = set()
-        if self.template_selected_field is None:
-            if len(self.template_selected_fields) == 1:
-                self.template_selected_field = next(iter(self.template_selected_fields))
-            return
-        self.template_selected_fields.add(self.template_selected_field)
+        return selection_controller.sync_selection_set(self)
 
     def template_selection_count(self):
-        if not hasattr(self, "template_selected_fields"):
-            self.template_selected_fields = set()
-        return len(self.template_selected_fields)
+        return selection_controller.selection_count(self)
 
     def template_clear_selection(self):
-        self.template_selected_field = None
-        self.template_selected_fields = set()
+        return selection_controller.clear_selection(self)
 
     def template_set_single_selection(self, idx):
-        self.template_selected_field = idx
-        self.template_selected_fields = {idx} if idx is not None else set()
+        return selection_controller.set_single_selection(self, idx)
 
     def template_toggle_selection(self, idx):
-        if not hasattr(self, "template_selected_fields"):
-            self.template_selected_fields = set()
-        if idx in self.template_selected_fields:
-            self.template_selected_fields.remove(idx)
-            if self.template_selected_field == idx:
-                self.template_selected_field = next(iter(self.template_selected_fields), None)
-        else:
-            self.template_selected_fields.add(idx)
-            self.template_selected_field = idx
+        return selection_controller.toggle_selection(self, idx)
 
 
     def template_update_fields_overlay(self, bg_info=None, refresh_layers=True, refresh_status=True):
@@ -3657,97 +3628,16 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_marquee_clear(self):
-        if hasattr(self, "template_canvas") and getattr(self, "template_marquee_item", None):
-            try:
-                self.template_canvas.delete(self.template_marquee_item)
-            except Exception:
-                pass
-        self.template_marquee_item = None
+        return selection_controller.marquee_clear(self)
 
     def template_marquee_start_select(self, event, add_mode=False):
-        self.template_marquee_clear()
-        self.template_marquee_active = True
-        self.template_marquee_start = (event.x, event.y)
-        self.template_marquee_add_mode = bool(add_mode)
-        self.template_drag_mode = None
-        self.template_drag_start = None
-        self.template_drag_original = None
-        self.template_group_drag_originals = None
-
-        if hasattr(self, "template_canvas"):
-            self.template_marquee_item = self.template_canvas.create_rectangle(
-                event.x, event.y, event.x, event.y,
-                outline=GOLD,
-                width=2,
-                dash=(6, 4),
-                fill="#D6A43A",
-                stipple="gray25",
-                tags=("template_marquee",)
-            )
-            try:
-                self.template_canvas.tag_raise("template_marquee")
-            except Exception:
-                pass
+        return selection_controller.marquee_start_select(self, event,add_mode)
 
     def template_marquee_drag(self, event):
-        if not getattr(self, "template_marquee_active", False):
-            return False
-        if not self.template_marquee_start:
-            return True
-
-        x0, y0 = self.template_marquee_start
-        x1, y1 = event.x, event.y
-        if hasattr(self, "template_canvas") and getattr(self, "template_marquee_item", None):
-            self.template_canvas.coords(self.template_marquee_item, x0, y0, x1, y1)
-        return True
+        return selection_controller.marquee_drag(self, event)
 
     def template_marquee_finish(self, event):
-        if not getattr(self, "template_marquee_active", False):
-            return False
-
-        x0, y0 = self.template_marquee_start or (event.x, event.y)
-        x1, y1 = event.x, event.y
-        self.template_marquee_active = False
-
-        min_x, max_x = sorted((x0, x1))
-        min_y, max_y = sorted((y0, y1))
-        moved = abs(max_x - min_x) >= 4 or abs(max_y - min_y) >= 4
-
-        self.template_marquee_clear()
-
-        if not moved:
-            if not getattr(self, "template_marquee_add_mode", False):
-                self.template_clear_selection()
-                self.template_refresh_selection_ui()
-            return True
-
-        template = self.template_current()
-        found = set()
-
-        for idx, field in enumerate(template.get("fields", [])):
-            if field.get("hidden", False):
-                continue
-
-            fx1, fy1, fx2, fy2 = self.template_field_screen_rect(field)
-
-            # Select fields whose visible rectangle intersects the marquee rectangle.
-            intersects = not (fx2 < min_x or fx1 > max_x or fy2 < min_y or fy1 > max_y)
-            if intersects:
-                found.add(idx)
-
-        if getattr(self, "template_marquee_add_mode", False):
-            selected = set(getattr(self, "template_selected_fields", set()))
-            selected.update(found)
-            self.template_selected_fields = selected
-            if found:
-                self.template_selected_field = next(iter(found))
-        else:
-            self.template_selected_fields = found
-            self.template_selected_field = next(iter(found), None)
-
-        self.template_refresh_selection_ui()
-
-        return True
+        return selection_controller.marquee_finish(self, event)
 
 
     def template_mouse_down(self, event):

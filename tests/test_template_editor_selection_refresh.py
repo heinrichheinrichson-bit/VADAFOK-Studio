@@ -4,6 +4,12 @@ import unittest
 
 
 APP_PATH = Path(__file__).resolve().parents[1] / "vadafok_studio" / "app.py"
+SELECTION_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "vadafok_studio"
+    / "template_editor"
+    / "selection_controller.py"
+)
 
 
 class TemplateEditorSelectionRefreshTests(unittest.TestCase):
@@ -39,7 +45,7 @@ class TemplateEditorSelectionRefreshTests(unittest.TestCase):
         self.assertNotIn("template_build_layers_panel", source)
 
     def test_marquee_selection_uses_shared_refresh(self):
-        source = self.function_source("template_marquee_finish")
+        source = SELECTION_PATH.read_text(encoding="utf-8")
         self.assertIn("template_refresh_selection_ui", source)
 
 
