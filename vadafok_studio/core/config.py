@@ -18,6 +18,7 @@ DEFAULT_CONFIG = {
     "card_output_folder": "",
     "card_batch_output_folder": "",
     "card_ask_output_location": False,
+    "card_workspace_sashes": [],
     "host": "localhost",
     "port": "4455",
     "password": "",

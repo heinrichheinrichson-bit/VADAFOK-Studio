@@ -10,6 +10,7 @@ import tkinter as tk
 import customtkinter as ctk
 
 from ..core import export_engine
+from ..core.config import save_config
 from ..core.template_store import (
     create_template,
     get_default_template,
@@ -217,6 +218,44 @@ def show_card_creator_page(app):
     workspace.add(card_pane, minsize=90, stretch="always")
     workspace.add(batch_box, minsize=90, stretch="always")
     workspace.add(output_pane, minsize=90, stretch="always")
+
+    def restore_workspace_sashes():
+        """Restore the user's two splitter positions after geometry is ready."""
+        saved = app.config_data.get("card_workspace_sashes")
+        if not isinstance(saved, list) or len(saved) != 2:
+            return
+
+        try:
+            ratios = [float(value) for value in saved]
+        except (TypeError, ValueError):
+            return
+
+        height = workspace.winfo_height()
+        if height <= 1:
+            app.after(50, restore_workspace_sashes)
+            return
+
+        first = max(90, min(height - 188, round(height * ratios[0])))
+        second = max(first + 98, min(height - 90, round(height * ratios[1])))
+        workspace.sash_place(0, 0, first)
+        workspace.sash_place(1, 0, second)
+
+    def save_workspace_sashes(_event=None):
+        """Persist splitter positions when the user finishes dragging a sash."""
+        height = workspace.winfo_height()
+        if height <= 1:
+            return
+
+        try:
+            positions = [workspace.sash_coord(index)[1] / height for index in (0, 1)]
+        except tk.TclError:
+            return
+
+        app.config_data["card_workspace_sashes"] = [round(value, 6) for value in positions]
+        save_config(app.config_data)
+
+    workspace.bind("<ButtonRelease-1>", save_workspace_sashes, add="+")
+    app.after_idle(restore_workspace_sashes)
 
     app.card_build_form()
     app.card_build_batch_panel()
