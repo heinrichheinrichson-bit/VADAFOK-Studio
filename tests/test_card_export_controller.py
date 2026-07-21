@@ -26,6 +26,10 @@ def make_app(output_folder="", ask=False):
         card_default_output_name=Mock(return_value="default_card"),
         clipboard_clear=Mock(),
         clipboard_append=Mock(),
+        card_save_values=Mock(),
+        card_render_to_file=Mock(return_value=Path("exports/final.png")),
+        card_render_status=Mock(),
+        card_update_preview=Mock(),
     )
 
 
@@ -111,3 +115,65 @@ class CardExportControllerTests(unittest.TestCase):
 
         info.assert_called_once()
         app.clipboard_clear.assert_not_called()
+
+    def test_render_final_updates_last_path_status_and_preview(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "final.png"
+            app = make_app(temporary)
+            app.card_render_to_file.return_value = output
+            engine = Mock()
+            engine.export_path.return_value = output
+            controller = CardExportController(
+                app, engine, Path(temporary), Mock()
+            )
+
+            with patch(
+                "vadafok_studio.card_creator.export_controller.messagebox.showinfo"
+            ):
+                controller.render_final()
+
+            app.card_save_values.assert_called_once_with()
+            app.card_render_to_file.assert_called_once_with(
+                final=True, output_path=output
+            )
+            self.assertEqual(app.card_creator_last_render, output)
+            app.card_render_status.configure.assert_called_once_with(
+                text=f"Gerendert:\n{output}", text_color="#8FE6A0"
+            )
+            app.card_update_preview.assert_called_once_with()
+
+    def test_render_final_cancel_stops_before_render(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            app = make_app(temporary, ask=True)
+            controller = CardExportController(
+                app, Mock(), Path(temporary), Mock()
+            )
+
+            with patch(
+                "vadafok_studio.card_creator.export_controller.filedialog.asksaveasfilename",
+                return_value="",
+            ):
+                controller.render_final()
+
+            app.card_save_values.assert_called_once_with()
+            app.card_render_to_file.assert_not_called()
+            app.card_update_preview.assert_not_called()
+
+    def test_render_final_reports_render_error(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "final.png"
+            app = make_app(temporary)
+            app.card_render_to_file.side_effect = RuntimeError("render failed")
+            engine = Mock()
+            engine.export_path.return_value = output
+            controller = CardExportController(
+                app, engine, Path(temporary), Mock()
+            )
+
+            with patch(
+                "vadafok_studio.card_creator.export_controller.messagebox.showerror"
+            ) as error:
+                controller.render_final()
+
+            error.assert_called_once_with("Card Creator", "render failed")
+            self.assertIsNone(app.card_creator_last_render)

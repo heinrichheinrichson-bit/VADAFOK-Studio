@@ -98,3 +98,23 @@ class CardExportController:
             )
         except Exception as exc:
             messagebox.showerror("Card Creator", str(exc))
+
+    def render_final(self) -> None:
+        try:
+            self.app.card_save_values()
+            output_path = self.choose_final_output_path()
+            if output_path is None:
+                return
+            output = self.app.card_render_to_file(
+                final=True, output_path=output_path
+            )
+            self.app.card_creator_last_render = output
+            self.app.card_render_status.configure(
+                text=f"Gerendert:\n{output}", text_color="#8FE6A0"
+            )
+            messagebox.showinfo(
+                "Card Creator", f"Karte gerendert:\n{output}"
+            )
+            self.app.card_update_preview()
+        except Exception as exc:
+            messagebox.showerror("Card Creator", str(exc))

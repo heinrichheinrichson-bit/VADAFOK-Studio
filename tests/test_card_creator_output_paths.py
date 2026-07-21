@@ -19,6 +19,7 @@ class CardCreatorOutputPathTests(unittest.TestCase):
         assert "def card_choose_batch_output_directory" in source
         assert "self.card_batch_controller.render()" in source
         assert "output_dir=output_directory" in batch_source
+        assert "return self.card_export_controller.render_final()" in source
 
     def test_settings_wiring(self):
         source = Path("vadafok_studio/settings/page.py").read_text(encoding="utf-8")

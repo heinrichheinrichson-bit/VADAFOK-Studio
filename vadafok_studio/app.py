@@ -5016,18 +5016,7 @@ class VadafokStudio(ctk.CTk):
             )
 
     def card_render_final(self):
-        try:
-            self.card_save_values()
-            output_path = self.card_choose_final_output_path()
-            if output_path is None:
-                return
-            out = self.card_render_to_file(final=True, output_path=output_path)
-            self.card_creator_last_render = out
-            self.card_render_status.configure(text=f"Gerendert:\\n{out}", text_color="#8FE6A0")
-            messagebox.showinfo("Card Creator", f"Karte gerendert:\\n{out}")
-            self.card_update_preview()
-        except Exception as e:
-            messagebox.showerror("Card Creator", str(e))
+        return self.card_export_controller.render_final()
 
 
 
