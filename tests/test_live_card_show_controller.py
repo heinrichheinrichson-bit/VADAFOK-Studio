@@ -67,6 +67,12 @@ class LiveCardShowControllerTests(unittest.TestCase):
         timer.return_value.start.assert_called_once()
         app.save_config.assert_called_once()
 
+    def test_hide_disables_caption_group(self):
+        app = self.make_app()
+        LiveCardShowController(app).hide_card()
+        app.obs.enable_source.assert_called_once_with("Scene", "Group", False)
+        app.obs_workflow_banner_action.assert_called_once_with("HIDE Live Card")
+
 
 if __name__ == "__main__":
     unittest.main()

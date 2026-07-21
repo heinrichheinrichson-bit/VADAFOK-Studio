@@ -104,6 +104,21 @@ class LiveCardShowController:
         except Exception:
             pass
 
+    def hide_card(self) -> None:
+        app = self.app
+        if not app.ensure_obs_ready():
+            return
+        try:
+            app.obs.enable_source(
+                app.current_scene(), app.caption_group.get().strip(), False,
+            )
+        except Exception:
+            pass
+        try:
+            app.obs_workflow_banner_action("HIDE Live Card")
+        except Exception:
+            pass
+
     def _show_smart_caption(self, scene, text: str, profiler) -> bool:
         app = self.app
         try:

@@ -62,7 +62,11 @@ from .quick_cards import (
 from .banner_editor.controller import BannerEditorController
 from .obs_workflow.controller import OBSWorkflowController
 from .settings.controller import SettingsController
-from .live_card import LiveCardController, LiveCardShowController
+from .live_card import (
+    LiveCardController,
+    LiveCardShowController,
+    update_render_preview as update_live_card_render_preview,
+)
 from .silent_director import render_actions_list
 from .silent_director import render_filtered_presets
 from .silent_director import run_preset as run_silent_director_preset
@@ -3289,47 +3293,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def update_render_preview(self):
-        if not hasattr(self, "preview_frame") or not hasattr(self, "message_box"):
-            return
-
-        for w in self.preview_frame.winfo_children():
-            w.destroy()
-
-        text = self.message_box.get("1.0", "end").strip() or "..."
-        try:
-            preview_path = self.render_smart_caption(text)
-
-            from PIL import Image
-            img = Image.open(preview_path).convert("RGBA")
-            img.thumbnail((520, 300))
-
-            self.live_preview_image = ctk.CTkImage(light_image=img, dark_image=img, size=img.size)
-            ctk.CTkLabel(self.preview_frame, image=self.live_preview_image, text="").place(relx=0.5, rely=0.5, anchor="center")
-
-            if hasattr(self, "render_status_label"):
-                banner_name = self.live_card_current_banner_name()
-                self.render_status_label.configure(
-                    text=(
-                        f"🟢 Preview ready\n"
-                        f"Engine: {self.caption_engine.get()}\n"
-                        f"Banner: {banner_name}"
-                    ),
-                    text_color="#8FE6A0"
-                )
-                if hasattr(self, "live_card_banner_name_label"):
-                    self.live_card_banner_name_label.configure(
-                        text=banner_name
-                    )
-        except Exception as e:
-            ctk.CTkLabel(
-                self.preview_frame,
-                text=f"Preview konnte nicht gerendert werden:\n{e}",
-                text_color="#D86A6A",
-                wraplength=360,
-                justify="center"
-            ).place(relx=0.5, rely=0.5, anchor="center")
-            if hasattr(self, "render_status_label"):
-                self.render_status_label.configure(text="🔴 Preview error", text_color="#D86A6A")
+        return update_live_card_render_preview(self)
 
 
     def play_selected_sound_effect_for_show(self, profiler=None):
@@ -3341,13 +3305,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def hide_card(self):
-        if not self.ensure_obs_ready(): return
-        try: self.obs.enable_source(self.current_scene(), self.caption_group.get().strip(), False)
-        except Exception: pass
-        try:
-            self.obs_workflow_banner_action("HIDE Live Card")
-        except Exception:
-            pass
+        return self.live_card_show_controller.hide_card()
 
 
     def enter_to_show(self, event):

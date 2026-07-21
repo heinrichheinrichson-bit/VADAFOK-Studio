@@ -4,6 +4,7 @@ import ast
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 import unittest
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -30,20 +31,28 @@ class VoiceFoundationWarningTests(unittest.TestCase):
         self.assertEqual(violations, [])
 
     def test_compiles_without_syntax_warning(self) -> None:
-        result = subprocess.run(
-            [
-                sys.executable,
-                "-W",
-                "error::SyntaxWarning",
-                "-m",
-                "py_compile",
-                str(FOUNDATION_FILE),
-            ],
-            cwd=PROJECT_ROOT,
-            text=True,
-            capture_output=True,
-            check=False,
-        )
+        # Write outside __pycache__: a running VADAFOK instance can hold the
+        # regular Windows bytecode file open while this suite is executed.
+        with tempfile.TemporaryDirectory() as folder:
+            compiled = str(Path(folder) / "foundation.pyc")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-W",
+                    "error::SyntaxWarning",
+                    "-c",
+                    (
+                        "import py_compile,sys; "
+                        "py_compile.compile(sys.argv[1], cfile=sys.argv[2], doraise=True)"
+                    ),
+                    str(FOUNDATION_FILE),
+                    compiled,
+                ],
+                cwd=PROJECT_ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
         self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
 
 
