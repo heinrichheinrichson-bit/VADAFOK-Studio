@@ -71,6 +71,25 @@ class VoiceLifecycleControllerTests(unittest.TestCase):
         self.assertEqual(app.voice_status_var.get(), "OFF")
         app.destroy.assert_called_once()
 
+    def test_reader_dispatches_ready_and_heard_protocol(self):
+        app = self.make_app()
+        process = Mock()
+        process.stdout.readline.side_effect = [
+            "__READY__|de-DE|Desktop microphone\n",
+            "__HEARD__|0.95|command|live card\n",
+            "",
+        ]
+        process.poll.return_value = 0
+        VoiceLifecycleController(app).reader_loop(process)
+        self.assertEqual(app.after.call_count, 3)  # ready, heard, stopped
+
+    def test_reader_error_does_not_overwrite_error_with_stopped(self):
+        app = self.make_app()
+        process = Mock()
+        process.stdout.readline.side_effect = ["__ERROR__|microphone missing\n", ""]
+        VoiceLifecycleController(app).reader_loop(process)
+        self.assertEqual(app.after.call_count, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

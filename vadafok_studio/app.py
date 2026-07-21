@@ -3045,44 +3045,7 @@ class VadafokStudio(ctk.CTk):
         return bool(phrase and heard and (phrase == heard or phrase in heard))
 
     def voice_reader_loop(self, process):
-        try:
-            while not self.voice_stop_requested:
-                line = process.stdout.readline()
-                if line == "":
-                    break
-
-                line = line.strip()
-                if not line:
-                    continue
-
-                if line == "__READY__":
-                    self.after(0, lambda: self.voice_status_var.set("LISTENING"))
-                    continue
-
-                if line.startswith("__WARN__|"):
-                    warning = line.split("|", 1)[1]
-                    self.after(0, lambda text=warning: self.voice_status_var.set(f"LISTENING · {text}"))
-                    continue
-
-                if line.startswith("__ERROR__|"):
-                    error = line.split("|", 1)[1]
-                    self.after(0, lambda text=error: self.voice_status_var.set(f"ERROR: {text[:70]}"))
-                    continue
-
-                if line.startswith("__HEARD__|"):
-                    heard = line.split("|", 1)[1].strip()
-                    self.after(0, lambda text=heard: self.voice_last_heard_var.set(text))
-
-                    if self.voice_trigger_matches(heard):
-                        self.after(0, lambda: self.voice_status_var.set("COMMAND DETECTED"))
-                        self.after(0, self.open_quick_caption)
-                        self.after(800, lambda: self.voice_status_var.set("LISTENING"))
-        except Exception as exc:
-            if not self.voice_stop_requested:
-                self.after(0, lambda text=str(exc): self.voice_status_var.set(f"ERROR: {text[:70]}"))
-        finally:
-            if not self.voice_stop_requested and self.voice_status_var.get() != "ERROR":
-                self.after(0, lambda: self.voice_status_var.set("STOPPED"))
+        return self.voice_lifecycle_controller.reader_loop(process)
 
     def start_voice_trigger(self):
         return self.voice_lifecycle_controller.start()

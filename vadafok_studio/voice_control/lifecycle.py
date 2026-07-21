@@ -59,6 +59,80 @@ class VoiceLifecycleController:
             app.voice_reader_thread = None
             app.voice_status_var.set(f"ERROR: {str(error)[:70]}")
 
+    def reader_loop(self, process: Any) -> None:
+        """Read and dispatch structured listener output."""
+        # Imported lazily to avoid a module cycle while the optional voice
+        # foundation installs its UI integrations.
+        from .foundation import _handle_heard, _set_status
+
+        app = self.app
+        saw_error = False
+        try:
+            while not app.voice_stop_requested:
+                line = process.stdout.readline()
+                if line == "":
+                    break
+                line = line.strip()
+                if not line:
+                    continue
+                if line.startswith("__READY__|"):
+                    parts = line.split("|", 2)
+                    culture = parts[1] if len(parts) > 1 else ""
+                    description = parts[2] if len(parts) > 2 else ""
+                    label = f"LISTENING · {culture}"
+                    if description:
+                        label += f" · {description}"
+                    app.after(0, lambda value=label: _set_status(app, value))
+                elif line.startswith("__HEARD__|"):
+                    parts = line.split("|", 3)
+                    confidence = parts[1] if len(parts) > 1 else ""
+                    grammar_kind = parts[2] if len(parts) > 2 else ""
+                    heard = parts[3] if len(parts) > 3 else ""
+                    if len(parts) == 3:  # Compatibility with TEST01 protocol.
+                        heard = parts[2]
+                        grammar_kind = ""
+                    app.after(
+                        0,
+                        lambda value=heard, conf=confidence, kind=grammar_kind: _handle_heard(
+                            app, value, conf, kind,
+                        ),
+                    )
+                elif line.startswith("__WARN__|"):
+                    warning = line.split("|", 1)[1]
+                    app.after(
+                        0,
+                        lambda value=warning: _set_status(
+                            app, f"WARNING: {value[:110]}",
+                        ),
+                    )
+                elif line.startswith("__ERROR__|"):
+                    saw_error = True
+                    error = line.split("|", 1)[1]
+                    app.after(
+                        0,
+                        lambda value=error: _set_status(app, f"ERROR: {value[:110]}"),
+                    )
+                else:
+                    app.after(0, lambda value=line: _handle_heard(app, value))
+        except Exception as error:
+            if not app.voice_stop_requested:
+                saw_error = True
+                message = str(error)
+                app.after(
+                    0,
+                    lambda value=message: _set_status(app, f"ERROR: {value[:110]}"),
+                )
+        finally:
+            if not app.voice_stop_requested and not saw_error:
+                try:
+                    exit_code = process.poll()
+                except Exception:
+                    exit_code = None
+                detail = f" · exit {exit_code}" if exit_code is not None else ""
+                app.after(
+                    0, lambda: _set_status(app, f"STOPPED{detail}"),
+                )
+
     def stop(self) -> None:
         app = self.app
         app.voice_stop_requested = True
