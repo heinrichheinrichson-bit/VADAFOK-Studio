@@ -102,3 +102,6 @@ def update_fields_overlay(
 
     if refresh_layers and hasattr(app, "template_layers_body"):
         app.template_build_layers_panel()
+
+    if hasattr(app, "template_refresh_toolbar_state"):
+        app.template_refresh_toolbar_state()

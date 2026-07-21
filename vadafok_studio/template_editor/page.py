@@ -115,10 +115,13 @@ def show_template_editor_page(app: Any) -> None:
     controls = ctk.CTkFrame(right, fg_color="transparent")
     controls.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
     controls.grid_columnconfigure((0,1,2,3,4), weight=1)
+    app.template_action_buttons = {}
 
     ctk.CTkButton(controls, text="+ ADD FIELD", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=app.template_add_field).grid(row=0, column=0, padx=4, pady=4, sticky="ew")
-    ctk.CTkButton(controls, text="COPY FIELD", fg_color="#333333", hover_color="#444444", command=app.template_copy_field).grid(row=0, column=1, padx=4, pady=4, sticky="ew")
-    ctk.CTkButton(controls, text="DELETE FIELD", fg_color="#333333", hover_color="#444444", command=app.template_delete_field).grid(row=0, column=2, padx=4, pady=4, sticky="ew")
+    app.template_action_buttons["copy"] = ctk.CTkButton(controls, text="COPY FIELD", fg_color="#333333", hover_color="#444444", command=app.template_copy_field)
+    app.template_action_buttons["copy"].grid(row=0, column=1, padx=4, pady=4, sticky="ew")
+    app.template_action_buttons["delete"] = ctk.CTkButton(controls, text="DELETE FIELD", fg_color="#333333", hover_color="#444444", command=app.template_delete_field)
+    app.template_action_buttons["delete"].grid(row=0, column=2, padx=4, pady=4, sticky="ew")
     ctk.CTkButton(controls, text="SAVE TEMPLATE", fg_color="#333333", hover_color="#444444", command=app.template_save).grid(row=0, column=3, padx=4, pady=4, sticky="ew")
     ctk.CTkButton(controls, text="RESET DEFAULT", fg_color="#333333", hover_color="#444444", command=app.template_reset_default).grid(row=0, column=4, padx=4, pady=4, sticky="ew")
     ctk.CTkButton(
@@ -237,41 +240,57 @@ def show_template_editor_page(app: Any) -> None:
         hover_color=GOLD_DARK
     ).grid(row=0, column=1, padx=(0, 12), sticky="w")
 
+    app.template_selection_summary_label = ctk.CTkLabel(
+        smart_bar, text="Keine Felder ausgewählt", text_color="#8F8058",
+        anchor="e",
+    )
+    app.template_selection_summary_label.grid(row=0, column=2, sticky="e")
+
     align_bar = ctk.CTkFrame(controls, fg_color="transparent")
     align_bar.grid(row=4, column=0, columnspan=5, padx=4, pady=(6, 0), sticky="ew")
     align_bar.grid_columnconfigure((0,1,2,3,4,5), weight=1)
 
-    ctk.CTkButton(align_bar, text="ALIGN LEFT", fg_color="#333333", hover_color="#444444", command=lambda: app.template_align_selected("left")).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
-    ctk.CTkButton(align_bar, text="CENTER", fg_color="#333333", hover_color="#444444", command=lambda: app.template_align_selected("center")).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
-    ctk.CTkButton(align_bar, text="ALIGN RIGHT", fg_color="#333333", hover_color="#444444", command=lambda: app.template_align_selected("right")).grid(row=0, column=2, padx=2, pady=2, sticky="ew")
-    ctk.CTkButton(align_bar, text="ALIGN TOP", fg_color="#333333", hover_color="#444444", command=lambda: app.template_align_selected("top")).grid(row=0, column=3, padx=2, pady=2, sticky="ew")
-    ctk.CTkButton(align_bar, text="MIDDLE", fg_color="#333333", hover_color="#444444", command=lambda: app.template_align_selected("middle")).grid(row=0, column=4, padx=2, pady=2, sticky="ew")
-    ctk.CTkButton(align_bar, text="ALIGN BOTTOM", fg_color="#333333", hover_color="#444444", command=lambda: app.template_align_selected("bottom")).grid(row=0, column=5, padx=2, pady=2, sticky="ew")
+    app.template_action_buttons["align"] = []
+    for column, (text, mode) in enumerate((("ALIGN LEFT", "left"), ("CENTER", "center"), ("ALIGN RIGHT", "right"), ("ALIGN TOP", "top"), ("MIDDLE", "middle"), ("ALIGN BOTTOM", "bottom"))):
+        button = ctk.CTkButton(align_bar, text=text, fg_color="#333333", hover_color="#444444", command=lambda selected=mode: app.template_align_selected(selected))
+        button.grid(row=0, column=column, padx=2, pady=2, sticky="ew")
+        app.template_action_buttons["align"].append(button)
 
     distribute_bar = ctk.CTkFrame(controls, fg_color="transparent")
     distribute_bar.grid(row=5, column=0, columnspan=5, padx=4, pady=(2, 0), sticky="ew")
     distribute_bar.grid_columnconfigure((0,1), weight=1)
-    ctk.CTkButton(distribute_bar, text="DISTRIBUTE H", fg_color="#333333", hover_color="#444444", command=lambda: app.template_distribute_selected("horizontal")).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
-    ctk.CTkButton(distribute_bar, text="DISTRIBUTE V", fg_color="#333333", hover_color="#444444", command=lambda: app.template_distribute_selected("vertical")).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
+    app.template_action_buttons["distribute"] = []
+    for column, (text, axis) in enumerate((("DISTRIBUTE H", "horizontal"), ("DISTRIBUTE V", "vertical"))):
+        button = ctk.CTkButton(distribute_bar, text=text, fg_color="#333333", hover_color="#444444", command=lambda selected=axis: app.template_distribute_selected(selected))
+        button.grid(row=0, column=column, padx=2, pady=2, sticky="ew")
+        app.template_action_buttons["distribute"].append(button)
 
     equal_bar = ctk.CTkFrame(controls, fg_color="transparent")
     equal_bar.grid(row=6, column=0, columnspan=5, padx=4, pady=(2, 0), sticky="ew")
     equal_bar.grid_columnconfigure((0,1), weight=1)
-    ctk.CTkButton(equal_bar, text="EQUAL SPACE H", fg_color="#333333", hover_color="#444444", command=lambda: app.template_equal_spacing_selected("horizontal")).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
-    ctk.CTkButton(equal_bar, text="EQUAL SPACE V", fg_color="#333333", hover_color="#444444", command=lambda: app.template_equal_spacing_selected("vertical")).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
+    app.template_action_buttons["equal_spacing"] = []
+    for column, (text, axis) in enumerate((("EQUAL SPACE H", "horizontal"), ("EQUAL SPACE V", "vertical"))):
+        button = ctk.CTkButton(equal_bar, text=text, fg_color="#333333", hover_color="#444444", command=lambda selected=axis: app.template_equal_spacing_selected(selected))
+        button.grid(row=0, column=column, padx=2, pady=2, sticky="ew")
+        app.template_action_buttons["equal_spacing"].append(button)
 
     history_bar = ctk.CTkFrame(controls, fg_color="transparent")
     history_bar.grid(row=7, column=0, columnspan=5, padx=4, pady=(2, 0), sticky="ew")
     history_bar.grid_columnconfigure((0,1), weight=1)
-    ctk.CTkButton(history_bar, text="UNDO", fg_color="#333333", hover_color="#444444", command=app.template_undo).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
-    ctk.CTkButton(history_bar, text="REDO", fg_color="#333333", hover_color="#444444", command=app.template_redo).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
+    app.template_action_buttons["undo"] = ctk.CTkButton(history_bar, text="UNDO", fg_color="#333333", hover_color="#444444", command=app.template_undo)
+    app.template_action_buttons["undo"].grid(row=0, column=0, padx=2, pady=2, sticky="ew")
+    app.template_action_buttons["redo"] = ctk.CTkButton(history_bar, text="REDO", fg_color="#333333", hover_color="#444444", command=app.template_redo)
+    app.template_action_buttons["redo"].grid(row=0, column=1, padx=2, pady=2, sticky="ew")
 
     group_bar = ctk.CTkFrame(controls, fg_color="transparent")
     group_bar.grid(row=8, column=0, columnspan=5, padx=4, pady=(2, 0), sticky="ew")
     group_bar.grid_columnconfigure((0,1), weight=1)
-    ctk.CTkButton(group_bar, text="GROUP SELECTED", fg_color="#333333", hover_color="#444444", command=app.template_create_group).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
-    ctk.CTkButton(group_bar, text="UNGROUP", fg_color="#333333", hover_color="#444444", command=app.template_ungroup_selected).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
+    app.template_action_buttons["group"] = ctk.CTkButton(group_bar, text="GROUP SELECTED", fg_color="#333333", hover_color="#444444", command=app.template_create_group)
+    app.template_action_buttons["group"].grid(row=0, column=0, padx=2, pady=2, sticky="ew")
+    app.template_action_buttons["ungroup"] = ctk.CTkButton(group_bar, text="UNGROUP", fg_color="#333333", hover_color="#444444", command=app.template_ungroup_selected)
+    app.template_action_buttons["ungroup"].grid(row=0, column=1, padx=2, pady=2, sticky="ew")
 
     app.template_draw_canvas()
     app.template_build_style_presets_panel()
     app.template_build_layers_panel()
+    app.template_refresh_toolbar_state()

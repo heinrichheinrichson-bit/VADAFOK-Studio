@@ -51,6 +51,7 @@ from .template_editor import layer_controller
 from .template_editor import field_controller
 from .template_editor import layout_actions
 from .template_editor import group_controller
+from .template_editor.ui_state import refresh_toolbar_state
 from .library import LibraryController
 from .library.page import show_library_page
 from .library.grid_view import render_asset_grid, render_folder_overview
@@ -1859,6 +1860,10 @@ class VadafokStudio(ctk.CTk):
             self.template_build_properties_panel()
         self.template_update_fields_overlay(refresh_layers=False)
         self.template_refresh_layers_selection()
+        self.template_refresh_toolbar_state()
+
+    def template_refresh_toolbar_state(self):
+        return refresh_toolbar_state(self)
 
     def template_select_layer(self, idx):
         return layer_controller.select_layer(self, idx)
