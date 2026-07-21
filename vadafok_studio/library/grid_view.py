@@ -47,6 +47,7 @@ def render_folder_overview(app: Any) -> None:
     for widget in app.library_grid.winfo_children():
         widget.destroy()
     app.thumbnail_refs = []
+    app.library_asset_cards = {}
     project_folder = app.project_folder.get()
     app.library_info.configure(
         text=f"Projektordner: {project_folder or '(nicht gesetzt)'}    Bitte zuerst einen Ordner auswählen."
@@ -118,6 +119,7 @@ def render_asset_grid(app: Any) -> None:
     for widget in app.library_grid.winfo_children():
         widget.destroy()
     app.thumbnail_refs = []
+    app.library_asset_cards = {}
     items = filter_library_items(
         app.library_items, app.search_text.get(), app.favorite_filter.get(),
         app.item_is_favorite, app.item_tags,
@@ -143,6 +145,7 @@ def render_asset_grid(app: Any) -> None:
             border_color=GOLD if selected else "#151515", border_width=2,
         )
         card.grid(row=row, column=column, padx=10, pady=10, sticky="nsew")
+        app.library_asset_cards[app.item_key(item)] = card
         favorite = app.item_is_favorite(item)
         profile = item.section == "Banners" and has_profile(
             app.banner_profiles, app.item_key(item)

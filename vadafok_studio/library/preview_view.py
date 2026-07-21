@@ -48,6 +48,7 @@ def make_thumbnail_label(app: Any, parent: Any, path: Any) -> Any:
 
 def select_library_item(app: Any, item: Any) -> None:
     """Select an asset and update the detail preview."""
+    previous = getattr(app, "selected_item", None)
     app.selected_item = item
     app.preview_refs = []
     preview_frame = getattr(app, "selection_preview", None)
@@ -87,4 +88,17 @@ def select_library_item(app: Any, item: Any) -> None:
         text=(f"{item.section} / {item.category}\n{item.relative}\n"
               f"Tags: {tags}\nTyp: {item.kind}")
     )
-    app.render_library_grid()
+    cards = getattr(app, "library_asset_cards", {})
+    if previous is not None:
+        previous_card = cards.get(app.item_key(previous))
+        if previous_card is not None:
+            try:
+                previous_card.configure(border_color="#151515")
+            except Exception:
+                pass
+    selected_card = cards.get(app.item_key(item))
+    if selected_card is not None:
+        try:
+            selected_card.configure(border_color=GOLD)
+        except Exception:
+            pass

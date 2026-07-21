@@ -363,6 +363,15 @@ class LiveCardController:
         app.preview_frame = ctk.CTkFrame(right, fg_color="#020202", corner_radius=14, border_width=1, border_color="#3A2A0D")
         app.preview_frame.grid(row=1, column=0, padx=18, pady=(0, 8), sticky="nsew")
 
+        def preview_frame_resized(event):
+            size = (event.width, event.height)
+            if min(size) < 160 or size == getattr(app, "live_preview_frame_size", None):
+                return
+            app.live_preview_frame_size = size
+            app.schedule_live_card_preview()
+
+        app.preview_frame.bind("<Configure>", preview_frame_resized, add="+")
+
         app.render_status_label = ctk.CTkLabel(
             right,
             text="Preview wartet...",
