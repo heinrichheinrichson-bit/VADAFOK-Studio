@@ -22,6 +22,7 @@ def build_quick_cards_tree(app: Any) -> None:
         pass
     for widget in tree.winfo_children():
         widget.destroy()
+    app.quick_cards_category_widgets = {}
 
     row = 0
     for category in sorted(app.text_library_data):
@@ -29,11 +30,12 @@ def build_quick_cards_tree(app: Any) -> None:
         header = ctk.CTkFrame(tree, fg_color="#111111", corner_radius=10)
         header.grid(row=row, column=0, padx=12, pady=(10, 4), sticky="ew")
         header.grid_columnconfigure(1, weight=1)
-        ctk.CTkButton(
+        arrow_button = ctk.CTkButton(
             header, text="▶" if collapsed else "▼", width=42,
             fg_color="#333333", hover_color="#444444",
             command=lambda selected=category: app.quick_cards_toggle_category(selected),
-        ).grid(row=0, column=0, padx=(8, 4), pady=8)
+        )
+        arrow_button.grid(row=0, column=0, padx=(8, 4), pady=8)
         ctk.CTkLabel(
             header, text=category, text_color=GOLD,
             font=ctk.CTkFont(size=16, weight="bold"),
@@ -49,16 +51,27 @@ def build_quick_cards_tree(app: Any) -> None:
             command=lambda selected=category: app.quick_cards_delete_category(selected),
         ).grid(row=0, column=3, padx=(4, 8), pady=8)
         row += 1
-        if collapsed:
-            continue
+        category_rows = []
         texts = app.text_library_data.get(category, [])
         if not texts:
-            ctk.CTkLabel(tree, text="No texts.", text_color="#777777").grid(
+            empty_label = ctk.CTkLabel(
+                tree, text="No texts.", text_color="#777777",
+            )
+            empty_label.grid(
                 row=row, column=0, padx=34, pady=4, sticky="w",
             )
+            category_rows.append(empty_label)
             row += 1
         for text in texts:
-            row = _build_text_row(app, tree, row, category, text)
+            row, item = _build_text_row(app, tree, row, category, text)
+            category_rows.append(item)
+        app.quick_cards_category_widgets[category] = {
+            "arrow": arrow_button,
+            "rows": category_rows,
+        }
+        if collapsed:
+            for widget in category_rows:
+                widget.grid_remove()
     tree.grid_columnconfigure(0, weight=1)
     if scroll_canvas is not None and scroll_position > 0:
         try:
@@ -69,7 +82,23 @@ def build_quick_cards_tree(app: Any) -> None:
             pass
 
 
-def _build_text_row(app: Any, tree: Any, row: int, category: str, text: str) -> int:
+def set_category_collapsed(app: Any, category: str, collapsed: bool) -> bool:
+    """Update one category without rebuilding the Quick Cards tree."""
+    widgets = getattr(app, "quick_cards_category_widgets", {}).get(category)
+    if not widgets:
+        return False
+    widgets["arrow"].configure(text="▶" if collapsed else "▼")
+    for widget in widgets["rows"]:
+        if collapsed:
+            widget.grid_remove()
+        else:
+            widget.grid()
+    return True
+
+
+def _build_text_row(
+    app: Any, tree: Any, row: int, category: str, text: str,
+) -> tuple[int, Any]:
     item = ctk.CTkFrame(tree, fg_color="#0B0B0B", corner_radius=8)
     item.grid(row=row, column=0, padx=34, pady=3, sticky="ew")
     item.grid_columnconfigure(0, weight=1)
@@ -112,4 +141,4 @@ def _build_text_row(app: Any, tree: Any, row: int, category: str, text: str) -> 
             hover_color="#7A2A2A",
             command=lambda cat=category, old=text: app.quick_cards_delete_text(cat, old),
         ).grid(row=0, column=2, padx=(4, 8), pady=6)
-    return row + 1
+    return row + 1, item

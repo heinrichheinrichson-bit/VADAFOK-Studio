@@ -47,11 +47,14 @@ def show_quick_cards_page(app: Any) -> None:
     ctk.CTkLabel(manager, text="Target Category", text_color="#BCA870").grid(
         row=1, column=0, padx=18, pady=(8, 4), sticky="w",
     )
-    ctk.CTkOptionMenu(
+    app.quick_cards_category_menu = ctk.CTkOptionMenu(
         manager, values=categories, variable=app.quick_cards_target_category,
         fg_color="#333333", button_color="#444444",
         button_hover_color="#555555",
-    ).grid(row=2, column=0, padx=18, pady=(0, 12), sticky="ew")
+    )
+    app.quick_cards_category_menu.grid(
+        row=2, column=0, padx=18, pady=(0, 12), sticky="ew",
+    )
 
     ctk.CTkLabel(manager, text="New Category", text_color="#BCA870").grid(
         row=3, column=0, padx=18, pady=(8, 4), sticky="w",

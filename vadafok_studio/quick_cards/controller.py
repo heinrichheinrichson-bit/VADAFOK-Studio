@@ -6,6 +6,7 @@ from typing import Any
 from tkinter import messagebox, simpledialog
 
 from ..core import text_library_engine
+from .tree_view import set_category_collapsed
 
 
 class QuickCardsController:
@@ -25,12 +26,24 @@ class QuickCardsController:
         else:
             self.app.show_quick_cards()
 
+    def refresh_category_menu(self) -> None:
+        categories = sorted(self.app.text_library_data) or ["Chat"]
+        target = self.app.quick_cards_target_category.get()
+        if target not in categories:
+            self.app.quick_cards_target_category.set(categories[0])
+        menu = getattr(self.app, "quick_cards_category_menu", None)
+        if menu is not None:
+            menu.configure(values=categories)
+
     def toggle_category(self, category: str) -> None:
         if category in self.app.quick_cards_collapsed:
             self.app.quick_cards_collapsed.remove(category)
         else:
             self.app.quick_cards_collapsed.add(category)
-        self.refresh_tree()
+        if not set_category_collapsed(
+            self.app, category, category in self.app.quick_cards_collapsed,
+        ):
+            self.refresh_tree()
 
     def use_text(self, text: str) -> None:
         self.app.live_card_pending_text = str(text or "").strip()
@@ -47,7 +60,8 @@ class QuickCardsController:
         self.app.text_library_new_category.set("")
         self.app.quick_cards_target_category.set(category)
         self.app.quick_cards_collapsed.discard(category)
-        self.app.show_quick_cards()
+        self.refresh_category_menu()
+        self.refresh_tree()
 
     def rename_category(self, category: str) -> None:
         new_name = simpledialog.askstring(
@@ -63,7 +77,8 @@ class QuickCardsController:
             self.app.quick_cards_collapsed.remove(category)
             self.app.quick_cards_collapsed.add(new_name)
         self.app.quick_cards_target_category.set(new_name)
-        self.app.show_quick_cards()
+        self.refresh_category_menu()
+        self.refresh_tree()
 
     def delete_category(self, category: str) -> None:
         if not messagebox.askyesno(
@@ -73,7 +88,8 @@ class QuickCardsController:
             return
         self.app.text_library_data = text_library_engine.delete_category(category)
         self.app.quick_cards_collapsed.discard(category)
-        self.app.show_quick_cards()
+        self.refresh_category_menu()
+        self.refresh_tree()
 
     def add_text(self) -> None:
         text = self.app.text_library_new_text.get().strip()

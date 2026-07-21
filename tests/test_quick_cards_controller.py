@@ -21,6 +21,7 @@ class QuickCardsControllerTests(unittest.TestCase):
         return SimpleNamespace(
             quick_cards_collapsed=set(),
             quick_cards_tree=object(),
+            quick_cards_category_widgets={},
             quick_cards_build_tree=Mock(),
             show_quick_cards=Mock(),
             text_library_new_text=Variable(),
@@ -65,6 +66,16 @@ class QuickCardsControllerTests(unittest.TestCase):
         self.assertIsNone(app.quick_cards_editing_text)
         self.assertEqual(app.quick_cards_edit_text_var.get(), "")
         app.quick_cards_build_tree.assert_called_once()
+
+    @patch("vadafok_studio.quick_cards.controller.set_category_collapsed")
+    def test_toggle_updates_only_selected_category_when_view_exists(self, update):
+        app = self.make_app()
+        update.return_value = True
+        controller = QuickCardsController(app)
+        controller.toggle_category("Chat")
+        update.assert_called_once_with(app, "Chat", True)
+        app.quick_cards_build_tree.assert_not_called()
+        app.show_quick_cards.assert_not_called()
 
 
 if __name__ == "__main__":
