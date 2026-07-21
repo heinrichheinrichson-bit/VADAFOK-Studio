@@ -74,7 +74,11 @@ def use_as_caption_banner(app: Any) -> None:
 
 def _refresh_render_preview(app: Any) -> None:
     try:
-        app.update_render_preview()
+        schedule = getattr(app, "schedule_live_card_preview", None)
+        if callable(schedule):
+            schedule()
+        else:
+            app.update_render_preview()
     except Exception:
         pass
 

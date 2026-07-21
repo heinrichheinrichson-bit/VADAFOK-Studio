@@ -19,6 +19,7 @@ class LibraryUseActionTests(unittest.TestCase):
             ensure_obs_ready=Mock(return_value=False),
             show_live_card=Mock(),
             update_render_preview=Mock(),
+            schedule_live_card_preview=Mock(),
             after=Mock(),
         )
 
@@ -41,7 +42,7 @@ class LibraryUseActionTests(unittest.TestCase):
         self.assertFalse(app.library_banner_picker_mode)
         self.assertIsNone(app.library_return_page)
         app.show_live_card.assert_called_once()
-        app.update_render_preview.assert_called_once()
+        app.schedule_live_card_preview.assert_called_once()
 
     @patch.object(use_actions, "save_config")
     def test_targeted_picker_replaces_exact_banner_slot(self, save):

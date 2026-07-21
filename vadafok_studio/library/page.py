@@ -92,7 +92,7 @@ def show_library_page(app: Any) -> None:
         )
         app.library_info.configure(
             text=(f"LIVE CARD BANNER PICKER{target_text} — Wähle ein Banner und nutze "
-                  "SHOW / USE oder USE AS CAPTION BANNER."),
+                  "Doppelklick zum sofortigen Übernehmen; alternativ SHOW / USE."),
             text_color=GOLD,
         )
 
@@ -122,7 +122,7 @@ def show_library_page(app: Any) -> None:
     app.selection_name.grid(row=2, column=0, padx=18, pady=(8, 4), sticky="w")
     app.selection_meta = ctk.CTkLabel(
         right,
-        text=("Banner auswählen und SHOW / USE drücken."
+        text=("Banner doppelklicken oder SHOW / USE drücken."
               if app.library_banner_picker_mode
               else "Wähle links zuerst einen Ordner."),
         text_color="#BCA870", wraplength=300, justify="left",

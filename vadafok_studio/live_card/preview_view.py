@@ -35,9 +35,15 @@ def update_render_preview(app: Any) -> None:
     try:
         preview_path = app.render_smart_caption(text)
         try:
+            frame_width = app.preview_frame.winfo_width()
+            frame_height = app.preview_frame.winfo_height()
             bounds = (
-                max(160, min(760, app.preview_frame.winfo_width() - 24)),
-                max(120, min(520, app.preview_frame.winfo_height() - 24)),
+                (520, 300)
+                if frame_width < 200 or frame_height < 160
+                else (
+                    min(760, frame_width - 24),
+                    min(520, frame_height - 24),
+                )
             )
         except Exception:
             bounds = (520, 300)

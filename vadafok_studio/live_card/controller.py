@@ -263,7 +263,7 @@ class LiveCardController:
             reset_live_card_translation(app)
         except Exception:
             pass
-        app.update_render_preview()
+        app.schedule_live_card_preview()
         try:
             app.message_box.focus_set()
         except Exception:
@@ -597,7 +597,7 @@ class LiveCardController:
             command=app.preview_live_card_effect,
         ).grid(row=0, column=1, padx=(4, 0), sticky="ew")
 
-        app.update_render_preview()
+        app.schedule_live_card_preview()
 
     def live_card_set_message_text(self, text):
         app = self.app
