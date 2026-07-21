@@ -5,13 +5,21 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 from tkinter import filedialog
+from tkinter import messagebox
 
 
 class CardExportController:
-    def __init__(self, app: Any, export_engine: Any, default_export_dir: Path) -> None:
+    def __init__(
+        self,
+        app: Any,
+        export_engine: Any,
+        default_export_dir: Path,
+        open_folder,
+    ) -> None:
         self.app = app
         self._export_engine = export_engine
         self._default_export_dir = Path(default_export_dir)
+        self._open_folder = open_folder
 
     def output_directory(self, batch: bool = False) -> Path:
         variable = (
@@ -66,3 +74,27 @@ class CardExportController:
             initialdir=str(default_dir),
         )
         return Path(selected) if selected else None
+
+    def open_export_folder(self) -> None:
+        try:
+            self._open_folder(str(self.output_directory()))
+        except Exception as exc:
+            messagebox.showerror(
+                "Card Creator",
+                f"Export-Ordner konnte nicht geöffnet werden:\n{exc}",
+            )
+
+    def copy_last_path(self) -> None:
+        if not self.app.card_creator_last_render:
+            messagebox.showinfo(
+                "Card Creator", "Noch keine finale Karte gerendert."
+            )
+            return
+        try:
+            self.app.clipboard_clear()
+            self.app.clipboard_append(str(self.app.card_creator_last_render))
+            messagebox.showinfo(
+                "Card Creator", "Pfad wurde in die Zwischenablage kopiert."
+            )
+        except Exception as exc:
+            messagebox.showerror("Card Creator", str(exc))

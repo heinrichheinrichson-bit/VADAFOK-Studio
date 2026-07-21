@@ -154,7 +154,7 @@ class VadafokStudio(ctk.CTk):
         self.card_export_profile = ctk.StringVar(value="Broadcast PNG")
         self.card_creator_state = CardCreatorState()
         self.card_export_controller = CardExportController(
-            self, export_engine, EXPORT_DIR
+            self, export_engine, EXPORT_DIR, os.startfile
         )
         self.card_batch_controller = CardBatchController(
             self, self.card_creator_state, list_templates, batch_engine
@@ -4547,22 +4547,10 @@ class VadafokStudio(ctk.CTk):
         self.card_update_preview()
 
     def card_open_export_folder(self):
-        try:
-            folder = self.card_output_directory()
-            os.startfile(str(folder))
-        except Exception as e:
-            messagebox.showerror("Card Creator", f"Export-Ordner konnte nicht geöffnet werden:\n{e}")
+        return self.card_export_controller.open_export_folder()
 
     def card_copy_last_path(self):
-        if not self.card_creator_last_render:
-            messagebox.showinfo("Card Creator", "Noch keine finale Karte gerendert.")
-            return
-        try:
-            self.clipboard_clear()
-            self.clipboard_append(str(self.card_creator_last_render))
-            messagebox.showinfo("Card Creator", "Pfad wurde in die Zwischenablage kopiert.")
-        except Exception as e:
-            messagebox.showerror("Card Creator", str(e))
+        return self.card_export_controller.copy_last_path()
 
 
 
