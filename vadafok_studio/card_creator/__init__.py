@@ -6,6 +6,7 @@ from .state import CardCreatorState
 from .export_controller import CardExportController
 from .preview import CardPreviewController
 from .data_controller import CardDataController
+from .style_controller import CardStyleController
 
 __all__ = [
     "CardBatchController",
@@ -14,4 +15,5 @@ __all__ = [
     "CardExportController",
     "CardPreviewController",
     "CardDataController",
+    "CardStyleController",
 ]

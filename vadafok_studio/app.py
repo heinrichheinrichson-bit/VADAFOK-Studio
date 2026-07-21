@@ -23,6 +23,7 @@ from .card_creator import (
     CardExportController,
     CardPreviewController,
     CardDataController,
+    CardStyleController,
 )
 from .card_creator.page import (
     build_batch_panel,
@@ -177,6 +178,9 @@ class VadafokStudio(ctk.CTk):
             self,
             self.card_creator_state,
             lambda values: save_json(CARD_VALUES_PATH, values),
+        )
+        self.card_style_controller = CardStyleController(
+            self, style_engine, load_template, save_template
         )
         self.card_batch_controller = CardBatchController(
             self, self.card_creator_state, list_templates, batch_engine
@@ -4585,56 +4589,13 @@ class VadafokStudio(ctk.CTk):
 
 
     def card_template_field_index_by_name(self, field_name):
-        template = self.card_template()
-        for idx, field in enumerate(template.get("fields", [])):
-            if field.get("name") == field_name:
-                return idx
-        return None
+        return self.card_style_controller.field_index_by_name(field_name)
 
     def card_apply_style_to_field(self, field_name, style_name):
-        if not style_name or style_name == "Select Style":
-            return
-
-        template_name = self.card_selected_template.get()
-        template = load_template(template_name)
-        fields = template.get("fields", [])
-
-        target_idx = None
-        for idx, field in enumerate(fields):
-            if field.get("name") == field_name:
-                target_idx = idx
-                break
-
-        if target_idx is None:
-            messagebox.showwarning("Card Creator Styles", f"Feld nicht gefunden: {field_name}")
-            return
-
-        try:
-            if hasattr(self, "template_push_history"):
-                # Only meaningful if the same template is open in the Template Editor later,
-                # but it keeps the operation conceptually tracked.
-                pass
-
-            style = style_engine.load_style(style_name)
-            if not style:
-                messagebox.showwarning("Card Creator Styles", "Style ist leer oder konnte nicht geladen werden.")
-                return
-
-            style_engine.apply_style(fields[target_idx], style)
-            save_template(template_name, template)
-
-            # Keep working data in sync if this template is also active in Template Editor.
-            if getattr(self, "template_selected_name", None) == template_name:
-                self.template_working_data = None
-
-            self.card_update_preview()
-            messagebox.showinfo("Card Creator Styles", f"Style '{style_name}' wurde auf '{field_name}' angewendet.")
-        except Exception as e:
-            messagebox.showerror("Card Creator Styles", str(e))
+        return self.card_style_controller.apply_to_field(field_name, style_name)
 
     def card_open_template_editor_for_styles(self):
-        self.template_selected_name = self.card_selected_template.get()
-        self.show_template_editor_page()
+        return self.card_style_controller.open_template_editor()
 
     def card_batch_current_item_name(self):
         return self.card_batch_controller.current_item_name()
