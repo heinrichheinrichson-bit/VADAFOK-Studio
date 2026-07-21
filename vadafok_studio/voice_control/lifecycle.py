@@ -168,6 +168,9 @@ class VoiceLifecycleController:
         self.app.open_quick_caption()
 
     def close_app(self) -> None:
+        caption_controller = getattr(self.app, "caption_engine_controller", None)
+        if caption_controller is not None and not caption_controller.confirm_close():
+            return
         self.stop()
         cancel_hide = getattr(self.app, "cancel_live_card_hide_timer", None)
         if callable(cancel_hide):

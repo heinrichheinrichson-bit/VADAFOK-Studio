@@ -53,6 +53,7 @@ DEFAULT_CONFIG = {
     "caption_render_width": 1600,
     "caption_render_height": 260,
     "caption_uppercase": True,
+    "caption_color_favorites": ["#FFFFFF", "#000000", "#E0AA36", "#D94A36"],
 
     "caption_safe_left": 12,
     "caption_safe_right": 12,

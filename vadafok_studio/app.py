@@ -73,6 +73,7 @@ from .voice_control.lifecycle import VoiceLifecycleController
 from .banner_editor.controller import BannerEditorController
 from .obs_workflow.controller import OBSWorkflowController
 from .settings.controller import SettingsController
+from .caption_engine import CaptionEngineController
 from .live_card import (
     LiveCardController,
     LiveCardShowController,
@@ -147,6 +148,7 @@ class VadafokStudio(ctk.CTk):
 
         self.config_data = load_config()
         self.settings_controller = SettingsController(self)
+        self.caption_engine_controller = CaptionEngineController(self)
         self.favorites = load_favorites()
         self.asset_meta = load_asset_meta()
         self.banner_profiles = load_banner_profiles()
@@ -804,36 +806,7 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkOptionMenu(frame, values=values, variable=var, fg_color="#1A1A1A", button_color=GOLD_DARK, command=lambda _: self.update_preview()).pack(fill="x", pady=(6, 0))
 
     def show_caption_engine_page(self):
-        self.set_active("Caption Engine")
-        self.clear_main()
-        self.page_title("Caption Engine")
-        box = ctk.CTkFrame(self.main, fg_color=PANEL, corner_radius=18)
-        box.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
-        fields = [
-            ("Engine", self.caption_engine, ["obs_text", "smart_png"]),
-            ("Font Family", self.caption_font_family, None),
-            ("Font Size", self.caption_font_size, None),
-            ("Text Color", self.caption_text_color, None),
-            ("Stroke Color", self.caption_stroke_color, None),
-            ("Stroke Width", self.caption_stroke_width, None),
-            ("Render Width", self.caption_render_width, None),
-            ("Render Height", self.caption_render_height, None),
-            ("Safe Left %", self.caption_safe_left, None),
-            ("Safe Right %", self.caption_safe_right, None),
-            ("Safe Top %", self.caption_safe_top, None),
-            ("Safe Bottom %", self.caption_safe_bottom, None),
-        ]
-        for label, var, values in fields:
-            row = ctk.CTkFrame(box, fg_color="transparent")
-            row.pack(fill="x", padx=24, pady=7)
-            ctk.CTkLabel(row, text=label, width=150, anchor="w", text_color="#BCA870").pack(side="left")
-            if values:
-                ctk.CTkOptionMenu(row, values=values, variable=var).pack(side="left", fill="x", expand=True)
-            else:
-                ctk.CTkEntry(row, textvariable=var).pack(side="left", fill="x", expand=True)
-        ctk.CTkCheckBox(box, text="Uppercase", variable=self.caption_uppercase, text_color=TEXT).pack(anchor="w", padx=24, pady=8)
-        ctk.CTkLabel(box, text="Studio 2.8.6: smart_png rendert Banner + Text als fertige PNG. OBS braucht dafür nur die Bildquelle 'VADAFOK Caption Render'.", text_color="#D9C58C", wraplength=780, justify="left").pack(anchor="w", padx=24, pady=12)
-        ctk.CTkButton(box, text="SAVE SETTINGS", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=self.save_config).pack(anchor="w", padx=24, pady=12)
+        return self.caption_engine_controller.show_page()
 
 
 
