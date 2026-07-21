@@ -2,19 +2,40 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Callable
 from tkinter import messagebox
 
 from .state import CardCreatorState
 
 
 class CardDataController:
-    def __init__(self, app: Any, state: CardCreatorState) -> None:
+    def __init__(
+        self,
+        app: Any,
+        state: CardCreatorState,
+        persist_values: Callable[[dict], None],
+    ) -> None:
         self.app = app
         self.state = state
+        self._persist_values = persist_values
+
+    def values_plain(self) -> dict[str, str]:
+        values = self.app.card_creator_values.get(
+            self.app.card_selected_template.get(), {}
+        )
+        return {
+            key: variable.get() if hasattr(variable, "get") else str(variable)
+            for key, variable in values.items()
+        }
+
+    def save_values(self) -> None:
+        self.app.card_values_save_job = None
+        template_name = self.app.card_selected_template.get()
+        self.app.card_saved_values[template_name] = self.values_plain()
+        self._persist_values(self.app.card_saved_values)
 
     def current_snapshot(self) -> dict[str, str]:
-        return dict(self.app.card_values_plain())
+        return dict(self.values_plain())
 
     def apply_snapshot(self, snapshot: dict[str, str]) -> None:
         values = self.app.card_creator_values.get(
@@ -26,7 +47,7 @@ class CardDataController:
         for key, variable in values.items():
             if key not in snapshot and hasattr(variable, "set"):
                 variable.set("")
-        self.app.card_save_values()
+        self.save_values()
         self.app.card_update_preview()
 
     def push_history(self) -> None:
@@ -46,7 +67,7 @@ class CardDataController:
         for variable in values.values():
             if hasattr(variable, "set"):
                 variable.set("")
-        self.app.card_save_values()
+        self.save_values()
         self.app.card_update_preview()
 
     def undo(self) -> None:

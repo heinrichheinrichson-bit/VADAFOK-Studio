@@ -31,16 +31,25 @@ def make_app():
         },
         card_save_values=Mock(),
         card_update_preview=Mock(),
+        card_values_save_job="queued",
+        card_saved_values={},
     )
     return app
 
 
 class CardDataControllerTests(unittest.TestCase):
+    def make_controller(self, app, state=None, persist=None):
+        return CardDataController(
+            app,
+            state or CardCreatorState(),
+            persist or Mock(),
+        )
+
     def test_clear_records_history_and_clears_values(self):
         app = make_app()
         state = CardCreatorState()
 
-        CardDataController(app, state).clear_values()
+        self.make_controller(app, state).clear_values()
 
         self.assertEqual(
             state.data_undo_stack,
@@ -54,7 +63,7 @@ class CardDataControllerTests(unittest.TestCase):
         state = CardCreatorState(
             data_undo_stack=[{"title": "Before", "subtitle": "Old"}]
         )
-        controller = CardDataController(app, state)
+        controller = self.make_controller(app, state)
 
         controller.undo()
         self.assertEqual(app.card_creator_values["Default"]["title"].get(), "Before")
@@ -66,7 +75,7 @@ class CardDataControllerTests(unittest.TestCase):
     def test_duplicate_snapshot_is_not_recorded_twice(self):
         app = make_app()
         state = CardCreatorState()
-        controller = CardDataController(app, state)
+        controller = self.make_controller(app, state)
 
         controller.push_history()
         controller.push_history()
@@ -78,7 +87,31 @@ class CardDataControllerTests(unittest.TestCase):
         with patch(
             "vadafok_studio.card_creator.data_controller.messagebox.showinfo"
         ) as info:
-            CardDataController(app, CardCreatorState()).undo()
+            self.make_controller(app).undo()
 
         info.assert_called_once()
         app.card_save_values.assert_not_called()
+
+    def test_values_plain_reads_variables_and_plain_values(self):
+        app = make_app()
+        app.card_creator_values["Default"]["count"] = 3
+
+        result = self.make_controller(app).values_plain()
+
+        self.assertEqual(
+            result,
+            {"title": "Current", "subtitle": "Subtitle", "count": "3"},
+        )
+
+    def test_save_values_updates_memory_and_persists(self):
+        app = make_app()
+        persist = Mock()
+
+        self.make_controller(app, persist=persist).save_values()
+
+        self.assertIsNone(app.card_values_save_job)
+        self.assertEqual(
+            app.card_saved_values["Default"],
+            {"title": "Current", "subtitle": "Subtitle"},
+        )
+        persist.assert_called_once_with(app.card_saved_values)

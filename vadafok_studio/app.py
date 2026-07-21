@@ -168,7 +168,9 @@ class VadafokStudio(ctk.CTk):
             state=self.card_creator_state,
         )
         self.card_data_controller = CardDataController(
-            self, self.card_creator_state
+            self,
+            self.card_creator_state,
+            lambda values: save_json(CARD_VALUES_PATH, values),
         )
         self.card_batch_controller = CardBatchController(
             self, self.card_creator_state, list_templates, batch_engine
@@ -4866,16 +4868,11 @@ class VadafokStudio(ctk.CTk):
 
 
     def card_save_values(self):
-        self.card_values_save_job = None
-        template_name = self.card_selected_template.get()
-        plain = self.card_values_plain()
-        self.card_saved_values[template_name] = plain
-        save_json(CARD_VALUES_PATH, self.card_saved_values)
+        return self.card_data_controller.save_values()
 
 
     def card_values_plain(self):
-        values = self.card_creator_values.get(self.card_selected_template.get(), {})
-        return {k: (v.get() if hasattr(v, "get") else str(v)) for k, v in values.items()}
+        return self.card_data_controller.values_plain()
 
 
 
