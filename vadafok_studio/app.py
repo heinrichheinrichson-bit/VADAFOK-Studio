@@ -20,6 +20,7 @@ from .card_creator import (
     CardBatchController,
     CardCreatorController,
     CardCreatorState,
+    CardExportController,
 )
 from .card_creator.page import (
     build_batch_panel,
@@ -152,6 +153,9 @@ class VadafokStudio(ctk.CTk):
         self.card_auto_preview = ctk.BooleanVar(value=True)
         self.card_export_profile = ctk.StringVar(value="Broadcast PNG")
         self.card_creator_state = CardCreatorState()
+        self.card_export_controller = CardExportController(
+            self, export_engine, EXPORT_DIR
+        )
         self.card_batch_controller = CardBatchController(
             self, self.card_creator_state, list_templates, batch_engine
         )
@@ -4499,43 +4503,18 @@ class VadafokStudio(ctk.CTk):
         return f"card_{self.card_template_safe_name()}"
 
     def card_output_directory(self, batch=False):
-        var = self.card_batch_output_folder if batch else self.card_output_folder
-        value = var.get().strip() if hasattr(var, "get") else ""
-        folder = Path(value).expanduser() if value else EXPORT_DIR
-        folder.mkdir(parents=True, exist_ok=True)
-        return folder
+        return self.card_export_controller.output_directory(batch=batch)
 
     def card_output_path(self, final=False, output_dir=None):
-        base = self.card_output_name.get().strip() if hasattr(self, "card_output_name") else ""
-        if not base:
-            base = self.card_default_output_name()
-        profile = self.card_export_profile.get() if hasattr(self, "card_export_profile") else "Broadcast PNG"
-        target_dir = Path(output_dir) if output_dir is not None else (self.card_output_directory() if final else EXPORT_DIR)
-        target_dir.mkdir(parents=True, exist_ok=True)
-        return export_engine.export_path(target_dir, base, profile, final=final)
+        return self.card_export_controller.output_path(
+            final=final, output_dir=output_dir
+        )
 
     def card_choose_final_output_path(self):
-        default_path = self.card_output_path(final=True)
-        if not self.card_ask_output_location.get():
-            return default_path
-        selected = filedialog.asksaveasfilename(
-            title="Card Creator – Karte speichern",
-            initialdir=str(default_path.parent),
-            initialfile=default_path.name,
-            defaultextension=default_path.suffix,
-            filetypes=[("Bilddatei", f"*{default_path.suffix}"), ("Alle Dateien", "*.*")],
-        )
-        return Path(selected) if selected else None
+        return self.card_export_controller.choose_final_output_path()
 
     def card_choose_batch_output_directory(self):
-        default_dir = self.card_output_directory(batch=True)
-        if not self.card_ask_output_location.get():
-            return default_dir
-        selected = filedialog.askdirectory(
-            title="Card Creator – Batch-Ausgabeordner wählen",
-            initialdir=str(default_dir),
-        )
-        return Path(selected) if selected else None
+        return self.card_export_controller.choose_batch_output_directory()
 
     def card_preview_changed(self, *_args):
         """Queue a fast live preview and persist values after typing settles."""
