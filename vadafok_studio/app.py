@@ -184,7 +184,13 @@ class VadafokStudio(ctk.CTk):
             self, style_engine, load_template, save_template
         )
         self.card_render_service = CardRenderService(
-            self, load_template, background_path, template_dir
+            self,
+            load_template,
+            background_path,
+            template_dir,
+            EXPORT_DIR,
+            render_template_card,
+            export_engine,
         )
         self.card_batch_controller = CardBatchController(
             self, self.card_creator_state, list_templates, batch_engine
@@ -4687,22 +4693,11 @@ class VadafokStudio(ctk.CTk):
 
 
     def card_render_to_file(self, final=False, output_dir=None, output_path=None):
-        # First render to a temporary PNG using the existing layout engine, then apply export profile.
-        EXPORT_DIR.mkdir(parents=True, exist_ok=True)
-        temp = EXPORT_DIR / "_vadafok_card_temp_profile_source.png"
-        render_template_card(self.card_template(), self.card_values_plain(), temp, self.card_background_path(), size=None)
-
-        out = Path(output_path) if output_path is not None else self.card_output_path(final=final, output_dir=output_dir)
-        profile = self.card_export_profile.get() if hasattr(self, "card_export_profile") else "Broadcast PNG"
-        img = Image.open(temp).convert("RGBA")
-        export_engine.save_with_profile(img, out, profile)
-
-        try:
-            temp.unlink()
-        except Exception:
-            pass
-
-        return out
+        return self.card_render_service.render_to_file(
+            final=final,
+            output_dir=output_dir,
+            output_path=output_path,
+        )
 
 
     def card_update_preview(self):
