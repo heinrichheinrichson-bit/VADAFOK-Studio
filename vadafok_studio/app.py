@@ -48,6 +48,7 @@ from .template_editor import smart_guides
 from .template_editor import mouse_controller
 from .template_editor import selection_controller
 from .template_editor import layer_controller
+from .template_editor import field_controller
 from .library import LibraryController
 from .library.page import show_library_page
 from .library.grid_view import render_asset_grid, render_folder_overview
@@ -2278,140 +2279,16 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_add_field(self):
-        self.template_push_history('add field')
-        template = self.template_current()
-        name = f"field_{len(template['fields']) + 1}"
-        template["fields"].append({
-            "name": name,
-            "x": 160,
-            "y": 120 + len(template["fields"]) * 70,
-            "width": 500,
-            "height": 90,
-            "font_family": "Bebas Neue",
-            "font_size": 90,
-            "text_color": "#FFFFFF",
-            "stroke_color": "#000000",
-            "stroke_width": 3,
-            "uppercase": True
-        })
-        self.template_selected_field = len(template["fields"]) - 1
-        self.template_load_selected_properties()
-        save_template(self.template_selected_name, template)
-        self.template_draw_canvas()
+        return field_controller.add_field(self)
 
 
 
     def template_copy_field(self):
-        self.template_push_history('copy field')
-        template = self.template_current()
-        fields = template.get("fields", [])
-
-        selected = set(getattr(self, "template_selected_fields", set()))
-        if self.template_selected_field is not None:
-            selected.add(self.template_selected_field)
-        selected = sorted(idx for idx in selected if 0 <= idx < len(fields))
-
-        if not selected:
-            messagebox.showwarning("Template Editor", "Bitte zuerst ein Feld auswählen.")
-            return
-
-        existing = {f.get("name", "") for f in fields}
-        design_w, design_h = getattr(self, "template_canvas_design_size", (1280, 720))
-
-        copied_indices = []
-        src_to_copy_id = {}
-        for src_idx in selected:
-            source = dict(fields[src_idx])
-            base_name = source.get("name", "field")
-
-            candidate = f"{base_name}_copy"
-            index = 2
-            while candidate in existing:
-                candidate = f"{base_name}_copy{index}"
-                index += 1
-            existing.add(candidate)
-
-            copied = dict(source)
-            copied["id"] = self.template_new_id()
-            copied["name"] = candidate
-            copied["x"] = min(max(0, int(copied.get("x", 0)) + 15), max(0, int(design_w) - int(copied.get("width", 100))))
-            copied["y"] = min(max(0, int(copied.get("y", 0)) + 15), max(0, int(design_h) - int(copied.get("height", 50))))
-
-            template.setdefault("fields", []).append(copied)
-            new_idx = len(template["fields"]) - 1
-            copied_indices.append(new_idx)
-            src_to_copy_id[source.get("id")] = copied.get("id")
-
-        # If a complete group was copied, recreate it for the copied fields.
-        copied_source_ids = {fid for fid in src_to_copy_id.keys() if fid}
-        for group in list(template.get("groups", [])):
-            group_ids = set(group.get("field_ids", []))
-            if group_ids and group_ids.issubset(copied_source_ids):
-                base_name = group.get("name", "Group") + "_copy"
-                existing_names = {g.get("name", "") for g in template.setdefault("groups", [])}
-                name = base_name
-                n = 2
-                while name in existing_names:
-                    name = f"{base_name}{n}"
-                    n += 1
-                template["groups"].append({
-                    "id": self.template_new_id(),
-                    "name": name,
-                    "field_ids": [src_to_copy_id[fid] for fid in group.get("field_ids", []) if fid in src_to_copy_id],
-                    "locked": bool(group.get("locked", False)),
-                    "hidden": bool(group.get("hidden", False)),
-                })
-
-        self.template_selected_fields = set(copied_indices)
-        self.template_selected_field = copied_indices[-1] if copied_indices else None
-
-        save_template(self.template_selected_name, template)
-        self.template_load_selected_properties()
-        self.template_draw_canvas()
-
-        if hasattr(self, "template_props_body"):
-            self.template_build_properties_panel()
-
-        try:
-            if len(copied_indices) == 1 and hasattr(self, "template_prop_name_entry"):
-                self.template_prop_name_entry.focus_set()
-                self.template_prop_name_entry.select_range(0, "end")
-        except Exception:
-            pass
+        return field_controller.copy_fields(self)
 
 
     def template_delete_field(self):
-        self.template_push_history('delete field')
-        template = self.template_current()
-        fields = template.get("fields", [])
-
-        selected = set(getattr(self, "template_selected_fields", set()))
-        if self.template_selected_field is not None:
-            selected.add(self.template_selected_field)
-
-        selected = {idx for idx in selected if 0 <= idx < len(fields)}
-        locked_selected = {idx for idx in selected if self.template_is_field_locked(idx)}
-        selected = selected - locked_selected
-        if locked_selected and not selected:
-            messagebox.showwarning("Template Editor", "Auswahl enthält nur gesperrte Felder.")
-            return
-        if locked_selected:
-            messagebox.showinfo("Template Editor", f"{len(locked_selected)} gesperrte Felder wurden nicht gelöscht.")
-        if not selected:
-            messagebox.showwarning("Template Editor", "Bitte zuerst ein Feld auswählen.")
-            return
-
-        if len(selected) > 1:
-            if not messagebox.askyesno("Template Editor", f"{len(selected)} Felder wirklich löschen?"):
-                return
-
-        template["fields"] = [field for idx, field in enumerate(fields) if idx not in selected]
-        self.template_clean_groups()
-        self.template_clear_selection()
-        save_template(self.template_selected_name, template)
-        self.template_draw_canvas()
-        if hasattr(self, "template_props_body"):
-            self.template_build_properties_panel()
+        return field_controller.delete_fields(self)
 
 
     def template_draw_canvas(self, refresh_layers=True):
