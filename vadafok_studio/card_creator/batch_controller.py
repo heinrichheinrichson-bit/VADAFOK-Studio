@@ -243,6 +243,72 @@ class CardBatchController:
                 "Batch Import", f"Import fehlgeschlagen:\n{exc}"
             )
 
+    def render(self) -> None:
+        if not self.app.card_batch_items:
+            messagebox.showinfo("Batch Cards", "Batch-Liste ist leer.")
+            return
+
+        output_directory = self.app.card_choose_batch_output_directory()
+        if output_directory is None:
+            return
+
+        rendered = []
+        old_template = self.app.card_selected_template.get()
+        old_output = self.app.card_output_name.get()
+        old_profile = self.app.card_export_profile.get()
+        old_values = self.app.card_values_plain()
+
+        try:
+            for item in self.app.card_batch_items:
+                template_name = item.get("template", "")
+                if template_name not in self._list_templates():
+                    continue
+
+                self.app.card_selected_template.set(template_name)
+                self.app.card_output_name.set(
+                    item.get("output_name", self.app.card_default_output_name())
+                )
+                self.app.card_export_profile.set(
+                    item.get("profile", "Broadcast PNG")
+                )
+                self.app.card_creator_values.setdefault(template_name, {})
+                self.app.card_build_form()
+                values = self.app.card_creator_values.get(template_name, {})
+                item_values = item.get("values", {})
+                for key, variable in values.items():
+                    if hasattr(variable, "set"):
+                        variable.set(str(item_values.get(key, "")))
+
+                output = self.app.card_render_to_file(
+                    final=True, output_dir=output_directory
+                )
+                rendered.append(str(output))
+
+            self._set_status(
+                f"Batch gerendert: {len(rendered)} Datei(en)", "#8FE6A0"
+            )
+            messagebox.showinfo(
+                "Batch Cards",
+                f"Batch gerendert:\n{len(rendered)} Datei(en)",
+            )
+        except Exception as exc:
+            messagebox.showerror("Batch Cards", str(exc))
+        finally:
+            if old_template in self._list_templates():
+                self.app.card_selected_template.set(old_template)
+            self.app.card_output_name.set(old_output)
+            self.app.card_export_profile.set(old_profile)
+            self.app.card_build_form()
+            values = self.app.card_creator_values.get(
+                self.app.card_selected_template.get(), {}
+            )
+            for key, variable in values.items():
+                if hasattr(variable, "set"):
+                    variable.set(str(old_values.get(key, "")))
+            self.app.card_save_values()
+            self.app.card_update_preview()
+            self.app.card_build_batch_panel()
+
     def _set_status(self, text: str, color: str) -> None:
         status = getattr(self.app, "card_render_status", None)
         if status is not None:

@@ -4753,60 +4753,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def card_render_batch(self):
-        if not self.card_batch_items:
-            messagebox.showinfo("Batch Cards", "Batch-Liste ist leer.")
-            return
-
-        batch_output_dir = self.card_choose_batch_output_directory()
-        if batch_output_dir is None:
-            return
-
-        rendered = []
-        old_template = self.card_selected_template.get()
-        old_output = self.card_output_name.get()
-        old_profile = self.card_export_profile.get()
-        old_values_snapshot = self.card_values_plain()
-
-        try:
-            for item in self.card_batch_items:
-                template_name = item.get("template", "")
-                if template_name not in list_templates():
-                    continue
-
-                self.card_selected_template.set(template_name)
-                self.card_output_name.set(item.get("output_name", self.card_default_output_name()))
-                self.card_export_profile.set(item.get("profile", "Broadcast PNG"))
-
-                if template_name not in self.card_creator_values:
-                    self.card_creator_values[template_name] = {}
-                # Ensure form variables exist for this template.
-                self.card_build_form()
-                values = self.card_creator_values.get(template_name, {})
-                for key, var in values.items():
-                    if hasattr(var, "set"):
-                        var.set(str(item.get("values", {}).get(key, "")))
-
-                out = self.card_render_to_file(final=True, output_dir=batch_output_dir)
-                rendered.append(str(out))
-
-            self.card_render_status.configure(text=f"Batch gerendert: {len(rendered)} Datei(en)", text_color="#8FE6A0")
-            messagebox.showinfo("Batch Cards", f"Batch gerendert:\\n{len(rendered)} Datei(en)")
-        except Exception as e:
-            messagebox.showerror("Batch Cards", str(e))
-        finally:
-            # Restore the user's previous UI state as much as possible.
-            if old_template in list_templates():
-                self.card_selected_template.set(old_template)
-            self.card_output_name.set(old_output)
-            self.card_export_profile.set(old_profile)
-            self.card_build_form()
-            values = self.card_creator_values.get(self.card_selected_template.get(), {})
-            for key, var in values.items():
-                if hasattr(var, "set"):
-                    var.set(str(old_values_snapshot.get(key, "")))
-            self.card_save_values()
-            self.card_update_preview()
-            self.card_build_batch_panel()
+        return self.card_batch_controller.render()
 
 
 

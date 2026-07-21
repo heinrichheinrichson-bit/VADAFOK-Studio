@@ -32,6 +32,8 @@ def make_app():
         card_build_batch_panel=Mock(),
         card_build_form=Mock(),
         card_update_preview=Mock(),
+        card_choose_batch_output_directory=Mock(return_value=Path("exports")),
+        card_render_to_file=Mock(return_value=Path("exports/card.png")),
     )
 
 
@@ -59,6 +61,7 @@ class CardBatchControllerTests(unittest.TestCase):
             "card_save_batch_project": "self.card_batch_controller.save_project()",
             "card_load_batch_project": "self.card_batch_controller.load_project()",
             "card_import_batch_file": "self.card_batch_controller.import_file()",
+            "card_render_batch": "self.card_batch_controller.render()",
         }
         methods = {node.name: node for node in studio.body if isinstance(node, ast.FunctionDef)}
 
@@ -245,3 +248,58 @@ class CardBatchControllerTests(unittest.TestCase):
         self.assertEqual(app.card_batch_items, [])
         warning.assert_called_once()
         app.card_build_batch_panel.assert_not_called()
+
+    def test_render_skips_unknown_templates_and_restores_ui_state(self):
+        app = make_app()
+        app.card_output_name.set("before")
+        app.card_creator_values["Default"]["title"].set("Before title")
+        app.card_values_plain.return_value = {"title": "Before title"}
+        app.card_batch_items = [
+            {
+                "template": "Missing",
+                "output_name": "skip",
+                "profile": "Broadcast PNG",
+                "values": {"title": "Skip"},
+            },
+            {
+                "template": "Default",
+                "output_name": "rendered",
+                "profile": "Web PNG",
+                "values": {"title": "Rendered title"},
+            },
+        ]
+
+        with patch("vadafok_studio.card_creator.batch_controller.messagebox.showinfo"):
+            make_controller(app).render()
+
+        app.card_render_to_file.assert_called_once_with(
+            final=True, output_dir=Path("exports")
+        )
+        self.assertEqual(app.card_selected_template.get(), "Default")
+        self.assertEqual(app.card_output_name.get(), "before")
+        self.assertEqual(app.card_export_profile.get(), "Broadcast PNG")
+        self.assertEqual(
+            app.card_creator_values["Default"]["title"].get(), "Before title"
+        )
+        app.card_save_values.assert_called_once_with()
+        app.card_update_preview.assert_called_once_with()
+        app.card_build_batch_panel.assert_called_once_with()
+
+    def test_render_empty_batch_does_not_ask_for_output_directory(self):
+        app = make_app()
+
+        with patch("vadafok_studio.card_creator.batch_controller.messagebox.showinfo"):
+            make_controller(app).render()
+
+        app.card_choose_batch_output_directory.assert_not_called()
+        app.card_render_to_file.assert_not_called()
+
+    def test_render_cancelled_output_directory_preserves_ui(self):
+        app = make_app()
+        app.card_batch_items = [{"template": "Default"}]
+        app.card_choose_batch_output_directory.return_value = None
+
+        make_controller(app).render()
+
+        app.card_render_to_file.assert_not_called()
+        app.card_build_form.assert_not_called()
