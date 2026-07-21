@@ -65,6 +65,13 @@ def apply_style(field: Dict[str, Any], style: Dict[str, Any]) -> Dict[str, Any]:
     return field
 
 
+def restore_style(field: Dict[str, Any], style: Dict[str, Any]) -> Dict[str, Any]:
+    """Replace every visual property while preserving field data and layout."""
+    for key in STYLE_KEYS:
+        field.pop(key, None)
+    return apply_style(field, style)
+
+
 def save_style(name: str, field: Dict[str, Any]) -> Path:
     clean_name = name.strip()
     if not clean_name:

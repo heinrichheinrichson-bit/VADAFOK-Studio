@@ -1967,6 +1967,9 @@ class VadafokStudio(ctk.CTk):
     def card_apply_style_to_field(self, field_name, style_name):
         return self.card_style_controller.apply_to_field(field_name, style_name)
 
+    def card_undo_field_style(self, field_name):
+        return self.card_style_controller.undo_field_style(field_name)
+
     def card_open_template_editor_for_styles(self):
         return self.card_style_controller.open_template_editor()
 

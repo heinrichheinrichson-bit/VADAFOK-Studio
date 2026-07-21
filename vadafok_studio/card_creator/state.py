@@ -21,6 +21,7 @@ class CardCreatorState:
     preview_pan_y: int = 0
     preview_display_size: tuple[int, int] = (0, 0)
     preview_drag_origin: tuple[int, int, int, int] | None = None
+    style_undo_stack: list[dict[str, Any]] = field(default_factory=list)
     last_render: Path | None = None
     data_undo_stack: list[dict[str, str]] = field(default_factory=list)
     data_redo_stack: list[dict[str, str]] = field(default_factory=list)

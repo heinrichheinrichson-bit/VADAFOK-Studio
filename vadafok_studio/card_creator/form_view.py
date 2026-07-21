@@ -15,6 +15,7 @@ def build_card_form(app) -> None:
     fields = app.card_template().get("fields", [])
     template_name = app.card_selected_template.get()
     app.card_creator_values.setdefault(template_name, {})
+    app.card_style_variables = {}
     values = app.card_creator_values[template_name]
 
     if not fields:
@@ -58,6 +59,7 @@ def build_card_form(app) -> None:
         style_row.grid_columnconfigure(0, weight=1)
 
         style_variable = ctk.StringVar(value="Select Style")
+        app.card_style_variables[name] = style_variable
         style_menu = ctk.CTkOptionMenu(
             style_row,
             values=style_options,
@@ -73,9 +75,18 @@ def build_card_form(app) -> None:
 
         ctk.CTkButton(
             style_row,
+            text="UNDO",
+            width=58,
+            fg_color="#333333",
+            hover_color="#55451F",
+            command=lambda field_name=name: app.card_undo_field_style(field_name),
+        ).grid(row=0, column=1, padx=(0, 6), sticky="e")
+
+        ctk.CTkButton(
+            style_row,
             text="EDIT",
             width=54,
             fg_color="#333333",
             hover_color="#444444",
             command=app.card_open_template_editor_for_styles,
-        ).grid(row=0, column=1, sticky="e")
+        ).grid(row=0, column=2, sticky="e")

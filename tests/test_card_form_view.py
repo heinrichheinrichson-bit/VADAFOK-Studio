@@ -25,3 +25,5 @@ class CardFormViewTests(unittest.TestCase):
         self.assertIn("return build_card_form(self)", block)
         self.assertIn("def build_card_form(app) -> None:", form_source)
         self.assertIn('trace_add("write", app.card_preview_changed)', form_source)
+        self.assertIn('text="UNDO"', form_source)
+        self.assertIn("app.card_undo_field_style(field_name)", form_source)
