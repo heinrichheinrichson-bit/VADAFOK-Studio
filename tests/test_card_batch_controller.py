@@ -71,6 +71,10 @@ class CardBatchControllerTests(unittest.TestCase):
             self.assertLessEqual(method.end_lineno - method.lineno + 1, 2)
             self.assertIn(call, block)
 
+        self.assertIn("self.card_creator_state = CardCreatorState()", source)
+        self.assertNotIn("self.card_batch_items = []", source)
+        self.assertNotIn("self.card_batch_selected_index = None", source)
+
     def test_add_current_captures_values_and_selects_new_item(self):
         app = make_app()
         make_controller(app).add_current()

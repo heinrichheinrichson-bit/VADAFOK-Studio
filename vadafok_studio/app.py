@@ -16,7 +16,11 @@ from .core.obs_controller import OBSController
 from .core.caption_renderer import render_caption_png
 from .core.template_store import list_templates, load_template, save_template, create_template, set_background_from_file, background_path, import_legacy_templates, delete_template, duplicate_template, rename_template, set_default_template, get_default_template, ensure_background_file, template_dir
 from .core.recent_templates import load_recent_templates, record_recent_template, remove_recent_template
-from .card_creator import CardBatchController, CardCreatorController
+from .card_creator import (
+    CardBatchController,
+    CardCreatorController,
+    CardCreatorState,
+)
 from .card_creator.page import (
     build_batch_panel,
     show_card_creator_page as build_card_creator_page,
@@ -147,8 +151,7 @@ class VadafokStudio(ctk.CTk):
         self.card_output_name = ctk.StringVar(value="")
         self.card_auto_preview = ctk.BooleanVar(value=True)
         self.card_export_profile = ctk.StringVar(value="Broadcast PNG")
-        self.card_batch_items = []
-        self.card_batch_selected_index = None
+        self.card_creator_state = CardCreatorState()
         self.card_batch_controller = CardBatchController(
             self, list_templates, batch_engine
         )
@@ -4682,6 +4685,24 @@ class VadafokStudio(ctk.CTk):
     def card_open_template_editor_for_styles(self):
         self.template_selected_name = self.card_selected_template.get()
         self.show_template_editor_page()
+
+    @property
+    def card_batch_items(self):
+        """Compatibility alias while callbacks migrate to CardCreatorState."""
+        return self.card_creator_state.batch_items
+
+    @card_batch_items.setter
+    def card_batch_items(self, items):
+        self.card_creator_state.batch_items = items
+
+    @property
+    def card_batch_selected_index(self):
+        """Compatibility alias while callbacks migrate to CardCreatorState."""
+        return self.card_creator_state.batch_selected_index
+
+    @card_batch_selected_index.setter
+    def card_batch_selected_index(self, index):
+        self.card_creator_state.batch_selected_index = index
 
 
 
