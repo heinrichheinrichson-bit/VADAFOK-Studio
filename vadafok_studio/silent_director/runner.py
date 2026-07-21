@@ -7,8 +7,45 @@ from typing import Any
 from tkinter import messagebox
 
 
+ACTION_TYPES = {"switch_scene", "show_banner", "show_source", "hide_source", "wait"}
+
+
+def validate_actions(actions: list[dict]) -> list[str]:
+    """Return human-readable preset errors before anything is sent to OBS."""
+    errors = []
+    for index, action in enumerate(actions, start=1):
+        action_type = str(action.get("type", "") or "").strip()
+        prefix = f"Action {index}"
+        if action_type not in ACTION_TYPES:
+            errors.append(f"{prefix}: unbekannter Typ ‘{action_type or '-'}’.")
+        elif action_type == "switch_scene" and not str(action.get("scene", "") or "").strip():
+            errors.append(f"{prefix}: Szene fehlt.")
+        elif action_type == "show_banner" and not str(action.get("text", "") or "").strip():
+            errors.append(f"{prefix}: Bannertext fehlt.")
+        elif action_type in ("show_source", "hide_source") and not str(action.get("source", "") or "").strip():
+            errors.append(f"{prefix}: Source fehlt.")
+        elif action_type == "wait":
+            try:
+                seconds = float(str(action.get("seconds", "") or "").replace(",", "."))
+                if not 0.1 <= seconds <= 300:
+                    raise ValueError
+            except (TypeError, ValueError):
+                errors.append(f"{prefix}: WAIT muss zwischen 0,1 und 300 Sekunden liegen.")
+    return errors
+
+
 def run_preset(app: Any, preset: dict | None = None) -> None:
     """Execute one Silent Director preset against the connected OBS session."""
+    try:
+        current_status = str(app.director_status_var.get() or "").upper()
+    except Exception:
+        current_status = ""
+    if current_status in {"RUNNING", "WAITING", "STOPPING"}:
+        messagebox.showinfo(
+            "Silent Director",
+            "Es läuft bereits ein Preset. Bitte zuerst STOP verwenden.",
+        )
+        return
     if preset is None:
         preset = app.silent_director_get_selected_preset()
     if not preset:
@@ -37,6 +74,16 @@ def run_preset(app: Any, preset: dict | None = None) -> None:
     if not actions:
         app.director_set_status("READY", "No actions", "0 / 0")
         messagebox.showinfo("Silent Director", f"Preset '{name}' enthält noch keine ausführbaren Aktionen.")
+        return
+
+    validation_errors = validate_actions(actions)
+    if validation_errors:
+        app.director_set_status("ERROR", "Preset prüfen", f"0 / {len(actions)}")
+        app.director_log_add(f"VALIDATION ERROR Preset '{name}'")
+        messagebox.showerror(
+            "Silent Director – Preset prüfen",
+            "Das Preset wurde nicht gestartet:\n\n" + "\n".join(validation_errors),
+        )
         return
 
     if not app.ensure_obs_ready():
@@ -85,10 +132,11 @@ def run_preset(app: Any, preset: dict | None = None) -> None:
                         if ok:
                             actions_done.append(f"Banner -> {text}")
                         else:
-                            actions_done.append(f"Banner failed -> {text}")
+                            raise RuntimeError("Banner konnte nicht angezeigt werden.")
                     except Exception as e:
                         app.obs_workflow_log(f"Silent Director banner error: {e}")
                         app.director_log_add(f"ERROR banner: {e}")
+                        raise RuntimeError(f"Banner-Aktion fehlgeschlagen: {e}") from e
 
             elif action_type == "wait":
                 raw_seconds = str(action.get("seconds", "5") or "5").strip().replace(",", ".")
@@ -139,13 +187,21 @@ def run_preset(app: Any, preset: dict | None = None) -> None:
             elif action_type == "show_source":
                 source = str(action.get("source", "")).strip()
                 if source:
-                    app.obs_workflow_set_source_visibility(source, True)
+                    if app.obs_workflow_set_source_visibility(source, True) is False:
+                        app.director_set_status("ERROR", f"Source fehlt: {source}", f"{idx-1} / {total}")
+                        app.director_log_add(f"ERROR Source '{source}' konnte nicht angezeigt werden")
+                        app.director_clear_active_action()
+                        return
                     actions_done.append(f"SHOW Source -> {source}")
 
             elif action_type == "hide_source":
                 source = str(action.get("source", "")).strip()
                 if source:
-                    app.obs_workflow_set_source_visibility(source, False)
+                    if app.obs_workflow_set_source_visibility(source, False) is False:
+                        app.director_set_status("ERROR", f"Source fehlt: {source}", f"{idx-1} / {total}")
+                        app.director_log_add(f"ERROR Source '{source}' konnte nicht ausgeblendet werden")
+                        app.director_clear_active_action()
+                        return
                     actions_done.append(f"HIDE Source -> {source}")
 
         if hasattr(app.obs_workflow_state, "add_event"):

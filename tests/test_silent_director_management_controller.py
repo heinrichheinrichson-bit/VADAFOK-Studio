@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 
 from vadafok_studio.silent_director.management_controller import (
     add_action,
+    create_preset,
     duplicate_action,
     get_selected_preset,
     move_action,
@@ -75,6 +76,20 @@ class SilentDirectorManagementControllerTests(unittest.TestCase):
         )
         app.silent_director_cancel_action_edit.assert_called_once_with()
         app.silent_director_render_actions_list.assert_called_once_with()
+
+    @patch("vadafok_studio.silent_director.management_controller.silent_director.add_preset")
+    @patch("vadafok_studio.silent_director.management_controller.messagebox.showwarning")
+    def test_duplicate_preset_name_is_rejected_case_insensitively(self, warning, store_add):
+        app = SimpleNamespace(
+            silent_director_new_name=Variable("SHOW"),
+            silent_director_presets=[{"name": "Show"}],
+            obs_workflow_state=SimpleNamespace(current_scene="Main"),
+        )
+
+        create_preset(app)
+
+        warning.assert_called_once()
+        store_add.assert_not_called()
 
     @patch("vadafok_studio.silent_director.management_controller.silent_director.duplicate_action")
     def test_duplicate_action_inserts_copy_below_original(self, store_duplicate):

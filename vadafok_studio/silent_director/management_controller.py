@@ -7,6 +7,16 @@ from tkinter import messagebox
 
 from ..core import silent_director
 
+
+def _name_exists(app: Any, name: str, exclude: str = "") -> bool:
+    target = str(name or "").strip().casefold()
+    excluded = str(exclude or "").strip().casefold()
+    return any(
+        str(item.get("name", "") or "").strip().casefold() == target
+        and str(item.get("name", "") or "").strip().casefold() != excluded
+        for item in getattr(app, "silent_director_presets", [])
+    )
+
 def reload_presets(app: Any):
     try:
         app.silent_director_presets = silent_director.load_presets()
@@ -29,6 +39,9 @@ def create_preset(app: Any):
     name = app.silent_director_new_name.get().strip()
     if not name:
         messagebox.showinfo("Silent Director", "Please enter a preset name.")
+        return
+    if _name_exists(app, name):
+        messagebox.showwarning("Silent Director", f"Ein Preset namens '{name}' existiert bereits.")
         return
     scene = getattr(app.obs_workflow_state, "current_scene", "") if hasattr(app, "obs_workflow_state") else ""
     app.silent_director_presets = silent_director.add_preset(name, scene=scene, banner_text="", show_banner=False)
@@ -96,6 +109,11 @@ def save_selected_preset(app: Any):
     new_name = app.silent_director_editor_name.get().strip()
     if not new_name:
         messagebox.showinfo("Silent Director", "Preset name darf nicht leer sein.")
+        return
+    if _name_exists(app, new_name, exclude=old_name):
+        messagebox.showwarning(
+            "Silent Director", f"Ein Preset namens '{new_name}' existiert bereits.",
+        )
         return
 
     banner_text = ""

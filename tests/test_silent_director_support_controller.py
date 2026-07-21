@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 
 from vadafok_studio.silent_director.support_controller import (
     director_log_add,
+    director_request_stop,
     director_set_status,
     silent_director_filtered_presets,
     silent_director_format_duration,
@@ -72,6 +73,19 @@ class SilentDirectorSupportControllerTests(unittest.TestCase):
         director_set_status(app, "RUNNING", "Action", "3 / 4")
 
         self.assertEqual(app.director_progress_percent_var.get(), 0.75)
+
+    def test_stop_is_ignored_when_no_preset_is_running(self):
+        app = SimpleNamespace(
+            director_status_var=Variable("READY"),
+            director_stop_requested=False,
+            director_set_status=Mock(), director_log_add=Mock(),
+            director_progress_var=Variable("0 / 0"),
+        )
+
+        self.assertFalse(director_request_stop(app))
+
+        self.assertFalse(app.director_stop_requested)
+        app.director_set_status.assert_not_called()
 
     def test_stats_and_duration_handle_wait_values(self):
         preset = {

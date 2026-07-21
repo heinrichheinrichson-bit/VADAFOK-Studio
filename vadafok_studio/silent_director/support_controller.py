@@ -111,12 +111,35 @@ def director_set_status(app: Any, status, current="-", progress=""):
         app.update_idletasks()
     except Exception:
         pass
+    active = str(status).upper() in ("RUNNING", "WAITING", "STOPPING")
+    color = (
+        "#8FE6A0" if status in ("READY", "FINISHED")
+        else "#F0C06A" if active
+        else "#F08A8A" if status == "ERROR"
+        else "#888888"
+    )
+    try:
+        app.director_status_label.configure(text_color=color)
+    except Exception:
+        pass
+    try:
+        app.director_run_button.configure(state="disabled" if active else "normal")
+        app.director_stop_button.configure(state="normal" if active else "disabled")
+    except Exception:
+        pass
 
 
 def director_request_stop(app: Any):
+    try:
+        status = str(app.director_status_var.get() or "").upper()
+    except Exception:
+        status = ""
+    if status not in ("RUNNING", "WAITING"):
+        return False
     app.director_stop_requested = True
     app.director_set_status("STOPPING", "Stop requested", app.director_progress_var.get())
     app.director_log_add("STOP requested")
+    return True
 
 
 def director_action_label(app: Any, action):

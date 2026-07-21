@@ -528,9 +528,9 @@ class OBSWorkflowController:
         app = self.app
         source_name = str(source_name or "").strip()
         if not source_name:
-            return
+            return False
         if not app.ensure_obs_ready():
-            return
+            return False
 
         try:
             scene = getattr(app.obs_workflow_state, "current_scene", "") or app.current_scene()
@@ -549,11 +549,13 @@ class OBSWorkflowController:
 
             # True no-flicker update: only touch the affected row.
             self.obs_workflow_update_source_row_ui(source_name, bool(enabled))
+            return True
 
         except Exception as e:
             app.obs_workflow_state.last_error = str(e)
             self.obs_workflow_log(f"SOURCE VISIBILITY ERROR: {e}")
             messagebox.showerror("Source Manager", str(e))
+            return False
 
 
 

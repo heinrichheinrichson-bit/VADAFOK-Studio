@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock, patch
 
-from vadafok_studio.silent_director.runner import run_preset
+from vadafok_studio.silent_director.runner import run_preset, validate_actions
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -92,6 +92,40 @@ class SilentDirectorRunnerTests(unittest.TestCase):
 
         app.obs.switch_scene.assert_not_called()
         self.assertIn("STOPPED by user", [call.args[0] for call in app.director_log_add.call_args_list])
+
+    def test_invalid_preset_is_rejected_before_obs_access(self):
+        app = make_app()
+        preset = {"name": "Broken", "actions": [{"type": "switch_scene", "scene": ""}]}
+
+        with patch("vadafok_studio.silent_director.runner.messagebox.showerror") as error:
+            run_preset(app, preset)
+
+        app.ensure_obs_ready.assert_not_called()
+        error.assert_called_once()
+
+    def test_wait_validation_rejects_values_outside_safe_range(self):
+        errors = validate_actions([
+            {"type": "wait", "seconds": "0"},
+            {"type": "wait", "seconds": "301"},
+        ])
+        self.assertEqual(len(errors), 2)
+
+    def test_source_failure_stops_remaining_actions(self):
+        app = make_app(
+            obs_workflow_set_source_visibility=Mock(return_value=False),
+        )
+        preset = {
+            "name": "Safe stop",
+            "actions": [
+                {"type": "show_source", "source": "Missing"},
+                {"type": "switch_scene", "scene": "Must Not Run"},
+            ],
+        }
+
+        run_preset(app, preset)
+
+        app.obs.switch_scene.assert_not_called()
+        self.assertEqual(app.director_set_status.call_args.args[0], "ERROR")
 
 
 if __name__ == "__main__":
