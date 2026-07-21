@@ -15,6 +15,49 @@ PANEL = "#111111"
 TEXT = "#F2E2B6"
 
 
+def render_sources_list(app: Any, sources_list: Any) -> None:
+    """Render the current scene sources without rebuilding the dashboard."""
+    for child in sources_list.winfo_children():
+        child.destroy()
+    app.obs_source_row_widgets = {}
+    state = app.obs_workflow_state
+    for idx, source in enumerate(state.sources or ["No source cache yet"]):
+        if isinstance(source, dict):
+            source_name = source.get("name", "")
+            enabled = bool(source.get("enabled", False))
+            row_frame = ctk.CTkFrame(sources_list, fg_color="#0B0B0B", corner_radius=8)
+            row_frame.grid(row=idx, column=0, padx=6, pady=3, sticky="ew")
+            row_frame.grid_columnconfigure(0, weight=1)
+            source_label = ctk.CTkLabel(
+                row_frame, text=("✓ " if enabled else "✗ ") + source_name,
+                text_color="#8FE6A0" if enabled else "#F08A8A", anchor="w",
+            )
+            source_label.grid(row=0, column=0, padx=10, pady=6, sticky="ew")
+            show_btn = ctk.CTkButton(
+                row_frame, text="SHOW", width=64,
+                fg_color=GOLD if not enabled else "#333333",
+                text_color="#111111" if not enabled else "#AAAAAA",
+                hover_color=GOLD_DARK,
+                command=lambda name=source_name: app.obs_workflow_set_source_visibility(name, True),
+            )
+            show_btn.grid(row=0, column=1, padx=(4, 4), pady=6)
+            hide_btn = ctk.CTkButton(
+                row_frame, text="HIDE", width=64,
+                fg_color="#5A1F1F" if enabled else "#333333",
+                text_color="#FFFFFF" if enabled else "#AAAAAA",
+                hover_color="#7A2A2A",
+                command=lambda name=source_name: app.obs_workflow_set_source_visibility(name, False),
+            )
+            hide_btn.grid(row=0, column=2, padx=(4, 8), pady=6)
+            app.obs_source_row_widgets[source_name] = {
+                "label": source_label, "show_btn": show_btn, "hide_btn": hide_btn,
+            }
+        else:
+            ctk.CTkLabel(
+                sources_list, text=str(source), text_color=TEXT, anchor="w",
+            ).grid(row=idx, column=0, padx=10, pady=5, sticky="ew")
+
+
 def show_obs_workflow_page(app: Any) -> None:
     """Build and display the OBS Workflow workspace."""
     app.set_active("OBS Workflow")
@@ -103,6 +146,8 @@ def show_obs_workflow_page(app: Any) -> None:
     ctk.CTkLabel(fav_box, text="Quick Scene Favorites", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, sticky="w", padx=18, pady=(14, 8))
     fav_area = ctk.CTkFrame(fav_box, fg_color="transparent")
     fav_area.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 14))
+    for column in range(3):
+        fav_area.grid_columnconfigure(column, weight=1)
 
     try:
         app.obs_workflow_favorite_buttons = {}
@@ -110,17 +155,20 @@ def show_obs_workflow_page(app: Any) -> None:
         pass
 
     if not getattr(app, "scene_favorites", []):
-        ctk.CTkLabel(fav_area, text="No favorites yet. Add scenes below.", text_color="#777777").pack(side="left")
+        ctk.CTkLabel(fav_area, text="No favorites yet. Add scenes below.", text_color="#777777").grid(row=0, column=0, sticky="w")
     else:
-        for fav_scene in app.scene_favorites:
+        for favorite_index, fav_scene in enumerate(app.scene_favorites):
             fav_button = ctk.CTkButton(
-                fav_area, text=f"SCENE  {fav_scene}", height=54, width=170,
+                fav_area, text=f"SCENE  {fav_scene}", height=46,
                 fg_color=GOLD if fav_scene == current_scene else "#171717",
                 text_color="#111111" if fav_scene == current_scene else "#D9C58C",
                 hover_color=GOLD_DARK,
                 command=lambda s=fav_scene: app.obs_workflow_switch_scene(s)
             )
-            fav_button.pack(side="left", padx=4, pady=4)
+            fav_button.grid(
+                row=favorite_index // 3, column=favorite_index % 3,
+                sticky="ew", padx=4, pady=4,
+            )
             try:
                 app.obs_workflow_favorite_buttons[fav_scene] = fav_button
             except Exception:
@@ -142,13 +190,21 @@ def show_obs_workflow_page(app: Any) -> None:
     installer_box.grid_columnconfigure(1, weight=1)
 
     ctk.CTkLabel(installer_box, text="Overlay Installer", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, sticky="w", padx=18, pady=(14, 6))
+    installer_expanded = bool(getattr(state, "overlay_installer_expanded", False))
+    ctk.CTkButton(
+        installer_box,
+        text="EINKLAPPEN" if installer_expanded else "AUFKLAPPEN",
+        width=100, fg_color="#333333", hover_color="#444444",
+        command=app.obs_workflow_toggle_installer,
+    ).grid(row=0, column=3, sticky="e", padx=18, pady=(10, 6))
 
     source_values = app.obs_workflow_overlay_installer_source_values()
     current_source = getattr(state, "overlay_installer_source_scene", "") or (current_scene if current_scene in source_values else source_values[0])
     if current_source != "No scenes loaded":
         state.overlay_installer_source_scene = current_source
 
-    ctk.CTkLabel(installer_box, text="Source Scene", text_color="#888888").grid(row=1, column=0, sticky="w", padx=18, pady=(0, 4))
+    installer_source_label = ctk.CTkLabel(installer_box, text="Source Scene", text_color="#888888")
+    installer_source_label.grid(row=1, column=0, sticky="w", padx=18, pady=(0, 4))
     source_menu = ctk.CTkOptionMenu(
         installer_box,
         values=source_values,
@@ -165,7 +221,8 @@ def show_obs_workflow_page(app: Any) -> None:
 
     selected = list(getattr(state, "overlay_installer_selected_scenes", []) or [])
     selected_text = f"{len(selected)} selected"
-    ctk.CTkLabel(installer_box, text=selected_text, text_color="#BCA870").grid(row=1, column=2, sticky="e", padx=8, pady=(0, 8))
+    installer_selected_label = ctk.CTkLabel(installer_box, text=selected_text, text_color="#BCA870")
+    installer_selected_label.grid(row=1, column=2, sticky="e", padx=8, pady=(0, 8))
 
     btn_row = ctk.CTkFrame(installer_box, fg_color="transparent")
     btn_row.grid(row=1, column=3, sticky="e", padx=18, pady=(0, 8))
@@ -204,6 +261,13 @@ def show_obs_workflow_page(app: Any) -> None:
                 command=lambda s=scene_name: app.obs_workflow_overlay_installer_toggle_scene(s)
             ).grid(row=0, column=0, sticky="ew", padx=6, pady=4)
             row_i += 1
+
+    if not installer_expanded:
+        installer_source_label.grid_remove()
+        source_menu.grid_remove()
+        installer_selected_label.grid_remove()
+        btn_row.grid_remove()
+        target_area.grid_remove()
 
     scenes_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
     scenes_box.grid(row=3, column=0, sticky="nsew", padx=(0, 7), pady=0)
@@ -302,12 +366,13 @@ def show_obs_workflow_page(app: Any) -> None:
         anchor="w"
     ).grid(row=0, column=0, padx=12, pady=(10, 2), sticky="ew")
 
-    ctk.CTkLabel(
+    app.obs_workflow_scene_health_label = ctk.CTkLabel(
         summary,
         text=scene_health_text,
         text_color=scene_health_color,
         anchor="w"
-    ).grid(row=1, column=0, padx=12, pady=(0, 2), sticky="ew")
+    )
+    app.obs_workflow_scene_health_label.grid(row=1, column=0, padx=12, pady=(0, 2), sticky="ew")
 
     ctk.CTkLabel(
         summary,
@@ -319,24 +384,8 @@ def show_obs_workflow_page(app: Any) -> None:
     sources_list = ctk.CTkScrollableFrame(right_box, fg_color="#0B0B0B", corner_radius=12)
     sources_list.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
     sources_list.grid_columnconfigure(0, weight=1)
-    app.obs_source_row_widgets = {}
-
-    for idx, source in enumerate(state.sources or ["No source cache yet"]):
-        if isinstance(source, dict):
-            source_name = source.get("name", "")
-            enabled = bool(source.get("enabled", False))
-            row_frame = ctk.CTkFrame(sources_list, fg_color="#0B0B0B", corner_radius=8)
-            row_frame.grid(row=idx, column=0, padx=6, pady=3, sticky="ew")
-            row_frame.grid_columnconfigure(0, weight=1)
-            source_label = ctk.CTkLabel(row_frame, text=("✓ " if enabled else "✗ ") + source_name, text_color="#8FE6A0" if enabled else "#F08A8A", anchor="w")
-            source_label.grid(row=0, column=0, padx=10, pady=6, sticky="ew")
-            show_btn = ctk.CTkButton(row_frame, text="SHOW", width=64, fg_color=GOLD if not enabled else "#333333", text_color="#111111" if not enabled else "#AAAAAA", hover_color=GOLD_DARK, command=lambda s=source_name: app.obs_workflow_set_source_visibility(s, True))
-            show_btn.grid(row=0, column=1, padx=(4, 4), pady=6)
-            hide_btn = ctk.CTkButton(row_frame, text="HIDE", width=64, fg_color="#5A1F1F" if enabled else "#333333", text_color="#FFFFFF" if enabled else "#AAAAAA", hover_color="#7A2A2A", command=lambda s=source_name: app.obs_workflow_set_source_visibility(s, False))
-            hide_btn.grid(row=0, column=2, padx=(4, 8), pady=6)
-            app.obs_source_row_widgets[source_name] = {"label": source_label, "show_btn": show_btn, "hide_btn": hide_btn}
-        else:
-            ctk.CTkLabel(sources_list, text=str(source), text_color=TEXT, anchor="w").grid(row=idx, column=0, padx=10, pady=5, sticky="ew")
+    app.obs_workflow_sources_list = sources_list
+    render_sources_list(app, sources_list)
 
     bottom = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
     bottom.grid(row=4, column=0, columnspan=2, sticky="ew", padx=0, pady=(14, 0))

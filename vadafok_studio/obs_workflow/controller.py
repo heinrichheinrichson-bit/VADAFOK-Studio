@@ -74,7 +74,12 @@ class OBSWorkflowController:
         connected_after_probe = False
 
         try:
-            app.connect_obs()
+            connect_result = app.connect_obs()
+            if connect_result is False:
+                app.obs_workflow_state.last_error = "OBS connection failed"
+                self.obs_workflow_log("CONNECT ERROR: connection failed")
+                app.show_obs_workflow_page()
+                return False
 
             try:
                 connected_after_probe = self.obs_workflow_is_connected()
@@ -94,6 +99,8 @@ class OBSWorkflowController:
                     app.obs_workflow_state.add_event("OBS connected")
                 self.obs_workflow_mark_command("OBS connected")
                 self.obs_workflow_refresh(silent=True)
+                app.show_obs_workflow_page()
+                return True
             else:
                 app.obs_workflow_state.last_error = "OBS probe failed after connect"
                 self.obs_workflow_log("CONNECT ERROR: OBS probe failed after connect")
@@ -113,6 +120,7 @@ class OBSWorkflowController:
             messagebox.showerror("OBS Workflow", str(e))
 
         app.show_obs_workflow_page()
+        return False
 
 
 
@@ -411,19 +419,55 @@ class OBSWorkflowController:
             self.obs_workflow_mark_command(f"Scene switched: {scene_name}")
 
             try:
-                active_scene = app.current_scene()
+                active_scene = app.obs.get_current_scene_name()
                 if active_scene:
                     app.obs_workflow_state.current_scene = active_scene
             except Exception:
                 pass
 
             self.obs_workflow_update_scene_ui()
+            self.obs_workflow_update_scene_health_ui()
+            if self.obs_workflow_refresh_sources_only():
+                self.obs_workflow_render_sources_panel()
 
         except Exception as e:
             app.obs_workflow_state.last_error = str(e)
             self.obs_workflow_log(f"SCENE SWITCH ERROR: {e}")
             messagebox.showerror("Scene Switch", str(e))
             # Keep the current page visible even on error.
+
+    def obs_workflow_render_sources_panel(self):
+        """Rebuild only the current-scene source list after a scene change."""
+        app = self.app
+        container = getattr(app, "obs_workflow_sources_list", None)
+        if container is None:
+            return False
+
+    def obs_workflow_update_scene_health_ui(self):
+        label = getattr(self.app, "obs_workflow_scene_health_label", None)
+        if label is None:
+            return False
+        health = self.obs_workflow_current_scene_health()
+        if health:
+            ready = bool(health.get("ok"))
+            text = "Overlay Ready" if ready else f"Overlay Missing: {len(health.get('missing', []))}"
+            color = "#8FE6A0" if ready else "#F0C06A"
+        else:
+            text = "Overlay Health not scanned"
+            color = "#777777"
+        try:
+            label.configure(text=text, text_color=color)
+            return True
+        except Exception:
+            return False
+        try:
+            from .page import render_sources_list
+
+            render_sources_list(app, container)
+            return True
+        except Exception as error:
+            self.obs_workflow_log(f"SOURCE PANEL ERROR: {error}")
+            return False
 
 
 
@@ -517,7 +561,14 @@ class OBSWorkflowController:
     def obs_workflow_required_overlay_sources(self):
         app = self.app
         names = []
-        for attr in ("caption_group", "caption_text", "caption_banner_source", "caption_render_source", "scene_card_source"):
+        smart_png = app.caption_engine.get() == "smart_png"
+        attrs = ["caption_group", "caption_render_source" if smart_png else "caption_text"]
+        if not smart_png:
+            attrs.append("caption_banner_source")
+        attrs.append("scene_card_source")
+        if bool(app.config_data.get("stream_effect_enabled", False)):
+            attrs.append("stream_effect_source")
+        for attr in attrs:
             var = getattr(app, attr, None)
             if var is not None:
                 try:
@@ -527,6 +578,14 @@ class OBSWorkflowController:
                 except Exception:
                     pass
         return names
+
+    def obs_workflow_toggle_installer(self):
+        app = self.app
+        state = app.obs_workflow_state
+        state.overlay_installer_expanded = not bool(
+            getattr(state, "overlay_installer_expanded", False)
+        )
+        app.show_obs_workflow_page()
 
 
     def obs_workflow_normalize_source_name(self, name):
@@ -856,5 +915,3 @@ class OBSWorkflowController:
         )
 
         app.show_obs_workflow_page()
-
-

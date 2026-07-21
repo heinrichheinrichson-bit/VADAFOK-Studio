@@ -2240,6 +2240,9 @@ class VadafokStudio(ctk.CTk):
     def obs_workflow_overlay_installer_clear_selection(self):
         return self.obs_workflow_controller.obs_workflow_overlay_installer_clear_selection()
 
+    def obs_workflow_toggle_installer(self):
+        return self.obs_workflow_controller.obs_workflow_toggle_installer()
+
     def obs_workflow_overlay_installer_install_selected(self):
         return self.obs_workflow_controller.obs_workflow_overlay_installer_install_selected()
 
