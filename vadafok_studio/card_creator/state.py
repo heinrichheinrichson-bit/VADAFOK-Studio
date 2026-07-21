@@ -15,6 +15,12 @@ class CardCreatorState:
     batch_selected_index: int | None = None
     preview_background_cache: Any = None
     preview_background_key: tuple[str, int] | None = None
+    preview_source_image: Any = None
+    preview_zoom: float = 1.0
+    preview_pan_x: int = 0
+    preview_pan_y: int = 0
+    preview_display_size: tuple[int, int] = (0, 0)
+    preview_drag_origin: tuple[int, int, int, int] | None = None
     last_render: Path | None = None
     data_undo_stack: list[dict[str, str]] = field(default_factory=list)
     data_redo_stack: list[dict[str, str]] = field(default_factory=list)

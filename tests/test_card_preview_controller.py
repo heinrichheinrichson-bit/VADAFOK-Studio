@@ -20,6 +20,19 @@ class CardPreviewControllerTests(unittest.TestCase):
         frame = SimpleNamespace(winfo_width=lambda: 1, winfo_height=lambda: 1)
         self.assertEqual(preview_bounds(frame), (760, 620))
 
+    def test_zoom_is_bounded_and_fit_resets_pan(self):
+        app = SimpleNamespace(card_creator_state=CardCreatorState())
+        controller = CardPreviewController(app, Mock(), Mock())
+        controller._display_preview = Mock()
+        controller.state.preview_zoom = 2.5
+        controller.zoom_by(0.1)
+        self.assertEqual(controller.state.preview_zoom, 2.5)
+        controller.state.preview_pan_x = 20
+        controller.state.preview_pan_y = -10
+        controller.fit()
+        self.assertEqual(controller.state.preview_zoom, 1.0)
+        self.assertEqual((controller.state.preview_pan_x, controller.state.preview_pan_y), (0, 0))
+
     def test_changed_schedules_save_and_fast_preview(self):
         jobs = iter(("save-job", "preview-job"))
         app = SimpleNamespace(

@@ -96,7 +96,7 @@ class CardPreviewController:
             image = self._export_engine.apply_export_profile(
                 image, profile_name
             )
-            image.thumbnail(preview_bounds(self.app.card_preview_frame), Image.LANCZOS)
+            self.state.preview_source_image = image.copy()
 
             if hasattr(self.app, "card_preview_info"):
                 self.app.card_preview_info.configure(
@@ -114,27 +114,9 @@ class CardPreviewController:
                     text=f"{profile.get('format', 'PNG')} | {size_text}"
                 )
 
-            self.app.card_creator_preview_image = ctk.CTkImage(
-                light_image=image,
-                dark_image=image,
-                size=image.size,
-            )
-            label = self.app.card_creator_preview_label
-            if label is None or not label.winfo_exists():
-                label = ctk.CTkLabel(
-                    self.app.card_preview_frame,
-                    image=self.app.card_creator_preview_image,
-                    text="",
-                )
-                label.place(relx=0.5, rely=0.5, anchor="center")
-                self.app.card_creator_preview_label = label
-            else:
-                label.configure(
-                    image=self.app.card_creator_preview_image,
-                    text="",
-                    text_color="#F2E2B6",
-                )
+            self._display_preview()
         except Exception as exc:
+            self.state.preview_source_image = None
             label = self.app.card_creator_preview_label
             if label is None or not label.winfo_exists():
                 label = ctk.CTkLabel(self.app.card_preview_frame, text="")
@@ -147,3 +129,100 @@ class CardPreviewController:
                 wraplength=420,
                 justify="center",
             )
+
+    def zoom_by(self, amount: float) -> None:
+        """Change only the on-screen scale; never the rendered export."""
+        self.state.preview_zoom = max(
+            0.5, min(2.5, round(self.state.preview_zoom + amount, 2))
+        )
+        self._display_preview()
+
+    def fit(self) -> None:
+        self.state.preview_zoom = 1.0
+        self.state.preview_pan_x = 0
+        self.state.preview_pan_y = 0
+        self._display_preview()
+
+    def _display_preview(self) -> None:
+        source = self.state.preview_source_image
+        if source is None or not hasattr(self.app, "card_preview_frame"):
+            return
+
+        fitted = source.copy()
+        fitted.thumbnail(preview_bounds(self.app.card_preview_frame), Image.LANCZOS)
+        zoom = self.state.preview_zoom
+        display_size = (
+            max(1, round(fitted.width * zoom)),
+            max(1, round(fitted.height * zoom)),
+        )
+        image = fitted if display_size == fitted.size else fitted.resize(
+            display_size, Image.LANCZOS
+        )
+        self.state.preview_display_size = display_size
+        self._clamp_pan()
+
+        self.app.card_creator_preview_image = ctk.CTkImage(
+            light_image=image,
+            dark_image=image,
+            size=image.size,
+        )
+        label = self.app.card_creator_preview_label
+        if label is None or not label.winfo_exists():
+            label = ctk.CTkLabel(
+                self.app.card_preview_frame,
+                image=self.app.card_creator_preview_image,
+                text="",
+            )
+            label.bind("<ButtonPress-1>", self._start_pan, add="+")
+            label.bind("<B1-Motion>", self._drag_pan, add="+")
+            label.bind("<MouseWheel>", self._mousewheel_zoom, add="+")
+            label.bind("<Double-Button-1>", lambda _event: self.fit(), add="+")
+            self.app.card_creator_preview_label = label
+        else:
+            label.configure(
+                image=self.app.card_creator_preview_image,
+                text="",
+                text_color="#F2E2B6",
+            )
+        label.place(
+            relx=0.5,
+            rely=0.5,
+            x=self.state.preview_pan_x,
+            y=self.state.preview_pan_y,
+            anchor="center",
+        )
+        zoom_label = getattr(self.app, "card_preview_zoom_label", None)
+        if zoom_label is not None:
+            zoom_label.configure(text=f"{round(zoom * 100)}%")
+
+    def _start_pan(self, event) -> None:
+        self.state.preview_drag_origin = (
+            event.x_root,
+            event.y_root,
+            self.state.preview_pan_x,
+            self.state.preview_pan_y,
+        )
+
+    def _drag_pan(self, event) -> None:
+        origin = self.state.preview_drag_origin
+        if origin is None:
+            return
+        self.state.preview_pan_x = origin[2] + event.x_root - origin[0]
+        self.state.preview_pan_y = origin[3] + event.y_root - origin[1]
+        self._clamp_pan()
+        self.app.card_creator_preview_label.place_configure(
+            x=self.state.preview_pan_x,
+            y=self.state.preview_pan_y,
+        )
+
+    def _mousewheel_zoom(self, event) -> str:
+        self.zoom_by(0.1 if event.delta > 0 else -0.1)
+        return "break"
+
+    def _clamp_pan(self) -> None:
+        frame_width, frame_height = preview_bounds(self.app.card_preview_frame)
+        image_width, image_height = self.state.preview_display_size
+        limit_x = max(0, (image_width - frame_width) // 2)
+        limit_y = max(0, (image_height - frame_height) // 2)
+        self.state.preview_pan_x = max(-limit_x, min(limit_x, self.state.preview_pan_x))
+        self.state.preview_pan_y = max(-limit_y, min(limit_y, self.state.preview_pan_y))

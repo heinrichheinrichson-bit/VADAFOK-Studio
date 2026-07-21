@@ -12,3 +12,6 @@ class CardCreatorResizableWorkspaceTests(unittest.TestCase):
         assert 'text="FOCUS PREVIEW"' in source
         assert "left.grid_remove()" in source
         assert "form.grid_remove()" in source
+        assert 'text="ZOOM −"' in source
+        assert "card_preview_controller.zoom_by" in source
+        assert "card_preview_controller.fit" in source

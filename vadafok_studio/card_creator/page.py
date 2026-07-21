@@ -140,7 +140,7 @@ def show_card_creator_page(app):
     preview = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
     preview.grid(row=0, column=1, sticky="nsew", padx=12)
     preview.grid_columnconfigure(0, weight=1)
-    preview.grid_rowconfigure(2, weight=1)
+    preview.grid_rowconfigure(3, weight=1)
 
     header = ctk.CTkFrame(preview, fg_color="transparent")
     header.grid(row=0, column=0, sticky="ew", padx=18, pady=(18, 8))
@@ -186,8 +186,36 @@ def show_card_creator_page(app):
     )
     focus_button.grid(row=0, column=4, padx=(8, 0), sticky="ew")
 
+    zoom_bar = ctk.CTkFrame(preview, fg_color="transparent")
+    zoom_bar.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 8))
+    zoom_bar.grid_columnconfigure(4, weight=1)
+    ctk.CTkButton(
+        zoom_bar, text="ZOOM −", width=92, fg_color="#333333",
+        hover_color="#444444",
+        command=lambda: app.card_preview_controller.zoom_by(-0.1),
+    ).grid(row=0, column=0, padx=(0, 4))
+    ctk.CTkButton(
+        zoom_bar, text="FIT", width=72, fg_color="#333333",
+        hover_color="#444444", command=app.card_preview_controller.fit,
+    ).grid(row=0, column=1, padx=4)
+    ctk.CTkButton(
+        zoom_bar, text="ZOOM +", width=92, fg_color="#333333",
+        hover_color="#444444",
+        command=lambda: app.card_preview_controller.zoom_by(0.1),
+    ).grid(row=0, column=2, padx=4)
+    app.card_preview_zoom_label = ctk.CTkLabel(
+        zoom_bar, text="100%", width=54, text_color=GOLD
+    )
+    app.card_preview_zoom_label.grid(row=0, column=3, padx=(8, 4))
+    ctk.CTkLabel(
+        zoom_bar,
+        text="Mausrad: Zoom  ·  Ziehen: Verschieben  ·  Doppelklick: Einpassen",
+        text_color="#777777",
+        anchor="e",
+    ).grid(row=0, column=4, sticky="e")
+
     app.card_preview_frame = ctk.CTkFrame(preview, fg_color="#050505", corner_radius=14, border_color="#3A2A0D", border_width=1)
-    app.card_preview_frame.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
+    app.card_preview_frame.grid(row=3, column=0, sticky="nsew", padx=18, pady=(0, 18))
 
     def preview_resized(event):
         size = (event.width, event.height)
