@@ -21,6 +21,7 @@ from .card_creator import (
     CardCreatorController,
     CardCreatorState,
     CardExportController,
+    CardPreviewController,
 )
 from .card_creator.page import (
     build_batch_panel,
@@ -155,6 +156,9 @@ class VadafokStudio(ctk.CTk):
         self.card_creator_state = CardCreatorState()
         self.card_export_controller = CardExportController(
             self, export_engine, EXPORT_DIR, os.startfile
+        )
+        self.card_preview_controller = CardPreviewController(
+            self, export_engine, render_template_card_image
         )
         self.card_batch_controller = CardBatchController(
             self, self.card_creator_state, list_templates, batch_engine
@@ -4955,65 +4959,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def card_update_preview(self):
-        """Refresh the on-screen preview entirely in memory."""
-        self.card_preview_update_job = None
-        if not hasattr(self, "card_preview_frame"):
-            return
-        try:
-            bg_path = self.card_background_path()
-            if not bg_path:
-                raise FileNotFoundError(f"Kein Background gefunden für Template: {self.card_selected_template.get()}")
-
-            bg_file = Path(bg_path)
-            cache_key = (str(bg_file), bg_file.stat().st_mtime_ns)
-            if self.card_preview_background_key != cache_key or self.card_preview_background_cache is None:
-                with Image.open(bg_file) as source:
-                    self.card_preview_background_cache = source.convert("RGBA")
-                self.card_preview_background_key = cache_key
-
-            img = render_template_card_image(
-                self.card_template(),
-                self.card_values_plain(),
-                background_image=self.card_preview_background_cache,
-            )
-            original_size = img.size
-            img = export_engine.apply_export_profile(img, self.card_export_profile.get())
-            img.thumbnail((760, 620), Image.LANCZOS)
-
-            if hasattr(self, "card_preview_info"):
-                self.card_preview_info.configure(text=f"{self.card_selected_template.get()} | {original_size[0]}×{original_size[1]} | {self.card_export_profile.get()}")
-
-            if hasattr(self, "card_export_profile_info"):
-                profile = export_engine.get_export_profile(self.card_export_profile.get())
-                size_text = "Originalgröße" if not profile.get("size") else f"{profile.get('size')[0]}×{profile.get('size')[1]}"
-                fmt = profile.get("format", "PNG")
-                self.card_export_profile_info.configure(text=f"{fmt} | {size_text}")
-
-            self.card_creator_preview_image = ctk.CTkImage(light_image=img, dark_image=img, size=img.size)
-            if self.card_creator_preview_label is None or not self.card_creator_preview_label.winfo_exists():
-                self.card_creator_preview_label = ctk.CTkLabel(
-                    self.card_preview_frame,
-                    image=self.card_creator_preview_image,
-                    text="",
-                )
-                self.card_creator_preview_label.place(relx=0.5, rely=0.5, anchor="center")
-            else:
-                self.card_creator_preview_label.configure(
-                    image=self.card_creator_preview_image,
-                    text="",
-                    text_color="#F2E2B6",
-                )
-        except Exception as e:
-            if self.card_creator_preview_label is None or not self.card_creator_preview_label.winfo_exists():
-                self.card_creator_preview_label = ctk.CTkLabel(self.card_preview_frame, text="")
-                self.card_creator_preview_label.place(relx=0.5, rely=0.5, anchor="center")
-            self.card_creator_preview_label.configure(
-                image=None,
-                text=f"Preview Fehler:\n{e}",
-                text_color="#D86A6A",
-                wraplength=420,
-                justify="center",
-            )
+        return self.card_preview_controller.update()
 
     def card_render_final(self):
         return self.card_export_controller.render_final()

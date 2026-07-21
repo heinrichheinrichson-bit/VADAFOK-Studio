@@ -4,6 +4,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 APP = (ROOT / "vadafok_studio" / "app.py").read_text(encoding="utf-8")
 LAYOUT = (ROOT / "vadafok_studio" / "core" / "layout_engine.py").read_text(encoding="utf-8")
+PREVIEW = (ROOT / "vadafok_studio" / "card_creator" / "preview.py").read_text(encoding="utf-8")
 
 
 class CardCreatorLivePreviewPerformanceTests(unittest.TestCase):
@@ -24,10 +25,9 @@ class CardCreatorLivePreviewPerformanceTests(unittest.TestCase):
 
 
     def test_preview_renders_in_memory_without_temp_export_file(self):
-        method = APP.split("    def card_update_preview", 1)[1].split("    def card_render_final", 1)[0]
-        assert "render_template_card_image(" in method
-        assert "card_render_to_file(" not in method
-        assert "Image.open(preview_path)" not in method
+        assert "self._render_image(" in PREVIEW
+        assert "card_render_to_file(" not in PREVIEW
+        assert "Image.open(preview_path)" not in PREVIEW
 
 
     def test_layout_engine_exposes_in_memory_renderer(self):
