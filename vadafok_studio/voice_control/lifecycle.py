@@ -169,6 +169,9 @@ class VoiceLifecycleController:
 
     def close_app(self) -> None:
         self.stop()
+        cancel_hide = getattr(self.app, "cancel_live_card_hide_timer", None)
+        if callable(cancel_hide):
+            cancel_hide()
         self.app.destroy()
 
     def _is_running(self) -> bool:

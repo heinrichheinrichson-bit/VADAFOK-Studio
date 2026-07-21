@@ -44,6 +44,7 @@ class LiveCardShowControllerTests(unittest.TestCase):
             _sync_sound_service_project=Mock(return_value=service),
             obs_workflow_banner_action=Mock(),
             obs_workflow_current_live_text=Mock(return_value="Hello"),
+            live_delivery_status_label=Mock(),
         )
         app.message_box.get.return_value = "Hello\n"
         return app
@@ -69,9 +70,30 @@ class LiveCardShowControllerTests(unittest.TestCase):
 
     def test_hide_disables_caption_group(self):
         app = self.make_app()
+        timer = Mock()
+        app.hide_timer = timer
         LiveCardShowController(app).hide_card()
+        timer.cancel.assert_called_once_with()
+        self.assertIsNone(app.hide_timer)
         app.obs.enable_source.assert_called_once_with("Scene", "Group", False)
         app.obs_workflow_banner_action.assert_called_once_with("HIDE Live Card")
+
+    def test_show_exception_does_not_report_successful_workflow(self):
+        app = self.make_app()
+        app.obs.set_text.side_effect = RuntimeError("failed")
+        with patch(
+            "vadafok_studio.live_card.show_controller.messagebox.showerror"
+        ):
+            LiveCardShowController(app).show_card()
+        app.obs_workflow_banner_action.assert_not_called()
+
+    def test_pending_hide_can_be_cancelled_for_shutdown(self):
+        app = self.make_app()
+        timer = Mock()
+        app.hide_timer = timer
+        LiveCardShowController(app).cancel_pending_hide()
+        timer.cancel.assert_called_once_with()
+        self.assertIsNone(app.hide_timer)
 
 
 if __name__ == "__main__":

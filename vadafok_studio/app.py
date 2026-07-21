@@ -773,6 +773,9 @@ class VadafokStudio(ctk.CTk):
     def select_sound_favorite(self, index):
         return self.live_card_controller.select_sound_favorite(index)
 
+    def replace_sound_favorite(self, index):
+        return self.live_card_controller.replace_sound_favorite(index)
+
     def refresh_sound_favorite_buttons(self):
         return self.live_card_controller.refresh_sound_favorite_buttons()
 
@@ -2568,6 +2571,9 @@ class VadafokStudio(ctk.CTk):
 
     def hide_card(self):
         return self.live_card_show_controller.hide_card()
+
+    def cancel_live_card_hide_timer(self):
+        return self.live_card_show_controller.cancel_pending_hide()
 
 
     def enter_to_show(self, event):

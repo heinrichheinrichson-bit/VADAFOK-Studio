@@ -148,11 +148,50 @@ class LiveCardController:
         favorite = favorites[index]
         relative = str(favorite.get("file", "") or "").strip()
         if not relative:
-            messagebox.showinfo(
+            return self.replace_sound_favorite(index)
+        return self._apply_selected_sound_effect(relative)
+
+    def replace_sound_favorite(self, index):
+        """Choose and immediately activate one exact sound favorite slot."""
+        app = self.app
+        favorites = self._ensure_sound_favorites()
+        if not (0 <= index < len(favorites)):
+            return False
+        project = str(app.project_folder.get() or "").strip()
+        if not project:
+            messagebox.showwarning(
                 "Sound-Favorit",
-                "Dieser Favorit ist noch nicht eingerichtet.",
+                "Bitte zuerst unter Settings einen Projektordner auswählen.",
             )
             return False
+        service = self._sync_sound_service_project()
+        if service.sounds_dir is None or not service.sounds_dir.is_dir():
+            messagebox.showwarning(
+                "Sound-Favorit",
+                f"Der Sound-Ordner wurde nicht gefunden:\n\n{Path(project) / 'Sounds'}",
+            )
+            return False
+        selected = filedialog.askopenfilename(
+            title=f"Sound-Favorit {index + 1} ersetzen",
+            initialdir=str(service.sounds_dir),
+            filetypes=[("WAV Audio", "*.wav"), ("Alle Dateien", "*.*")],
+        )
+        if not selected:
+            return False
+        relative = portable_effect_path(service, selected)
+        if relative is None:
+            messagebox.showerror(
+                "Sound-Favorit",
+                "Bitte eine WAV-Datei innerhalb des Projektordners Sounds auswählen.",
+            )
+            return False
+        default_name = f"Favorit {index + 1}"
+        if favorites[index]["name"] == default_name:
+            favorites[index]["name"] = Path(relative).stem.replace("_", " ")
+        favorites[index]["file"] = relative
+        app.config_data["sound_favorites"] = favorites
+        save_config(app.config_data)
+        self.refresh_sound_favorite_buttons()
         return self._apply_selected_sound_effect(relative)
 
     def refresh_sound_favorite_buttons(self):
@@ -339,6 +378,17 @@ class LiveCardController:
         ctk.CTkButton(btns, text="CLEAR", height=46, fg_color="#222222", command=app.clear_text).grid(row=0, column=2, padx=5, sticky="ew")
         ctk.CTkButton(btns, text="SAVE QUICK", height=46, fg_color="#222222", command=app.save_current_quick).grid(row=0, column=3, padx=5, sticky="ew")
 
+        app.live_delivery_status_label = ctk.CTkLabel(
+            btns,
+            text="○ HIDDEN · bereit",
+            text_color="#BCA870",
+            anchor="w",
+            font=ctk.CTkFont(size=12, weight="bold"),
+        )
+        app.live_delivery_status_label.grid(
+            row=1, column=0, columnspan=4, padx=5, pady=(8, 0), sticky="ew"
+        )
+
         quick_save_box = ctk.CTkFrame(left, fg_color="#0B0B0B", corner_radius=10)
         quick_save_box.grid(row=5, column=0, sticky="ew", padx=18, pady=(0, 12))
         quick_save_box.grid_columnconfigure(1, weight=1)
@@ -433,6 +483,16 @@ class LiveCardController:
             pady=(0, 8),
             sticky="ew"
         )
+        ctk.CTkButton(
+            banner_info,
+            text="CHANGE",
+            width=88,
+            height=32,
+            fg_color=GOLD,
+            text_color="#111111",
+            hover_color=GOLD_DARK,
+            command=app.open_live_card_banner_picker,
+        ).grid(row=0, column=1, rowspan=2, padx=(4, 10), pady=8)
 
         preview_actions = ctk.CTkFrame(
             right,
@@ -475,22 +535,6 @@ class LiveCardController:
             sticky="ew"
         )
 
-        ctk.CTkButton(
-            right,
-            text="CHANGE BANNER",
-            height=42,
-            fg_color=GOLD,
-            text_color="#111111",
-            hover_color=GOLD_DARK,
-            command=app.open_live_card_banner_picker
-        ).grid(
-            row=5,
-            column=0,
-            padx=18,
-            pady=(0, 10),
-            sticky="ew"
-        )
-
         effect_info = ctk.CTkFrame(
             right,
             fg_color="#0B0B0B",
@@ -499,13 +543,13 @@ class LiveCardController:
             border_width=1,
         )
         effect_info.grid(
-            row=6,
+            row=5,
             column=0,
             padx=18,
             pady=(0, 8),
             sticky="ew",
         )
-        effect_info.grid_columnconfigure(0, weight=1)
+        effect_info.grid_columnconfigure((0, 1), weight=1)
         ctk.CTkLabel(
             effect_info,
             text="STREAM EFFECT",
@@ -535,7 +579,24 @@ class LiveCardController:
             hover_color=GOLD_DARK,
             border_color="#777777",
             checkmark_color="#111111",
-        ).grid(row=2, column=0, padx=12, pady=(0, 10), sticky="w")
+        ).grid(row=2, column=0, columnspan=2, padx=12, pady=(0, 7), sticky="w")
+        ctk.CTkButton(
+            effect_info,
+            text="CHANGE EFFECT",
+            height=32,
+            fg_color=GOLD,
+            text_color="#111111",
+            hover_color=GOLD_DARK,
+            command=app.change_live_card_effect,
+        ).grid(row=3, column=0, padx=(10, 4), pady=(0, 10), sticky="ew")
+        ctk.CTkButton(
+            effect_info,
+            text="PREVIEW",
+            height=32,
+            fg_color="#333333",
+            hover_color="#444444",
+            command=app.preview_live_card_effect,
+        ).grid(row=3, column=1, padx=(4, 10), pady=(0, 10), sticky="ew")
 
         favorites_box = ctk.CTkFrame(
             right,
@@ -544,7 +605,7 @@ class LiveCardController:
             border_color="#2D2818",
             border_width=1,
         )
-        favorites_box.grid(row=7, column=0, padx=18, pady=(0, 8), sticky="ew")
+        favorites_box.grid(row=6, column=0, padx=18, pady=(0, 18), sticky="ew")
         favorites_box.grid_columnconfigure((0, 1), weight=1)
         ctk.CTkLabel(
             favorites_box,
@@ -555,21 +616,33 @@ class LiveCardController:
         ).grid(row=0, column=0, columnspan=2, padx=12, pady=(8, 5), sticky="ew")
         app.sound_favorite_buttons = []
         for index in range(4):
-            button = ctk.CTkButton(
-                favorites_box,
-                text=f"Favorit {index + 1}",
-                height=32,
-                fg_color="#1C1C1C",
-                hover_color="#444444",
-                command=lambda slot=index: self.select_sound_favorite(slot),
-            )
-            button.grid(
+            slot_box = ctk.CTkFrame(favorites_box, fg_color="transparent")
+            slot_box.grid(
                 row=1 + index // 2,
                 column=index % 2,
                 padx=(8 if index % 2 == 0 else 4, 4 if index % 2 == 0 else 8),
                 pady=4,
                 sticky="ew",
             )
+            slot_box.grid_columnconfigure(0, weight=1)
+            button = ctk.CTkButton(
+                slot_box,
+                text=f"Favorit {index + 1}",
+                height=32,
+                fg_color="#1C1C1C",
+                hover_color="#444444",
+                command=lambda slot=index: self.select_sound_favorite(slot),
+            )
+            button.grid(row=0, column=0, sticky="ew")
+            ctk.CTkButton(
+                slot_box,
+                text="↻",
+                width=30,
+                height=32,
+                fg_color="#292929",
+                hover_color="#4A3913",
+                command=lambda slot=index: self.replace_sound_favorite(slot),
+            ).grid(row=0, column=1, padx=(4, 0))
             app.sound_favorite_buttons.append(button)
         ctk.CTkButton(
             favorites_box,
@@ -582,29 +655,6 @@ class LiveCardController:
             command=app.open_sound_favorites_editor,
         ).grid(row=3, column=0, columnspan=2, padx=8, pady=(4, 8), sticky="ew")
         self.refresh_sound_favorite_buttons()
-
-        effect_actions = ctk.CTkFrame(right, fg_color="transparent")
-        effect_actions.grid(
-            row=8, column=0, padx=18, pady=(0, 18), sticky="ew"
-        )
-        effect_actions.grid_columnconfigure((0, 1), weight=1)
-        ctk.CTkButton(
-            effect_actions,
-            text="CHANGE EFFECT",
-            height=38,
-            fg_color=GOLD,
-            text_color="#111111",
-            hover_color=GOLD_DARK,
-            command=app.change_live_card_effect,
-        ).grid(row=0, column=0, padx=(0, 4), sticky="ew")
-        ctk.CTkButton(
-            effect_actions,
-            text="PREVIEW",
-            height=38,
-            fg_color="#333333",
-            hover_color="#444444",
-            command=app.preview_live_card_effect,
-        ).grid(row=0, column=1, padx=(4, 0), sticky="ew")
 
         app.schedule_live_card_preview()
 

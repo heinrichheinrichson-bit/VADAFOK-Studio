@@ -47,6 +47,7 @@ class SoundFavoritesTests(unittest.TestCase):
             "_ensure_sound_favorites",
             "_apply_selected_sound_effect",
             "select_sound_favorite",
+            "replace_sound_favorite",
             "refresh_sound_favorite_buttons",
             "open_sound_favorites_editor",
         }.issubset(methods))
@@ -71,7 +72,7 @@ class SoundFavoritesTests(unittest.TestCase):
         self.assertIn('text="FAVORITEN BEARBEITEN"', self.live_source)
 
     def test_empty_slot_is_handled_without_playback(self):
-        self.assertIn("Dieser Favorit ist noch nicht eingerichtet.", self.live_source)
+        self.assertIn("return self.replace_sound_favorite(index)", self.live_source)
         self.assertIn("if not relative:", self.live_source)
 
 

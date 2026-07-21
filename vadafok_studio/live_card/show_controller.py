@@ -67,6 +67,7 @@ class LiveCardShowController:
         )
         profiler.mark("SHOW event received")
         if not app.ensure_obs_ready():
+            self._set_delivery_status("OBS nicht verbunden", "#D86A6A")
             profiler.mark("SHOW aborted: OBS not ready")
             profiler.save()
             return
@@ -74,6 +75,7 @@ class LiveCardShowController:
             app.message_box.get("1.0", "end").strip()
             if hasattr(app, "message_box") else ""
         ) or "..."
+        shown = False
         try:
             scene = app.current_scene()
             profiler.mark("OBS scene resolved")
@@ -89,24 +91,35 @@ class LiveCardShowController:
             self._start_hide_timer(profiler)
             app.save_config()
             profiler.mark("Config save finished")
-            self.play_selected_sound_effect_for_show(profiler=profiler)
+            sound_result = self.play_selected_sound_effect_for_show(profiler=profiler)
+            seconds = max(1, int(app.duration.get()))
+            self._set_delivery_status(
+                f"● ON AIR · Auto-Hide in {seconds}s"
+                + (" · Sound nicht verfügbar" if sound_result is False else ""),
+                "#E0B86A" if sound_result is False else "#8FE6A0",
+            )
+            shown = True
             profiler.mark("SHOW completed")
         except Exception as error:
             profiler.mark(f"SHOW exception: {type(error).__name__}")
+            self._set_delivery_status(f"SHOW-Fehler: {error}", "#D86A6A")
             messagebox.showerror("SHOW fehlgeschlagen", str(error))
         finally:
             profiler.save()
 
-        try:
-            app.obs_workflow_banner_action(
-                "SHOW Live Card", app.obs_workflow_current_live_text(),
-            )
-        except Exception:
-            pass
+        if shown:
+            try:
+                app.obs_workflow_banner_action(
+                    "SHOW Live Card", app.obs_workflow_current_live_text(),
+                )
+            except Exception:
+                pass
 
     def hide_card(self) -> None:
         app = self.app
+        self._cancel_hide_timer()
         if not app.ensure_obs_ready():
+            self._set_delivery_status("OBS nicht verbunden", "#D86A6A")
             return
         try:
             app.obs.enable_source(
@@ -118,6 +131,11 @@ class LiveCardShowController:
             app.obs_workflow_banner_action("HIDE Live Card")
         except Exception:
             pass
+        self._set_delivery_status("○ HIDDEN · bereit", "#BCA870")
+
+    def cancel_pending_hide(self) -> None:
+        """Cancel the background timer during shutdown or workflow changes."""
+        self._cancel_hide_timer()
 
     def _show_smart_caption(self, scene, text: str, profiler) -> bool:
         app = self.app
@@ -129,6 +147,7 @@ class LiveCardShowController:
             profiler.mark("OBS caption image update finished")
         except Exception:
             profiler.mark("SHOW failed: caption render source")
+            self._set_delivery_status("SHOW-Fehler · Render Source", "#D86A6A")
             messagebox.showerror(
                 "Caption Render Source nicht gefunden",
                 f"Die OBS-Bildquelle '{app.caption_render_source.get().strip()}' "
@@ -150,6 +169,7 @@ class LiveCardShowController:
                 profiler.mark("OBS banner image update finished")
             except Exception:
                 profiler.mark("SHOW failed: caption banner source")
+                self._set_delivery_status("SHOW-Fehler · Banner Source", "#D86A6A")
                 messagebox.showerror(
                     "Caption Banner Source nicht gefunden",
                     f"Die OBS-Bildquelle '{app.caption_banner_source.get().strip()}' "
@@ -161,6 +181,7 @@ class LiveCardShowController:
             profiler.mark("OBS caption text update finished")
         except Exception:
             profiler.mark("SHOW failed: text source")
+            self._set_delivery_status("SHOW-Fehler · Text Source", "#D86A6A")
             messagebox.showerror(
                 "Text Source nicht gefunden",
                 f"Die OBS-Textquelle '{app.caption_text.get().strip()}' wurde "
@@ -179,12 +200,32 @@ class LiveCardShowController:
 
     def _start_hide_timer(self, profiler) -> None:
         app = self.app
-        if app.hide_timer:
-            app.hide_timer.cancel()
+        self._cancel_hide_timer()
         seconds = max(1, int(app.duration.get()))
         app.hide_timer = threading.Timer(
-            seconds, lambda: app.after(0, app.hide_card),
+            seconds, lambda: app.after(0, self._auto_hide),
         )
         app.hide_timer.daemon = True
         app.hide_timer.start()
         profiler.mark("Hide timer started")
+
+    def _auto_hide(self) -> None:
+        self.app.hide_timer = None
+        self.hide_card()
+
+    def _cancel_hide_timer(self) -> None:
+        timer = getattr(self.app, "hide_timer", None)
+        if timer is not None:
+            try:
+                timer.cancel()
+            except Exception:
+                pass
+        self.app.hide_timer = None
+
+    def _set_delivery_status(self, text: str, color: str) -> None:
+        label = getattr(self.app, "live_delivery_status_label", None)
+        if label is not None:
+            try:
+                label.configure(text=text, text_color=color)
+            except Exception:
+                pass

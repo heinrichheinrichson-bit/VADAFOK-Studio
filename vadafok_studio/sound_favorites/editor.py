@@ -103,7 +103,15 @@ def open_sound_favorites_editor_window(app):
             command=browse,
             fg_color="#333333",
             hover_color="#444444",
-        ).grid(row=0, column=2, rowspan=2, padx=(5, 10), pady=8)
+        ).grid(row=0, column=2, rowspan=2, padx=(5, 4), pady=8)
+        ctk.CTkButton(
+            row,
+            text="×",
+            width=34,
+            command=lambda target=file_var: target.set(""),
+            fg_color="#4A2020",
+            hover_color="#6A2A2A",
+        ).grid(row=0, column=3, rowspan=2, padx=(0, 10), pady=8)
         rows.append((name_var, file_var))
 
     actions = ctk.CTkFrame(dialog, fg_color="transparent")
