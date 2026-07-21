@@ -6,13 +6,21 @@ import unittest
 
 
 APP_PATH = Path(__file__).resolve().parents[1] / "vadafok_studio" / "app.py"
+CANVAS_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "vadafok_studio"
+    / "template_editor"
+    / "canvas_view.py"
+)
 
 
 def method_source(name: str) -> str:
-    source = APP_PATH.read_text(encoding="utf-8")
+    path = CANVAS_PATH if name == "template_draw_canvas" else APP_PATH
+    lookup_name = "draw_canvas" if name == "template_draw_canvas" else name
+    source = path.read_text(encoding="utf-8")
     tree = ast.parse(source)
     for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == name:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == lookup_name:
             return ast.get_source_segment(source, node) or ""
     raise AssertionError(f"Method not found: {name}")
 
@@ -20,7 +28,7 @@ def method_source(name: str) -> str:
 class TemplateEditorZoomRefreshTests(unittest.TestCase):
     def test_canvas_redraw_can_skip_layer_rebuild(self):
         method = method_source("template_draw_canvas")
-        self.assertIn("refresh_layers=True", method)
+        self.assertIn("refresh_layers: bool = True", method)
         self.assertIn("refresh_layers=refresh_layers", method)
 
     def test_zoom_skips_layer_rebuild(self):
