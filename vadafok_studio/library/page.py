@@ -85,8 +85,13 @@ def show_library_page(app: Any) -> None:
     )
     app.library_info.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 8))
     if app.library_banner_picker_mode:
+        target_slot = getattr(app, "library_banner_target_slot", None)
+        target_text = (
+            f" FÜR FAVORIT {target_slot + 1}"
+            if isinstance(target_slot, int) else ""
+        )
         app.library_info.configure(
-            text=("LIVE CARD BANNER PICKER — Wähle ein Banner und nutze "
+            text=(f"LIVE CARD BANNER PICKER{target_text} — Wähle ein Banner und nutze "
                   "SHOW / USE oder USE AS CAPTION BANNER."),
             text_color=GOLD,
         )

@@ -30,10 +30,11 @@ class LiveCardController:
     def __init__(self, app):
         self.app = app
 
-    def open_live_card_banner_picker(self):
+    def open_live_card_banner_picker(self, slot=None):
         """Open Library directly in Banners for changing the Live Card banner."""
         app = self.app
         app.library_banner_picker_mode = True
+        app.library_banner_target_slot = slot
         app.library_return_page = "Live Card"
         app.show_library()
         app.open_library_section("Banners")
@@ -45,6 +46,7 @@ class LiveCardController:
         # favorites file was changed while the picker was open.
         app.asset_meta = load_asset_meta()
         app.library_banner_picker_mode = False
+        app.library_banner_target_slot = None
         app.library_return_page = None
         self.show_live_card()
 
@@ -287,7 +289,7 @@ class LiveCardController:
         app.message_box.grid(row=1, column=0, padx=18, pady=(0, 12), sticky="nsew")
         app.message_box.insert("1.0", app.live_card_pending_text or "CHAT WAS RIGHT.")
         app.message_box.bind("<Return>", app.enter_to_show)
-        app.message_box.bind("<KeyRelease>", lambda e: app.update_render_preview())
+        app.message_box.bind("<KeyRelease>", lambda _event: app.schedule_live_card_preview())
 
         if not hasattr(app, "live_card_translation_var"):
             app.live_card_translation_var = ctk.StringVar(

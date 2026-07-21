@@ -22,6 +22,14 @@ def use_as_caption_banner(app: Any) -> None:
 
     picker_mode = bool(getattr(app, "library_banner_picker_mode", False))
     app.config_data["selected_banner_path"] = str(item.path)
+    target_slot = getattr(app, "library_banner_target_slot", None)
+    if picker_mode and isinstance(target_slot, int) and 0 <= target_slot < 4:
+        slots = app.config_data.get("live_card_banner_slots", [])
+        slots = list(slots) if isinstance(slots, list) else []
+        slots = (slots + ["", "", "", ""])[:4]
+        slots[target_slot] = str(item.path)
+        app.config_data["live_card_banner_slots"] = slots
+        app.config_data["live_card_banner_slots_initialized"] = True
     save_config(app.config_data)
 
     obs_warning = None
@@ -39,6 +47,7 @@ def use_as_caption_banner(app: Any) -> None:
 
     if picker_mode:
         app.library_banner_picker_mode = False
+        app.library_banner_target_slot = None
         app.library_return_page = None
         app.show_live_card()
         _refresh_render_preview(app)

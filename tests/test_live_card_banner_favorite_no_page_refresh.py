@@ -8,4 +8,5 @@ class LiveCardBannerFavoriteRefreshTests(unittest.TestCase):
         block = source.split('def _select_favorite_banner', 1)[1].split('def _make_thumbnail', 1)[0]
         assert 'app.show_live_card()' not in block
         assert 'app.update_render_preview()' in block
-        assert '_render_banner_favorites(app)' in block
+        assert '_refresh_banner_slot_selection(app)' in block
+        assert '_render_banner_favorites(app)' not in block

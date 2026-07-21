@@ -19,6 +19,8 @@ DEFAULT_CONFIG = {
     "card_batch_output_folder": "",
     "card_ask_output_location": False,
     "card_workspace_section": "card_data",
+    "live_card_banner_slots": ["", "", "", ""],
+    "live_card_banner_slots_initialized": False,
     "host": "localhost",
     "port": "4455",
     "password": "",

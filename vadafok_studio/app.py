@@ -76,6 +76,7 @@ from .settings.controller import SettingsController
 from .live_card import (
     LiveCardController,
     LiveCardShowController,
+    schedule_render_preview as schedule_live_card_render_preview,
     update_render_preview as update_live_card_render_preview,
 )
 from .silent_director import render_actions_list
@@ -387,6 +388,7 @@ class VadafokStudio(ctk.CTk):
         self._ensure_sound_favorites()
         self.library_section = ctk.StringVar(value="All")
         self.library_banner_picker_mode = False
+        self.library_banner_target_slot = None
         self.library_return_page = None
         self.library_controller = LibraryController(self)
         self.search_text = ctk.StringVar(value="")
@@ -487,8 +489,8 @@ class VadafokStudio(ctk.CTk):
         """Render folder choices without scanning or decoding thumbnails."""
         return render_folder_overview(self)
 
-    def open_live_card_banner_picker(self):
-        return self.live_card_controller.open_live_card_banner_picker()
+    def open_live_card_banner_picker(self, slot=None):
+        return self.live_card_controller.open_live_card_banner_picker(slot)
 
     def return_to_live_card_from_library(self):
         return self.live_card_controller.return_to_live_card_from_library()
@@ -2551,6 +2553,9 @@ class VadafokStudio(ctk.CTk):
 
     def update_render_preview(self):
         return update_live_card_render_preview(self)
+
+    def schedule_live_card_preview(self):
+        return schedule_live_card_render_preview(self)
 
 
     def play_selected_sound_effect_for_show(self, profiler=None):
