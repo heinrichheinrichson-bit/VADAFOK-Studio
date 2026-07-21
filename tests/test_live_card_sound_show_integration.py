@@ -10,6 +10,7 @@ APP_PATH = ROOT / "vadafok_studio" / "app.py"
 CONFIG_PATH = ROOT / "vadafok_studio" / "core" / "config.py"
 OBS_CONTROLLER_PATH = ROOT / "vadafok_studio" / "core" / "obs_controller.py"
 LIVE_CONTROLLER_PATH = ROOT / "vadafok_studio" / "live_card" / "controller.py"
+SHOW_CONTROLLER_PATH = ROOT / "vadafok_studio" / "live_card" / "show_controller.py"
 
 
 class LiveCardSoundShowIntegrationTests(unittest.TestCase):
@@ -17,9 +18,11 @@ class LiveCardSoundShowIntegrationTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.source = APP_PATH.read_text(encoding="utf-8")
         cls.live_source = LIVE_CONTROLLER_PATH.read_text(encoding="utf-8")
-        cls.combined_source = cls.source + "\n" + cls.live_source
+        cls.show_source = SHOW_CONTROLLER_PATH.read_text(encoding="utf-8")
+        cls.combined_source = cls.source + "\n" + cls.live_source + "\n" + cls.show_source
         cls.tree = ast.parse(cls.source)
         cls.live_tree = ast.parse(cls.live_source)
+        cls.show_tree = ast.parse(cls.show_source)
         cls.app_class = next(
             node
             for node in cls.tree.body
@@ -29,9 +32,13 @@ class LiveCardSoundShowIntegrationTests(unittest.TestCase):
             node for node in cls.live_tree.body
             if isinstance(node, ast.ClassDef) and node.name == "LiveCardController"
         )
+        cls.show_class = next(
+            node for node in cls.show_tree.body
+            if isinstance(node, ast.ClassDef) and node.name == "LiveCardShowController"
+        )
 
     def _method(self, name: str) -> ast.FunctionDef:
-        for owner in (self.live_class, self.app_class):
+        for owner in (self.show_class, self.live_class, self.app_class):
             for node in owner.body:
                 if isinstance(node, ast.FunctionDef) and node.name == name:
                     return node
@@ -68,8 +75,8 @@ class LiveCardSoundShowIntegrationTests(unittest.TestCase):
 
     def test_show_helper_uses_obs_media_source_not_local_playback(self) -> None:
         helper = ast.unparse(self._method("play_selected_sound_effect_for_show"))
-        self.assertIn("self._sync_sound_service_project()", helper)
-        self.assertIn("self.obs.play_media_file", helper)
+        self.assertIn("app._sync_sound_service_project()", helper)
+        self.assertIn("app.obs.play_media_file", helper)
         self.assertIn("OBS media playback requested", helper)
         self.assertNotIn("self.obs.restart_media_source", helper)
         self.assertNotIn("service.play", helper)

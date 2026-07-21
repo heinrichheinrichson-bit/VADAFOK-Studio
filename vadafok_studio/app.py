@@ -62,7 +62,7 @@ from .quick_cards import (
 from .banner_editor.controller import BannerEditorController
 from .obs_workflow.controller import OBSWorkflowController
 from .settings.controller import SettingsController
-from .live_card.controller import LiveCardController
+from .live_card import LiveCardController, LiveCardShowController
 from .silent_director import render_actions_list
 from .silent_director import render_filtered_presets
 from .silent_director import run_preset as run_silent_director_preset
@@ -310,6 +310,7 @@ class VadafokStudio(ctk.CTk):
         self.quick_cards_collapsed = set()
         self.live_card_pending_text = ""
         self.live_card_controller = LiveCardController(self)
+        self.live_card_show_controller = LiveCardShowController(self)
         self.quick_cards_target_category = ctk.StringVar(value="Chat")
         self.quick_cards_editing_category = None
         self.quick_cards_editing_text = None
@@ -3332,155 +3333,11 @@ class VadafokStudio(ctk.CTk):
 
 
     def play_selected_sound_effect_for_show(self, profiler=None):
-        """Restart the configured OBS Media Source for SHOW.
-
-        PREVIEW intentionally remains local through SoundService. Automatic
-        SHOW playback is best-effort so an audio-source problem never cancels
-        the Live Card itself.
-        """
-        if not bool(self.config_data.get("stream_effect_enabled", False)):
-            if profiler is not None:
-                profiler.mark("Sound skipped: automatic playback disabled")
-            return None
-
-        relative = str(
-            self.config_data.get("selected_sound_effect", "") or ""
-        ).strip()
-        if not relative:
-            if profiler is not None:
-                profiler.mark("Sound skipped: no effect selected")
-            return None
-
-        source_name = self.stream_effect_source.get().strip()
-        if not source_name:
-            LOGGER.warning("No OBS Stream Effect Media Source is configured.")
-            if profiler is not None:
-                profiler.mark("Sound failed: no OBS Media Source configured")
-            return False
-
-        try:
-            service = self._sync_sound_service_project()
-            media_file = service.resolve(relative)
-            if media_file is None or not service.exists(relative):
-                LOGGER.warning(
-                    "Configured Stream Effect is unavailable: %s",
-                    relative,
-                )
-                if profiler is not None:
-                    profiler.mark("Sound failed: WAV unavailable")
-                return False
-
-            if profiler is not None:
-                profiler.mark("OBS media playback requested")
-            self.obs.play_media_file(source_name, media_file)
-            if profiler is not None:
-                profiler.mark("OBS media playback request finished")
-            return True
-        except Exception:
-            if profiler is not None:
-                profiler.mark("OBS media playback request failed")
-            LOGGER.exception(
-                "OBS Stream Effect playback failed for %s via source %s",
-                relative,
-                source_name,
-            )
-            return False
+        return self.live_card_show_controller.play_selected_sound_effect_for_show(profiler)
 
 
     def show_card(self):
-        profiler = SyncProfiler(
-            enabled=bool(self.config_data.get("sync_profiler_enabled", False)),
-            session_name="LiveCard SHOW",
-        )
-        profiler.mark("SHOW event received")
-
-        if not self.ensure_obs_ready():
-            profiler.mark("SHOW aborted: OBS not ready")
-            profiler.save()
-            return
-
-        text = self.message_box.get("1.0", "end").strip() if hasattr(self, "message_box") else ""
-        if not text:
-            text = "..."
-
-        try:
-            scene = self.current_scene()
-            profiler.mark("OBS scene resolved")
-
-            selected_banner_path = self.config_data.get("selected_banner_path", "")
-
-            if self.caption_engine.get() == "smart_png":
-                try:
-                    profiler.mark("Smart caption render requested")
-                    png = self.render_smart_caption(text, profiler=profiler)
-                    profiler.mark("Smart caption render finished")
-                    self.obs.set_image_file(self.caption_render_source.get().strip(), png)
-                    profiler.mark("OBS caption image update finished")
-                except Exception:
-                    profiler.mark("SHOW failed: caption render source")
-                    messagebox.showerror("Caption Render Source nicht gefunden", f"Die OBS-Bildquelle '{self.caption_render_source.get().strip()}' wurde nicht gefunden.\n\nBitte OBS Connection prüfen.")
-                    return
-
-                try:
-                    self.obs.enable_source(scene, self.caption_text.get().strip(), False)
-                except Exception:
-                    pass
-                try:
-                    self.obs.enable_source(scene, self.caption_render_source.get().strip(), True)
-                except Exception:
-                    pass
-            else:
-                if selected_banner_path:
-                    try:
-                        self.obs.set_image_file(self.caption_banner_source.get().strip(), selected_banner_path)
-                        profiler.mark("OBS banner image update finished")
-                    except Exception:
-                        profiler.mark("SHOW failed: caption banner source")
-                        messagebox.showerror("Caption Banner Source nicht gefunden", f"Die OBS-Bildquelle '{self.caption_banner_source.get().strip()}' wurde nicht gefunden.\n\nBitte OBS Connection prüfen.")
-                        return
-                try:
-                    self.obs.set_text(self.caption_text.get().strip(), text)
-                    profiler.mark("OBS caption text update finished")
-                except Exception:
-                    profiler.mark("SHOW failed: text source")
-                    messagebox.showerror("Text Source nicht gefunden", f"Die OBS-Textquelle '{self.caption_text.get().strip()}' wurde nicht gefunden.\n\nBitte OBS Connection prüfen.")
-                    return
-
-                try:
-                    self.obs.enable_source(scene, self.caption_render_source.get().strip(), False)
-                except Exception:
-                    pass
-                try:
-                    self.obs.enable_source(scene, self.caption_text.get().strip(), True)
-                except Exception:
-                    pass
-
-            profiler.mark("Banner group enable requested")
-            self.obs.enable_source(scene, self.caption_group.get().strip(), True)
-            profiler.mark("Banner group enable request finished")
-
-            if self.hide_timer:
-                self.hide_timer.cancel()
-            seconds = max(1, int(self.duration.get()))
-            self.hide_timer = threading.Timer(seconds, lambda: self.after(0, self.hide_card))
-            self.hide_timer.daemon = True
-            self.hide_timer.start()
-            profiler.mark("Hide timer started")
-            self.save_config()
-            profiler.mark("Config save finished")
-
-            self.play_selected_sound_effect_for_show(profiler=profiler)
-            profiler.mark("SHOW completed")
-        except Exception as e:
-            profiler.mark(f"SHOW exception: {type(e).__name__}")
-            messagebox.showerror("SHOW fehlgeschlagen", str(e))
-        finally:
-            profiler.save()
-
-        try:
-            self.obs_workflow_banner_action("SHOW Live Card", self.obs_workflow_current_live_text())
-        except Exception:
-            pass
+        return self.live_card_show_controller.show_card()
 
 
     def hide_card(self):

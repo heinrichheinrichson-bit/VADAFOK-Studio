@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 RENDERER_PATH = ROOT / "vadafok_studio" / "core" / "caption_renderer.py"
 APP_PATH = ROOT / "vadafok_studio" / "app.py"
 CONFIG_PATH = ROOT / "vadafok_studio" / "core" / "config.py"
+SHOW_CONTROLLER_PATH = ROOT / "vadafok_studio" / "live_card" / "show_controller.py"
 
 
 class CaptionRendererPerformanceTests(unittest.TestCase):
@@ -17,6 +18,7 @@ class CaptionRendererPerformanceTests(unittest.TestCase):
         cls.renderer_source = RENDERER_PATH.read_text(encoding="utf-8")
         cls.app_source = APP_PATH.read_text(encoding="utf-8")
         cls.config_source = CONFIG_PATH.read_text(encoding="utf-8")
+        cls.show_source = SHOW_CONTROLLER_PATH.read_text(encoding="utf-8")
         cls.renderer_tree = ast.parse(cls.renderer_source)
         cls.app_tree = ast.parse(cls.app_source)
 
@@ -48,7 +50,7 @@ class CaptionRendererPerformanceTests(unittest.TestCase):
     def test_app_passes_show_profiler_into_renderer(self) -> None:
         self.assertIn("def render_smart_caption(self, text, profiler=None):", self.app_source)
         self.assertIn("profiler=profiler", self.app_source)
-        self.assertIn("self.render_smart_caption(text, profiler=profiler)", self.app_source)
+        self.assertIn("app.render_smart_caption(text, profiler=profiler)", self.show_source)
 
     def test_fast_png_configuration_default_is_present(self) -> None:
         self.assertIn('"caption_png_compress_level": 1', self.config_source)
