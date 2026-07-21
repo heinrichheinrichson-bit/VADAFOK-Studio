@@ -52,8 +52,8 @@ class CardCreatorController:
         self.app.card_recent_templates = record_recent_template(name, available)
         self.app.card_selected_template.set(name)
         self.app.card_output_name.set(self.app.card_default_output_name())
-        self.app.card_data_undo_stack = []
-        self.app.card_data_redo_stack = []
+        self.state.data_undo_stack.clear()
+        self.state.data_redo_stack.clear()
         self.app.card_creator_preview_image = None
         self.state.preview_background_cache = None
         self.state.preview_background_key = None

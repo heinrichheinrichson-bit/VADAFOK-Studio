@@ -16,3 +16,6 @@ class CardCreatorState:
     preview_background_cache: Any = None
     preview_background_key: tuple[str, int] | None = None
     last_render: Path | None = None
+    data_undo_stack: list[dict[str, str]] = field(default_factory=list)
+    data_redo_stack: list[dict[str, str]] = field(default_factory=list)
+    history_limit: int = 50

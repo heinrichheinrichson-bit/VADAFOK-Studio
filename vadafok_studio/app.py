@@ -22,6 +22,7 @@ from .card_creator import (
     CardCreatorState,
     CardExportController,
     CardPreviewController,
+    CardDataController,
 )
 from .card_creator.page import (
     build_batch_panel,
@@ -166,12 +167,12 @@ class VadafokStudio(ctk.CTk):
             render_template_card_image,
             state=self.card_creator_state,
         )
+        self.card_data_controller = CardDataController(
+            self, self.card_creator_state
+        )
         self.card_batch_controller = CardBatchController(
             self, self.card_creator_state, list_templates, batch_engine
         )
-        self.card_data_undo_stack = []
-        self.card_data_redo_stack = []
-        self.card_history_limit = 50
         self.obs = OBSController()
         self.obs_workflow_state = obs_workflow.OBSWorkflowState()
         self.obs_workflow_controller = OBSWorkflowController(self)
@@ -4548,13 +4549,7 @@ class VadafokStudio(ctk.CTk):
         self.card_preview_update_job = self.after(25, self.card_update_preview)
 
     def card_clear_values(self):
-        self.card_push_data_history()
-        values = self.card_creator_values.get(self.card_selected_template.get(), {})
-        for var in values.values():
-            if hasattr(var, "set"):
-                var.set("")
-        self.card_save_values()
-        self.card_update_preview()
+        return self.card_data_controller.clear_values()
 
     def card_open_export_folder(self):
         return self.card_export_controller.open_export_folder()
@@ -4565,49 +4560,19 @@ class VadafokStudio(ctk.CTk):
 
 
     def card_current_data_snapshot(self):
-        return dict(self.card_values_plain())
+        return self.card_data_controller.current_snapshot()
 
     def card_apply_data_snapshot(self, snapshot):
-        values = self.card_creator_values.get(self.card_selected_template.get(), {})
-        # Ensure variables exist by building form before applying if needed.
-        for key, value in snapshot.items():
-            if key in values and hasattr(values[key], "set"):
-                values[key].set(value)
-
-        # Keys not in snapshot should become empty.
-        for key, var in values.items():
-            if key not in snapshot and hasattr(var, "set"):
-                var.set("")
-
-        self.card_save_values()
-        self.card_update_preview()
+        return self.card_data_controller.apply_snapshot(snapshot)
 
     def card_push_data_history(self):
-        snapshot = self.card_current_data_snapshot()
-        if self.card_data_undo_stack and self.card_data_undo_stack[-1] == snapshot:
-            return
-        self.card_data_undo_stack.append(snapshot)
-        if len(self.card_data_undo_stack) > self.card_history_limit:
-            self.card_data_undo_stack.pop(0)
-        self.card_data_redo_stack.clear()
+        return self.card_data_controller.push_history()
 
     def card_undo_data(self):
-        if not self.card_data_undo_stack:
-            messagebox.showinfo("Card Creator", "Nichts zum Rückgängig machen.")
-            return
-        current = self.card_current_data_snapshot()
-        previous = self.card_data_undo_stack.pop()
-        self.card_data_redo_stack.append(current)
-        self.card_apply_data_snapshot(previous)
+        return self.card_data_controller.undo()
 
     def card_redo_data(self):
-        if not self.card_data_redo_stack:
-            messagebox.showinfo("Card Creator", "Nichts zum Wiederherstellen.")
-            return
-        current = self.card_current_data_snapshot()
-        next_snapshot = self.card_data_redo_stack.pop()
-        self.card_data_undo_stack.append(current)
-        self.card_apply_data_snapshot(next_snapshot)
+        return self.card_data_controller.redo()
 
 
 
