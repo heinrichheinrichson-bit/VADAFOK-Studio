@@ -6,13 +6,21 @@ import unittest
 
 
 APP_PATH = Path(__file__).resolve().parents[1] / "vadafok_studio" / "app.py"
+OVERLAY_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "vadafok_studio"
+    / "template_editor"
+    / "overlay_view.py"
+)
 
 
 def method_source(name: str) -> str:
-    source = APP_PATH.read_text(encoding="utf-8")
+    path = OVERLAY_PATH if name == "template_update_fields_overlay" else APP_PATH
+    lookup_name = "update_fields_overlay" if name == "template_update_fields_overlay" else name
+    source = path.read_text(encoding="utf-8")
     tree = ast.parse(source)
     for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == name:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == lookup_name:
             return ast.get_source_segment(source, node) or ""
     raise AssertionError(f"Method not found: {name}")
 
@@ -20,8 +28,8 @@ def method_source(name: str) -> str:
 class TemplateEditorDragPartialRefreshTests(unittest.TestCase):
     def test_overlay_supports_targeted_refresh_flags(self):
         method = method_source("template_update_fields_overlay")
-        self.assertIn("refresh_layers=True", method)
-        self.assertIn("refresh_status=True", method)
+        self.assertIn("refresh_layers: bool = True", method)
+        self.assertIn("refresh_status: bool = True", method)
         self.assertIn("if refresh_layers", method)
         self.assertIn("if refresh_status", method)
 

@@ -42,6 +42,7 @@ from .template_editor import (
     build_layers_panel,
     build_properties_panel,
     draw_canvas,
+    update_fields_overlay,
 )
 from .library import LibraryController
 from .banner_editor.controller import BannerEditorController
@@ -3779,91 +3780,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_update_fields_overlay(self, bg_info=None, refresh_layers=True, refresh_status=True):
-        if not hasattr(self, "template_canvas"):
-            return
-        canvas = self.template_canvas
-        self.template_clear_fields_overlay()
-        self.template_clear_smart_guides()
-        template = self.template_current()
-
-        if refresh_status and bg_info is None:
-            try:
-                bg_path = str(background_path(self.template_selected_name, template))
-                bg_info = image_status(bg_path)
-            except Exception:
-                bg_info = {"name": "?", "exists": False}
-        elif bg_info is None:
-            bg_info = {"name": "?", "exists": False}
-
-        for idx, field in enumerate(template.get("fields", [])):
-            if field.get("hidden", False):
-                continue
-            x1, y1, x2, y2 = self.template_field_screen_rect(field)
-            selected = idx == self.template_selected_field or idx in getattr(self, 'template_selected_fields', set())
-            outline = GOLD if selected else "#BCA870"
-            width = 3 if selected else 2
-
-            canvas.create_rectangle(
-                x1, y1, x2, y2,
-                fill="#D6A43A",
-                stipple="gray25",
-                outline=outline,
-                width=width,
-                tags=("template_overlay",)
-            )
-
-            label_text = field.get("name", f"field_{idx+1}")
-            if field.get("uppercase", True):
-                label_text = label_text.upper()
-
-            canvas.create_text(
-                (x1 + x2) // 2,
-                (y1 + y2) // 2,
-                text=label_text,
-                fill=field.get("text_color", "#FFFFFF"),
-                font=("Arial", max(10, min(28, int(field.get("font_size", 90) / 5))), "bold"),
-                tags=("template_overlay",)
-            )
-
-            canvas.create_text(
-                x1 + 5, y1 + 5,
-                text=field.get("name", f"field_{idx+1}"),
-                anchor="nw",
-                fill="#111111",
-                font=("Arial", 9, "bold"),
-                tags=("template_overlay",)
-            )
-
-            if selected:
-                for _name, hx, hy in self.template_handle_points(x1, y1, x2, y2):
-                    canvas.create_rectangle(
-                        hx - 6, hy - 6, hx + 6, hy + 6,
-                        fill=GOLD,
-                        outline="#111111",
-                        tags=("template_overlay",)
-                    )
-
-        if refresh_status and hasattr(self, "template_status_label"):
-            selected_count = len(getattr(self, "template_selected_fields", set()))
-            if selected_count > 1:
-                self.template_status_label.configure(
-                    text=f"{self.template_selected_name} | {selected_count} Felder ausgewählt | BG: {bg_info.get('name', '?')}",
-                    text_color="#8FE6A0"
-                )
-            elif self.template_selected_field is not None and 0 <= self.template_selected_field < len(template.get("fields", [])):
-                f = template["fields"][self.template_selected_field]
-                self.template_status_label.configure(
-                    text=f"{self.template_selected_name} | {f['name']} | {f['width']}×{f['height']} @ {f['x']}/{f['y']} | BG: {bg_info.get('name', '?')}",
-                    text_color="#8FE6A0"
-                )
-            else:
-                self.template_status_label.configure(
-                    text=f"{self.template_selected_name} | Felder: {len(template.get('fields', []))} | BG: {bg_info.get('name', '?')}",
-                    text_color="#8FE6A0"
-                )
-
-        if refresh_layers and hasattr(self, "template_layers_body"):
-            self.template_build_layers_panel()
+        return update_fields_overlay(self, bg_info, refresh_layers, refresh_status)
 
 
 
