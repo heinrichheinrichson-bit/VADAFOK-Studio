@@ -150,7 +150,12 @@ class VadafokStudio(ctk.CTk):
         self.card_selected_template = ctk.StringVar(value="")
         self.card_creator_state = CardCreatorState()
         self.card_creator_controller = CardCreatorController(
-            self, list_templates, state=self.card_creator_state
+            self,
+            list_templates,
+            create_template,
+            get_default_template,
+            load_template,
+            state=self.card_creator_state,
         )
         self.card_recent_templates = self.card_creator_controller.load_recent()
         self.card_creator_values = {}
@@ -4550,25 +4555,7 @@ class VadafokStudio(ctk.CTk):
         return self.card_export_controller.choose_batch_output_directory()
 
     def card_preview_changed(self, *_args):
-        """Queue a fast live preview and persist values after typing settles."""
-        if self.card_values_save_job is not None:
-            try:
-                self.after_cancel(self.card_values_save_job)
-            except Exception:
-                pass
-        self.card_values_save_job = self.after(350, self.card_save_values)
-
-        if getattr(self, "card_auto_preview", None) is not None and not self.card_auto_preview.get():
-            return
-
-        if self.card_preview_update_job is not None:
-            try:
-                self.after_cancel(self.card_preview_update_job)
-            except Exception:
-                pass
-        # A very small debounce combines duplicate Tk events while remaining
-        # visually immediate during normal typing.
-        self.card_preview_update_job = self.after(25, self.card_update_preview)
+        return self.card_preview_controller.changed(*_args)
 
     def card_clear_values(self):
         return self.card_data_controller.clear_values()
@@ -4659,18 +4646,7 @@ class VadafokStudio(ctk.CTk):
         return refresh_recent_templates(self)
 
     def card_template(self):
-        names = list_templates()
-        if not names:
-            create_template("Default Stream Plan")
-            names = list_templates()
-
-        selected = self.card_selected_template.get()
-        if selected not in names:
-            default_name = get_default_template()
-            selected = default_name if default_name in names else sorted(names)[0]
-            self.card_selected_template.set(selected)
-
-        return load_template(selected)
+        return self.card_creator_controller.current_template()
 
 
     def card_build_form(self):
@@ -4693,11 +4669,7 @@ class VadafokStudio(ctk.CTk):
 
 
     def card_render_to_file(self, final=False, output_dir=None, output_path=None):
-        return self.card_render_service.render_to_file(
-            final=final,
-            output_dir=output_dir,
-            output_path=output_path,
-        )
+        return self.card_render_service.render_to_file(final, output_dir, output_path)
 
 
     def card_update_preview(self):

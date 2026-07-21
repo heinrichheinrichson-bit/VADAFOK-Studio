@@ -24,6 +24,30 @@ class CardPreviewController:
         self._export_engine = export_engine
         self._render_image = render_image
 
+    def changed(self, *_args) -> None:
+        """Debounce persistence and live-preview work after value changes."""
+        if self.app.card_values_save_job is not None:
+            try:
+                self.app.after_cancel(self.app.card_values_save_job)
+            except Exception:
+                pass
+        self.app.card_values_save_job = self.app.after(
+            350, self.app.card_save_values
+        )
+
+        auto_preview = getattr(self.app, "card_auto_preview", None)
+        if auto_preview is not None and not auto_preview.get():
+            return
+
+        if self.app.card_preview_update_job is not None:
+            try:
+                self.app.after_cancel(self.app.card_preview_update_job)
+            except Exception:
+                pass
+        self.app.card_preview_update_job = self.app.after(
+            25, self.app.card_update_preview
+        )
+
     def update(self) -> None:
         """Refresh the on-screen preview entirely in memory."""
         self.app.card_preview_update_job = None

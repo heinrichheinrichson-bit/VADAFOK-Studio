@@ -12,6 +12,50 @@ from vadafok_studio.card_creator.state import CardCreatorState
 
 
 class CardPreviewControllerTests(unittest.TestCase):
+    def test_changed_schedules_save_and_fast_preview(self):
+        jobs = iter(("save-job", "preview-job"))
+        app = SimpleNamespace(
+            card_creator_state=CardCreatorState(),
+            card_values_save_job="old-save",
+            card_preview_update_job="old-preview",
+            card_auto_preview=SimpleNamespace(get=lambda: True),
+            card_save_values=Mock(),
+            card_update_preview=Mock(),
+            after=Mock(side_effect=lambda _delay, _callback: next(jobs)),
+            after_cancel=Mock(),
+        )
+
+        CardPreviewController(app, Mock(), Mock()).changed()
+
+        self.assertEqual(app.card_values_save_job, "save-job")
+        self.assertEqual(app.card_preview_update_job, "preview-job")
+        self.assertEqual(
+            app.after.call_args_list[0].args,
+            (350, app.card_save_values),
+        )
+        self.assertEqual(
+            app.after.call_args_list[1].args,
+            (25, app.card_update_preview),
+        )
+        self.assertEqual(app.after_cancel.call_count, 2)
+
+    def test_changed_skips_preview_when_auto_preview_is_disabled(self):
+        app = SimpleNamespace(
+            card_creator_state=CardCreatorState(),
+            card_values_save_job=None,
+            card_preview_update_job=None,
+            card_auto_preview=SimpleNamespace(get=lambda: False),
+            card_save_values=Mock(),
+            card_update_preview=Mock(),
+            after=Mock(return_value="save-job"),
+            after_cancel=Mock(),
+        )
+
+        CardPreviewController(app, Mock(), Mock()).changed()
+
+        app.after.assert_called_once_with(350, app.card_save_values)
+        self.assertIsNone(app.card_preview_update_job)
+
     def test_update_without_preview_frame_is_safe(self):
         app = SimpleNamespace(
             card_preview_update_job="queued",

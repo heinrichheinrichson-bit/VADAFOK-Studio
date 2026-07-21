@@ -24,14 +24,33 @@ class CardCreatorController:
         self,
         app: Any,
         list_templates: Callable[[], Iterable[str]],
+        create_template: Callable[[str], Any],
+        get_default_template: Callable[[], str],
+        load_template: Callable[[str], Any],
         state: CardCreatorState | None = None,
     ) -> None:
         self.app = app
         self.state = state or app.card_creator_state
         self._list_templates = list_templates
+        self._create_template = create_template
+        self._get_default_template = get_default_template
+        self._load_template = load_template
 
     def available_templates(self) -> list[str]:
         return list(self._list_templates())
+
+    def current_template(self):
+        names = self.available_templates()
+        if not names:
+            self._create_template("Default Stream Plan")
+            names = self.available_templates()
+
+        selected = self.app.card_selected_template.get()
+        if selected not in names:
+            default_name = self._get_default_template()
+            selected = default_name if default_name in names else sorted(names)[0]
+            self.app.card_selected_template.set(selected)
+        return self._load_template(selected)
 
     def load_recent(self) -> list[str]:
         recent = load_recent_templates(self.available_templates())

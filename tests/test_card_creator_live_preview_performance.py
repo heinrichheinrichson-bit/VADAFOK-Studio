@@ -10,13 +10,12 @@ FORM = (ROOT / "vadafok_studio" / "card_creator" / "form_view.py").read_text(enc
 
 class CardCreatorLivePreviewPerformanceTests(unittest.TestCase):
     def test_live_preview_uses_short_debounce(self):
-        assert "self.after(25, self.card_update_preview)" in APP
+        assert "25, self.app.card_update_preview" in PREVIEW
 
 
     def test_typing_does_not_save_json_on_every_keystroke(self):
-        method = APP.split("    def card_preview_changed", 1)[1].split("    def card_clear_values", 1)[0]
-        assert "self.after(350, self.card_save_values)" in method
-        assert "self.card_save_values()" not in method
+        assert "350, self.app.card_save_values" in PREVIEW
+        assert "self.app.card_save_values()" not in PREVIEW
 
 
     def test_form_uses_stringvar_trace_for_all_value_changes(self):
