@@ -1,6 +1,9 @@
 import ast
 import unittest
 from pathlib import Path
+from unittest.mock import Mock
+
+from vadafok_studio.card_creator.page import _widgets_exist
 
 ROOT = Path(__file__).resolve().parents[1]
 APP_PATH = ROOT / "vadafok_studio" / "app.py"
@@ -8,6 +11,14 @@ PAGE_PATH = ROOT / "vadafok_studio" / "card_creator" / "page.py"
 
 
 class CardCreatorPageModuleTests(unittest.TestCase):
+    def test_destroyed_batch_row_widgets_are_rejected(self):
+        live = Mock()
+        live.winfo_exists.return_value = 1
+        destroyed = Mock()
+        destroyed.winfo_exists.return_value = 0
+        self.assertTrue(_widgets_exist((live,)))
+        self.assertFalse(_widgets_exist((live, destroyed)))
+
     def test_app_delegates_card_creator_page_to_module(self):
         source = APP_PATH.read_text(encoding="utf-8")
         tree = ast.parse(source)
@@ -61,6 +72,8 @@ class CardCreatorPageModuleTests(unittest.TestCase):
         self.assertIn("def update_batch_selection(app):", page_source)
         self.assertIn("app.card_batch_rows = rows", page_source)
         self.assertNotIn("for widget in app.card_batch_body.winfo_children()", page_source)
+        self.assertIn("app.card_batch_rows = []", page_source)
+        self.assertIn("def _widgets_exist(widgets)", page_source)
 
 
 if __name__ == "__main__":

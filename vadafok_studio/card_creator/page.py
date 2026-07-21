@@ -22,6 +22,13 @@ DARK = "#090909"
 PANEL = "#111111"
 
 
+def _widgets_exist(widgets) -> bool:
+    try:
+        return all(widget.winfo_exists() for widget in widgets)
+    except Exception:
+        return False
+
+
 def build_batch_panel(app):
     """Reconcile batch rows without rebuilding unchanged widgets."""
     if not hasattr(app, "card_batch_body"):
@@ -38,7 +45,13 @@ def build_batch_panel(app):
             )
         )
     rows = getattr(app, "card_batch_rows", [])
+    if any(not _widgets_exist(row) for row in rows):
+        rows = []
+        app.card_batch_rows = rows
     empty_label = getattr(app, "card_batch_empty_label", None)
+    if empty_label is not None and not _widgets_exist((empty_label,)):
+        empty_label = None
+        app.card_batch_empty_label = None
     if not state.batch_items:
         for row_box, _title, _subtitle in rows:
             row_box.destroy()
@@ -320,6 +333,10 @@ def show_card_creator_page(app):
         batch_box, fg_color="#080808", corner_radius=10
     )
     app.card_batch_body.grid(row=2, column=0, sticky="nsew", padx=10, pady=(0, 10))
+    # Every page build owns fresh row widgets. Never reuse wrappers whose
+    # underlying Tcl windows were destroyed by clear_main().
+    app.card_batch_rows = []
+    app.card_batch_empty_label = None
 
     output_pane = workspace.add_section("output", "Output")
     output_pane.grid_columnconfigure(0, weight=1)
