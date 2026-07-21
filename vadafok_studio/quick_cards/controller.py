@@ -68,7 +68,7 @@ class QuickCardsController:
     def delete_category(self, category: str) -> None:
         if not messagebox.askyesno(
             "Quick Cards",
-            f"Delete category '{category}'?\\nAll texts inside will be removed.",
+            f"Delete category '{category}'?\nAll texts inside will be removed.",
         ):
             return
         self.app.text_library_data = text_library_engine.delete_category(category)

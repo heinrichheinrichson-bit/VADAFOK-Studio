@@ -14,6 +14,12 @@ def build_quick_cards_tree(app: Any) -> None:
     tree = getattr(app, "quick_cards_tree", None)
     if tree is None:
         return
+    scroll_canvas = getattr(tree, "_parent_canvas", None)
+    scroll_position = 0.0
+    try:
+        scroll_position = float(scroll_canvas.yview()[0])
+    except Exception:
+        pass
     for widget in tree.winfo_children():
         widget.destroy()
 
@@ -54,6 +60,13 @@ def build_quick_cards_tree(app: Any) -> None:
         for text in texts:
             row = _build_text_row(app, tree, row, category, text)
     tree.grid_columnconfigure(0, weight=1)
+    if scroll_canvas is not None and scroll_position > 0:
+        try:
+            tree.after_idle(
+                lambda position=scroll_position: scroll_canvas.yview_moveto(position)
+            )
+        except Exception:
+            pass
 
 
 def _build_text_row(app: Any, tree: Any, row: int, category: str, text: str) -> int:
