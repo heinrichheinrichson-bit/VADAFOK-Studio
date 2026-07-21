@@ -1,3 +1,4 @@
+import unittest
 from unittest.mock import Mock, patch
 
 from vadafok_studio.settings.controller import SettingsController
@@ -52,31 +53,32 @@ def make_app():
     return app
 
 
-def test_save_config_preserves_existing_values_and_normalization():
-    app = make_app()
-    controller = SettingsController(app)
+class SettingsControllerTests(unittest.TestCase):
+    def test_save_config_preserves_existing_values_and_normalization(self):
+        app = make_app()
+        controller = SettingsController(app)
 
-    with patch("vadafok_studio.settings.controller.persist_config") as persist:
-        controller.save_config()
+        with patch("vadafok_studio.settings.controller.persist_config") as persist:
+            controller.save_config()
 
-    assert app.config_data["caption_font_size"] == 160
-    assert app.config_data["caption_uppercase"] is True
-    assert app.config_data["voice_trigger_phrase"] == "live card"
-    assert app.config_data["voice_culture"] == "de-DE"
-    assert app.config_data["stream_effect_source"] == "VADAFOK Stream Effect"
-    persist.assert_called_once_with(app.config_data)
+        assert app.config_data["caption_font_size"] == 160
+        assert app.config_data["caption_uppercase"] is True
+        assert app.config_data["voice_trigger_phrase"] == "live card"
+        assert app.config_data["voice_culture"] == "de-DE"
+        assert app.config_data["stream_effect_source"] == "VADAFOK Stream Effect"
+        persist.assert_called_once_with(app.config_data)
 
 
-def test_browse_project_folder_saves_only_after_selection():
-    app = make_app()
-    controller = SettingsController(app)
-    controller.save_config = Mock()
+    def test_browse_project_folder_saves_only_after_selection(self):
+        app = make_app()
+        controller = SettingsController(app)
+        controller.save_config = Mock()
 
-    with patch(
-        "vadafok_studio.settings.controller.filedialog.askdirectory",
-        return_value="D:/Studio",
-    ):
-        controller.browse_project_folder()
+        with patch(
+            "vadafok_studio.settings.controller.filedialog.askdirectory",
+            return_value="D:/Studio",
+        ):
+            controller.browse_project_folder()
 
-    assert app.project_folder.get() == "D:/Studio"
-    controller.save_config.assert_called_once_with()
+        assert app.project_folder.get() == "D:/Studio"
+        controller.save_config.assert_called_once_with()

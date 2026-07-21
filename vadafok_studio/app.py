@@ -16,7 +16,7 @@ from .core.obs_controller import OBSController
 from .core.caption_renderer import render_caption_png
 from .core.template_store import list_templates, load_template, save_template, create_template, set_background_from_file, background_path, import_legacy_templates, delete_template, duplicate_template, rename_template, set_default_template, get_default_template, ensure_background_file, template_dir
 from .core.recent_templates import load_recent_templates, record_recent_template, remove_recent_template
-from .card_creator import CardCreatorController
+from .card_creator import CardBatchController, CardCreatorController
 from .card_creator.page import show_card_creator_page as build_card_creator_page
 from .template_editor import TemplateEditorController, TemplateRefreshManager
 from .library import LibraryController
@@ -146,6 +146,7 @@ class VadafokStudio(ctk.CTk):
         self.card_export_profile = ctk.StringVar(value="Broadcast PNG")
         self.card_batch_items = []
         self.card_batch_selected_index = None
+        self.card_batch_controller = CardBatchController(self, list_templates)
         self.card_data_undo_stack = []
         self.card_data_redo_stack = []
         self.card_history_limit = 50
@@ -4680,92 +4681,22 @@ class VadafokStudio(ctk.CTk):
 
 
     def card_batch_current_item_name(self):
-        base = self.card_output_name.get().strip() if hasattr(self, "card_output_name") else ""
-        if not base:
-            base = self.card_default_output_name()
-        return base
+        return self.card_batch_controller.current_item_name()
 
     def card_batch_add_current(self):
-        try:
-            self.card_save_values()
-            item = {
-                "template": self.card_selected_template.get(),
-                "output_name": self.card_batch_current_item_name(),
-                "profile": self.card_export_profile.get(),
-                "values": dict(self.card_values_plain()),
-            }
-            self.card_batch_items.append(item)
-            self.card_batch_selected_index = len(self.card_batch_items) - 1
-
-            self.card_build_batch_panel()
-
-            if hasattr(self, "card_render_status"):
-                self.card_render_status.configure(
-                    text=f"Batch: {len(self.card_batch_items)} Karte(n) in der Liste.",
-                    text_color="#8FE6A0"
-                )
-        except Exception as e:
-            messagebox.showerror("Batch Cards", f"Add Current fehlgeschlagen:\n{e}")
+        return self.card_batch_controller.add_current()
 
     def card_batch_duplicate_selected(self):
-        idx = self.card_batch_selected_index
-        if idx is None or not (0 <= idx < len(self.card_batch_items)):
-            messagebox.showinfo("Batch Cards", "Bitte zuerst einen Batch-Eintrag auswählen.")
-            return
-
-        original = self.card_batch_items[idx]
-        copy_item = {
-            "template": original.get("template", ""),
-            "output_name": str(original.get("output_name", "card")) + "_copy",
-            "profile": original.get("profile", "Broadcast PNG"),
-            "values": dict(original.get("values", {})),
-        }
-        self.card_batch_items.insert(idx + 1, copy_item)
-        self.card_batch_selected_index = idx + 1
-        self.card_build_batch_panel()
+        return self.card_batch_controller.duplicate_selected()
 
     def card_batch_remove_selected(self):
-        idx = self.card_batch_selected_index
-        if idx is None or not (0 <= idx < len(self.card_batch_items)):
-            messagebox.showinfo("Batch Cards", "Bitte zuerst einen Batch-Eintrag auswählen.")
-            return
-        self.card_batch_items.pop(idx)
-        self.card_batch_selected_index = None
-        self.card_build_batch_panel()
+        return self.card_batch_controller.remove_selected()
 
     def card_batch_clear(self):
-        if not self.card_batch_items:
-            return
-        if not messagebox.askyesno("Batch Cards", "Batch-Liste wirklich leeren?"):
-            return
-        self.card_batch_items.clear()
-        self.card_batch_selected_index = None
-        self.card_build_batch_panel()
+        return self.card_batch_controller.clear()
 
     def card_batch_select(self, idx):
-        if not (0 <= idx < len(self.card_batch_items)):
-            return
-
-        self.card_batch_selected_index = idx
-        item = self.card_batch_items[idx]
-
-        template_name = item.get("template", "")
-        if template_name in list_templates():
-            self.card_selected_template.set(template_name)
-
-        self.card_output_name.set(item.get("output_name", self.card_default_output_name()))
-        self.card_export_profile.set(item.get("profile", "Broadcast PNG"))
-
-        # Rebuild form first so StringVars exist, then apply values.
-        self.card_build_form()
-        values = self.card_creator_values.get(self.card_selected_template.get(), {})
-        for key, var in values.items():
-            if hasattr(var, "set"):
-                var.set(str(item.get("values", {}).get(key, "")))
-
-        self.card_save_values()
-        self.card_update_preview()
-        self.card_build_batch_panel()
+        return self.card_batch_controller.select(idx)
 
     def card_build_batch_panel(self):
         if not hasattr(self, "card_batch_body"):
