@@ -52,6 +52,7 @@ from .template_editor import field_controller
 from .template_editor import layout_actions
 from .template_editor import group_controller
 from .template_editor.ui_state import refresh_toolbar_state
+from .template_editor import history_controller
 from .library import LibraryController
 from .library.page import show_library_page
 from .library.grid_view import render_asset_grid, render_folder_overview
@@ -158,6 +159,8 @@ class VadafokStudio(ctk.CTk):
         self.template_group_drag_originals = None
         self.template_undo_stack = []
         self.template_redo_stack = []
+        self.template_undo_reasons = []
+        self.template_redo_reasons = []
         self.template_history_limit = 80
         self.template_drag_history_snapshot = None
         self.template_rename_entry = None
@@ -1363,65 +1366,19 @@ class VadafokStudio(ctk.CTk):
 
 
     def template_snapshot(self):
-        import copy
-        return copy.deepcopy(self.template_current())
+        return history_controller.snapshot(self)
 
     def template_push_history(self, reason="edit"):
-        import copy
-        if not hasattr(self, "template_undo_stack"):
-            self.template_undo_stack = []
-        if not hasattr(self, "template_redo_stack"):
-            self.template_redo_stack = []
-
-        snapshot = copy.deepcopy(self.template_current())
-
-        if self.template_undo_stack and self.template_undo_stack[-1] == snapshot:
-            return
-
-        self.template_undo_stack.append(snapshot)
-        limit = int(getattr(self, "template_history_limit", 80))
-        if len(self.template_undo_stack) > limit:
-            self.template_undo_stack = self.template_undo_stack[-limit:]
-
-        self.template_redo_stack.clear()
+        return history_controller.push_history(self, reason)
 
     def template_restore_snapshot(self, snapshot):
-        import copy
-        self.template_working_data = copy.deepcopy(snapshot)
-        save_template(self.template_selected_name, self.template_working_data)
-
-        # Clean selection if fields count changed.
-        count = len(self.template_working_data.get("fields", []))
-        self.template_selected_fields = {i for i in getattr(self, "template_selected_fields", set()) if 0 <= i < count}
-        if self.template_selected_field is not None and not (0 <= self.template_selected_field < count):
-            self.template_selected_field = next(iter(self.template_selected_fields), None) if self.template_selected_fields else None
-
-        self.template_draw_canvas()
-        self.template_load_selected_properties()
-        if hasattr(self, "template_props_body"):
-            self.template_build_properties_panel()
+        return history_controller.restore_snapshot(self, snapshot)
 
     def template_undo(self):
-        import copy
-        if not getattr(self, "template_undo_stack", []):
-            return "break"
-
-        current = copy.deepcopy(self.template_current())
-        previous = self.template_undo_stack.pop()
-        self.template_redo_stack.append(current)
-        self.template_restore_snapshot(previous)
-        return "break"
+        return history_controller.undo(self)
 
     def template_redo(self):
-        import copy
-        if not getattr(self, "template_redo_stack", []):
-            return "break"
-
-        current = copy.deepcopy(self.template_current())
-        nxt = self.template_redo_stack.pop()
-        self.template_undo_stack.append(current)
-        self.template_restore_snapshot(nxt)
-        return "break"
+        return history_controller.redo(self)
 
 
 

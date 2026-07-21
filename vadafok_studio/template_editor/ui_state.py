@@ -35,8 +35,12 @@ def refresh_toolbar_state(app: Any) -> None:
 
     undo_count = len(getattr(app, "template_undo_stack", []))
     redo_count = len(getattr(app, "template_redo_stack", []))
-    _set_text(buttons.get("undo"), f"UNDO ({undo_count})" if undo_count else "UNDO")
-    _set_text(buttons.get("redo"), f"REDO ({redo_count})" if redo_count else "REDO")
+    undo_reasons = getattr(app, "template_undo_reasons", [])
+    redo_reasons = getattr(app, "template_redo_reasons", [])
+    undo_text = f"UNDO · {undo_reasons[-1]}" if undo_count and undo_reasons else "UNDO"
+    redo_text = f"REDO · {redo_reasons[-1]}" if redo_count and redo_reasons else "REDO"
+    _set_text(buttons.get("undo"), undo_text)
+    _set_text(buttons.get("redo"), redo_text)
     _update_summary(app, selected, unlocked)
 
 

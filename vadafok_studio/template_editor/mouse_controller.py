@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from . import history_controller
+
 from ..core.template_store import save_template
 
 def handle_points(app: Any, x1, y1, x2, y2):
@@ -229,11 +231,9 @@ def mouse_up(app: Any, event):
     if getattr(app, "template_drag_history_snapshot", None) is not None:
         current = app.template_current()
         if current != app.template_drag_history_snapshot:
-            app.template_undo_stack.append(app.template_drag_history_snapshot)
-            limit = int(getattr(app, "template_history_limit", 80))
-            if len(app.template_undo_stack) > limit:
-                app.template_undo_stack = app.template_undo_stack[-limit:]
-            app.template_redo_stack.clear()
+            history_controller.push_snapshot(
+                app, app.template_drag_history_snapshot, "move field",
+            )
         app.template_drag_history_snapshot = None
     save_template(app.template_selected_name, app.template_current())
     app.template_update_fields_overlay(refresh_layers=False)
