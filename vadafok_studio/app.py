@@ -20,6 +20,7 @@ from .card_creator import CardCreatorController
 from .template_editor import TemplateEditorController, TemplateRefreshManager
 from .library import LibraryController
 from .banner_editor.controller import BannerEditorController
+from .obs_workflow.controller import OBSWorkflowController
 from .core.image_view import load_rgba, fit_image_to_box, pil_to_tk_photo_data, image_status
 from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card
 from .core import style_engine
@@ -141,6 +142,7 @@ class VadafokStudio(ctk.CTk):
         self.card_history_limit = 50
         self.obs = OBSController()
         self.obs_workflow_state = obs_workflow.OBSWorkflowState()
+        self.obs_workflow_controller = OBSWorkflowController(self)
         self.scene_favorites = scene_favorites.load_favorites()
         self.silent_director_presets = silent_director.load_presets()
         self.silent_director_selected = ctk.StringVar(value=self.silent_director_presets[0]['name'] if self.silent_director_presets else '')
@@ -6213,775 +6215,97 @@ class VadafokStudio(ctk.CTk):
 
 
     def obs_workflow_set_sidebar_status(self, connected):
-        try:
-            label = getattr(self, "status_label", None)
-            if label is not None:
-                if connected:
-                    label.configure(text="● Connected", text_color="#6EE08C")
-                else:
-                    label.configure(text="● Not connected", text_color="#D86A6A")
-        except Exception:
-            pass
-
+        return self.obs_workflow_controller.obs_workflow_set_sidebar_status(connected)
 
     def obs_workflow_log(self, message):
-        if not hasattr(self, "obs_workflow_state"):
-            self.obs_workflow_state = obs_workflow.OBSWorkflowState()
-        self.obs_workflow_state.add_log(str(message))
+        return self.obs_workflow_controller.obs_workflow_log(message)
 
     def obs_workflow_mark_command(self, message):
-        if not hasattr(self, "obs_workflow_state"):
-            self.obs_workflow_state = obs_workflow.OBSWorkflowState()
-        self.obs_workflow_state.command(str(message))
+        return self.obs_workflow_controller.obs_workflow_mark_command(message)
 
     def obs_workflow_is_connected(self):
-        obs_obj = getattr(self, "obs", None)
-        if obs_obj is None:
-            return False
-        try:
-            probe = getattr(obs_obj, "probe", None)
-            if callable(probe):
-                return bool(probe())
-            return bool(obs_obj.is_connected())
-        except Exception:
-            return False
-
+        return self.obs_workflow_controller.obs_workflow_is_connected()
 
     def obs_workflow_connect(self):
-        connected_after_probe = False
-
-        try:
-            self.connect_obs()
-
-            try:
-                connected_after_probe = self.obs_workflow_is_connected()
-            except Exception:
-                connected_after_probe = False
-
-            if hasattr(self.obs_workflow_state, "set_connected"):
-                self.obs_workflow_state.set_connected(connected_after_probe)
-            else:
-                self.obs_workflow_state.connected = connected_after_probe
-
-            self.obs_workflow_set_sidebar_status(connected_after_probe)
-
-            if connected_after_probe:
-                self.obs_workflow_state.last_error = ""
-                if hasattr(self.obs_workflow_state, "add_event"):
-                    self.obs_workflow_state.add_event("OBS connected")
-                self.obs_workflow_mark_command("OBS connected")
-                self.obs_workflow_refresh(silent=True)
-            else:
-                self.obs_workflow_state.last_error = "OBS probe failed after connect"
-                self.obs_workflow_log("CONNECT ERROR: OBS probe failed after connect")
-                messagebox.showerror("OBS Workflow", "OBS Verbindung wurde aufgebaut, aber die Statusprüfung ist fehlgeschlagen.")
-
-        except Exception as e:
-            try:
-                if hasattr(self.obs_workflow_state, "set_connected"):
-                    self.obs_workflow_state.set_connected(False)
-                else:
-                    self.obs_workflow_state.connected = False
-            except Exception:
-                pass
-            self.obs_workflow_set_sidebar_status(False)
-            self.obs_workflow_state.last_error = str(e)
-            self.obs_workflow_log(f"CONNECT ERROR: {e}")
-            messagebox.showerror("OBS Workflow", str(e))
-
-        self.show_obs_workflow_page()
-
+        return self.obs_workflow_controller.obs_workflow_connect()
 
     def obs_workflow_disconnect(self):
-        try:
-            obs_obj = getattr(self, "obs", None)
-            if obs_obj is not None:
-                try:
-                    obs_obj.disconnect()
-                except Exception:
-                    pass
-
-            # Replace controller instance to guarantee no stale websocket/client is reused.
-            self.obs = OBSController()
-
-            if hasattr(self.obs_workflow_state, "set_connected"):
-                self.obs_workflow_state.set_connected(False)
-            else:
-                self.obs_workflow_state.connected = False
-
-            self.obs_workflow_set_sidebar_status(False)
-            self.obs_workflow_state.last_error = ""
-
-            if hasattr(self.obs_workflow_state, "add_event"):
-                self.obs_workflow_state.add_event("OBS disconnected")
-            self.obs_workflow_mark_command("OBS disconnected")
-
-        except Exception as e:
-            try:
-                self.obs = OBSController()
-            except Exception:
-                pass
-            try:
-                self.obs_workflow_state.set_connected(False)
-            except Exception:
-                self.obs_workflow_state.connected = False
-            self.obs_workflow_set_sidebar_status(False)
-            self.obs_workflow_state.last_error = str(e)
-            self.obs_workflow_log(f"DISCONNECT ERROR: {e}")
-            messagebox.showerror("OBS Workflow", str(e))
-
-        self.show_obs_workflow_page()
-
+        return self.obs_workflow_controller.obs_workflow_disconnect()
 
     def obs_workflow_refresh(self, silent=False):
-        if not hasattr(self, "obs_workflow_state"):
-            self.obs_workflow_state = obs_workflow.OBSWorkflowState()
-
-        connected_now = self.obs_workflow_is_connected()
-        if not connected_now:
-            self.obs_workflow_log("OBS probe failed / disconnected")
-        self.obs_workflow_set_sidebar_status(connected_now)
-        if hasattr(self.obs_workflow_state, "set_connected"):
-            self.obs_workflow_state.set_connected(connected_now)
-        else:
-            self.obs_workflow_state.connected = connected_now
-
-        scenes = []
-        sources = []
-
-        try:
-            obs = getattr(self, "obs", None)
-            if obs is not None and connected_now:
-                # Scene cache
-                try:
-                    if hasattr(obs, "get_scene_list"):
-                        scenes = obs.get_scene_list()
-                    else:
-                        for method_name in ("get_scenes", "list_scenes"):
-                            method = getattr(obs, method_name, None)
-                            if callable(method):
-                                result = method()
-                                if isinstance(result, list):
-                                    scenes = [str(x.get("sceneName", x)) if isinstance(x, dict) else str(x) for x in result]
-                                elif isinstance(result, dict):
-                                    raw = result.get("scenes", [])
-                                    scenes = [str(x.get("sceneName", x)) if isinstance(x, dict) else str(x) for x in raw]
-                                break
-                except Exception as scene_error:
-                    self.obs_workflow_log(f"SCENE CACHE ERROR: {scene_error}")
-
-                try:
-                    if hasattr(obs, "get_current_scene_name"):
-                        self.obs_workflow_state.current_scene = obs.get_current_scene_name()
-                    else:
-                        self.obs_workflow_state.current_scene = obs.current_scene("")
-                except Exception:
-                    self.obs_workflow_state.current_scene = ""
-
-                # Source cache for current scene
-                try:
-                    if hasattr(obs, "get_scene_sources"):
-                        sources = obs.get_scene_sources(getattr(self.obs_workflow_state, "current_scene", ""))
-                    else:
-                        for method_name in ("get_sources", "list_sources", "get_source_list", "get_scene_items"):
-                            method = getattr(obs, method_name, None)
-                            if callable(method):
-                                result = method()
-                                if isinstance(result, list):
-                                    sources = [str(x.get("sourceName", x.get("inputName", x))) if isinstance(x, dict) else str(x) for x in result]
-                                elif isinstance(result, dict):
-                                    raw = result.get("sources", result.get("inputs", result.get("sceneItems", [])))
-                                    sources = [str(x.get("sourceName", x.get("inputName", x))) if isinstance(x, dict) else str(x) for x in raw]
-                                break
-                except Exception as source_error:
-                    self.obs_workflow_log(f"SOURCE CACHE ERROR: {source_error}")
-        except Exception as e:
-            if hasattr(self.obs_workflow_state, "set_connected"):
-                self.obs_workflow_state.set_connected(False)
-            else:
-                self.obs_workflow_state.connected = False
-            self.obs_workflow_state.last_error = str(e)
-            self.obs_workflow_log(f"REFRESH ERROR: {e}")
-
-        if not scenes:
-            scene_value = ""
-            try:
-                scene_value = self.scene_name.get()
-            except Exception:
-                scene_value = ""
-            scenes = [scene_value] if scene_value else ["No scene cache yet"]
-
-        if not sources:
-            possible = []
-            for attr in ("caption_group", "caption_text", "caption_banner_source", "caption_render_source", "scene_card_source"):
-                var = getattr(self, attr, None)
-                if var is not None:
-                    try:
-                        val = var.get()
-                        if val:
-                            possible.append(val)
-                    except Exception:
-                        pass
-            sources = possible or ["No source cache yet"]
-
-        self.obs_workflow_state.scenes = scenes
-        self.obs_workflow_state.sources = sources
-        if scenes and scenes != ["No scene cache yet"]:
-            self.obs_workflow_log(f"Scene Cache updated: {len(scenes)} scene(s) loaded")
-        self.obs_workflow_mark_command("OBS cache refreshed")
-        if hasattr(self.obs_workflow_state, "add_event"):
-            self.obs_workflow_state.add_event("OBS cache refreshed")
-
-        if not silent:
-            self.show_obs_workflow_page()
-
+        return self.obs_workflow_controller.obs_workflow_refresh(silent)
 
     def obs_workflow_banner_action(self, action, text=""):
-        if not hasattr(self, "obs_workflow_state"):
-            self.obs_workflow_state = obs_workflow.OBSWorkflowState()
-        self.obs_workflow_state.set_connected(self.obs_workflow_is_connected()) if hasattr(self.obs_workflow_state, 'set_connected') else setattr(self.obs_workflow_state, 'connected', self.obs_workflow_is_connected())
-        try:
-            self.obs_workflow_state.banner(str(action), str(text or ""))
-        except Exception:
-            self.obs_workflow_mark_command(str(action))
+        return self.obs_workflow_controller.obs_workflow_banner_action(action, text)
 
     def obs_workflow_current_live_text(self):
-        try:
-            if hasattr(self, "live_card_get_message_text"):
-                return self.live_card_get_message_text()
-        except Exception:
-            pass
-        try:
-            if hasattr(self, "message_box"):
-                return self.message_box.get("1.0", "end").strip()
-        except Exception:
-            pass
-        return ""
-
-
+        return self.obs_workflow_controller.obs_workflow_current_live_text()
 
     def obs_workflow_load_scene_favorites(self):
-        try:
-            self.scene_favorites = scene_favorites.load_favorites()
-        except Exception:
-            self.scene_favorites = []
-        return self.scene_favorites
+        return self.obs_workflow_controller.obs_workflow_load_scene_favorites()
 
     def obs_workflow_add_scene_favorite(self, scene_name):
-        scene_name = str(scene_name or "").strip()
-        if not scene_name or scene_name == "No scene cache yet":
-            return
-        self.scene_favorites = scene_favorites.add_favorite(scene_name)
-        self.obs_workflow_log(f"Scene favorite added: {scene_name}")
-        self.show_obs_workflow_page()
+        return self.obs_workflow_controller.obs_workflow_add_scene_favorite(scene_name)
 
     def obs_workflow_remove_scene_favorite(self, scene_name):
-        scene_name = str(scene_name or "").strip()
-        if not scene_name:
-            return
-        self.scene_favorites = scene_favorites.remove_favorite(scene_name)
-        self.obs_workflow_log(f"Scene favorite removed: {scene_name}")
-        self.show_obs_workflow_page()
+        return self.obs_workflow_controller.obs_workflow_remove_scene_favorite(scene_name)
 
     def obs_workflow_update_scene_ui(self):
-        """Update OBS Workflow scene indicators without rebuilding the full page."""
-        state = getattr(self, "obs_workflow_state", None)
-        if state is None:
-            return
-
-        current_scene = getattr(state, "current_scene", "") or "Unknown"
-        last_switch = getattr(state, "last_scene_switch", "") or "-"
-        last_time = getattr(state, "last_scene_switch_time", "") or ""
-
-        last_text = last_switch + (f"  {last_time}" if last_time else "")
-        last_control = f"Last Scene Switch: {last_switch}"
-        if last_time:
-            last_control += f" at {last_time}"
-
-        try:
-            self.obs_workflow_current_scene_var.set(current_scene)
-            self.obs_workflow_last_switch_var.set(last_text)
-            self.obs_workflow_live_scene_var.set(f"LIVE SCENE  {current_scene}")
-            self.obs_workflow_last_scene_control_var.set(last_control)
-        except Exception:
-            pass
-
-        try:
-            buttons = getattr(self, "obs_workflow_favorite_buttons", {}) or {}
-            for scene_name, button in buttons.items():
-                active = scene_name == current_scene
-                button.configure(
-                    fg_color=GOLD if active else "#171717",
-                    text_color="#111111" if active else "#D9C58C",
-                )
-        except Exception:
-            pass
-
-        try:
-            rows = getattr(self, "obs_workflow_scene_rows", {}) or {}
-            for scene_name, widgets in rows.items():
-                active = scene_name == current_scene
-                row = widgets.get("row")
-                label = widgets.get("label")
-                switch = widgets.get("switch")
-
-                if row is not None:
-                    row.configure(
-                        fg_color="#171717" if active else "transparent",
-                    )
-                if label is not None:
-                    label.configure(
-                        text=f"● LIVE  {scene_name}" if active else scene_name,
-                        text_color="#8FE6A0" if active else TEXT,
-                    )
-                if switch is not None:
-                    switch.configure(
-                        fg_color="#333333" if active else GOLD,
-                        text_color="#AAAAAA" if active else "#111111",
-                    )
-        except Exception:
-            pass
-
-        try:
-            self.update_idletasks()
-        except Exception:
-            pass
-
+        return self.obs_workflow_controller.obs_workflow_update_scene_ui()
 
     def obs_workflow_switch_scene(self, scene_name):
-        scene_name = str(scene_name or "").strip()
-        if not scene_name or scene_name == "No scene cache yet":
-            return
-
-        if not self.ensure_obs_ready():
-            return
-
-        try:
-            self.obs.switch_scene(scene_name)
-            self.obs_workflow_state.current_scene = scene_name
-            self.obs_workflow_state.last_scene_switch = scene_name
-            try:
-                self.obs_workflow_state.last_scene_switch_time = self.obs_workflow_state.now()
-            except Exception:
-                self.obs_workflow_state.last_scene_switch_time = ""
-
-            if hasattr(self.obs_workflow_state, "add_event"):
-                self.obs_workflow_state.add_event(f"Scene switched: {scene_name}")
-            self.obs_workflow_mark_command(f"Scene switched: {scene_name}")
-
-            try:
-                active_scene = self.current_scene()
-                if active_scene:
-                    self.obs_workflow_state.current_scene = active_scene
-            except Exception:
-                pass
-
-            self.obs_workflow_update_scene_ui()
-
-        except Exception as e:
-            self.obs_workflow_state.last_error = str(e)
-            self.obs_workflow_log(f"SCENE SWITCH ERROR: {e}")
-            messagebox.showerror("Scene Switch", str(e))
-            # Keep the current page visible even on error.
-
+        return self.obs_workflow_controller.obs_workflow_switch_scene(scene_name)
 
     def obs_workflow_refresh_sources_only(self):
-        """Refresh only the source list for the current scene, without rebuilding scene cache."""
-        try:
-            if not self.obs_workflow_is_connected():
-                return False
-
-            scene = getattr(self.obs_workflow_state, "current_scene", "") or self.current_scene()
-            if hasattr(self.obs, "get_scene_sources"):
-                self.obs_workflow_state.sources = self.obs.get_scene_sources(scene)
-                return True
-        except Exception as e:
-            self.obs_workflow_state.last_error = str(e)
-            self.obs_workflow_log(f"SOURCE REFRESH ERROR: {e}")
-        return False
-
+        return self.obs_workflow_controller.obs_workflow_refresh_sources_only()
 
     def obs_workflow_update_source_row_ui(self, source_name, enabled):
-        """Update only one rendered source row, without rebuilding the whole OBS Workflow page."""
-        try:
-            widgets = getattr(self, "obs_source_row_widgets", {}).get(source_name)
-            if not widgets:
-                return False
-
-            label = widgets.get("label")
-            show_btn = widgets.get("show_btn")
-            hide_btn = widgets.get("hide_btn")
-
-            label_text = ("✓ " if enabled else "✗ ") + source_name
-            label_color = "#8FE6A0" if enabled else "#F08A8A"
-
-            if label is not None:
-                label.configure(text=label_text, text_color=label_color)
-
-            if show_btn is not None:
-                show_btn.configure(
-                    fg_color=GOLD if not enabled else "#333333",
-                    text_color="#111111" if not enabled else "#AAAAAA"
-                )
-
-            if hide_btn is not None:
-                hide_btn.configure(
-                    fg_color="#5A1F1F" if enabled else "#333333",
-                    text_color="#FFFFFF" if enabled else "#AAAAAA"
-                )
-
-            return True
-        except Exception:
-            return False
+        return self.obs_workflow_controller.obs_workflow_update_source_row_ui(source_name, enabled)
 
     def obs_workflow_set_source_visibility(self, source_name, enabled):
-        source_name = str(source_name or "").strip()
-        if not source_name:
-            return
-        if not self.ensure_obs_ready():
-            return
-
-        try:
-            scene = getattr(self.obs_workflow_state, "current_scene", "") or self.current_scene()
-            self.obs.set_source_visibility(scene, source_name, enabled)
-
-            # Update local source cache.
-            for source in getattr(self.obs_workflow_state, "sources", []):
-                if isinstance(source, dict) and source.get("name") == source_name:
-                    source["enabled"] = bool(enabled)
-                    break
-
-            action = "SHOW Source" if enabled else "HIDE Source"
-            if hasattr(self.obs_workflow_state, "add_event"):
-                self.obs_workflow_state.add_event(f"{action}: {source_name}")
-            self.obs_workflow_mark_command(f"{action}: {source_name}")
-
-            # True no-flicker update: only touch the affected row.
-            self.obs_workflow_update_source_row_ui(source_name, bool(enabled))
-
-        except Exception as e:
-            self.obs_workflow_state.last_error = str(e)
-            self.obs_workflow_log(f"SOURCE VISIBILITY ERROR: {e}")
-            messagebox.showerror("Source Manager", str(e))
-
-
+        return self.obs_workflow_controller.obs_workflow_set_source_visibility(source_name, enabled)
 
     def obs_workflow_required_overlay_sources(self):
-        names = []
-        for attr in ("caption_group", "caption_text", "caption_banner_source", "caption_render_source", "scene_card_source"):
-            var = getattr(self, attr, None)
-            if var is not None:
-                try:
-                    value = str(var.get()).strip()
-                    if value and value not in names:
-                        names.append(value)
-                except Exception:
-                    pass
-        return names
+        return self.obs_workflow_controller.obs_workflow_required_overlay_sources()
 
     def obs_workflow_normalize_source_name(self, name):
-        base = " ".join(str(name or "").strip().lower().split())
-
-        # Remove pure numeric suffix without requiring a regex import.
-        # Examples:
-        # "vadafok caption 2" -> "vadafok caption"
-        # "vadafok caption2"  -> "vadafok caption"
-        parts = base.split()
-        if parts and parts[-1].isdigit():
-            base = " ".join(parts[:-1]).strip()
-
-        while base and base[-1].isdigit():
-            base = base[:-1].strip()
-
-        return base
-
+        return self.obs_workflow_controller.obs_workflow_normalize_source_name(name)
 
     def obs_workflow_source_matches(self, required_name, found_names):
-        required_norm = self.obs_workflow_normalize_source_name(required_name)
-        for found_name in found_names:
-            found_norm = self.obs_workflow_normalize_source_name(found_name)
-
-            if found_norm == required_norm:
-                return True
-
-            # Allow exact duplicate suffix variants:
-            # "VADAFOK Caption1" -> "VADAFOK Caption"
-            if found_norm.startswith(required_norm) and found_norm[len(required_norm):].strip().isdigit():
-                return True
-
-            # Allow OBS/group variants that include the configured name, but avoid matching
-            # the broad group "VADAFOK Caption" against "VADAFOK Caption Text".
-            if required_norm in found_norm:
-                extra = found_norm.replace(required_norm, "").strip()
-                if not extra or extra.isdigit() or extra in ("group", "grp"):
-                    return True
-
-        return False
+        return self.obs_workflow_controller.obs_workflow_source_matches(required_name, found_names)
 
     def obs_workflow_scan_overlay_health(self, silent=False):
-        if not self.ensure_obs_ready():
-            return
-
-        required = self.obs_workflow_required_overlay_sources()
-        if not required:
-            messagebox.showinfo("Overlay Health", "Keine VADAFOK Overlay-Quellen konfiguriert.")
-            return
-
-        scenes = list(getattr(self.obs_workflow_state, "scenes", []) or [])
-        scenes = [str(s).strip() for s in scenes if s and str(s).strip() != "No scene cache yet"]
-
-        if not scenes:
-            try:
-                scenes = self.obs.get_scene_list()
-                self.obs_workflow_state.scenes = scenes
-            except Exception as e:
-                self.obs_workflow_state.last_error = str(e)
-                messagebox.showerror("Overlay Health", str(e))
-                return
-
-        results = []
-        ok_count = 0
-
-        for scene in scenes:
-            try:
-                if hasattr(self.obs, "get_scene_sources_recursive"):
-                    sources = self.obs.get_scene_sources_recursive(scene)
-                else:
-                    sources = self.obs.get_scene_sources(scene)
-                source_names = []
-                for source in sources:
-                    if isinstance(source, dict):
-                        source_names.append(str(source.get("name", "")).strip())
-                    else:
-                        source_names.append(str(source).strip())
-                source_names = [name for name in source_names if name]
-
-                missing = []
-                present = []
-                for required_name in required:
-                    if self.obs_workflow_source_matches(required_name, source_names):
-                        present.append(required_name)
-                    else:
-                        missing.append(required_name)
-
-                ok = len(missing) == 0
-                if ok:
-                    ok_count += 1
-
-                # Detailed debug for this phase. Shows real OBS names.
-                found_preview = ", ".join(source_names[:30])
-                if len(source_names) > 30:
-                    found_preview += f", ... (+{len(source_names) - 30})"
-                self.obs_workflow_log(
-                    f"Overlay Recursive Found [{scene}]: {found_preview}"
-                )
-
-                results.append({
-                    "scene": scene,
-                    "ok": ok,
-                    "missing": missing,
-                    "present": present,
-                    "found": source_names,
-                })
-
-            except Exception as e:
-                results.append({
-                    "scene": scene,
-                    "ok": False,
-                    "missing": list(required),
-                    "present": [],
-                    "found": [],
-                    "error": str(e),
-                })
-                self.obs_workflow_log(f"Overlay Scan ERROR [{scene}]: {e}")
-
-        total = len(results)
-        score = f"{ok_count} / {total} Scenes Ready" if total else "No scenes checked"
-
-        self.obs_workflow_state.overlay_health = results
-        self.obs_workflow_state.overlay_health_score = score
-
-        issues = total - ok_count
-        if hasattr(self.obs_workflow_state, "add_event"):
-            self.obs_workflow_state.add_event(f"Overlay Health Scan: {total} scenes checked, {issues} issue(s)")
-        self.obs_workflow_mark_command(f"Overlay Health Scan: {score}")
-
-        if not silent:
-            self.show_obs_workflow_page()
-
-
+        return self.obs_workflow_controller.obs_workflow_scan_overlay_health(silent)
 
     def obs_workflow_health_counts(self):
-        results = getattr(self.obs_workflow_state, "overlay_health", []) or []
-        if not results:
-            return 0, 0, 0
-        ready = sum(1 for item in results if item.get("ok"))
-        total = len(results)
-        return ready, total - ready, total
+        return self.obs_workflow_controller.obs_workflow_health_counts()
 
     def obs_workflow_current_scene_health(self):
-        current = getattr(self.obs_workflow_state, "current_scene", "")
-        for item in getattr(self.obs_workflow_state, "overlay_health", []) or []:
-            if item.get("scene") == current:
-                return item
-        return None
+        return self.obs_workflow_controller.obs_workflow_current_scene_health()
 
     def obs_workflow_recent_activity(self):
-        items = []
-        for attr in ("obs_events", "banner_history", "log"):
-            try:
-                items.extend(getattr(self.obs_workflow_state, attr, [])[-5:])
-            except Exception:
-                pass
-        cleaned = []
-        seen = set()
-        for item in items[-12:]:
-            text = str(item)
-            if text not in seen:
-                cleaned.append(text)
-                seen.add(text)
-        return cleaned[-8:]
-
-
+        return self.obs_workflow_controller.obs_workflow_recent_activity()
 
     def obs_workflow_format_activity(self, text):
-        text = str(text or "").strip()
-        icon = "•"
-        label = text
-
-        lower = text.lower()
-        if "scene switched" in lower:
-            icon = "SCENE"
-        elif "show live card" in lower or "hide live card" in lower:
-            icon = "CARD"
-        elif "show source" in lower or "hide source" in lower:
-            icon = "SOURCE"
-        elif "connected" in lower or "disconnect" in lower:
-            icon = "OBS"
-        elif "overlay" in lower:
-            icon = "HEALTH"
-
-        return f"{icon}  {label}"
-
+        return self.obs_workflow_controller.obs_workflow_format_activity(text)
 
     def obs_workflow_overlay_installer_source_values(self):
-        scenes = [str(s).strip() for s in getattr(self.obs_workflow_state, "scenes", []) or []]
-        scenes = [s for s in scenes if s and s != "No scene cache yet"]
-        return scenes or ["No scenes loaded"]
+        return self.obs_workflow_controller.obs_workflow_overlay_installer_source_values()
 
     def obs_workflow_overlay_installer_set_source(self, scene_name):
-        scene_name = str(scene_name or "").strip()
-        if scene_name and scene_name != "No scenes loaded":
-            self.obs_workflow_state.overlay_installer_source_scene = scene_name
-            self.obs_workflow_mark_command(f"Overlay Installer source scene: {scene_name}")
-        self.show_obs_workflow_page()
+        return self.obs_workflow_controller.obs_workflow_overlay_installer_set_source(scene_name)
 
     def obs_workflow_overlay_installer_toggle_scene(self, scene_name):
-        scene_name = str(scene_name or "").strip()
-        if not scene_name:
-            return
-        selected = list(getattr(self.obs_workflow_state, "overlay_installer_selected_scenes", []) or [])
-        if scene_name in selected:
-            selected.remove(scene_name)
-        else:
-            selected.append(scene_name)
-        self.obs_workflow_state.overlay_installer_selected_scenes = selected
-        self.show_obs_workflow_page()
+        return self.obs_workflow_controller.obs_workflow_overlay_installer_toggle_scene(scene_name)
 
     def obs_workflow_overlay_installer_select_missing(self):
-        results = getattr(self.obs_workflow_state, "overlay_health", []) or []
-        selected = []
-        source_scene = getattr(self.obs_workflow_state, "overlay_installer_source_scene", "")
-        for item in results:
-            scene = item.get("scene", "")
-            if scene and not item.get("ok") and scene != source_scene:
-                selected.append(scene)
-        self.obs_workflow_state.overlay_installer_selected_scenes = selected
-        self.obs_workflow_mark_command(f"Overlay Installer selected missing: {len(selected)} scene(s)")
-        self.show_obs_workflow_page()
+        return self.obs_workflow_controller.obs_workflow_overlay_installer_select_missing()
 
     def obs_workflow_overlay_installer_clear_selection(self):
-        self.obs_workflow_state.overlay_installer_selected_scenes = []
-        self.obs_workflow_mark_command("Overlay Installer selection cleared")
-        self.show_obs_workflow_page()
+        return self.obs_workflow_controller.obs_workflow_overlay_installer_clear_selection()
 
     def obs_workflow_overlay_installer_install_selected(self):
-        if not self.ensure_obs_ready():
-            return
-
-        source_scene = str(getattr(self.obs_workflow_state, "overlay_installer_source_scene", "") or "").strip()
-        targets = list(getattr(self.obs_workflow_state, "overlay_installer_selected_scenes", []) or [])
-        required = self.obs_workflow_required_overlay_sources()
-
-        if not source_scene or source_scene == "No scenes loaded":
-            messagebox.showinfo("Overlay Installer", "Bitte zuerst eine Source Scene wählen.")
-            return
-
-        if not targets:
-            messagebox.showinfo("Overlay Installer", "Bitte zuerst Ziel-Szenen auswählen.")
-            return
-
-        if not required:
-            messagebox.showinfo("Overlay Installer", "Keine VADAFOK Overlay-Quellen konfiguriert.")
-            return
-
-        confirm = messagebox.askyesno(
-            "Overlay Installer",
-            f"Overlay aus '{source_scene}' in {len(targets)} Szene(n) installieren?\n\nEs werden nur fehlende Quellen ergänzt. Bestehende Quellen werden nicht gelöscht oder überschrieben."
-        )
-        if not confirm:
-            return
-
-        successes = 0
-        total_installed = 0
-        total_errors = 0
-        summaries = []
-
-        for target in targets:
-            try:
-                result = self.obs.install_overlay_sources(source_scene, target, required)
-                installed = result.get("installed", [])
-                errors = result.get("errors", [])
-                skipped = result.get("skipped", [])
-
-                if installed or not errors:
-                    successes += 1
-                total_installed += len(installed)
-                total_errors += len(errors)
-
-                summary = f"{target}: +{len(installed)} installed, {len(skipped)} skipped, {len(errors)} error(s)"
-                summaries.append(summary)
-                self.obs_workflow_log(f"Overlay Install: {summary}")
-
-                if hasattr(self.obs_workflow_state, "add_event"):
-                    self.obs_workflow_state.add_event(f"Overlay Install: {summary}")
-
-            except Exception as e:
-                total_errors += 1
-                summaries.append(f"{target}: ERROR {e}")
-                self.obs_workflow_log(f"Overlay Install ERROR [{target}]: {e}")
-
-        self.obs_workflow_mark_command(
-            f"Overlay Install: {successes}/{len(targets)} scene(s), {total_installed} source(s), {total_errors} error(s)"
-        )
-
-        # Rescan to update dashboard.
-        try:
-            self.obs_workflow_scan_overlay_health(silent=True)
-        except Exception as e:
-            self.obs_workflow_log(f"Overlay Health rescan after install failed: {e}")
-
-        details = "\n".join(summaries[:12])
-        if len(summaries) > 12:
-            details += f"\n... and {len(summaries) - 12} more"
-
-        messagebox.showinfo(
-            "Overlay Installer",
-            f"Install abgeschlossen.\n\nSzenen: {successes}/{len(targets)}\nQuellen installiert: {total_installed}\nFehler: {total_errors}\n\n{details}"
-        )
-
-        self.show_obs_workflow_page()
-
+        return self.obs_workflow_controller.obs_workflow_overlay_installer_install_selected()
 
 
     def silent_director_reload(self):

@@ -1,0 +1,30 @@
+VADAFOK Studio 2.29.0.8 – Banner Editor Controller
+
+INSTALLATION
+1. VADAFOK Studio vollständig schließen.
+2. ZIP entpacken.
+3. Den enthaltenen Ordner vadafok_studio über den vorhandenen
+   Projektordner vadafok_studio kopieren.
+4. Vorhandene Dateien ersetzen.
+
+GEÄNDERTE DATEIEN
+- vadafok_studio/app.py
+- vadafok_studio/banner_editor/controller.py
+- vadafok_studio/version.py
+
+TEST
+1. Programm starten.
+2. Prüfen, dass im Fenstertitel und in der Sidebar Version 2.29.0.8 steht.
+3. Banner Editor öffnen.
+4. Banner auswählen.
+5. Textbereich verschieben.
+6. Textbereich an Kanten und Ecken skalieren.
+7. Schriftwerte ändern.
+8. RESET STYLE testen.
+9. RESET AREA testen.
+10. Profil speichern.
+11. Banner Editor verlassen und erneut öffnen.
+12. Prüfen, ob Bereich und Werte gespeichert geblieben sind.
+
+Hinweis: Das Aufziehen eines neuen Textbereichs außerhalb des bestehenden
+Bereichs ist keine vorgesehene Testfunktion und gehört nicht zu dieser Liste.

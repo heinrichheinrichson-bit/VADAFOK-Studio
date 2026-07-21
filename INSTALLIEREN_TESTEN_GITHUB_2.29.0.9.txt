@@ -1,0 +1,65 @@
+VADAFOK Studio 2.29.0.9 – OBS Workflow Controller
+
+INSTALLATION
+1. VADAFOK Studio vollständig schließen.
+2. Dieses ZIP entpacken.
+3. Den enthaltenen Ordner "vadafok_studio" über den bestehenden
+   Projektordner "vadafok_studio" kopieren.
+4. Vorhandene Dateien ersetzen.
+5. VADAFOK Studio starten und prüfen, dass Version 2.29.0.9 angezeigt wird.
+
+GEÄNDERTE DATEIEN
+- vadafok_studio/app.py
+- vadafok_studio/version.py
+- vadafok_studio/obs_workflow/__init__.py
+- vadafok_studio/obs_workflow/controller.py
+- tests/test_version.py
+
+TESTANLEITUNG
+1. VADAFOK Studio starten. Keine Fehlermeldung beim Start.
+2. OBS Workflow öffnen.
+3. Mit OBS verbinden; Status muss auf "Connected" wechseln.
+4. REFRESH ausführen; Szenen und Quellen müssen geladen werden.
+5. Eine andere Szene auswählen und umschalten.
+6. Eine vorhandene Quelle ein- und ausschalten.
+7. Szenenfavorit hinzufügen und wieder entfernen.
+8. Overlay Health Scan ausführen und Ergebnis kontrollieren.
+9. Overlay Installer nur mit einer ungefährlichen Testszene prüfen:
+   Source Scene wählen, Zielszene markieren und Auswahl wieder löschen.
+   Eine Installation nur ausführen, wenn sie in deinem üblichen Testablauf
+   sicher ist.
+10. OBS trennen; Status muss auf "Not connected" wechseln.
+11. Live Card/F8 kurz prüfen: Beide müssen weiterhin das kompakte
+    Quick-Caption-Fenster öffnen.
+
+ERFOLGSKRITERIEN
+- Kein Absturz und keine neue Fehlermeldung.
+- Verbindung, Refresh, Szenenwechsel und Quellen-Sichtbarkeit funktionieren
+  wie in 2.29.0.8.
+- Overlay Health und Installer-Oberfläche verhalten sich unverändert.
+- Live Card und F8 bleiben unverändert.
+
+ROLLBACK
+Die fünf geänderten Dateien aus deinem letzten funktionierenden Stand
+2.29.0.8 zurückkopieren oder in Git den Commit zurücksetzen.
+
+GIT-BASH NACH ERFOLGREICHEM TEST
+
+git checkout develop
+git status
+git add vadafok_studio/app.py
+git add vadafok_studio/version.py
+git add vadafok_studio/obs_workflow/__init__.py
+git add vadafok_studio/obs_workflow/controller.py
+git add tests/test_version.py
+git commit -m "Refactor OBS workflow into controller (2.29.0.9)"
+git tag -a 2.29.0.9 -m "Release 2.29.0.9"
+git push origin develop
+git push origin 2.29.0.9
+
+AUTOMATISCHE PRÜFUNG BEIM BAU
+- Python-Syntax/compileall: erfolgreich
+- 238 Tests bestanden, wenn der bereits vorher fehlschlagende Test
+  tests/test_card_creator_page_module.py ausgenommen wird.
+- Der eine verbleibende Fehler betrifft die bereits vorhandene Card-Creator-
+  Page-Struktur und wurde durch dieses OBS-Refactoring nicht verursacht.

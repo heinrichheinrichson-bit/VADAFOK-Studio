@@ -121,10 +121,10 @@
   },
   "Banners\\Frame Hell Sammlung.png": {
     "text_area": {
-      "x": 200,
-      "y": 225,
-      "width": 1270,
-      "height": 489
+      "x": 20,
+      "y": 21,
+      "width": 793,
+      "height": 435
     },
     "font_family": "Bebas Neue",
     "font_size": 160,
@@ -467,9 +467,9 @@
   "Banners\\Antike Schriftrolle mit goldenen Details ausgeschnitten.png": {
     "text_area": {
       "x": 340,
-      "y": 345,
+      "y": 341,
       "width": 995,
-      "height": 229
+      "height": 233
     },
     "font_family": "Bebas Neue",
     "font_size": 160,
