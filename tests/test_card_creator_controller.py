@@ -4,6 +4,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from vadafok_studio.card_creator.controller import CardCreatorController
+from vadafok_studio.card_creator.state import CardCreatorState
 
 
 class CardCreatorControllerTests(unittest.TestCase):
@@ -11,6 +12,7 @@ class CardCreatorControllerTests(unittest.TestCase):
         app = MagicMock()
         app.card_selected_template.get.return_value = ""
         app.card_default_output_name.return_value = "output.png"
+        app.card_creator_state = CardCreatorState()
         return app
 
     @patch("vadafok_studio.card_creator.controller.record_recent_template")

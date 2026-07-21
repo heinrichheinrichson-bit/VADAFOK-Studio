@@ -8,10 +8,19 @@ from typing import Any
 import customtkinter as ctk
 from PIL import Image
 
+from .state import CardCreatorState
+
 
 class CardPreviewController:
-    def __init__(self, app: Any, export_engine: Any, render_image) -> None:
+    def __init__(
+        self,
+        app: Any,
+        export_engine: Any,
+        render_image,
+        state: CardCreatorState | None = None,
+    ) -> None:
         self.app = app
+        self.state = state or app.card_creator_state
         self._export_engine = export_engine
         self._render_image = render_image
 
@@ -34,17 +43,17 @@ class CardPreviewController:
                 background_file.stat().st_mtime_ns,
             )
             if (
-                self.app.card_preview_background_key != cache_key
-                or self.app.card_preview_background_cache is None
+                self.state.preview_background_key != cache_key
+                or self.state.preview_background_cache is None
             ):
                 with Image.open(background_file) as source:
-                    self.app.card_preview_background_cache = source.convert("RGBA")
-                self.app.card_preview_background_key = cache_key
+                    self.state.preview_background_cache = source.convert("RGBA")
+                self.state.preview_background_key = cache_key
 
             image = self._render_image(
                 self.app.card_template(),
                 self.app.card_values_plain(),
-                background_image=self.app.card_preview_background_cache,
+                background_image=self.state.preview_background_cache,
             )
             original_size = image.size
             profile_name = self.app.card_export_profile.get()

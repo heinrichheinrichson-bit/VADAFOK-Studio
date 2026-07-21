@@ -7,6 +7,8 @@ from typing import Any
 from tkinter import filedialog
 from tkinter import messagebox
 
+from .state import CardCreatorState
+
 
 class CardExportController:
     def __init__(
@@ -15,8 +17,10 @@ class CardExportController:
         export_engine: Any,
         default_export_dir: Path,
         open_folder,
+        state: CardCreatorState | None = None,
     ) -> None:
         self.app = app
+        self.state = state or app.card_creator_state
         self._export_engine = export_engine
         self._default_export_dir = Path(default_export_dir)
         self._open_folder = open_folder
@@ -85,14 +89,14 @@ class CardExportController:
             )
 
     def copy_last_path(self) -> None:
-        if not self.app.card_creator_last_render:
+        if not self.state.last_render:
             messagebox.showinfo(
                 "Card Creator", "Noch keine finale Karte gerendert."
             )
             return
         try:
             self.app.clipboard_clear()
-            self.app.clipboard_append(str(self.app.card_creator_last_render))
+            self.app.clipboard_append(str(self.state.last_render))
             messagebox.showinfo(
                 "Card Creator", "Pfad wurde in die Zwischenablage kopiert."
             )
@@ -108,7 +112,7 @@ class CardExportController:
             output = self.app.card_render_to_file(
                 final=True, output_path=output_path
             )
-            self.app.card_creator_last_render = output
+            self.state.last_render = output
             self.app.card_render_status.configure(
                 text=f"Gerendert:\n{output}", text_color="#8FE6A0"
             )

@@ -8,11 +8,15 @@ from unittest.mock import Mock, patch
 from PIL import Image
 
 from vadafok_studio.card_creator.preview import CardPreviewController
+from vadafok_studio.card_creator.state import CardCreatorState
 
 
 class CardPreviewControllerTests(unittest.TestCase):
     def test_update_without_preview_frame_is_safe(self):
-        app = SimpleNamespace(card_preview_update_job="queued")
+        app = SimpleNamespace(
+            card_preview_update_job="queued",
+            card_creator_state=CardCreatorState(),
+        )
 
         CardPreviewController(app, Mock(), Mock()).update()
 
@@ -42,6 +46,7 @@ class CardPreviewControllerTests(unittest.TestCase):
                 card_export_profile=SimpleNamespace(get=lambda: "Broadcast PNG"),
                 card_preview_background_key=None,
                 card_preview_background_cache=None,
+                card_creator_state=CardCreatorState(),
                 card_template=Mock(return_value={"fields": []}),
                 card_values_plain=Mock(return_value={"title": "Hello"}),
                 card_preview_info=preview_info,
@@ -57,7 +62,9 @@ class CardPreviewControllerTests(unittest.TestCase):
                 CardPreviewController(app, export_engine, render_image).update()
 
             self.assertIsNone(app.card_preview_update_job)
-            self.assertIsNotNone(app.card_preview_background_cache)
+            self.assertIsNotNone(
+                app.card_creator_state.preview_background_cache
+            )
             render_image.assert_called_once()
             export_engine.apply_export_profile.assert_called_once_with(
                 rendered, "Broadcast PNG"

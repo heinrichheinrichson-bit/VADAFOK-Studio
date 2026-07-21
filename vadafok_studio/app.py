@@ -139,7 +139,10 @@ class VadafokStudio(ctk.CTk):
         self.template_prop_stroke_width = ctk.IntVar(value=3)
         self.template_prop_uppercase = ctk.BooleanVar(value=True)
         self.card_selected_template = ctk.StringVar(value="")
-        self.card_creator_controller = CardCreatorController(self, list_templates)
+        self.card_creator_state = CardCreatorState()
+        self.card_creator_controller = CardCreatorController(
+            self, list_templates, state=self.card_creator_state
+        )
         self.card_recent_templates = self.card_creator_controller.load_recent()
         self.card_creator_values = {}
         self.card_saved_values = load_json(CARD_VALUES_PATH, {})
@@ -147,18 +150,21 @@ class VadafokStudio(ctk.CTk):
         self.card_creator_preview_label = None
         self.card_preview_update_job = None
         self.card_values_save_job = None
-        self.card_preview_background_cache = None
-        self.card_preview_background_key = None
-        self.card_creator_last_render = None
         self.card_output_name = ctk.StringVar(value="")
         self.card_auto_preview = ctk.BooleanVar(value=True)
         self.card_export_profile = ctk.StringVar(value="Broadcast PNG")
-        self.card_creator_state = CardCreatorState()
         self.card_export_controller = CardExportController(
-            self, export_engine, EXPORT_DIR, os.startfile
+            self,
+            export_engine,
+            EXPORT_DIR,
+            os.startfile,
+            state=self.card_creator_state,
         )
         self.card_preview_controller = CardPreviewController(
-            self, export_engine, render_template_card_image
+            self,
+            export_engine,
+            render_template_card_image,
+            state=self.card_creator_state,
         )
         self.card_batch_controller = CardBatchController(
             self, self.card_creator_state, list_templates, batch_engine

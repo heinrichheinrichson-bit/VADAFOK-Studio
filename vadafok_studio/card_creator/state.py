@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 
@@ -12,3 +13,6 @@ class CardCreatorState:
 
     batch_items: list[dict[str, Any]] = field(default_factory=list)
     batch_selected_index: int | None = None
+    preview_background_cache: Any = None
+    preview_background_key: tuple[str, int] | None = None
+    last_render: Path | None = None

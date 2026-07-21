@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from vadafok_studio.card_creator.export_controller import CardExportController
+from vadafok_studio.card_creator.state import CardCreatorState
 
 
 class Variable:
@@ -23,6 +24,7 @@ def make_app(output_folder="", ask=False):
         card_export_profile=Variable("Broadcast PNG"),
         card_ask_output_location=Variable(ask),
         card_creator_last_render=None,
+        card_creator_state=CardCreatorState(),
         card_default_output_name=Mock(return_value="default_card"),
         clipboard_clear=Mock(),
         clipboard_append=Mock(),
@@ -93,7 +95,7 @@ class CardExportControllerTests(unittest.TestCase):
 
     def test_copy_last_path_updates_clipboard(self):
         app = make_app()
-        app.card_creator_last_render = Path("exports/final.png")
+        app.card_creator_state.last_render = Path("exports/final.png")
         controller = CardExportController(app, Mock(), Path("exports"), Mock())
 
         with patch(
@@ -136,7 +138,7 @@ class CardExportControllerTests(unittest.TestCase):
             app.card_render_to_file.assert_called_once_with(
                 final=True, output_path=output
             )
-            self.assertEqual(app.card_creator_last_render, output)
+            self.assertEqual(app.card_creator_state.last_render, output)
             app.card_render_status.configure.assert_called_once_with(
                 text=f"Gerendert:\n{output}", text_color="#8FE6A0"
             )
@@ -176,4 +178,4 @@ class CardExportControllerTests(unittest.TestCase):
                 controller.render_final()
 
             error.assert_called_once_with("Card Creator", "render failed")
-            self.assertIsNone(app.card_creator_last_render)
+            self.assertIsNone(app.card_creator_state.last_render)

@@ -40,13 +40,15 @@ def _render_final_card(app: Any) -> Path:
     if isinstance(result, (tuple, list)):
         result = result[0] if result else None
     if result is None:
-        result = getattr(app, "card_creator_last_render", None)
+        result = getattr(
+            getattr(app, "card_creator_state", None), "last_render", None
+        )
     if not result:
         raise RuntimeError("Die aktuelle Karte konnte nicht gerendert werden.")
     path = Path(result).expanduser().resolve()
     if not path.exists() or not path.is_file():
         raise RuntimeError(f"Die gerenderte Bilddatei wurde nicht gefunden:\n{path}")
-    app.card_creator_last_render = path
+    app.card_creator_state.last_render = path
     return path
 
 

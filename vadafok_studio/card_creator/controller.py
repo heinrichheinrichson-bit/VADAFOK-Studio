@@ -14,6 +14,7 @@ from vadafok_studio.core.recent_templates import (
     record_recent_template,
     remove_recent_template,
 )
+from .state import CardCreatorState
 
 
 class CardCreatorController:
@@ -23,8 +24,10 @@ class CardCreatorController:
         self,
         app: Any,
         list_templates: Callable[[], Iterable[str]],
+        state: CardCreatorState | None = None,
     ) -> None:
         self.app = app
+        self.state = state or app.card_creator_state
         self._list_templates = list_templates
 
     def available_templates(self) -> list[str]:
@@ -52,9 +55,9 @@ class CardCreatorController:
         self.app.card_data_undo_stack = []
         self.app.card_data_redo_stack = []
         self.app.card_creator_preview_image = None
-        self.app.card_preview_background_cache = None
-        self.app.card_preview_background_key = None
-        self.app.card_creator_last_render = None
+        self.state.preview_background_cache = None
+        self.state.preview_background_key = None
+        self.state.last_render = None
 
         self.app.card_refresh_recent_templates()
         self.app.card_refresh_all_templates()
