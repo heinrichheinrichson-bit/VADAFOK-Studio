@@ -55,6 +55,7 @@ from .silent_director.drag_controller import (
     hide_floating_drop_indicator as hide_silent_director_drop_indicator,
     show_floating_drop_indicator as show_silent_director_drop_indicator,
 )
+from .silent_director import management_controller as director_management
 from .core.image_view import load_rgba, fit_image_to_box, pil_to_tk_photo_data, image_status
 from .core.layout_engine import banner_profile_to_layout_field, apply_layout_field_to_banner_profile, create_default_template, render_template_card, render_template_card_image
 from .core import style_engine
@@ -5083,68 +5084,19 @@ class VadafokStudio(ctk.CTk):
 
 
     def silent_director_reload(self):
-        try:
-            self.silent_director_presets = silent_director.load_presets()
-        except Exception:
-            self.silent_director_presets = []
-        if self.silent_director_presets and (not self.silent_director_selected.get()):
-            self.silent_director_selected.set(self.silent_director_presets[0]["name"])
-        return self.silent_director_presets
+        return director_management.reload_presets(self)
 
     def silent_director_get_selected_preset(self):
-        name = self.silent_director_selected.get()
-        for preset in self.silent_director_presets:
-            if preset.get("name") == name:
-                return preset
-        return self.silent_director_presets[0] if self.silent_director_presets else None
+        return director_management.get_selected_preset(self)
 
     def silent_director_create_preset(self):
-        name = self.silent_director_new_name.get().strip()
-        if not name:
-            messagebox.showinfo("Silent Director", "Please enter a preset name.")
-            return
-        scene = getattr(self.obs_workflow_state, "current_scene", "") if hasattr(self, "obs_workflow_state") else ""
-        self.silent_director_presets = silent_director.add_preset(name, scene=scene, banner_text="", show_banner=False)
-        self.silent_director_selected.set(name)
-        self.silent_director_new_name.set("")
-        self.show_silent_director_page()
+        return director_management.create_preset(self)
 
     def silent_director_duplicate_preset(self, preset=None):
-        preset = preset or self.silent_director_get_selected_preset()
-        if not preset:
-            return
-
-        original_name = str(preset.get("name", "") or "").strip()
-        self.silent_director_presets = silent_director.duplicate_preset(original_name)
-
-        new_name = None
-        original_found = False
-        for item in self.silent_director_presets:
-            item_name = str(item.get("name", "") or "").strip()
-            if original_found:
-                new_name = item_name
-                break
-            if item_name == original_name:
-                original_found = True
-
-        if new_name:
-            self.silent_director_selected.set(new_name)
-
-        self.silent_director_edit_index = None
-        self.silent_director_action_button_text.set("+ ADD ACTION")
-        self.obs_workflow_mark_command(f"Silent Director preset duplicated: {original_name}")
-        self.show_silent_director_page()
+        return director_management.duplicate_preset(self, preset)
 
     def silent_director_delete_selected(self):
-        preset = self.silent_director_get_selected_preset()
-        if not preset:
-            return
-        name = preset.get("name", "")
-        if not messagebox.askyesno("Silent Director", f"Delete preset '{name}'?"):
-            return
-        self.silent_director_presets = silent_director.delete_preset(name)
-        self.silent_director_selected.set(self.silent_director_presets[0]["name"] if self.silent_director_presets else "")
-        self.show_silent_director_page()
+        return director_management.delete_selected_preset(self)
 
 
     def director_set_active_action(self, index=None):
@@ -5351,48 +5303,10 @@ class VadafokStudio(ctk.CTk):
         return [""] + scenes
 
     def silent_director_load_editor(self, preset):
-        if not preset:
-            return
-        self.silent_director_editor_name.set(preset.get("name", "Untitled"))
-        self.silent_director_editor_icon.set(
-            str(preset.get("icon", "AUTO") or "AUTO").upper()
-        )
-        self.silent_director_editor_scene.set(preset.get("scene", ""))
-        self.silent_director_editor_show_banner.set(bool(preset.get("show_banner", False)))
+        return director_management.load_editor(self, preset)
 
     def silent_director_save_selected(self):
-        preset = self.silent_director_get_selected_preset()
-        if not preset:
-            return
-
-        old_name = preset.get("name", "")
-        new_name = self.silent_director_editor_name.get().strip()
-        if not new_name:
-            messagebox.showinfo("Silent Director", "Preset name darf nicht leer sein.")
-            return
-
-        banner_text = ""
-        try:
-            banner_text = self.silent_director_banner_textbox.get("1.0", "end").strip()
-        except Exception:
-            banner_text = preset.get("banner_text", "")
-
-        updated = {
-            "name": new_name,
-            "icon": str(self.silent_director_editor_icon.get() or "AUTO").strip().upper(),
-            "scene": self.silent_director_editor_scene.get().strip(),
-            "banner_text": banner_text,
-            "show_banner": bool(self.silent_director_editor_show_banner.get()),
-            "show_sources": list(preset.get("show_sources", []) or []),
-            "hide_sources": list(preset.get("hide_sources", []) or []),
-            "actions": list(preset.get("actions", []) or []),
-        }
-
-        self.silent_director_presets = silent_director.update_preset(old_name, updated)
-        self.silent_director_selected.set(new_name)
-        self.obs_workflow_mark_command(f"Silent Director preset saved: {new_name}")
-        messagebox.showinfo("Silent Director", f"Preset '{new_name}' gespeichert.")
-        self.show_silent_director_page()
+        return director_management.save_selected_preset(self)
 
 
     def silent_director_source_values(self):
@@ -5441,76 +5355,16 @@ class VadafokStudio(ctk.CTk):
                 pass
 
     def silent_director_cancel_action_edit(self):
-        self.silent_director_edit_index = None
-        self.silent_director_action_button_text.set("+ ADD ACTION")
-        self.silent_director_action_type.set("switch_scene")
-        self.silent_director_action_scene.set("")
-        self.silent_director_action_source.set("")
-        self.silent_director_action_text.set("")
-        self.silent_director_wait_seconds.set("5")
-        self.silent_director_update_action_fields()
+        return director_management.cancel_action_edit(self)
 
     def silent_director_edit_action(self, index):
-        preset = self.silent_director_get_selected_preset()
-        if not preset:
-            return
-        actions = list(preset.get("actions", []) or [])
-        if not (0 <= index < len(actions)):
-            return
-
-        action = actions[index]
-        self.silent_director_edit_index = index
-        self.silent_director_action_button_text.set("UPDATE ACTION")
-        self.silent_director_action_type.set(str(action.get("type", "switch_scene")))
-        self.silent_director_action_scene.set(str(action.get("scene", "")))
-        self.silent_director_action_source.set(str(action.get("source", "")))
-        self.silent_director_action_text.set(str(action.get("text", "")))
-        self.silent_director_wait_seconds.set(str(action.get("seconds", "5") or "5"))
-        self.silent_director_update_action_fields()
+        return director_management.edit_action(self, index)
 
     def silent_director_duplicate_action(self, index):
-        preset = self.silent_director_get_selected_preset()
-        if not preset:
-            return
-
-        actions = list(preset.get("actions", []) or [])
-        if not (0 <= index < len(actions)):
-            return
-
-        self.silent_director_presets = silent_director.duplicate_action(
-            preset.get("name", ""),
-            index
-        )
-
-        # Select the new copy immediately for fast editing.
-        self.silent_director_edit_index = index + 1
-        self.silent_director_action_button_text.set("UPDATE ACTION")
-
-        updated_preset = self.silent_director_get_selected_preset()
-        updated_actions = list(updated_preset.get("actions", []) or []) if updated_preset else []
-        if 0 <= index + 1 < len(updated_actions):
-            action = updated_actions[index + 1]
-            self.silent_director_action_type.set(str(action.get("type", "switch_scene")))
-            self.silent_director_action_scene.set(str(action.get("scene", "")))
-            self.silent_director_action_source.set(str(action.get("source", "")))
-            self.silent_director_action_text.set(str(action.get("text", "")))
-            self.silent_director_wait_seconds.set(str(action.get("seconds", "5") or "5"))
-            self.silent_director_update_action_fields()
-
-        self.obs_workflow_mark_command("Silent Director action duplicated")
-        self.silent_director_render_actions_list()
+        return director_management.duplicate_action(self, index)
 
     def silent_director_move_action(self, index, direction):
-        preset = self.silent_director_get_selected_preset()
-        if not preset:
-            return
-        self.silent_director_presets = silent_director.move_action(
-            preset.get("name", ""), index, direction
-        )
-        self.silent_director_edit_index = None
-        self.silent_director_action_button_text.set("+ ADD ACTION")
-        self.obs_workflow_mark_command("Silent Director action moved")
-        self.silent_director_render_actions_list()
+        return director_management.move_action(self, index, direction)
 
     def silent_director_drag_start(self, event, index):
         return start_silent_director_drag(self, event, index)
@@ -5604,71 +5458,11 @@ class VadafokStudio(ctk.CTk):
 
 
     def silent_director_add_action(self):
-        preset = self.silent_director_get_selected_preset()
-        if not preset:
-            return
-
-        action_type = self.silent_director_action_type.get()
-        action = {
-            "type": action_type,
-            "scene": "",
-            "text": "",
-            "source": "",
-            "seconds": "",
-        }
-
-        if action_type == "switch_scene":
-            action["scene"] = self.silent_director_action_scene.get().strip()
-            if not action["scene"]:
-                messagebox.showinfo("Silent Director", "Bitte eine Szene wählen.")
-                return
-
-        elif action_type == "show_banner":
-            action["text"] = self.silent_director_action_text.get().strip()
-            if not action["text"]:
-                messagebox.showinfo("Silent Director", "Bitte einen Bannertext eingeben.")
-                return
-
-        elif action_type in ("show_source", "hide_source"):
-            action["source"] = self.silent_director_action_source.get().strip()
-            if not action["source"]:
-                messagebox.showinfo("Silent Director", "Bitte eine Source wählen.")
-                return
-
-        elif action_type == "wait":
-            action["seconds"] = self.silent_director_normalize_wait_seconds()
-
-        if self.silent_director_edit_index is None:
-            self.silent_director_presets = silent_director.add_action(
-                preset.get("name", ""), action
-            )
-            command_text = f"Silent Director action added: {action_type}"
-        else:
-            self.silent_director_presets = silent_director.update_action(
-                preset.get("name", ""),
-                self.silent_director_edit_index,
-                action,
-            )
-            command_text = f"Silent Director action updated: {action_type}"
-
-        self.silent_director_edit_index = None
-        self.silent_director_action_button_text.set("+ ADD ACTION")
-        self.silent_director_action_text.set("")
-        self.silent_director_wait_seconds.set("5")
-        self.obs_workflow_mark_command(command_text)
-        self.silent_director_cancel_action_edit()
-        self.silent_director_render_actions_list()
+        return director_management.add_action(self)
 
 
     def silent_director_delete_action(self, index):
-        preset = self.silent_director_get_selected_preset()
-        if not preset:
-            return
-        self.silent_director_presets = silent_director.delete_action(preset.get("name", ""), index)
-        self.silent_director_edit_index = None
-        self.silent_director_action_button_text.set("+ ADD ACTION")
-        self.obs_workflow_mark_command("Silent Director action deleted")
-        self.silent_director_render_actions_list()
+        return director_management.delete_action(self, index)
 
     def silent_director_preset_stats(self, preset):
         """Return action count and planned duration from WAIT actions."""
