@@ -10,6 +10,13 @@ from PIL import Image
 GOLD = "#D6A43A"
 
 
+def preview_bounds(frame_width: int, frame_height: int) -> tuple[int, int]:
+    """Calculate a responsive preview area with a small visual margin."""
+    width = max(160, int(frame_width) - 28)
+    height = max(180, int(frame_height) - 28)
+    return min(width, 560), min(height, 640)
+
+
 def _load_thumbnail(path: Any, maximum_size: tuple[int, int]) -> Image.Image:
     """Load a detached RGBA thumbnail without keeping the source file open."""
     with Image.open(path) as source:
@@ -50,7 +57,11 @@ def select_library_item(app: Any, item: Any) -> None:
 
     try:
         if item.kind == "image":
-            image = _load_thumbnail(item.path, (320, 280))
+            preview_frame.update_idletasks()
+            maximum_size = preview_bounds(
+                preview_frame.winfo_width(), preview_frame.winfo_height(),
+            )
+            image = _load_thumbnail(item.path, maximum_size)
             preview = ctk.CTkImage(
                 light_image=image, dark_image=image, size=image.size,
             )
