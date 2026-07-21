@@ -23,6 +23,62 @@ DARK = "#090909"
 PANEL = "#111111"
 
 
+def build_batch_panel(app):
+    """Render the current Card Creator batch list."""
+    if not hasattr(app, "card_batch_body"):
+        return
+
+    for widget in app.card_batch_body.winfo_children():
+        widget.destroy()
+
+    if not app.card_batch_items:
+        ctk.CTkLabel(
+            app.card_batch_body,
+            text="Noch keine Batch-Karten.\nKlicke + ADD CURRENT.",
+            text_color="#777777",
+            wraplength=240,
+            justify="left",
+        ).grid(row=0, column=0, padx=8, pady=8, sticky="w")
+        return
+
+    for row, item in enumerate(app.card_batch_items):
+        active = row == app.card_batch_selected_index
+        title = f"{row + 1}. {item.get('output_name', 'card')}"
+        subtitle = f"{item.get('template', '')} · {item.get('profile', '')}"
+
+        row_box = ctk.CTkFrame(
+            app.card_batch_body,
+            fg_color=GOLD if active else "#171717",
+            corner_radius=8,
+        )
+        row_box.grid(row=row, column=0, padx=8, pady=4, sticky="ew")
+        row_box.grid_columnconfigure(0, weight=1)
+
+        title_label = ctk.CTkLabel(
+            row_box,
+            text=title,
+            text_color="#111111" if active else "#D9C58C",
+            anchor="w",
+        )
+        title_label.grid(row=0, column=0, padx=10, pady=(6, 0), sticky="ew")
+
+        subtitle_label = ctk.CTkLabel(
+            row_box,
+            text=subtitle,
+            text_color="#333333" if active else "#777777",
+            anchor="w",
+        )
+        subtitle_label.grid(row=1, column=0, padx=10, pady=(0, 6), sticky="ew")
+
+        for widget in (row_box, title_label, subtitle_label):
+            widget.bind(
+                "<Button-1>",
+                lambda _event, index=row: app.card_batch_select(index),
+            )
+
+    app.card_batch_body.grid_columnconfigure(0, weight=1)
+
+
 def show_card_creator_page(app):
     """Build and display the existing Card Creator page for *app*."""
     app.set_active("Card Creator")

@@ -36,6 +36,26 @@ class CardCreatorPageModuleTests(unittest.TestCase):
         self.assertIn("app.card_update_preview", source)
         self.assertIn("list_templates()", source)
 
+    def test_batch_panel_rendering_is_owned_by_page_module(self):
+        app_source = APP_PATH.read_text(encoding="utf-8")
+        page_source = PAGE_PATH.read_text(encoding="utf-8")
+        app_tree = ast.parse(app_source)
+        studio = next(
+            node for node in app_tree.body
+            if isinstance(node, ast.ClassDef) and node.name == "VadafokStudio"
+        )
+        method = next(
+            node for node in studio.body
+            if isinstance(node, ast.FunctionDef)
+            and node.name == "card_build_batch_panel"
+        )
+        block = ast.get_source_segment(app_source, method)
+
+        self.assertLessEqual(method.end_lineno - method.lineno + 1, 2)
+        self.assertIn("return build_batch_panel(self)", block)
+        self.assertIn("def build_batch_panel(app):", page_source)
+        self.assertIn("app.card_batch_select(index)", page_source)
+
 
 if __name__ == "__main__":
     unittest.main()

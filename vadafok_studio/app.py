@@ -17,7 +17,10 @@ from .core.caption_renderer import render_caption_png
 from .core.template_store import list_templates, load_template, save_template, create_template, set_background_from_file, background_path, import_legacy_templates, delete_template, duplicate_template, rename_template, set_default_template, get_default_template, ensure_background_file, template_dir
 from .core.recent_templates import load_recent_templates, record_recent_template, remove_recent_template
 from .card_creator import CardBatchController, CardCreatorController
-from .card_creator.page import show_card_creator_page as build_card_creator_page
+from .card_creator.page import (
+    build_batch_panel,
+    show_card_creator_page as build_card_creator_page,
+)
 from .template_editor import TemplateEditorController, TemplateRefreshManager
 from .library import LibraryController
 from .banner_editor.controller import BannerEditorController
@@ -4701,55 +4704,7 @@ class VadafokStudio(ctk.CTk):
         return self.card_batch_controller.select(idx)
 
     def card_build_batch_panel(self):
-        if not hasattr(self, "card_batch_body"):
-            return
-
-        for w in self.card_batch_body.winfo_children():
-            w.destroy()
-
-        if not self.card_batch_items:
-            ctk.CTkLabel(
-                self.card_batch_body,
-                text="Noch keine Batch-Karten.\nKlicke + ADD CURRENT.",
-                text_color="#777777",
-                wraplength=240,
-                justify="left"
-            ).grid(row=0, column=0, padx=8, pady=8, sticky="w")
-            return
-
-        for row, item in enumerate(self.card_batch_items):
-            active = row == self.card_batch_selected_index
-            title = f"{row+1}. {item.get('output_name', 'card')}"
-            subtitle = f"{item.get('template', '')} · {item.get('profile', '')}"
-
-            row_box = ctk.CTkFrame(
-                self.card_batch_body,
-                fg_color=GOLD if active else "#171717",
-                corner_radius=8
-            )
-            row_box.grid(row=row, column=0, padx=8, pady=4, sticky="ew")
-            row_box.grid_columnconfigure(0, weight=1)
-
-            title_label = ctk.CTkLabel(
-                row_box,
-                text=title,
-                text_color="#111111" if active else "#D9C58C",
-                anchor="w"
-            )
-            title_label.grid(row=0, column=0, padx=10, pady=(6, 0), sticky="ew")
-
-            subtitle_label = ctk.CTkLabel(
-                row_box,
-                text=subtitle,
-                text_color="#333333" if active else "#777777",
-                anchor="w"
-            )
-            subtitle_label.grid(row=1, column=0, padx=10, pady=(0, 6), sticky="ew")
-
-            for widget in (row_box, title_label, subtitle_label):
-                widget.bind("<Button-1>", lambda _e, i=row: self.card_batch_select(i))
-
-        self.card_batch_body.grid_columnconfigure(0, weight=1)
+        return build_batch_panel(self)
 
 
     def card_render_batch(self):
