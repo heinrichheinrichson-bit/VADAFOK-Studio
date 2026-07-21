@@ -52,6 +52,7 @@ from .library import LibraryController
 from .library.page import show_library_page
 from .library.grid_view import render_asset_grid, render_folder_overview
 from .library.preview_view import make_thumbnail_label, select_library_item
+from .library import asset_actions as library_asset_actions
 from .banner_editor.controller import BannerEditorController
 from .obs_workflow.controller import OBSWorkflowController
 from .settings.controller import SettingsController
@@ -763,39 +764,19 @@ class VadafokStudio(ctk.CTk):
         self.set_message(self.selected_item.path.stem.replace("_", " ").replace("-", " ").upper())
 
     def toggle_selected_favorite(self):
-        if not self.selected_item:
-            messagebox.showwarning("Library", "Bitte zuerst ein Asset auswählen.")
-            return
-        key = self.item_key(self.selected_item)
-        favs = self.asset_meta.setdefault("favorites", [])
-        if key in favs: favs.remove(key)
-        else: favs.append(key)
-        save_asset_meta(self.asset_meta)
-        self.select_library_item(self.selected_item)
+        return library_asset_actions.toggle_favorite(self)
 
     def edit_selected_tags(self):
-        if not self.selected_item:
-            messagebox.showwarning("Library", "Bitte zuerst ein Asset auswählen.")
-            return
-        key = self.item_key(self.selected_item)
-        current = ", ".join(self.asset_meta.setdefault("tags", {}).get(key, []))
-        result = simpledialog.askstring("Tags", "Tags mit Komma trennen:", initialvalue=current)
-        if result is None: return
-        self.asset_meta.setdefault("tags", {})[key] = [t.strip() for t in result.split(",") if t.strip()]
-        save_asset_meta(self.asset_meta)
-        self.select_library_item(self.selected_item)
+        return library_asset_actions.edit_tags(self)
 
     def open_selected_folder(self):
-        if self.selected_item: os.startfile(self.selected_item.path.parent)
+        return library_asset_actions.open_selected_folder(self)
 
     def open_selected_file(self):
-        if self.selected_item: os.startfile(self.selected_item.path)
+        return library_asset_actions.open_selected_file(self)
 
     def copy_selected_path(self):
-        if not self.selected_item: return
-        self.clipboard_clear()
-        self.clipboard_append(str(self.selected_item.path))
-        messagebox.showinfo("Copy Path", "Pfad kopiert.")
+        return library_asset_actions.copy_selected_path(self)
 
 
 
