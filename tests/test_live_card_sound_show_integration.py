@@ -96,7 +96,7 @@ class LiveCardSoundShowIntegrationTests(unittest.TestCase):
         settings_controller_source = (ROOT / "vadafok_studio" / "settings" / "controller.py").read_text(encoding="utf-8")
         self.assertIn('"stream_effect_source": (', settings_controller_source)
         settings_source = (ROOT / 'vadafok_studio' / 'settings' / 'page.py').read_text(encoding='utf-8')
-        self.assertIn('text="OBS Stream Effect"', settings_source)
+        self.assertIn('text="OBS-Stream-Effekt"', settings_source)
         self.assertIn("textvariable=app.stream_effect_source", settings_source)
 
     def test_checkbox_and_persistence_callback_are_present(self) -> None:

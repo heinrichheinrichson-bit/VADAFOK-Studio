@@ -59,7 +59,7 @@ def show_silent_director_page(app: Any) -> None:
     left.grid_columnconfigure(0, weight=1)
     left.grid_rowconfigure(3, weight=1)
 
-    ctk.CTkLabel(left, text="Director Presets", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+    ctk.CTkLabel(left, text="Director-Presets", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
 
     search_bar = ctk.CTkFrame(left, fg_color="#0B0B0B", corner_radius=12)
     search_bar.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 8))
@@ -87,7 +87,7 @@ def show_silent_director_page(app: Any) -> None:
 
     ctk.CTkButton(
         search_bar,
-        text="★ FAVORITES",
+        text="★ FAVORITEN",
         width=108,
         fg_color=GOLD if app.silent_director_favorites_only.get() else "#333333",
         text_color="#111111" if app.silent_director_favorites_only.get() else "#D9C58C",
@@ -98,8 +98,8 @@ def show_silent_director_page(app: Any) -> None:
     create = ctk.CTkFrame(left, fg_color="#0B0B0B", corner_radius=12)
     create.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 10))
     create.grid_columnconfigure(0, weight=1)
-    ctk.CTkEntry(create, textvariable=app.silent_director_new_name, placeholder_text="New preset name").grid(row=0, column=0, padx=10, pady=10, sticky="ew")
-    ctk.CTkButton(create, text="ADD", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=app.silent_director_create_preset).grid(row=0, column=1, padx=(0, 10), pady=10)
+    ctk.CTkEntry(create, textvariable=app.silent_director_new_name, placeholder_text="Neuer Preset-Name").grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+    ctk.CTkButton(create, text="HINZUFÜGEN", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=app.silent_director_create_preset).grid(row=0, column=1, padx=(0, 10), pady=10)
 
     preset_list = ctk.CTkScrollableFrame(left, fg_color="#0B0B0B", corner_radius=12)
     preset_list.grid(row=3, column=0, sticky="nsew", padx=18, pady=(0, 18))
@@ -115,14 +115,14 @@ def show_silent_director_page(app: Any) -> None:
 
     preset = app.silent_director_get_selected_preset()
     if not preset:
-        ctk.CTkLabel(right, text="No preset selected.", text_color="#777777").grid(row=0, column=0, padx=18, pady=18, sticky="w")
+        ctk.CTkLabel(right, text="Kein Preset ausgewählt.", text_color="#777777").grid(row=0, column=0, padx=18, pady=18, sticky="w")
         return
 
     app.silent_director_load_editor(preset)
 
     ctk.CTkLabel(
         right,
-        text="Action Editor",
+        text="Aktionseditor",
         text_color=GOLD,
         font=ctk.CTkFont(size=22, weight="bold")
     ).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
@@ -157,7 +157,7 @@ def show_silent_director_page(app: Any) -> None:
 
     ctk.CTkLabel(
         stats_bar,
-        text="ACTIONS",
+        text="AKTIONEN",
         text_color="#777777",
         font=ctk.CTkFont(size=11, weight="bold")
     ).grid(row=0, column=1, padx=6, pady=(9, 2), sticky="w")
@@ -203,9 +203,9 @@ def show_silent_director_page(app: Any) -> None:
     ctk.CTkLabel(monitor, text="Status", text_color="#888888").grid(row=1, column=0, padx=12, pady=3, sticky="w")
     app.director_status_label = ctk.CTkLabel(monitor, textvariable=app.director_status_var, text_color=status_color, font=ctk.CTkFont(size=14, weight="bold"))
     app.director_status_label.grid(row=1, column=1, padx=12, pady=3, sticky="w")
-    ctk.CTkLabel(monitor, text="Current Action", text_color="#888888").grid(row=2, column=0, padx=12, pady=3, sticky="w")
+    ctk.CTkLabel(monitor, text="Aktuelle Aktion", text_color="#888888").grid(row=2, column=0, padx=12, pady=3, sticky="w")
     ctk.CTkLabel(monitor, textvariable=app.director_current_action_var, text_color=TEXT, wraplength=650, justify="left").grid(row=2, column=1, padx=12, pady=3, sticky="w")
-    ctk.CTkLabel(monitor, text="Progress", text_color="#888888").grid(row=3, column=0, padx=12, pady=(3, 10), sticky="w")
+    ctk.CTkLabel(monitor, text="Fortschritt", text_color="#888888").grid(row=3, column=0, padx=12, pady=(3, 10), sticky="w")
     ctk.CTkLabel(monitor, textvariable=app.director_progress_var, text_color="#BCA870").grid(row=3, column=1, padx=12, pady=(3, 10), sticky="w")
     try:
         progress_bar = ctk.CTkProgressBar(monitor, variable=app.director_progress_percent_var, height=12)
@@ -222,7 +222,7 @@ def show_silent_director_page(app: Any) -> None:
 
     ctk.CTkLabel(
         editor,
-        text="Preset Icon",
+        text="Preset-Symbol",
         text_color="#888888"
     ).grid(row=1, column=0, padx=12, pady=6, sticky="w")
 
@@ -237,7 +237,7 @@ def show_silent_director_page(app: Any) -> None:
 
     ctk.CTkLabel(
         editor,
-        text="AUTO chooses an icon from the preset name.",
+        text="AUTO wählt ein Symbol anhand des Preset-Namens.",
         text_color="#666666",
         font=ctk.CTkFont(size=10)
     ).grid(row=2, column=1, padx=12, pady=(0, 4), sticky="w")
@@ -268,7 +268,7 @@ def show_silent_director_page(app: Any) -> None:
     # Action list
     ctk.CTkLabel(
         editor,
-        text="Actions",
+        text="Aktionen",
         text_color=GOLD,
         font=ctk.CTkFont(size=18, weight="bold")
     ).grid(row=4, column=0, columnspan=2, padx=12, pady=(18, 8), sticky="w")
@@ -292,7 +292,7 @@ def show_silent_director_page(app: Any) -> None:
     add_box.grid_columnconfigure(1, weight=1)
 
     ctk.CTkLabel(
-        add_box, text="Add / Edit Action", text_color=GOLD,
+        add_box, text="Aktion hinzufügen / bearbeiten", text_color=GOLD,
         font=ctk.CTkFont(size=16, weight="bold")
     ).grid(row=0, column=0, columnspan=2, padx=12, pady=(12, 6), sticky="w")
 
@@ -303,7 +303,7 @@ def show_silent_director_page(app: Any) -> None:
         font=ctk.CTkFont(size=11)
     ).grid(row=0, column=1, padx=12, pady=(12, 6), sticky="e")
 
-    ctk.CTkLabel(add_box, text="Type", text_color="#888888").grid(
+    ctk.CTkLabel(add_box, text="Typ", text_color="#888888").grid(
         row=1, column=0, padx=12, pady=6, sticky="w"
     )
 
@@ -393,7 +393,7 @@ def show_silent_director_page(app: Any) -> None:
 
     ctk.CTkButton(
         button_row,
-        text="CANCEL EDIT",
+        text="BEARBEITUNG ABBRECHEN",
         height=42,
         fg_color="#333333",
         hover_color="#444444",
@@ -414,25 +414,25 @@ def show_silent_director_page(app: Any) -> None:
 
     actions_bar = ctk.CTkFrame(right, fg_color="transparent")
     actions_bar.grid(row=5, column=0, sticky="ew", padx=18, pady=(0, 18))
-    ctk.CTkButton(actions_bar, text="SAVE", height=46, fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=app.silent_director_save_selected).pack(side="left", padx=4)
+    ctk.CTkButton(actions_bar, text="SPEICHERN", height=46, fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=app.silent_director_save_selected).pack(side="left", padx=4)
     ctk.CTkButton(
         actions_bar,
-        text="DUPLICATE PRESET",
+        text="PRESET DUPLIZIEREN",
         height=46,
         fg_color="#2D4B3A",
         hover_color="#3B624C",
         command=lambda: app.silent_director_duplicate_preset()
     ).pack(side="left", padx=4)
     app.director_run_button = ctk.CTkButton(
-        actions_bar, text="RUN PRESET", height=46, fg_color="#333333",
+        actions_bar, text="PRESET STARTEN", height=46, fg_color="#333333",
         hover_color="#444444", command=lambda: app.silent_director_run_preset(),
         state="disabled" if status in ("RUNNING", "WAITING", "STOPPING") else "normal",
     )
     app.director_run_button.pack(side="left", padx=4)
     app.director_stop_button = ctk.CTkButton(
-        actions_bar, text="STOP", height=46, fg_color="#5A1F1F",
+        actions_bar, text="STOPP", height=46, fg_color="#5A1F1F",
         hover_color="#7A2A2A", command=app.director_request_stop,
         state="normal" if status in ("RUNNING", "WAITING", "STOPPING") else "disabled",
     )
     app.director_stop_button.pack(side="left", padx=4)
-    ctk.CTkButton(actions_bar, text="DELETE", height=46, fg_color="#5A1F1F", hover_color="#7A2A2A", command=app.silent_director_delete_selected).pack(side="left", padx=4)
+    ctk.CTkButton(actions_bar, text="LÖSCHEN", height=46, fg_color="#5A1F1F", hover_color="#7A2A2A", command=app.silent_director_delete_selected).pack(side="left", padx=4)

@@ -47,10 +47,10 @@ def show_library_page(app: Any) -> None:
     top.grid_columnconfigure(4, weight=1)
 
     ctk.CTkButton(
-        top, text="FOLDERS", width=88, fg_color="#333333",
+        top, text="ORDNER", width=88, fg_color="#333333",
         hover_color="#444444", command=app.show_library_folder_overview,
     ).grid(row=0, column=0, padx=(0, 8))
-    ctk.CTkLabel(top, text="Folder", text_color="#BCA870").grid(
+    ctk.CTkLabel(top, text="Ordner", text_color="#BCA870").grid(
         row=0, column=1, padx=(0, 8)
     )
     ctk.CTkOptionMenu(
@@ -59,7 +59,7 @@ def show_library_page(app: Any) -> None:
         button_color=GOLD_DARK, command=app.library_section_changed,
     ).grid(row=0, column=2, sticky="w")
     ctk.CTkCheckBox(
-        top, text="Favorites", variable=app.favorite_filter,
+        top, text="Favoriten", variable=app.favorite_filter,
         text_color="#BCA870", command=app.render_library_grid,
     ).grid(row=0, column=3, padx=(18, 8))
 
@@ -70,13 +70,13 @@ def show_library_page(app: Any) -> None:
     search.grid(row=0, column=4, sticky="ew")
     search.bind("<KeyRelease>", lambda _event: app.render_library_grid())
     ctk.CTkButton(
-        top, text="REFRESH FOLDER", fg_color=GOLD, text_color="#111111",
+        top, text="ORDNER AKTUALISIEREN", fg_color=GOLD, text_color="#111111",
         hover_color=GOLD_DARK, command=app.reload_library,
     ).grid(row=0, column=5, padx=(12, 0))
 
     if app.library_banner_picker_mode:
         ctk.CTkButton(
-            top, text="← BACK TO LIVE CARD", width=150, fg_color="#333333",
+        top, text="← ZURÜCK ZUR LIVE-KARTE", width=180, fg_color="#333333",
             hover_color="#444444", command=app.return_to_live_card_from_library,
         ).grid(row=0, column=6, padx=(8, 0))
 
@@ -106,7 +106,7 @@ def show_library_page(app: Any) -> None:
     right.grid_columnconfigure(0, weight=1)
     right.grid_rowconfigure(1, weight=1)
     ctk.CTkLabel(
-        right, text="Selection", font=ctk.CTkFont(size=18, weight="bold"),
+        right, text="Auswahl", font=ctk.CTkFont(size=18, weight="bold"),
         text_color=GOLD,
     ).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
 
@@ -129,7 +129,7 @@ def show_library_page(app: Any) -> None:
     )
     app.selection_meta.grid(row=3, column=0, padx=18, pady=(0, 12), sticky="w")
     ctk.CTkLabel(
-        right, text="Actions", font=ctk.CTkFont(size=16, weight="bold"),
+        right, text="Aktionen", font=ctk.CTkFont(size=16, weight="bold"),
         text_color=GOLD,
     ).grid(row=4, column=0, padx=18, pady=(6, 4), sticky="w")
 

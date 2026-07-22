@@ -28,9 +28,9 @@ class BannerEditorModuleTests(unittest.TestCase):
 
     def test_banner_editor_page_preserves_existing_controls_and_callbacks(self):
         source = PAGE_PATH.read_text(encoding="utf-8")
-        self.assertIn('text="SAVE PROFILE"', source)
-        self.assertIn('text="RESET AREA"', source)
-        self.assertIn('text="RESET STYLE"', source)
+        self.assertIn('text="PROFIL SPEICHERN"', source)
+        self.assertIn('text="BEREICH ZUR', source)
+        self.assertIn('text="STIL ZUR', source)
         self.assertIn("app.editor_mouse_down", source)
         self.assertIn("app.editor_mouse_drag", source)
         self.assertIn("app.editor_mouse_up", source)

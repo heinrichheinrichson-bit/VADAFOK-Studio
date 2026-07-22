@@ -23,7 +23,7 @@ class CardCreatorOutputPathTests(unittest.TestCase):
 
     def test_settings_wiring(self):
         source = Path("vadafok_studio/settings/page.py").read_text(encoding="utf-8")
-        assert "Card Creator Output" in source
+        assert "Ausgabe des Karten-Generators" in source
         assert "card_output_folder" in source
         assert "card_batch_output_folder" in source
         assert "card_ask_output_location" in source

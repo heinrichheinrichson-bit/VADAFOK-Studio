@@ -446,9 +446,22 @@ class VadafokStudio(ctk.CTk):
             ("Silent Director", self.show_silent_director_page),
             ("Settings", self.show_settings_page),
         ]
+        page_labels = {
+            "Library": "Medienbibliothek",
+            "Banner Editor": "Banner-Editor",
+            "Template Editor": "Template-Editor",
+            "Card Creator": "Karten-Generator",
+            "Live Card": "Live-Karte",
+            "Caption Engine": "Untertitel-Engine",
+            "Quick Cards": "Schnelltexte",
+            "OBS Connection": "OBS-Verbindung",
+            "OBS Workflow": "OBS-Workflow",
+            "Silent Director": "Silent Director",
+            "Settings": "Einstellungen",
+        }
         for name, cmd in pages:
             btn = ctk.CTkButton(
-                self.sidebar, text=name, height=42, corner_radius=10,
+                self.sidebar, text=page_labels.get(name, name), height=42, corner_radius=10,
                 anchor="w", fg_color="transparent", hover_color=GOLD_DARK,
                 text_color=TEXT,
                 command=lambda page=name, builder=cmd: self.navigate_to_page(
@@ -460,10 +473,10 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkFrame(self.sidebar, fg_color="transparent").pack(fill="both", expand=True)
         box = ctk.CTkFrame(self.sidebar, fg_color="#0D0D0D", corner_radius=12)
         box.pack(fill="x", padx=14, pady=16)
-        ctk.CTkLabel(box, text="OBS Status", text_color="#BCA870").pack(anchor="w", padx=12, pady=(10, 0))
-        self.status_label = ctk.CTkLabel(box, text="● Not connected", text_color="#D86A6A", font=ctk.CTkFont(weight="bold"))
+        ctk.CTkLabel(box, text="OBS-Status", text_color="#BCA870").pack(anchor="w", padx=12, pady=(10, 0))
+        self.status_label = ctk.CTkLabel(box, text="● Nicht verbunden", text_color="#D86A6A", font=ctk.CTkFont(weight="bold"))
         self.status_label.pack(anchor="w", padx=12, pady=(2, 10))
-        ctk.CTkLabel(box, text="F8 = Quick Caption", text_color="#BCA870").pack(anchor="w", padx=12, pady=(0, 10))
+        ctk.CTkLabel(box, text="F8 = Schnell-Untertitel", text_color="#BCA870").pack(anchor="w", padx=12, pady=(0, 10))
 
     def set_active(self, name):
         self.active_page = name

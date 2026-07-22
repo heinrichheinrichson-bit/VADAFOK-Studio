@@ -17,7 +17,7 @@ PANEL = "#111111"
 def show_quick_cards_page(app: Any) -> None:
     app.set_active("Quick Cards")
     app.clear_main()
-    app.page_title("Quick Cards")
+    app.page_title("Schnelltexte")
     app.text_library_data = text_library_engine.load_library()
 
     outer = ctk.CTkFrame(app.main, fg_color=DARK)
@@ -41,10 +41,10 @@ def show_quick_cards_page(app: Any) -> None:
         app.quick_cards_target_category.set(categories[0])
 
     ctk.CTkLabel(
-        manager, text="Quick Card Manager", text_color=GOLD,
+        manager, text="Schnelltexte verwalten", text_color=GOLD,
         font=ctk.CTkFont(size=18, weight="bold"),
     ).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
-    ctk.CTkLabel(manager, text="Target Category", text_color="#BCA870").grid(
+    ctk.CTkLabel(manager, text="Zielkategorie", text_color="#BCA870").grid(
         row=1, column=0, padx=18, pady=(8, 4), sticky="w",
     )
     app.quick_cards_category_menu = ctk.CTkOptionMenu(
@@ -56,7 +56,7 @@ def show_quick_cards_page(app: Any) -> None:
         row=2, column=0, padx=18, pady=(0, 12), sticky="ew",
     )
 
-    ctk.CTkLabel(manager, text="New Category", text_color="#BCA870").grid(
+    ctk.CTkLabel(manager, text="Neue Kategorie", text_color="#BCA870").grid(
         row=3, column=0, padx=18, pady=(8, 4), sticky="w",
     )
     category_entry = ctk.CTkEntry(
@@ -65,11 +65,11 @@ def show_quick_cards_page(app: Any) -> None:
     category_entry.grid(row=4, column=0, padx=18, pady=(0, 8), sticky="ew")
     category_entry.bind("<Return>", lambda _event: app.quick_cards_add_category())
     ctk.CTkButton(
-        manager, text="+ ADD CATEGORY", fg_color="#333333",
+        manager, text="+ KATEGORIE HINZUFÃœGEN", fg_color="#333333",
         hover_color="#444444", command=app.quick_cards_add_category,
     ).grid(row=5, column=0, padx=18, pady=(0, 12), sticky="ew")
 
-    ctk.CTkLabel(manager, text="New Text", text_color="#BCA870").grid(
+    ctk.CTkLabel(manager, text="Neuer Text", text_color="#BCA870").grid(
         row=6, column=0, padx=18, pady=(8, 4), sticky="w",
     )
     text_entry = ctk.CTkEntry(
@@ -79,9 +79,9 @@ def show_quick_cards_page(app: Any) -> None:
     text_entry.bind("<Return>", lambda _event: app.quick_cards_add_text())
 
     buttons = (
-        ("+ SAVE TEXT", app.quick_cards_add_text, GOLD, "#111111"),
-        ("SAVE LIVE CARD TEXT", app.quick_cards_save_live_text, "#333333", None),
-        ("OPEN LIVE CARD", app.show_live_card, "#333333", None),
+        ("+ TEXT SPEICHERN", app.quick_cards_add_text, GOLD, "#111111"),
+        ("LIVE-KARTEN-TEXT SPEICHERN", app.quick_cards_save_live_text, "#333333", None),
+        ("LIVE-KARTE Ã–FFNEN", app.show_live_card, "#333333", None),
     )
     for row, (label, command, color, text_color) in enumerate(buttons, start=8):
         options = {"text_color": text_color} if text_color else {}
@@ -93,8 +93,8 @@ def show_quick_cards_page(app: Any) -> None:
 
     ctk.CTkLabel(
         manager,
-        text=("Click a text on the left to send it straight to Live Card.\n"
-              "SAVE QUICK uses Target Category."),
+        text=("Ein Klick auf einen Text links Ã¼bergibt ihn direkt an die Live-Karte.\n"
+              "Neue Texte werden in der gewÃ¤hlten Zielkategorie gespeichert."),
         text_color="#777777", justify="left", wraplength=300,
     ).grid(row=11, column=0, padx=18, pady=(8, 18), sticky="w")
     app.quick_cards_build_tree()

@@ -136,7 +136,7 @@ def show_banner_profiles_page(app):
     controls.grid(row=2, column=0, sticky="nsew", padx=18, pady=(0, 18))
     controls.grid_columnconfigure(1, weight=1)
 
-    ctk.CTkLabel(controls, text="Sample Text", text_color="#BCA870").grid(
+    ctk.CTkLabel(controls, text="Beispieltext", text_color="#BCA870").grid(
         row=0,
         column=0,
         padx=(0, 8),
@@ -147,7 +147,7 @@ def show_banner_profiles_page(app):
     sample_entry.grid(row=0, column=1, padx=(0, 8), pady=4, sticky="ew")
     sample_entry.bind("<KeyRelease>", lambda _event: app.editor_update_overlay())
 
-    ctk.CTkLabel(controls, text="Font", text_color="#BCA870").grid(
+    ctk.CTkLabel(controls, text="Schriftart", text_color="#BCA870").grid(
         row=1,
         column=0,
         padx=(12, 8),
@@ -158,7 +158,7 @@ def show_banner_profiles_page(app):
     font_entry.grid(row=1, column=1, padx=(0, 8), pady=4, sticky="ew")
     font_entry.bind("<KeyRelease>", lambda _event: app.editor_apply_profile_values())
 
-    ctk.CTkLabel(controls, text="Size", text_color="#BCA870").grid(
+    ctk.CTkLabel(controls, text="GrÃ¶ÃŸe", text_color="#BCA870").grid(
         row=1,
         column=2,
         padx=(12, 8),
@@ -169,7 +169,7 @@ def show_banner_profiles_page(app):
     size_entry.grid(row=1, column=3, padx=(0, 8), pady=4, sticky="ew")
     size_entry.bind("<KeyRelease>", lambda _event: app.editor_apply_profile_values())
 
-    ctk.CTkLabel(controls, text="Text", text_color="#BCA870").grid(
+    ctk.CTkLabel(controls, text="Textfarbe", text_color="#BCA870").grid(
         row=2,
         column=0,
         padx=(12, 8),
@@ -183,7 +183,7 @@ def show_banner_profiles_page(app):
         lambda _event: app.editor_apply_profile_values(),
     )
 
-    ctk.CTkLabel(controls, text="Stroke", text_color="#BCA870").grid(
+    ctk.CTkLabel(controls, text="Konturfarbe", text_color="#BCA870").grid(
         row=2,
         column=2,
         padx=(12, 8),
@@ -200,7 +200,7 @@ def show_banner_profiles_page(app):
         lambda _event: app.editor_apply_profile_values(),
     )
 
-    ctk.CTkLabel(controls, text="Stroke Width", text_color="#BCA870").grid(
+    ctk.CTkLabel(controls, text="KonturstÃ¤rke", text_color="#BCA870").grid(
         row=3,
         column=0,
         padx=(12, 8),
@@ -219,7 +219,7 @@ def show_banner_profiles_page(app):
 
     ctk.CTkCheckBox(
         controls,
-        text="Uppercase",
+        text="GroÃŸbuchstaben",
         variable=app.editor_uppercase,
         text_color=TEXT,
         command=app.editor_apply_profile_values,
@@ -227,7 +227,7 @@ def show_banner_profiles_page(app):
 
     ctk.CTkButton(
         controls,
-        text="SAVE PROFILE",
+        text="PROFIL SPEICHERN",
         fg_color=GOLD,
         text_color="#111111",
         hover_color=GOLD_DARK,
@@ -235,14 +235,14 @@ def show_banner_profiles_page(app):
     ).grid(row=4, column=0, columnspan=2, padx=4, pady=8, sticky="ew")
     ctk.CTkButton(
         controls,
-        text="RESET AREA",
+        text="BEREICH ZURÃœCKSETZEN",
         fg_color="#333333",
         hover_color="#444444",
         command=app.editor_reset_area,
     ).grid(row=4, column=2, padx=4, pady=8, sticky="ew")
     ctk.CTkButton(
         controls,
-        text="RESET STYLE",
+        text="STIL ZURÃœCKSETZEN",
         fg_color="#333333",
         hover_color="#444444",
         command=app.editor_reset_style,

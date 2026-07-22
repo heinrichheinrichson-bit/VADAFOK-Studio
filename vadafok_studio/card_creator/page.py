@@ -153,7 +153,7 @@ def show_card_creator_page(app):
     left = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
     left.grid(row=0, column=0, sticky="nsew", padx=(0, 12))
     left.grid_rowconfigure(1, weight=1)
-    ctk.CTkLabel(left, text="Templates", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+    ctk.CTkLabel(left, text="Vorlagen", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
 
     tlist = ctk.CTkScrollableFrame(left, fg_color="#0B0B0B", corner_radius=12)
     tlist.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
@@ -164,7 +164,7 @@ def show_card_creator_page(app):
 
     app.card_all_templates_label = ctk.CTkLabel(
         tlist,
-        text="ALL TEMPLATES",
+        text="ALLE VORLAGEN",
         text_color="#BCA870",
         anchor="w",
         font=ctk.CTkFont(size=11, weight="bold"),
@@ -191,17 +191,17 @@ def show_card_creator_page(app):
     header = ctk.CTkFrame(preview, fg_color="transparent")
     header.grid(row=0, column=0, sticky="ew", padx=18, pady=(18, 8))
     header.grid_columnconfigure(1, weight=1)
-    ctk.CTkLabel(header, text="Preview", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, sticky="w")
+    ctk.CTkLabel(header, text="Vorschau", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, sticky="w")
     app.card_preview_info = ctk.CTkLabel(header, text="", text_color="#8FE6A0", anchor="e")
     app.card_preview_info.grid(row=0, column=1, sticky="e")
 
     preview_actions = ctk.CTkFrame(preview, fg_color="transparent")
     preview_actions.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 8))
     preview_actions.grid_columnconfigure((0, 1, 2, 3, 4), weight=1)
-    ctk.CTkButton(preview_actions, text="UPDATE PREVIEW", fg_color="#333333", hover_color="#444444", command=app.card_update_preview).grid(row=0, column=0, padx=(0, 4), sticky="ew")
-    ctk.CTkButton(preview_actions, text="OPEN EXPORTS", fg_color="#333333", hover_color="#444444", command=app.card_open_export_folder).grid(row=0, column=1, padx=4, sticky="ew")
-    ctk.CTkButton(preview_actions, text="REFRESH STYLES", fg_color="#333333", hover_color="#444444", command=app.card_build_form).grid(row=0, column=2, padx=4, sticky="ew")
-    ctk.CTkButton(preview_actions, text="COPY LAST PATH", fg_color="#333333", hover_color="#444444", command=app.card_copy_last_path).grid(row=0, column=3, padx=(4, 0), sticky="ew")
+    ctk.CTkButton(preview_actions, text="VORSCHAU AKTUALISIEREN", fg_color="#333333", hover_color="#444444", command=app.card_update_preview).grid(row=0, column=0, padx=(0, 4), sticky="ew")
+    ctk.CTkButton(preview_actions, text="EXPORTE ÖFFNEN", fg_color="#333333", hover_color="#444444", command=app.card_open_export_folder).grid(row=0, column=1, padx=4, sticky="ew")
+    ctk.CTkButton(preview_actions, text="STILE AKTUALISIEREN", fg_color="#333333", hover_color="#444444", command=app.card_build_form).grid(row=0, column=2, padx=4, sticky="ew")
+    ctk.CTkButton(preview_actions, text="LETZTEN PFAD KOPIEREN", fg_color="#333333", hover_color="#444444", command=app.card_copy_last_path).grid(row=0, column=3, padx=(4, 0), sticky="ew")
 
     focus_state = {"active": False, "resize_job": None, "last_size": None}
 
@@ -320,13 +320,13 @@ def show_card_creator_page(app):
         batch_actions, text="0 Karte(n) · Auswahl: –", text_color="#8A8A8A", anchor="w"
     )
     app.card_batch_count_label.grid(row=0, column=0, columnspan=2, pady=(0, 3), sticky="ew")
-    ctk.CTkButton(batch_actions, text="+ ADD CURRENT", fg_color="#333333", hover_color="#444444", command=app.card_batch_add_current).grid(row=1, column=0, padx=(0, 4), pady=2, sticky="ew")
-    ctk.CTkButton(batch_actions, text="RENDER BATCH", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=app.card_render_batch).grid(row=1, column=1, padx=(4, 0), pady=2, sticky="ew")
+    ctk.CTkButton(batch_actions, text="+ AKTUELLE HINZUFÜGEN", fg_color="#333333", hover_color="#444444", command=app.card_batch_add_current).grid(row=1, column=0, padx=(0, 4), pady=2, sticky="ew")
+    ctk.CTkButton(batch_actions, text="STAPEL RENDERN", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=app.card_render_batch).grid(row=1, column=1, padx=(4, 0), pady=2, sticky="ew")
     ctk.CTkButton(batch_actions, text="IMPORT CSV/XLSX", fg_color="#333333", hover_color="#444444", command=app.card_import_batch_file).grid(row=2, column=0, columnspan=2, padx=0, pady=2, sticky="ew")
     ctk.CTkButton(batch_actions, text="SAVE PROJECT", fg_color="#333333", hover_color="#444444", command=app.card_save_batch_project).grid(row=3, column=0, padx=(0, 4), pady=2, sticky="ew")
     ctk.CTkButton(batch_actions, text="LOAD PROJECT", fg_color="#333333", hover_color="#444444", command=app.card_load_batch_project).grid(row=3, column=1, padx=(4, 0), pady=2, sticky="ew")
     ctk.CTkButton(batch_actions, text="DUPLICATE", fg_color="#333333", hover_color="#444444", command=app.card_batch_duplicate_selected).grid(row=4, column=0, padx=(0, 4), pady=2, sticky="ew")
-    ctk.CTkButton(batch_actions, text="REMOVE", fg_color="#5A1F1F", hover_color="#7A2A2A", command=app.card_batch_remove_selected).grid(row=4, column=1, padx=(4, 0), pady=2, sticky="ew")
+    ctk.CTkButton(batch_actions, text="ENTFERNEN", fg_color="#5A1F1F", hover_color="#7A2A2A", command=app.card_batch_remove_selected).grid(row=4, column=1, padx=(4, 0), pady=2, sticky="ew")
     ctk.CTkButton(batch_actions, text="CLEAR LIST", fg_color="#262626", hover_color="#5A1F1F", command=app.card_batch_clear).grid(row=5, column=0, columnspan=2, padx=0, pady=(2, 0), sticky="ew")
 
     app.card_batch_body = ctk.CTkScrollableFrame(
@@ -347,10 +347,10 @@ def show_card_creator_page(app):
     output_scroll.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
     output_scroll.grid_columnconfigure(0, weight=1)
 
-    ctk.CTkLabel(output_scroll, text="Output Name", text_color="#BCA870").grid(row=0, column=0, padx=10, pady=(10, 2), sticky="w")
+    ctk.CTkLabel(output_scroll, text="Ausgabename", text_color="#BCA870").grid(row=0, column=0, padx=10, pady=(10, 2), sticky="w")
     ctk.CTkEntry(output_scroll, textvariable=app.card_output_name).grid(row=1, column=0, padx=10, pady=(0, 8), sticky="ew")
 
-    ctk.CTkLabel(output_scroll, text="Export Profile", text_color="#BCA870").grid(row=2, column=0, padx=10, pady=(2, 2), sticky="w")
+    ctk.CTkLabel(output_scroll, text="Exportprofil", text_color="#BCA870").grid(row=2, column=0, padx=10, pady=(2, 2), sticky="w")
     ctk.CTkOptionMenu(
         output_scroll, values=export_engine.list_export_profiles(),
         variable=app.card_export_profile, fg_color="#333333",
@@ -365,15 +365,15 @@ def show_card_creator_page(app):
     app.card_export_profile_info.grid(row=4, column=0, padx=10, pady=(0, 8), sticky="w")
 
     ctk.CTkCheckBox(
-        output_scroll, text="Auto Preview", variable=app.card_auto_preview,
+        output_scroll, text="Automatische Vorschau", variable=app.card_auto_preview,
         text_color="#BCA870", fg_color=GOLD, hover_color=GOLD_DARK
     ).grid(row=5, column=0, padx=10, pady=(0, 10), sticky="w")
 
     buttons = ctk.CTkFrame(output_scroll, fg_color="transparent")
     buttons.grid(row=6, column=0, sticky="ew", padx=10, pady=(0, 10))
     buttons.grid_columnconfigure((0, 1), weight=1)
-    ctk.CTkButton(buttons, text="CLEAR FIELDS", fg_color="#333333", hover_color="#444444", command=app.card_clear_values).grid(row=0, column=0, padx=(0, 4), pady=4, sticky="ew")
-    ctk.CTkButton(buttons, text="RENDER CARD", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=app.card_render_final).grid(row=0, column=1, padx=(4, 0), pady=4, sticky="ew")
+    ctk.CTkButton(buttons, text="FELDER LEEREN", fg_color="#333333", hover_color="#444444", command=app.card_clear_values).grid(row=0, column=0, padx=(0, 4), pady=4, sticky="ew")
+    ctk.CTkButton(buttons, text="KARTE RENDERN", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=app.card_render_final).grid(row=0, column=1, padx=(4, 0), pady=4, sticky="ew")
     ctk.CTkButton(buttons, text="UNDO DATA", fg_color="#333333", hover_color="#444444", command=app.card_undo_data).grid(row=1, column=0, padx=(0, 4), pady=4, sticky="ew")
     ctk.CTkButton(buttons, text="REDO DATA", fg_color="#333333", hover_color="#444444", command=app.card_redo_data).grid(row=1, column=1, padx=(4, 0), pady=4, sticky="ew")
 

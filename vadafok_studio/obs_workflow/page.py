@@ -34,7 +34,7 @@ def render_sources_list(app: Any, sources_list: Any) -> None:
             )
             source_label.grid(row=0, column=0, padx=10, pady=6, sticky="ew")
             show_btn = ctk.CTkButton(
-                row_frame, text="SHOW", width=64,
+            row_frame, text="ANZEIGEN", width=76,
                 fg_color=GOLD if not enabled else "#333333",
                 text_color="#111111" if not enabled else "#AAAAAA",
                 hover_color=GOLD_DARK,
@@ -42,7 +42,7 @@ def render_sources_list(app: Any, sources_list: Any) -> None:
             )
             show_btn.grid(row=0, column=1, padx=(4, 4), pady=6)
             hide_btn = ctk.CTkButton(
-                row_frame, text="HIDE", width=64,
+            row_frame, text="AUSBLENDEN", width=86,
                 fg_color="#5A1F1F" if enabled else "#333333",
                 text_color="#FFFFFF" if enabled else "#AAAAAA",
                 hover_color="#7A2A2A",
@@ -134,16 +134,16 @@ def show_obs_workflow_page(app: Any) -> None:
 
     buttons = ctk.CTkFrame(top, fg_color="transparent")
     buttons.grid(row=1, column=0, columnspan=4, sticky="e", padx=10, pady=(0, 12))
-    ctk.CTkButton(buttons, text="CONNECT", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=app.obs_workflow_connect).pack(side="left", padx=4)
-    ctk.CTkButton(buttons, text="RECONNECT", fg_color="#333333", hover_color="#444444", command=app.obs_workflow_connect).pack(side="left", padx=4)
-    ctk.CTkButton(buttons, text="DISCONNECT", fg_color="#5A1F1F", hover_color="#7A2A2A", command=app.obs_workflow_disconnect).pack(side="left", padx=4)
-    ctk.CTkButton(buttons, text="REFRESH", fg_color="#333333", hover_color="#444444", command=app.obs_workflow_refresh).pack(side="left", padx=4)
+    ctk.CTkButton(buttons, text="VERBINDEN", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=app.obs_workflow_connect).pack(side="left", padx=4)
+    ctk.CTkButton(buttons, text="NEU VERBINDEN", fg_color="#333333", hover_color="#444444", command=app.obs_workflow_connect).pack(side="left", padx=4)
+    ctk.CTkButton(buttons, text="TRENNEN", fg_color="#5A1F1F", hover_color="#7A2A2A", command=app.obs_workflow_disconnect).pack(side="left", padx=4)
+    ctk.CTkButton(buttons, text="AKTUALISIEREN", fg_color="#333333", hover_color="#444444", command=app.obs_workflow_refresh).pack(side="left", padx=4)
     ctk.CTkButton(buttons, text="DIRECTOR", fg_color="#333333", hover_color="#444444", command=app.show_silent_director_page).pack(side="left", padx=4)
 
     fav_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
     fav_box.grid(row=1, column=0, sticky="ew", padx=(0, 7), pady=(0, 14))
     fav_box.grid_columnconfigure(0, weight=1)
-    ctk.CTkLabel(fav_box, text="Quick Scene Favorites", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, sticky="w", padx=18, pady=(14, 8))
+    ctk.CTkLabel(fav_box, text="Szenenfavoriten", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, sticky="w", padx=18, pady=(14, 8))
     fav_area = ctk.CTkFrame(fav_box, fg_color="transparent")
     fav_area.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 14))
     for column in range(3):
@@ -155,7 +155,7 @@ def show_obs_workflow_page(app: Any) -> None:
         pass
 
     if not getattr(app, "scene_favorites", []):
-        ctk.CTkLabel(fav_area, text="No favorites yet. Add scenes below.", text_color="#777777").grid(row=0, column=0, sticky="w")
+        ctk.CTkLabel(fav_area, text="Noch keine Favoriten. Szenen können unten hinzugefügt werden.", text_color="#777777").grid(row=0, column=0, sticky="w")
     else:
         for favorite_index, fav_scene in enumerate(app.scene_favorites):
             fav_button = ctk.CTkButton(
@@ -180,16 +180,16 @@ def show_obs_workflow_page(app: Any) -> None:
     ready, missing_count, total = app.obs_workflow_health_counts()
     health_text = f"{ready} / {total} Ready" if total else "Not scanned"
     health_color = "#8FE6A0" if total and missing_count == 0 else ("#F0C06A" if total else "#777777")
-    ctk.CTkLabel(health_box, text="Overlay Health", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, sticky="w", padx=18, pady=(14, 4))
+    ctk.CTkLabel(health_box, text="Overlay-Status", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, sticky="w", padx=18, pady=(14, 4))
     ctk.CTkLabel(health_box, text=health_text, text_color=health_color, font=ctk.CTkFont(size=16, weight="bold")).grid(row=0, column=1, sticky="w", padx=8, pady=(14, 4))
     ctk.CTkLabel(health_box, text=(f"{missing_count} scene(s) need attention" if total else "Run a scan to check overlay coverage."), text_color="#AAAAAA").grid(row=1, column=0, columnspan=2, sticky="w", padx=18, pady=(0, 12))
-    ctk.CTkButton(health_box, text="SCAN", width=90, fg_color="#333333", hover_color="#444444", command=app.obs_workflow_scan_overlay_health).grid(row=0, column=2, rowspan=2, sticky="e", padx=18, pady=14)
+    ctk.CTkButton(health_box, text="PRÜFEN", width=90, fg_color="#333333", hover_color="#444444", command=app.obs_workflow_scan_overlay_health).grid(row=0, column=2, rowspan=2, sticky="e", padx=18, pady=14)
 
     installer_box = ctk.CTkFrame(outer, fg_color=PANEL, corner_radius=18)
     installer_box.grid(row=2, column=0, columnspan=2, sticky="ew", padx=0, pady=(0, 14))
     installer_box.grid_columnconfigure(1, weight=1)
 
-    ctk.CTkLabel(installer_box, text="Overlay Installer", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, sticky="w", padx=18, pady=(14, 6))
+    ctk.CTkLabel(installer_box, text="Overlay-Installation", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, sticky="w", padx=18, pady=(14, 6))
     installer_expanded = bool(getattr(state, "overlay_installer_expanded", False))
     ctk.CTkButton(
         installer_box,
@@ -203,7 +203,7 @@ def show_obs_workflow_page(app: Any) -> None:
     if current_source != "No scenes loaded":
         state.overlay_installer_source_scene = current_source
 
-    installer_source_label = ctk.CTkLabel(installer_box, text="Source Scene", text_color="#888888")
+        installer_source_label = ctk.CTkLabel(installer_box, text="Quellszene", text_color="#888888")
     installer_source_label.grid(row=1, column=0, sticky="w", padx=18, pady=(0, 4))
     source_menu = ctk.CTkOptionMenu(
         installer_box,
@@ -226,9 +226,9 @@ def show_obs_workflow_page(app: Any) -> None:
 
     btn_row = ctk.CTkFrame(installer_box, fg_color="transparent")
     btn_row.grid(row=1, column=3, sticky="e", padx=18, pady=(0, 8))
-    ctk.CTkButton(btn_row, text="SELECT MISSING", fg_color="#333333", hover_color="#444444", command=app.obs_workflow_overlay_installer_select_missing).pack(side="left", padx=4)
-    ctk.CTkButton(btn_row, text="CLEAR", fg_color="#333333", hover_color="#444444", command=app.obs_workflow_overlay_installer_clear_selection).pack(side="left", padx=4)
-    ctk.CTkButton(btn_row, text="INSTALL SELECTED", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=app.obs_workflow_overlay_installer_install_selected).pack(side="left", padx=4)
+    ctk.CTkButton(btn_row, text="FEHLENDE AUSWÄHLEN", fg_color="#333333", hover_color="#444444", command=app.obs_workflow_overlay_installer_select_missing).pack(side="left", padx=4)
+    ctk.CTkButton(btn_row, text="AUSWAHL LEEREN", fg_color="#333333", hover_color="#444444", command=app.obs_workflow_overlay_installer_clear_selection).pack(side="left", padx=4)
+    ctk.CTkButton(btn_row, text="AUSWAHL INSTALLIEREN", fg_color=GOLD, text_color="#111111", hover_color=GOLD_DARK, command=app.obs_workflow_overlay_installer_install_selected).pack(side="left", padx=4)
 
     target_area = ctk.CTkScrollableFrame(installer_box, fg_color="#0B0B0B", corner_radius=12, height=95)
     target_area.grid(row=2, column=0, columnspan=4, sticky="ew", padx=18, pady=(0, 14))
@@ -273,7 +273,7 @@ def show_obs_workflow_page(app: Any) -> None:
     scenes_box.grid(row=3, column=0, sticky="nsew", padx=(0, 7), pady=0)
     scenes_box.grid_columnconfigure(0, weight=1)
     scenes_box.grid_rowconfigure(1, weight=1)
-    ctk.CTkLabel(scenes_box, text="Scenes", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
+    ctk.CTkLabel(scenes_box, text="Szenen", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 8), sticky="w")
     scenes_list = ctk.CTkScrollableFrame(scenes_box, fg_color="#0B0B0B", corner_radius=12)
     scenes_list.grid(row=1, column=0, sticky="nsew", padx=18, pady=(0, 18))
     scenes_list.grid_columnconfigure(0, weight=1)
@@ -308,7 +308,7 @@ def show_obs_workflow_page(app: Any) -> None:
 
             favorite_btn = ctk.CTkButton(
                 row_frame,
-                text="STAR" if is_fav else "ADD",
+                text="FAVORIT" if is_fav else "HINZUFÜGEN",
                 width=58,
                 fg_color=GOLD if is_fav else "#333333",
                 text_color="#111111" if is_fav else "#D9C58C",
@@ -319,7 +319,7 @@ def show_obs_workflow_page(app: Any) -> None:
 
             switch_btn = ctk.CTkButton(
                 row_frame,
-                text="SWITCH",
+                text="WECHSELN",
                 width=80,
                 fg_color=GOLD if not is_current else "#333333",
                 text_color="#111111" if not is_current else "#AAAAAA",
@@ -338,7 +338,7 @@ def show_obs_workflow_page(app: Any) -> None:
     right_box.grid(row=3, column=1, sticky="nsew", padx=(7, 0), pady=0)
     right_box.grid_columnconfigure(0, weight=1)
     right_box.grid_rowconfigure(2, weight=1)
-    ctk.CTkLabel(right_box, text="Current Scene Control", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 6), sticky="w")
+    ctk.CTkLabel(right_box, text="Steuerung der aktuellen Szene", text_color=GOLD, font=ctk.CTkFont(size=18, weight="bold")).grid(row=0, column=0, padx=18, pady=(18, 6), sticky="w")
 
     current_health = app.obs_workflow_current_scene_health()
     if current_health:
@@ -393,7 +393,7 @@ def show_obs_workflow_page(app: Any) -> None:
     last = state.last_command or "No command yet"
     if state.last_command_time:
         last = f"{last}  ({state.last_command_time})"
-    ctk.CTkLabel(bottom, text=f"Last Command: {last}", text_color="#BCA870", anchor="w").grid(row=0, column=0, padx=18, pady=(14, 4), sticky="ew")
+    ctk.CTkLabel(bottom, text=f"Letzter Befehl: {last}", text_color="#BCA870", anchor="w").grid(row=0, column=0, padx=18, pady=(14, 4), sticky="ew")
     activity = "\n".join(app.obs_workflow_recent_activity()) or "No recent activity yet."
-    ctk.CTkLabel(bottom, text="Recent Activity", text_color=GOLD, font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid(row=1, column=0, padx=18, pady=(4, 2), sticky="ew")
+    ctk.CTkLabel(bottom, text="Letzte Aktivitäten", text_color=GOLD, font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid(row=1, column=0, padx=18, pady=(4, 2), sticky="ew")
     ctk.CTkLabel(bottom, text=activity, text_color="#888888", justify="left", anchor="w").grid(row=2, column=0, padx=18, pady=(0, 14), sticky="ew")

@@ -37,8 +37,8 @@ class CardCreatorPageModuleTests(unittest.TestCase):
 
     def test_card_creator_page_preserves_existing_controls_and_callbacks(self):
         source = PAGE_PATH.read_text(encoding="utf-8")
-        self.assertIn('text="UPDATE PREVIEW"', source)
-        self.assertIn('text="RENDER CARD"', source)
+        self.assertIn('text="VORSCHAU AKTUALISIEREN"', source)
+        self.assertIn('text="KARTE RENDERN"', source)
         self.assertIn('text="IMPORT CSV/XLSX"', source)
         self.assertIn('text="SAVE PROJECT"', source)
         self.assertIn('text="LOAD PROJECT"', source)

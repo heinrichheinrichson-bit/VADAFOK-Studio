@@ -45,7 +45,7 @@ def build_quick_cards_tree(app: Any) -> None:
             command=lambda selected=category: app.quick_cards_rename_category(selected),
         ).grid(row=0, column=2, padx=4, pady=8)
         ctk.CTkButton(
-            header, text="DEL", width=54, fg_color="#5A1F1F",
+            header, text="LÃ–SCHEN", width=72, fg_color="#5A1F1F",
             hover_color="#7A2A2A",
             command=lambda selected=category: app.quick_cards_delete_category(selected),
         ).grid(row=0, column=3, padx=(4, 8), pady=8)
@@ -74,7 +74,7 @@ def build_category_body(app: Any, category: str) -> bool:
         widget.destroy()
     texts = app.text_library_data.get(category, [])
     if not texts:
-        ctk.CTkLabel(body, text="No texts.", text_color="#777777").grid(
+        ctk.CTkLabel(body, text="Keine Texte vorhanden.", text_color="#777777").grid(
             row=0, column=0, padx=22, pady=4, sticky="w",
         )
         return True
@@ -117,12 +117,12 @@ def _build_text_row(
         )
         entry.bind("<Escape>", lambda _event: app.quick_cards_cancel_text_edit())
         ctk.CTkButton(
-            item, text="SAVE", width=60, fg_color=GOLD,
+            item, text="SPEICHERN", width=76, fg_color=GOLD,
             text_color="#111111", hover_color=GOLD_DARK,
             command=lambda cat=category, old=text: app.quick_cards_commit_text_edit(cat, old),
         ).grid(row=0, column=1, padx=4, pady=6)
         ctk.CTkButton(
-            item, text="CANCEL", width=70, fg_color="#333333",
+            item, text="ABBRECHEN", width=82, fg_color="#333333",
             hover_color="#444444", command=app.quick_cards_cancel_text_edit,
         ).grid(row=0, column=2, padx=(4, 8), pady=6)
         return
@@ -137,7 +137,7 @@ def _build_text_row(
         command=lambda cat=category, old=text: app.quick_cards_start_text_edit(cat, old),
     ).grid(row=0, column=1, padx=4, pady=6)
     ctk.CTkButton(
-        item, text="DEL", width=48, fg_color="#5A1F1F",
+        item, text="LÃ–SCHEN", width=70, fg_color="#5A1F1F",
         hover_color="#7A2A2A",
         command=lambda cat=category, old=text: app.quick_cards_delete_text(cat, old),
     ).grid(row=0, column=2, padx=(4, 8), pady=6)

@@ -60,7 +60,7 @@ def render_folder_overview(app: Any) -> None:
     intro.grid(row=0, column=0, columnspan=3, padx=12, pady=(12, 6), sticky="ew")
     intro.grid_columnconfigure(0, weight=1)
     ctk.CTkLabel(
-        intro, text="Library Folder", text_color=GOLD,
+        intro, text="Medienordner", text_color=GOLD,
         font=ctk.CTkFont(size=20, weight="bold"),
     ).grid(row=0, column=0, padx=16, pady=(14, 3), sticky="w")
     ctk.CTkLabel(
@@ -97,7 +97,7 @@ def render_folder_overview(app: Any) -> None:
             font=ctk.CTkFont(size=11),
         ).grid(row=2, column=0, padx=14, pady=(0, 8))
         ctk.CTkButton(
-            card, text="OPEN", height=34,
+                card, text="ÖFFNEN", height=34,
             fg_color=GOLD if available else "#333333",
             text_color="#111111" if available else "#777777",
             hover_color=GOLD_DARK if available else "#333333",

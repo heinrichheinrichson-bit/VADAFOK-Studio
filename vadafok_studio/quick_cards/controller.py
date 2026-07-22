@@ -58,7 +58,7 @@ class QuickCardsController:
     def add_category(self) -> None:
         category = self.app.text_library_new_category.get().strip()
         if not category:
-            messagebox.showinfo("Quick Cards", "Please enter a category name.")
+            messagebox.showinfo("Schnelltexte", "Bitte einen Kategorienamen eingeben.")
             return
         self.app.text_library_data = text_library_engine.add_category(category)
         self.app.text_library_new_category.set("")
@@ -69,7 +69,7 @@ class QuickCardsController:
 
     def rename_category(self, category: str) -> None:
         new_name = simpledialog.askstring(
-            "Quick Cards", "New category name:", initialvalue=category,
+            "Schnelltexte", "Neuer Kategoriename:", initialvalue=category,
         )
         new_name = str(new_name or "").strip()
         if not new_name:
@@ -86,8 +86,8 @@ class QuickCardsController:
 
     def delete_category(self, category: str) -> None:
         if not messagebox.askyesno(
-            "Quick Cards",
-            f"Delete category '{category}'?\nAll texts inside will be removed.",
+            "Schnelltexte",
+            f"Kategorie â€ž{category}â€œ wirklich lÃ¶schen?\nAlle enthaltenen Texte werden entfernt.",
         ):
             return
         self.app.text_library_data = text_library_engine.delete_category(category)
@@ -98,7 +98,7 @@ class QuickCardsController:
     def add_text(self) -> None:
         text = self.app.text_library_new_text.get().strip()
         if not text:
-            messagebox.showinfo("Quick Cards", "Please enter a text first.")
+            messagebox.showinfo("Schnelltexte", "Bitte zuerst einen Text eingeben.")
             return
         category = self.app.quick_cards_target_category.get()
         self.app.text_library_data = text_library_engine.add_text(category, text)
@@ -109,7 +109,7 @@ class QuickCardsController:
     def save_live_text(self) -> None:
         text = self.app.live_card_get_message_text()
         if not text:
-            messagebox.showinfo("Quick Cards", "No Live Card text found.")
+            messagebox.showinfo("Schnelltexte", "Kein Live-Karten-Text gefunden.")
             return
         categories = self.categories()
         if self.app.quick_cards_target_category.get() not in categories:
@@ -117,7 +117,7 @@ class QuickCardsController:
             self.app.quick_cards_target_category.set(target)
         category = self.app.quick_cards_target_category.get()
         self.app.text_library_data = text_library_engine.add_text(category, text)
-        messagebox.showinfo("Quick Cards", f"Text saved.\nCategory: {category}")
+        messagebox.showinfo("Schnelltexte", f"Text gespeichert.\nKategorie: {category}")
         self.refresh_category(category)
 
     def start_text_edit(self, category: str, text: str) -> None:
@@ -129,7 +129,7 @@ class QuickCardsController:
     def commit_text_edit(self, category: str, text: str) -> None:
         new_text = self.app.quick_cards_edit_text_var.get().strip()
         if not new_text:
-            messagebox.showinfo("Quick Cards", "Text cannot be empty.")
+            messagebox.showinfo("Schnelltexte", "Der Text darf nicht leer sein.")
             return
         self.app.text_library_data = text_library_engine.edit_text(
             category, text, new_text,
@@ -144,7 +144,7 @@ class QuickCardsController:
             self.refresh_category(category)
 
     def delete_text(self, category: str, text: str) -> None:
-        if not messagebox.askyesno("Quick Cards", "Delete this text?"):
+        if not messagebox.askyesno("Schnelltexte", "Diesen Text wirklich lÃ¶schen?"):
             return
         self.app.text_library_data = text_library_engine.delete_text(category, text)
         self.refresh_category(category)

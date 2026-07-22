@@ -15,7 +15,7 @@ def show_settings_page(app):
     """Build and display the existing Settings page for *app*."""
     app.set_active("Settings")
     app.clear_main()
-    app.page_title("Settings")
+    app.page_title("Einstellungen")
 
     box = ctk.CTkScrollableFrame(app.main, fg_color=PANEL, corner_radius=18)
     box.grid(row=1, column=0, sticky="nsew", padx=24, pady=(0, 24))
@@ -52,21 +52,21 @@ def show_settings_page(app):
     card_output_box.grid_columnconfigure(1, weight=1)
 
     ctk.CTkLabel(
-        card_output_box, text="Card Creator Output", text_color=GOLD,
+        card_output_box, text="Ausgabe des Karten-Generators", text_color=GOLD,
         font=ctk.CTkFont(size=17, weight="bold"),
     ).grid(row=0, column=0, columnspan=4, padx=16, pady=(14, 3), sticky="w")
 
-    ctk.CTkLabel(card_output_box, text="Single card folder", text_color="#BCA870").grid(row=1, column=0, padx=16, pady=8, sticky="w")
+    ctk.CTkLabel(card_output_box, text="Ordner für Einzelkarten", text_color="#BCA870").grid(row=1, column=0, padx=16, pady=8, sticky="w")
     ctk.CTkEntry(card_output_box, textvariable=app.card_output_folder).grid(row=1, column=1, padx=8, pady=8, sticky="ew")
-    ctk.CTkButton(card_output_box, text="BROWSE...", width=105, fg_color="#333333", hover_color="#444444", command=app.browse_card_output_folder).grid(row=1, column=2, padx=4, pady=8)
-    ctk.CTkButton(card_output_box, text="OPEN", width=80, fg_color="#333333", hover_color="#444444", command=app.open_card_output_folder).grid(row=1, column=3, padx=(4, 16), pady=8)
+    ctk.CTkButton(card_output_box, text="DURCHSUCHEN…", width=105, fg_color="#333333", hover_color="#444444", command=app.browse_card_output_folder).grid(row=1, column=2, padx=4, pady=8)
+    ctk.CTkButton(card_output_box, text="ÖFFNEN", width=80, fg_color="#333333", hover_color="#444444", command=app.open_card_output_folder).grid(row=1, column=3, padx=(4, 16), pady=8)
 
-    ctk.CTkLabel(card_output_box, text="Batch output folder", text_color="#BCA870").grid(row=2, column=0, padx=16, pady=8, sticky="w")
+    ctk.CTkLabel(card_output_box, text="Ordner für Stapelausgabe", text_color="#BCA870").grid(row=2, column=0, padx=16, pady=8, sticky="w")
     ctk.CTkEntry(card_output_box, textvariable=app.card_batch_output_folder).grid(row=2, column=1, padx=8, pady=8, sticky="ew")
-    ctk.CTkButton(card_output_box, text="BROWSE...", width=105, fg_color="#333333", hover_color="#444444", command=app.browse_card_batch_output_folder).grid(row=2, column=2, padx=4, pady=8)
-    ctk.CTkButton(card_output_box, text="OPEN", width=80, fg_color="#333333", hover_color="#444444", command=app.open_card_batch_output_folder).grid(row=2, column=3, padx=(4, 16), pady=8)
+    ctk.CTkButton(card_output_box, text="DURCHSUCHEN…", width=105, fg_color="#333333", hover_color="#444444", command=app.browse_card_batch_output_folder).grid(row=2, column=2, padx=4, pady=8)
+    ctk.CTkButton(card_output_box, text="ÖFFNEN", width=80, fg_color="#333333", hover_color="#444444", command=app.open_card_batch_output_folder).grid(row=2, column=3, padx=(4, 16), pady=8)
 
-    ctk.CTkCheckBox(card_output_box, text="Ask for output location before rendering", variable=app.card_ask_output_location).grid(row=3, column=0, columnspan=4, padx=16, pady=(8, 14), sticky="w")
+    ctk.CTkCheckBox(card_output_box, text="Ausgabeort vor dem Rendern abfragen", variable=app.card_ask_output_location).grid(row=3, column=0, columnspan=4, padx=16, pady=(8, 14), sticky="w")
 
     stream_effect_box = ctk.CTkFrame(
         box,
@@ -80,14 +80,14 @@ def show_settings_page(app):
 
     ctk.CTkLabel(
         stream_effect_box,
-        text="OBS Stream Effect",
+        text="OBS-Stream-Effekt",
         text_color=GOLD,
         font=ctk.CTkFont(size=17, weight="bold"),
     ).grid(row=0, column=0, columnspan=2, padx=16, pady=(14, 3), sticky="w")
 
     ctk.CTkLabel(
         stream_effect_box,
-        text="Media Source name",
+        text="Name der Medienquelle",
         text_color="#BCA870",
     ).grid(row=1, column=0, padx=16, pady=(6, 14), sticky="w")
 
@@ -127,12 +127,12 @@ def show_settings_page(app):
 
     ctk.CTkCheckBox(
         voice_box,
-        text="Enable Voice Trigger",
+        text="Sprachsteuerung aktivieren",
         variable=app.voice_enabled,
         command=app.toggle_voice_trigger,
     ).grid(row=2, column=0, padx=16, pady=8, sticky="w")
 
-    ctk.CTkLabel(voice_box, text="Command", text_color="#BCA870").grid(
+    ctk.CTkLabel(voice_box, text="Sprachbefehl", text_color="#BCA870").grid(
         row=3, column=0, padx=16, pady=8, sticky="w"
     )
     command_entry = ctk.CTkEntry(voice_box, textvariable=app.voice_trigger_phrase)
@@ -140,7 +140,7 @@ def show_settings_page(app):
 
     ctk.CTkButton(
         voice_box,
-        text="TEST F8 ACTION",
+        text="F8-AKTION TESTEN",
         width=140,
         fg_color="#333333",
         hover_color="#444444",
@@ -148,7 +148,7 @@ def show_settings_page(app):
     ).grid(row=3, column=2, padx=(8, 16), pady=8)
 
     ctk.CTkLabel(
-        voice_box, text="Recognition culture", text_color="#BCA870"
+        voice_box, text="Erkennungssprache", text_color="#BCA870"
     ).grid(row=4, column=0, padx=16, pady=8, sticky="w")
     culture_entry = ctk.CTkEntry(
         voice_box,
@@ -159,7 +159,7 @@ def show_settings_page(app):
 
     ctk.CTkButton(
         voice_box,
-        text="RESTART LISTENER",
+        text="ERKENNUNG NEU STARTEN",
         width=140,
         fg_color="#333333",
         hover_color="#444444",
@@ -177,7 +177,7 @@ def show_settings_page(app):
         justify="left",
     ).grid(row=5, column=1, columnspan=2, padx=8, pady=(8, 3), sticky="w")
 
-    ctk.CTkLabel(voice_box, text="Last heard:", text_color="#BCA870").grid(
+    ctk.CTkLabel(voice_box, text="Zuletzt erkannt:", text_color="#BCA870").grid(
         row=6, column=0, padx=16, pady=(3, 14), sticky="w"
     )
     ctk.CTkLabel(
@@ -190,7 +190,7 @@ def show_settings_page(app):
 
     ctk.CTkButton(
         box,
-        text="SAVE SETTINGS",
+        text="EINSTELLUNGEN SPEICHERN",
         height=42,
         fg_color=GOLD,
         text_color="#111111",

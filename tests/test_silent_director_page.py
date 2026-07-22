@@ -16,7 +16,7 @@ class SilentDirectorPageTests(unittest.TestCase):
         self.assertIn("show_silent_director_page as build_silent_director_page", app_source)
         self.assertIn("return build_silent_director_page(self)", app_source)
         self.assertNotIn('text="Director Presets"', app_source)
-        self.assertIn('text="Director Presets"', page_source)
+        self.assertIn('text="Director-Presets"', page_source)
 
     def test_app_page_method_is_a_thin_adapter(self):
         tree = ast.parse(APP_PATH.read_text(encoding="utf-8"))
