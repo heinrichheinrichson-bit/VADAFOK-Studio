@@ -429,6 +429,7 @@ class VadafokStudio(ctk.CTk):
         ctk.CTkLabel(self.sidebar, text="🎭 VADAFOK", font=ctk.CTkFont(size=26, weight="bold"), text_color=GOLD).pack(anchor="w", padx=18, pady=(24, 0))
         ctk.CTkLabel(self.sidebar, text=SIDEBAR_VERSION, text_color="#BCA870").pack(anchor="w", padx=20, pady=(0, 22))
         self.nav_buttons = {}
+        self._page_cache = {}
         pages = [
             ("Library", self.show_library),
             ("Banner Editor", self.show_banner_profiles_page),
@@ -443,7 +444,14 @@ class VadafokStudio(ctk.CTk):
             ("Settings", self.show_settings_page),
         ]
         for name, cmd in pages:
-            btn = ctk.CTkButton(self.sidebar, text=name, height=42, corner_radius=10, anchor="w", fg_color="transparent", hover_color=GOLD_DARK, text_color=TEXT, command=cmd)
+            btn = ctk.CTkButton(
+                self.sidebar, text=name, height=42, corner_radius=10,
+                anchor="w", fg_color="transparent", hover_color=GOLD_DARK,
+                text_color=TEXT,
+                command=lambda page=name, builder=cmd: self.navigate_to_page(
+                    page, builder
+                ),
+            )
             btn.pack(fill="x", padx=14, pady=5)
             self.nav_buttons[name] = btn
         ctk.CTkFrame(self.sidebar, fg_color="transparent").pack(fill="both", expand=True)
@@ -460,6 +468,41 @@ class VadafokStudio(ctk.CTk):
             active = n == name
             b.configure(fg_color=GOLD if active else "transparent", text_color="#111111" if active else TEXT)
 
+    def navigate_to_page(self, name, builder):
+        """Reuse the Silent Director page after its first normal construction."""
+        cached = self._page_cache.get(name)
+        if cached is not None:
+            try:
+                if cached.winfo_exists():
+                    current = getattr(self, "main", None)
+                    if current is not None and current is not cached:
+                        current.destroy()
+                    self.main = cached
+                    cached.grid(row=0, column=1, sticky="nsew")
+                    cached.tkraise()
+                    self.set_active(name)
+                    return
+            except Exception:
+                pass
+            self._page_cache.pop(name, None)
+
+        current = getattr(self, "main", None)
+        if (
+            getattr(self, "active_page", None) == "Silent Director"
+            and current is not None
+        ):
+            try:
+                current.grid_remove()
+                self._page_cache["Silent Director"] = current
+                del self.main
+            except Exception:
+                self._page_cache.pop("Silent Director", None)
+
+        result = builder()
+        if name == "Silent Director" and hasattr(self, "main"):
+            self._page_cache[name] = self.main
+        return result
+
     def clear_main(self):
         if getattr(self, "silent_director_drag_active", False):
             try:
@@ -471,6 +514,9 @@ class VadafokStudio(ctk.CTk):
             self.silent_director_drag_index = None
             self.silent_director_drop_index = None
         if hasattr(self, "main"):
+            for page, cached in list(getattr(self, "_page_cache", {}).items()):
+                if cached is self.main:
+                    self._page_cache.pop(page, None)
             self.main.destroy()
         self.main = ctk.CTkFrame(self, fg_color=DARK, corner_radius=0)
         self.main.grid(row=0, column=1, sticky="nsew")
