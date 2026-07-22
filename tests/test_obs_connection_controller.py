@@ -36,6 +36,23 @@ def make_app():
 
 
 class OBSConnectionControllerTests(unittest.TestCase):
+    def test_connect_ignores_status_widgets_from_destroyed_page(self):
+        app = make_app()
+        stale_status = Mock()
+        stale_status.winfo_exists.return_value = 0
+        stale_detail = Mock()
+        stale_detail.winfo_exists.return_value = 0
+        app.obs_connection_status_label = stale_status
+        app.obs_connection_detail_label = stale_detail
+        controller = OBSConnectionController(app)
+
+        self.assertTrue(controller.connect(show_dialog=False))
+
+        stale_status.configure.assert_not_called()
+        stale_detail.configure.assert_not_called()
+        self.assertIsNone(app.obs_connection_status_label)
+        self.assertIsNone(app.obs_connection_detail_label)
+
     def test_endpoint_validation_rejects_invalid_port(self):
         app = make_app()
         app.port = Variable("70000")

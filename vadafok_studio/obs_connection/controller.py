@@ -197,24 +197,51 @@ class OBSConnectionController:
 
     def _set_status(self, text, color):
         label = getattr(self.app, "obs_connection_status_label", None)
-        if label is not None:
+        if label is None:
+            return
+        try:
+            if not label.winfo_exists():
+                self.app.obs_connection_status_label = None
+                return
             label.configure(text=text, text_color=color)
+        except Exception:
+            self.app.obs_connection_status_label = None
 
     def _set_detail(self, text):
         label = getattr(self.app, "obs_connection_detail_label", None)
-        if label is not None:
+        if label is None:
+            return
+        try:
+            if not label.winfo_exists():
+                self.app.obs_connection_detail_label = None
+                return
             label.configure(text=text)
+        except Exception:
+            self.app.obs_connection_detail_label = None
 
     def _clear_diagnostics(self):
         frame = getattr(self.app, "obs_diagnostics_list", None)
         if frame is None:
             return
-        for child in frame.winfo_children():
-            child.destroy()
+        try:
+            if not frame.winfo_exists():
+                self.app.obs_diagnostics_list = None
+                return
+            for child in frame.winfo_children():
+                child.destroy()
+        except Exception:
+            self.app.obs_diagnostics_list = None
 
     def _add_diagnostic(self, label, result, color):
         frame = getattr(self.app, "obs_diagnostics_list", None)
         if frame is None:
+            return
+        try:
+            if not frame.winfo_exists():
+                self.app.obs_diagnostics_list = None
+                return
+        except Exception:
+            self.app.obs_diagnostics_list = None
             return
         import customtkinter as ctk
 

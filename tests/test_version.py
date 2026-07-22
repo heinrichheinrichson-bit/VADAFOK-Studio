@@ -12,14 +12,14 @@ from vadafok_studio.version import (
 
 class VersionTests(unittest.TestCase):
     def test_current_version(self):
-        assert VERSION == "2.29.0.17"
+        assert VERSION == "2.29.0.18"
 
 
     def test_runtime_version_constants_are_available(self):
         assert PRODUCT_NAME == "VADAFOK Studio"
-        assert APP_TITLE == "VADAFOK Studio 2.29.0.17"
-        assert SIDEBAR_VERSION == "Studio 2.29.0.17"
-        assert APP_USER_MODEL_ID == "VADAFOK.Studio.2.29.0.17"
+        assert APP_TITLE == "VADAFOK Studio 2.29.0.18"
+        assert SIDEBAR_VERSION == "Studio 2.29.0.18"
+        assert APP_USER_MODEL_ID == "VADAFOK.Studio.2.29.0.18"
 
 
     def test_version_info_contains_runtime_values(self):
